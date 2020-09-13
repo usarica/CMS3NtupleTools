@@ -6,6 +6,7 @@
 
 
 HLTTriggerPathObject::HLTTriggerPathObject() :
+  flag_valid(false),
   uniqueIdentifier(0)
 {
 #define HLTTRIGGERPATH_VARIABLE(TYPE, NAME, DEFVAL) this->NAME=DEFVAL;
@@ -13,6 +14,7 @@ HLTTriggerPathObject::HLTTriggerPathObject() :
 #undef HLTTRIGGERPATH_VARIABLE
 }
 HLTTriggerPathObject::HLTTriggerPathObject(HLTTriggerPathObject const& other) :
+  flag_valid(other.flag_valid),
   uniqueIdentifier(other.uniqueIdentifier),
   passedTriggerObjects(other.passedTriggerObjects),
   failedTriggerObjects(other.failedTriggerObjects)
@@ -22,6 +24,7 @@ HLTTriggerPathObject::HLTTriggerPathObject(HLTTriggerPathObject const& other) :
 #undef HLTTRIGGERPATH_VARIABLE
 }
 void HLTTriggerPathObject::swap(HLTTriggerPathObject& other){
+  std::swap(this->flag_valid, other.flag_valid);
   std::swap(this->uniqueIdentifier, other.uniqueIdentifier);
   std::swap(this->passedTriggerObjects, other.passedTriggerObjects);
   std::swap(this->failedTriggerObjects, other.failedTriggerObjects);

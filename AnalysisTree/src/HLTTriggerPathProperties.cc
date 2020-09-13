@@ -1,5 +1,6 @@
 #include <cassert>
 #include "HelperFunctions.h"
+#include "SamplesCore.h"
 #include "HLTTriggerPathProperties.h"
 #include "MELAStreamHelpers.hh"
 
@@ -24,7 +25,8 @@ HLTTriggerPathProperties::HLTTriggerPathProperties(std::string const& name_, std
 }
 HLTTriggerPathProperties::HLTTriggerPathProperties(HLTTriggerPathProperties const& other) :
   name(other.name),
-  triggerObjectProperties(other.triggerObjectProperties)
+  triggerObjectProperties(other.triggerObjectProperties),
+  excluded_runRange_list(other.excluded_runRange_list)
 {}
 
 void HLTTriggerPathProperties::setupName(){
@@ -114,4 +116,11 @@ bool HLTTriggerPathProperties::testCuts(
     }
   }
   return res;
+}
+
+bool HLTTriggerPathProperties::testRun(unsigned int const& run) const{
+  for (auto const& rr:excluded_runRange_list){
+    if (run>=rr.first && run<=rr.second) return false;
+  }
+  return true;
 }

@@ -18,6 +18,8 @@ protected:
   std::string name;
   std::unordered_map< HLTObjectProperties::TriggerObjectType, std::vector<HLTObjectProperties> > triggerObjectProperties;
 
+  std::vector< std::pair<unsigned int, unsigned int> > excluded_runRange_list;
+
   void setupName();
 
 public:
@@ -28,8 +30,10 @@ public:
 
   void setup();
   void addObjectProperties(HLTObjectProperties const& props);
+  void setExcludedRunRanges(std::vector< std::pair<unsigned int, unsigned int> > const& rangelist){ excluded_runRange_list = rangelist; }
 
   void resetCuts();
+  void resetExcludedRunRanges(){ excluded_runRange_list.clear(); }
 
   bool testCuts(
     std::vector<MuonObject const*> const& muons,
@@ -43,8 +47,10 @@ public:
     ParticleObject::LorentzVector_t const& ht_nomu_p4
   ) const;
   template<typename T> bool testCutSet(HLTObjectProperties::TriggerObjectType const& type, std::vector<HLTObjectProperties> const& props, std::vector<T const*> const& objects) const;
+  bool testRun(unsigned int const& run) const;
 
   bool isSameTrigger(std::string const& name_) const;
+  bool hasExcludedRunRanges() const{ return !excluded_runRange_list.empty(); }
 
   std::string const& getName() const{ return name; }
   std::unordered_map< HLTObjectProperties::TriggerObjectType, std::vector<HLTObjectProperties> > const& getObjectProperties() const{ return triggerObjectProperties; }

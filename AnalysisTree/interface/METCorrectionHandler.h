@@ -63,7 +63,8 @@ public:
   void applyCorrections(
     TString const& effDataPeriod,
     float const& genMET, float const& genMETPhi,
-    METObject* obj, bool isPFMET
+    METObject* obj, bool isPFMET,
+    double const* inputRndNum = nullptr
   ) const;
 
   void printParameters() const;

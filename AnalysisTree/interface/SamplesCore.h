@@ -42,6 +42,7 @@ namespace SampleHelpers{
 
   TString getDataPeriodFromRunNumber(unsigned int run);
   std::pair<unsigned int, unsigned int> getRunRangeFromDataPeriod(TString const& period);
+  std::vector< std::pair<unsigned int, double> > const& getRunNumberLumiPairsForDataPeriod(TString const& period);
   bool isHEM2018Affected(unsigned int run);
   std::vector<TString> getValidDataPeriods();
   bool testDataPeriodIsLikeData(TString const& period);
@@ -55,7 +56,8 @@ namespace SampleHelpers{
   bool checkSampleIs80X(TString const& strid);
   bool checkSampleIsFastSim(TString const& strid);
 
-  TString getRandomDataPeriod(unsigned long long const& iseed, float* rndnum=nullptr);
+  TString getRandomDataPeriod(unsigned long long const& iseed, double* rndnum_global=nullptr, double* rndnum_local=nullptr);
+  int translateRandomNumberToRunNumber(TString const& period, double const& rndnum);
 
   bool checkRunOnCondor();
   void addToCondorTransferList(TString const& fname);

@@ -41,6 +41,8 @@ namespace TriggerHelpers{
 
     nTriggerTypes
   };
+
+  bool hasRunRangeExclusions(std::string const& name, HLTTriggerPathProperties const** out_hltprop = nullptr); // This is to allow a string-based recognition of run range exclusions.
 }
 
 #endif

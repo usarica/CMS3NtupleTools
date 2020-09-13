@@ -15,9 +15,9 @@ namespace SampleHelpers{
   TString theDataPeriod="2018"; // Initialize the extern here to 2018
   TString theInputDirectory=""; // Initialize the extern here to empty string
 
-  std::vector< std::pair< std::pair<unsigned int, unsigned int>, TString > > const runRange_dataPeriod_list = define_runRange_dataPeriod_list();
-  std::vector< std::pair<unsigned int, double> > const runNumber_lumi_pair_list = define_runNumber_lumi_pair_list();
-  std::unordered_map<TString, double> const dataPeriod_lumi_map = define_dataPeriod_lumi_map();
+  std::vector< std::pair< std::pair<unsigned int, unsigned int>, TString > > const runRange_dataPeriod_pair_list = define_runRange_dataPeriod_pair_list();
+  std::unordered_map< TString, std::vector< std::pair<unsigned int, double> > > const dataPeriod_runNumber_lumi_pairs_map = define_dataPeriod_runNumber_lumi_pairs_map();
+  std::unordered_map< TString, double > const dataPeriod_lumi_map = define_dataPeriod_lumi_map();
 
 }
 
@@ -102,21 +102,21 @@ std::vector<TString> SampleHelpers::getValidDataPeriods(){
 }
 TString SampleHelpers::getDataPeriodFromRunNumber(unsigned int run){
   TString res;
-  for (auto const& rr_dp:runRange_dataPeriod_list){
+  for (auto const& rr_dp:runRange_dataPeriod_pair_list){
     if (run>=rr_dp.first.first && run<=rr_dp.first.second){
       res = rr_dp.second;
       break;
     }
   }
   if (res==""){
-    MELAerr << "SampleHelpers::getDataPeriodFromRunNumber: Run " << run << " is not defined in any range. Please check the implementation of SampleHelpers::define_runRange_dataPeriod_list!" << endl;
+    MELAerr << "SampleHelpers::getDataPeriodFromRunNumber: Run " << run << " is not defined in any range. Please check the implementation of SampleHelpers::define_runRange_dataPeriod_pair_list!" << endl;
     assert(0);
   }
   return res;
 }
 std::pair<unsigned int, unsigned int> SampleHelpers::getRunRangeFromDataPeriod(TString const& period){
   std::pair<unsigned int, unsigned int> res(0, 0);
-  for (auto const& rr_dp:runRange_dataPeriod_list){
+  for (auto const& rr_dp:runRange_dataPeriod_pair_list){
     if (rr_dp.second.Contains(period)){
       if (res.first==0) res.first = rr_dp.first.first;
       else res.first = std::min(res.first, rr_dp.first.first);
@@ -125,10 +125,18 @@ std::pair<unsigned int, unsigned int> SampleHelpers::getRunRangeFromDataPeriod(T
     }
   }
   if (res.first == res.second){
-    MELAerr << "SampleHelpers::getRunRangeFromDataPeriod: Period " << period << " is not defined for any range. Please check the implementation of SampleHelpers::define_runRange_dataPeriod_list!" << endl;
+    MELAerr << "SampleHelpers::getRunRangeFromDataPeriod: Period " << period << " is not defined for any range. Please check the implementation of SampleHelpers::define_runRange_dataPeriod_pair_list!" << endl;
     assert(0);
   }
   return res;
+}
+std::vector< std::pair<unsigned int, double> > const& SampleHelpers::getRunNumberLumiPairsForDataPeriod(TString const& period){
+  std::unordered_map< TString, std::vector< std::pair<unsigned int, double> > >::const_iterator it;
+  if (!HelperFunctions::getUnorderedMapIterator(period, dataPeriod_runNumber_lumi_pairs_map, it)){
+    MELAerr << "SampleHelpers::getRunNumberLumiPairsForDataPeriod: Period " << period << " is not found in the data period - run numbers map. Please revise the construction of this map!" << endl;
+    assert(0);
+  }
+  return it->second;
 }
 
 bool SampleHelpers::isHEM2018Affected(unsigned int run){ return (run>=319077); }
@@ -175,26 +183,54 @@ bool SampleHelpers::checkSampleIsData(TString const& strid, TString* theSampleDa
 bool SampleHelpers::checkSampleIs80X(TString const& strid){ return strid.Contains("Summer16MiniAODv2"); }
 bool SampleHelpers::checkSampleIsFastSim(TString const& strid){ return false; }
 
-TString SampleHelpers::getRandomDataPeriod(unsigned long long const& iseed, float* rndnum){
-  if (rndnum) *rndnum = -1;
+TString SampleHelpers::getRandomDataPeriod(unsigned long long const& iseed, double* rndnum_global, double* rndnum_local){
+  if (rndnum_global) *rndnum_global = -1;
+  if (rndnum_local) *rndnum_local = -1;
   std::vector<TString> const valid_periods = getValidDataPeriods();
   if (std::find(valid_periods.cbegin(), valid_periods.cend(), theDataPeriod)==valid_periods.cend()){
-    std::vector<float> lumilist; lumilist.reserve(valid_periods.size());
+    std::vector<double> lumilist; lumilist.reserve(valid_periods.size());
     for (TString const& period:valid_periods) lumilist.push_back(getIntegratedLuminosity(period));
     for (size_t il=1; il<lumilist.size(); il++) lumilist.at(il) += lumilist.at(il-1);
     for (size_t il=0; il<lumilist.size(); il++) lumilist.at(il) /= lumilist.back();
     TRandom3 rand;
     rand.SetSeed(iseed);
-    int i_era = -1;
-    float era_x = rand.Uniform();
-    if (rndnum) *rndnum = era_x;
+    char i_era = -1;
+    double era_x = rand.Uniform();
+    if (rndnum_global) *rndnum_global = era_x;
     for (auto const& lumi_era:lumilist){
       i_era++;
       if (era_x<=lumi_era) break;
     }
+    if (rndnum_local){
+      double era_x0 = 0;
+      if (i_era>0) era_x0 = lumilist.at(i_era-1);
+      *rndnum_local = (era_x - era_x0)/(lumilist.at(i_era) - era_x0);
+    }
     return valid_periods.at(i_era);
   }
   else return theDataPeriod;
+}
+
+int SampleHelpers::translateRandomNumberToRunNumber(TString const& period, double const& rndnum){
+  int res = -1;
+  std::unordered_map< TString, std::vector< std::pair<unsigned int, double> > >::const_iterator it;
+  if (!HelperFunctions::getUnorderedMapIterator(period, dataPeriod_runNumber_lumi_pairs_map, it)){
+    MELAerr << "SampleHelpers::translateRandomNumberToRunNumber: Period " << period << " is not found in the dataPeriod_runNumber_lumi_pairs_map. Please revise the implementation." << endl;
+    assert(0);
+  }
+
+  double lumi_rnd = getIntegratedLuminosity(period)*rndnum;
+  double lumi_total = 0;
+  for (auto const& rn_lumi_pair:it->second){
+    lumi_total += rn_lumi_pair.second;
+    if (lumi_rnd<=lumi_total){
+      res = rn_lumi_pair.first;
+      break;
+    }
+  }
+  if (res==-1) res = it->second.back().first;
+
+  return res;
 }
 
 bool SampleHelpers::checkRunOnCondor(){ return HostHelpers::FileExists("RUNNING_ON_CONDOR"); }

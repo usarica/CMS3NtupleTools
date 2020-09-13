@@ -7,6 +7,9 @@
 namespace TriggerHelpers{
   std::unordered_map< TriggerHelpers::TriggerType, std::vector<std::string> > HLT_type_list_map;
   std::unordered_map< TriggerHelpers::TriggerType, std::vector<HLTTriggerPathProperties> > HLT_type_proplist_map;
+  std::vector<HLTTriggerPathProperties const*> runRangeExcluded_HLTprop_list; // This list is only for ease
+
+  void assignRunRangeExclusions(std::string const& name, std::vector< std::pair<int, int> > const& rangelist);
 }
 
 
@@ -57,11 +60,57 @@ void TriggerHelpers::dropSelectionCuts(TriggerHelpers::TriggerType type){
   }
 }
 
+void TriggerHelpers::assignRunRangeExclusions(std::string const& name, std::vector< std::pair<int, int> > const& rangelist){
+  if (rangelist.empty()) return;
+
+  std::pair<unsigned int, unsigned int> runrange_dp = SampleHelpers::getRunRangeFromDataPeriod(SampleHelpers::getDataPeriod());
+  std::pair<unsigned int, unsigned int> runrange_year = SampleHelpers::getRunRangeFromDataPeriod(Form("%i", SampleHelpers::getDataYear()));
+  std::vector< std::pair<unsigned int, unsigned int> > rangelist_eff; rangelist_eff.reserve(rangelist.size());
+
+  // Place run range exclusions only when needed!
+  // Do not place them if the excluded run range falls outside the data period run range!
+  // Also modify run ranges in case they contain -1.
+  for (auto pp:rangelist){
+    if (pp.first == -1) pp.first = runrange_year.first;
+    if (pp.second == -1) pp.second = runrange_year.second;
+    if ((unsigned int) pp.first>runrange_dp.second || (unsigned int) pp.second<runrange_dp.first) continue;
+    rangelist_eff.emplace_back(pp.first, pp.second);
+  }
+
+  if (rangelist_eff.empty()) return;
+
+  for (int itt=0; itt!=(int) nTriggerTypes; itt++){
+    // No need to check the iterator since it was already checked.
+    auto it = HLT_type_proplist_map.find((TriggerType) itt);
+    for (auto& hltprop:it->second){
+      if (!hltprop.isSameTrigger(name)) continue;
+
+      MELAout << "TriggerHelpers::assignRunRangeExclusions: Adding run range exclusion to " << name << ". Excluded ranges = " << rangelist_eff << endl;
+
+      hltprop.setExcludedRunRanges(rangelist_eff);
+      runRangeExcluded_HLTprop_list.push_back(&hltprop);
+    }
+  }
+}
+bool TriggerHelpers::hasRunRangeExclusions(std::string const& name, HLTTriggerPathProperties const** out_hltprop){
+  if (out_hltprop) *out_hltprop = nullptr;
+  for (auto const& hltprop:runRangeExcluded_HLTprop_list){
+    if (!hltprop->isSameTrigger(name)) continue;
+    if (out_hltprop) *out_hltprop = hltprop;
+    return true;
+  }
+  return false;
+}
+
 void TriggerHelpers::configureHLTmap(){
   if (!SampleHelpers::runConfigure){
     MELAerr << "TriggerHelpers::configureHLTmap: Need to call SampleHelpers::configure(period, tag) first!" << endl;
     assert(0);
   }
+
+  // Clear the list of HLT properties with run range exclusions
+  runRangeExcluded_HLTprop_list.clear();
+
   // Notice that the triggers that require cuts are ORDERED!
   // Ordering within each list is important.
   // FIXME: Triggers with prescales need to include higher-pT thresholds as well. SinglePhoton is done, but the rest needs revision either.
@@ -134,10 +183,10 @@ void TriggerHelpers::configureHLTmap(){
       //{ "HLT_Photon50_R9Id90_HE10_Iso40_EBOnly_VBF_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 50.f*1.1f }, { HLTObjectProperties::kPtHigh, 75.f*1.1f } } } } },
       { "HLT_Photon50_R9Id90_HE10_IsoM_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 50.f*1.1f }, { HLTObjectProperties::kPtHigh, 75.f*1.1f } } } } },
       //{ "HLT_Photon36_R9Id90_HE10_Iso40_EBOnly_VBF_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 36.f*1.1f }, { HLTObjectProperties::kPtHigh, 50.f*1.1f } } } } },
-      { "HLT_Photon36_R9Id90_HE10_IsoM_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 36.f*1.1f }, { HLTObjectProperties::kPtHigh, 50.f*1.1f } } } } },
-      { "HLT_Photon30_R9Id90_HE10_IsoM_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 30.f*1.1f }, { HLTObjectProperties::kPtHigh, 36.f*1.1f } } } } },
-      //{ "HLT_Photon22_R9Id90_HE10_Iso40_EBOnly_VBF_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 22.f*1.1f }, { HLTObjectProperties::kPtHigh, 30.f*1.1f } } } } },
-      { "HLT_Photon22_R9Id90_HE10_IsoM_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 22.f*1.1f }, { HLTObjectProperties::kPtHigh, 30.f*1.1f } } } } }
+      { "HLT_Photon36_R9Id90_HE10_IsoM_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 36.f*1.1f }, { HLTObjectProperties::kPtHigh, 50.f*1.1f } } } } }, // Has L1 prescales as well
+      { "HLT_Photon30_R9Id90_HE10_IsoM_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 30.f*1.1f }, { HLTObjectProperties::kPtHigh, 36.f*1.1f } } } } }, // Has L1 prescales as well
+      //{ "HLT_Photon22_R9Id90_HE10_Iso40_EBOnly_VBF_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 22.f*1.1f }, { HLTObjectProperties::kPtHigh, 30.f*1.1f } } } } }, // Has L1 prescales as well
+      { "HLT_Photon22_R9Id90_HE10_IsoM_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 22.f*1.1f }, { HLTObjectProperties::kPtHigh, 30.f*1.1f } } } } } // Has L1 prescales as well
     };
     HLT_type_proplist_map[kTripleLep] = std::vector<HLTTriggerPathProperties>{
       { "HLT_Mu8_DiEle12_CaloIdL_TrackIdL_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kElectron }, { HLTObjectProperties::kElectron } } },
@@ -178,7 +227,7 @@ void TriggerHelpers::configureHLTmap(){
     };
     HLT_type_proplist_map[kPFHT_Control] = std::vector<HLTTriggerPathProperties>{
       { "HLT_PFHT900_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 900.f } } } } }, // Prescaled
-      { "HLT_PFHT800_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 800.f } } } } }, // Prescaled, might not exist?
+      //{ "HLT_PFHT800_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 800.f } } } } }, // Prescaled, but it doesn't exist in 2016H. Therefore, it is disabled.
       { "HLT_PFHT650_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 650.f } } } } }, // Prescaled
       { "HLT_PFHT600_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 600.f } } } } }, // Prescaled
       { "HLT_PFHT475_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 475.f } } } } }, // Prescaled
@@ -194,6 +243,100 @@ void TriggerHelpers::configureHLTmap(){
       { "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v*", { { HLTObjectProperties::kMET_NoMu, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT_NoMu, { { HLTObjectProperties::kMass, 120.f } } } } },
       { "HLT_PFMET120_PFMHT120_IDTight_v*", { { HLTObjectProperties::kMET, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT, { { HLTObjectProperties::kMass, 120.f } } } } }
     };
+
+    // Assign run range exclusions
+    // FIXME: 2016C
+    assignRunRangeExclusions(
+      "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v*", {
+        { 280919/*281613*/, -1 }
+      }
+    );
+    assignRunRangeExclusions(
+      "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v*", {
+        { 280919/*281613*/, -1 }
+      }
+    );
+    assignRunRangeExclusions(
+      "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*", {
+        { 274968, 275059 }, // 2016B
+                            // FIXME: CHECK 2016C!
+        { 276315, -1 } // Prescales in 2016D-H are crazy, they interchange between 0 and 1.
+      }
+    );
+    assignRunRangeExclusions(
+      "HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_v*", {
+        { 278873, -1 }
+      }
+    );
+    /*
+    Note on HLT_DoubleEle33_CaloIdL_MW_v*:
+    - Egamma POG recommends 276453 as the lower boundary, but the golden JSON has 276454 currently as the first run after that.
+    They also mention this trigger 'has a bug in that only one of the electrons is required to pass the medium window (MW) pixel requirement before 276453', but
+    since this will create a mismatch between data and MC, we exclude all runs before 276453 as well.
+    - HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_v* and this trigger are able to cover all of Run 2016 for pT1,2>33 GeV since the first good run after 278822 is 278873.
+    */
+    assignRunRangeExclusions(
+      "HLT_DoubleEle33_CaloIdL_MW_v*", {
+        { -1/*276453*//*276454*/, 278822 } 
+      }
+    );
+    assignRunRangeExclusions(
+      "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v*", {
+        { 274968, 275059 },
+        { 276315, -1 } // FIXME: CHECK 2016C!
+      }
+    );
+    assignRunRangeExclusions(
+      "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v*", {
+        { 280919/*281613*/, -1 }
+      }
+    );
+    assignRunRangeExclusions(
+      "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v*", {
+        { -1, 278240 }
+      }
+    );
+    assignRunRangeExclusions(
+      "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*", {
+        { 274968, 275059 },
+        { 276315, -1 } // FIXME: CHECK 2016C!
+      }
+    );
+    assignRunRangeExclusions(
+      "HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_v*", {
+        { 280919/*281613*/, -1 }
+      }
+    );
+    assignRunRangeExclusions(
+      "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*", {
+        { 280919/*281613*/, -1 }
+      }
+    );
+    assignRunRangeExclusions(
+      "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*", {
+        { -1, 278240 }
+      }
+    );
+    assignRunRangeExclusions(
+      "HLT_TkMu50_v*", {
+        { -1, 274442 } // FIXME: CHECK 2016C!
+      }
+    );
+
+    // Because HLT_Ele27_eta2p1_WPLoose_Gsf_v* is already identified as prescaled, ignore run range exclusions.
+    // It is prescaled only for these runs though, so it could in principle be included as unprescaled with run range exclusions.
+    //assignRunRangeExclusions(
+    //  "HLT_Ele27_eta2p1_WPLoose_Gsf_v*", {
+    //    { 280919/*281613*/, -1 } // Prescale>1 for 2016H
+    //  }
+    //);
+
+    // HLT_PFHT800_v* seems disabled in 2016H. However, this would create a gap in the HT spectrum, so it is excluded from the set of control triggers altogether.
+    assignRunRangeExclusions(
+      "HLT_PFHT800_v*", {
+        { 280919/*281613*/, -1 }
+      }
+    );
     break;
   case 2017:
     HLT_type_proplist_map[kDoubleMu] = std::vector<HLTTriggerPathProperties>{
@@ -218,9 +361,11 @@ void TriggerHelpers::configureHLTmap(){
     };
     HLT_type_proplist_map[kSingleMu] = std::vector<HLTTriggerPathProperties>{ { "HLT_IsoMu27_v*", { { HLTObjectProperties::kMuon } } } };
     // HLT_IsoMu20_v* have L1 and HLT prescales
+    // HLT_IsoMu24_v* is disabled for a large portion of 2017, so omit it.
     HLT_type_proplist_map[kSingleMu_Prescaled] = std::vector<HLTTriggerPathProperties>{
-      { "HLT_IsoMu24_v*", { { HLTObjectProperties::kMuon, { { HLTObjectProperties::kPt, 24.f*1.1f } } } } },
-      { "HLT_IsoMu20_v*", { { HLTObjectProperties::kMuon, { { HLTObjectProperties::kPt, 20.f*1.1f }, { HLTObjectProperties::kPtHigh, 24.f*1.1f } } } } }
+      //{ "HLT_IsoMu24_v*", { { HLTObjectProperties::kMuon, { { HLTObjectProperties::kPt, 24.f*1.1f } } } } },
+      //{ "HLT_IsoMu20_v*", { { HLTObjectProperties::kMuon, { { HLTObjectProperties::kPt, 20.f*1.1f }, { HLTObjectProperties::kPtHigh, 24.f*1.1f } } } } }
+      { "HLT_IsoMu20_v*", { { HLTObjectProperties::kMuon, { { HLTObjectProperties::kPt, 20.f*1.1f } } } } }
     };
     HLT_type_proplist_map[kSingleMu_HighPt] = std::vector<HLTTriggerPathProperties>{
       { "HLT_TkMu100_v*", { { HLTObjectProperties::kMuon } } },
@@ -285,11 +430,12 @@ void TriggerHelpers::configureHLTmap(){
       { "HLT_Ele12_CaloIdL_TrackIdL_IsoVL_PFJet30_v*", { { HLTObjectProperties::kElectron, { { HLTObjectProperties::kPt, 12.f } } }, { HLTObjectProperties::kAK4Jet, { { HLTObjectProperties::kPt, 30.f } } } } }, // Has L1 and HLT prescales
       { "HLT_Ele8_CaloIdL_TrackIdL_IsoVL_PFJet30_v*", { { HLTObjectProperties::kElectron, { { HLTObjectProperties::kPt, 8.f } } }, { HLTObjectProperties::kAK4Jet, { { HLTObjectProperties::kPt, 30.f } } } } } // Has L1 prescales
     };
+    // HLT_AK8PFJet360_TrimMass30_v* is disabled for most of 2017, so omit it altogether.
     HLT_type_proplist_map[kAK8PFJet_Control] = std::vector<HLTTriggerPathProperties>{
-      { "HLT_AK8PFJet360_TrimMass30_v*", { { HLTObjectProperties::kAK8Jet, { { HLTObjectProperties::kPt, 360.f }, { HLTObjectProperties::kMass, 30.f } } } } }
+      //{ "HLT_AK8PFJet360_TrimMass30_v*", { { HLTObjectProperties::kAK8Jet, { { HLTObjectProperties::kPt, 360.f }, { HLTObjectProperties::kMass, 30.f } } } } }
     };
     HLT_type_proplist_map[kPFHT_Control] = std::vector<HLTTriggerPathProperties>{
-      { "HLT_PFHT1050_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 1050.f } } } } }, // Prescaled
+      { "HLT_PFHT1050_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 1050.f } } } } },
       { "HLT_PFHT890_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 890.f } } } } }, // Prescaled
       { "HLT_PFHT780_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 780.f } } } } }, // Prescaled
       { "HLT_PFHT680_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 680.f } } } } }, // Prescaled
@@ -303,10 +449,23 @@ void TriggerHelpers::configureHLTmap(){
     };
     HLT_type_proplist_map[kPFMET_MHT_Control] = std::vector<HLTTriggerPathProperties>{
       { "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60_v*", { { HLTObjectProperties::kMET_NoMu, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT_NoMu, { { HLTObjectProperties::kMass, 120.f } } }, { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 60.f } } } } },
-      { "HLT_PFMET120_PFMHT120_IDTight_PFHT60_v*", { { HLTObjectProperties::kMET, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT, { { HLTObjectProperties::kMass, 120.f }, { HLTObjectProperties::kPt, 60.f } } } } },
+      { "HLT_PFMET120_PFMHT120_IDTight_PFHT60_v*", { { HLTObjectProperties::kMET, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT, { { HLTObjectProperties::kMass, 120.f }, { HLTObjectProperties::kPt, 60.f } } } } }/*,
       { "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v*", { { HLTObjectProperties::kMET_NoMu, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT_NoMu, { { HLTObjectProperties::kMass, 120.f } } } } },
-      { "HLT_PFMET120_PFMHT120_IDTight_v*", { { HLTObjectProperties::kMET, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT, { { HLTObjectProperties::kMass, 120.f } } } } }
+      { "HLT_PFMET120_PFMHT120_IDTight_v*", { { HLTObjectProperties::kMET, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT, { { HLTObjectProperties::kMass, 120.f } } } } }*/
     };
+
+    // Since there are only two triggers to place run range exclusions, and since both are only for control,
+    // we exclude them entirely instead of placing exclusions in order to speed up the looping procedure.
+    //assignRunRangeExclusions(
+    //  "HLT_PFMET120_PFMHT120_IDTight_v*", {
+    //    { 305586, -1 }
+    //  }
+    //);
+    //assignRunRangeExclusions(
+    //  "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v*", {
+    //    { 305586, -1 }
+    //  }
+    //);
     break;
   case 2018:
     HLT_type_proplist_map[kDoubleMu] = std::vector<HLTTriggerPathProperties>{
@@ -419,7 +578,7 @@ void TriggerHelpers::configureHLTmap(){
   }
 
   // Check that all triggers are defined
-  for (int itt=(int) kTripleLep; itt!=(int) nTriggerTypes; itt++){
+  for (int itt=0; itt!=(int) nTriggerTypes; itt++){
     if (HLT_type_proplist_map.find((TriggerType) itt)==HLT_type_proplist_map.cend()){
       MELAerr << "TriggerHelpers::configureHLTmap: Triggers for type " << itt << " are not defined for year " << SampleHelpers::theDataYear << ". Please fix the vectors." << endl;
       assert(0);

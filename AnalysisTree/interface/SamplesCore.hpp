@@ -11,17 +11,17 @@
 
 
 namespace SampleHelpers{
-  extern std::vector< std::pair< std::pair<unsigned int, unsigned int>, TString > > const runRange_dataPeriod_list;
-  extern std::vector< std::pair<unsigned int, double> > const runNumber_lumi_pair_list;
-  extern std::unordered_map<TString, double> const dataPeriod_lumi_map;
+  extern std::vector< std::pair< std::pair<unsigned int, unsigned int>, TString > > const runRange_dataPeriod_pair_list;
+  extern std::unordered_map< TString, std::vector< std::pair<unsigned int, double> > > const dataPeriod_runNumber_lumi_pairs_map;
+  extern std::unordered_map< TString, double > const dataPeriod_lumi_map; // Contains period=year and HEM-affected entries
 
-  std::vector< std::pair< std::pair<unsigned int, unsigned int>, TString > > define_runRange_dataPeriod_list();
-  std::vector< std::pair<unsigned int, double> > define_runNumber_lumi_pair_list();
-  std::unordered_map<TString, double> define_dataPeriod_lumi_map();
+  std::vector< std::pair< std::pair<unsigned int, unsigned int>, TString > > define_runRange_dataPeriod_pair_list();
+  std::unordered_map< TString, std::vector< std::pair<unsigned int, double> > > define_dataPeriod_runNumber_lumi_pairs_map();
+  std::unordered_map< TString, double > define_dataPeriod_lumi_map();
 
 }
 
-std::vector< std::pair< std::pair<unsigned int, unsigned int>, TString > > SampleHelpers::define_runRange_dataPeriod_list(){
+std::vector< std::pair< std::pair<unsigned int, unsigned int>, TString > > SampleHelpers::define_runRange_dataPeriod_pair_list(){
   // Add more as needed
   return std::vector< std::pair< std::pair<unsigned int, unsigned int>, TString > >{
     { { 272007, 275376 }, "2016B" },
@@ -53,11 +53,11 @@ std::vector< std::pair< std::pair<unsigned int, unsigned int>, TString > > Sampl
 // 2017: Using brilcalc lumi --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json -u /fb -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/ReReco/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt
 //// 2018: Using brilcalc lumi --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PREAPPROVED.json -u /fb -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/PromptReco/Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt
 // 2018: Using brilcalc lumi --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json -u /fb -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/ReReco/Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt
-std::vector< std::pair<unsigned int, double> > SampleHelpers::define_runNumber_lumi_pair_list(){
+std::unordered_map< TString, std::vector< std::pair<unsigned int, double> > > SampleHelpers::define_dataPeriod_runNumber_lumi_pairs_map(){
   using namespace std;
   using namespace MELAStreamHelpers;
 
-  std::vector< std::pair<unsigned int, double> > res{
+  std::vector< std::pair<unsigned int, double> > runNumber_lumi_pair_list{
     // 2016
     { 273158, 0.050239488 },
     { 273302, 0.016319202 },
@@ -1408,33 +1408,55 @@ std::vector< std::pair<unsigned int, double> > SampleHelpers::define_runNumber_l
     { 325172, 0.068142514 }
   };
 
-  for (auto const& rn_lumi_pair:res){
-    if (getDataPeriodFromRunNumber(rn_lumi_pair.first)==""){
-      MELAerr << "SampleHelpers::define_runNumber_lumi_pair_list: Run number " << rn_lumi_pair.first << " is not in a known data period. Please revise the implementation!" << endl;
+  std::unordered_map< TString, std::vector< std::pair<unsigned int, double> > > res;
+
+  for (auto const& rn_lumi_pair:runNumber_lumi_pair_list){
+    TString period = getDataPeriodFromRunNumber(rn_lumi_pair.first);
+    if (period==""){
+      MELAerr << "SampleHelpers::define_dataPeriod_runNumber_lumi_pairs_map: Run number " << rn_lumi_pair.first << " is not in a known data period. Please revise the implementation!" << endl;
       assert(0);
     }
+    std::unordered_map< TString, std::vector< std::pair<unsigned int, double> > >::iterator it;
+    if (!HelperFunctions::getUnorderedMapIterator(period, res, it)){
+      res[period] = std::vector< std::pair<unsigned int, double> >();
+      HelperFunctions::getUnorderedMapIterator(period, res, it);
+    }
+    it->second.push_back(rn_lumi_pair);
+  }
+
+  // This is an ordered list, so it is safe to iterate
+  for (auto const& rr_dp_pair:runRange_dataPeriod_pair_list){
+    TString const& period = rr_dp_pair.second;
+    TString stryear = Form("%i", getDataYearFromPeriod(period));
+
+    std::unordered_map< TString, std::vector< std::pair<unsigned int, double> > >::iterator it;
+    if (!HelperFunctions::getUnorderedMapIterator(stryear, res, it)) res[stryear] = res[period];
+    else HelperFunctions::appendVector(it->second, res[period]);
   }
 
   return res;
 }
 
-std::unordered_map<TString, double> SampleHelpers::define_dataPeriod_lumi_map(){
+std::unordered_map< TString, double > SampleHelpers::define_dataPeriod_lumi_map(){
   std::unordered_map<TString, double> res;
-  for (auto const& rn_lumi_pair:runNumber_lumi_pair_list){
-    TString period = getDataPeriodFromRunNumber(rn_lumi_pair.first);
+  for (auto const& dp_rn_lumi_pair:dataPeriod_runNumber_lumi_pairs_map){
+    TString const& period = dp_rn_lumi_pair.first;
     TString stryear = Form("%i", getDataYearFromPeriod(period));
-    std::unordered_map<TString, double>::iterator it;
-    if (!HelperFunctions::getUnorderedMapIterator(period, res, it)) res[period] = rn_lumi_pair.second;
-    else it->second += rn_lumi_pair.second;
-    if (!HelperFunctions::getUnorderedMapIterator(stryear, res, it)) res[stryear] = rn_lumi_pair.second;
-    else it->second += rn_lumi_pair.second;
-    if (isHEM2018Affected(rn_lumi_pair.first)){
-      TString period_HEMaffected = stryear + "_HEMaffected";
-      if (!HelperFunctions::getUnorderedMapIterator(period_HEMaffected, res, it)) res[period_HEMaffected] = rn_lumi_pair.second;
+    auto const& rn_lumi_pairs = dp_rn_lumi_pair.second;
+    for (auto const& rn_lumi_pair:rn_lumi_pairs){
+      std::unordered_map<TString, double>::iterator it;
+      if (!HelperFunctions::getUnorderedMapIterator(period, res, it)) res[period] = rn_lumi_pair.second;
       else it->second += rn_lumi_pair.second;
-      period_HEMaffected = period + "_HEMaffected";
-      if (!HelperFunctions::getUnorderedMapIterator(period_HEMaffected, res, it)) res[period_HEMaffected] = rn_lumi_pair.second;
+      if (!HelperFunctions::getUnorderedMapIterator(stryear, res, it)) res[stryear] = rn_lumi_pair.second;
       else it->second += rn_lumi_pair.second;
+      if (isHEM2018Affected(rn_lumi_pair.first)){
+        TString period_HEMaffected = stryear + "_HEMaffected";
+        if (!HelperFunctions::getUnorderedMapIterator(period_HEMaffected, res, it)) res[period_HEMaffected] = rn_lumi_pair.second;
+        else it->second += rn_lumi_pair.second;
+        period_HEMaffected = period + "_HEMaffected";
+        if (!HelperFunctions::getUnorderedMapIterator(period_HEMaffected, res, it)) res[period_HEMaffected] = rn_lumi_pair.second;
+        else it->second += rn_lumi_pair.second;
+      }
     }
   }
   return res;

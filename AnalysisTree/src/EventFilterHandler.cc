@@ -26,6 +26,7 @@ EventFilterHandler::EventFilterHandler() :
   IvyBase(),
   trackDataEvents(true),
   checkUniqueDataEvent(true),
+  checkHLTPathRunRanges(true),
   trackTriggerObjects(false),
   checkTriggerObjectsForHLTPaths(false),
   product_passCommonSkim(true),
@@ -51,7 +52,7 @@ void EventFilterHandler::clear(){
   product_triggerobjects.clear();
 }
 
-bool EventFilterHandler::constructFilters(){
+bool EventFilterHandler::constructFilters(SimEventHandler const* simEventHandler){
   if (this->isAlreadyCached()) return true;
 
   clear();
@@ -62,7 +63,7 @@ bool EventFilterHandler::constructFilters(){
     &&
     (!trackTriggerObjects || this->constructTriggerObjects())
     &&
-    this->constructHLTPaths()
+    this->constructHLTPaths(simEventHandler)
     &&
     this->constructMETFilters()
     &&
@@ -86,7 +87,7 @@ float EventFilterHandler::getTriggerWeight(std::vector<std::string> const& hltpa
   bool foundAtLeastOneTrigger = false;
   for (auto const& str:hltpaths_){
     for (auto const* prod:product_HLTpaths){
-      if (prod->name.find(str)!=std::string::npos && prod->passTrigger){
+      if (prod->isValid() && prod->name.find(str)!=std::string::npos && prod->passTrigger){
         float wgt = 1.f;
         if (prod->L1prescale>0) wgt *= static_cast<float>(prod->L1prescale);
         if (prod->HLTprescale>0) wgt *= static_cast<float>(prod->HLTprescale);
@@ -165,7 +166,7 @@ float EventFilterHandler::getTriggerWeight(
     assert(enumType_props_pair.second != nullptr);
     auto const& hltprop = *(enumType_props_pair.second);
     for (auto const& prod:product_HLTpaths){
-      if (prod->passTrigger && hltprop.isSameTrigger(prod->name)){
+      if (prod->isValid() && prod->passTrigger && hltprop.isSameTrigger(prod->name)){
         std::vector<MuonObject const*> muons_trigcheck_TOmatched;
         std::vector<ElectronObject const*> electrons_trigcheck_TOmatched;
         std::vector<PhotonObject const*> photons_trigcheck_TOmatched;
@@ -338,16 +339,26 @@ bool EventFilterHandler::constructCommonSkim(){
   return true;
 }
 
-bool EventFilterHandler::constructHLTPaths(){
+bool EventFilterHandler::constructHLTPaths(SimEventHandler const* simEventHandler){
+  bool isData = SampleHelpers::checkSampleIsData(currentTree->sampleIdentifier);
+
 #define HLTTRIGGERPATH_VARIABLE(TYPE, NAME, DEFVAL) std::vector<TYPE>::const_iterator itBegin_HLTpaths_##NAME, itEnd_HLTpaths_##NAME;
   HLTTRIGGERPATH_VARIABLES;
 #undef HLTTRIGGERPATH_VARIABLE
+#define RUNLUMIEVENT_VARIABLE(TYPE, NAME, DEFVAL) TYPE const* NAME = nullptr;
+  RUNLUMIEVENT_VARIABLES;
+#undef RUNLUMIEVENT_VARIABLE
 
   // Beyond this point starts checks and selection
   bool allVariablesPresent = true;
 #define HLTTRIGGERPATH_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedCIterators<std::vector<TYPE>>(EventFilterHandler::colName_HLTpaths + "_" + #NAME, &itBegin_HLTpaths_##NAME, &itEnd_HLTpaths_##NAME);
   HLTTRIGGERPATH_VARIABLES;
 #undef HLTTRIGGERPATH_VARIABLE
+#define RUNLUMIEVENT_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumed(#NAME, NAME);
+  if (isData){
+    RUNLUMIEVENT_VARIABLES;
+  }
+#undef RUNLUMIEVENT_VARIABLE
   if (!allVariablesPresent){
     if (this->verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::constructHLTPaths: Not all variables are consumed properly!" << endl;
     assert(0);
@@ -362,6 +373,8 @@ bool EventFilterHandler::constructHLTPaths(){
 #undef HLTTRIGGERPATH_VARIABLE
   {
     cms3_triggerIndex_t itrig=0;
+    unsigned int RunNumber_sim=0;
+    bool set_RunNumber_sim=false;
     while (it_HLTpaths_name != itEnd_HLTpaths_name){
       product_HLTpaths.push_back(new HLTTriggerPathObject());
       HLTTriggerPathObject*& obj = product_HLTpaths.back();
@@ -375,6 +388,23 @@ bool EventFilterHandler::constructHLTPaths(){
 
       // Associate trigger objects
       obj->setTriggerObjects(product_triggerobjects);
+
+      bool isValid = true;
+      HLTTriggerPathProperties const* hltprop = nullptr;
+      bool hasRunRangeExclusions = checkHLTPathRunRanges && TriggerHelpers::hasRunRangeExclusions(obj->name, &hltprop);
+      if (hasRunRangeExclusions){
+        assert(hltprop!=nullptr);
+        if (!isData && !set_RunNumber_sim){
+          if (!simEventHandler){
+            if (this->verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::constructHLTPaths: simEventHandler is needed to determine run range exclusions!" << endl;
+            assert(0);
+          }
+          RunNumber_sim = simEventHandler->getChosenRunNumber();
+          set_RunNumber_sim = true;
+        }
+        isValid = hltprop->testRun((isData ? *RunNumber : RunNumber_sim));
+      }
+      obj->setValid(isValid);
 
       itrig++;
 #define HLTTRIGGERPATH_VARIABLE(TYPE, NAME, DEFVAL) it_HLTpaths_##NAME++;

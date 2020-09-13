@@ -149,7 +149,8 @@ void METCorrectionHandler::reset(){
 void METCorrectionHandler::applyCorrections(
   TString const& effDataPeriod,
   float const& genMET, float const& genMETPhi,
-  METObject* obj, bool isPFMET
+  METObject* obj, bool isPFMET,
+  double const* inputRndNum
 ) const{
   constexpr bool iP4Preserve = false; // FIXME
   static const std::vector<SystematicsHelpers::SystematicVariationTypes> allowedSysts{
@@ -162,8 +163,13 @@ void METCorrectionHandler::applyCorrections(
   SystematicsHelpers::SystematicVariationTypes effSyst = SystematicsHelpers::sNominal;
   if (HelperFunctions::checkListVariable(allowedSysts, syst)) effSyst = syst;
 
-  TRandom3 rand; rand.SetSeed(std::abs(static_cast<int>(sin(genMETPhi)*100000.)));
-  float const frac_x = rand.Uniform();
+  double frac_x = -1;
+  if (inputRndNum) frac_x = *inputRndNum;
+  else{
+    TRandom3 rand;
+    rand.SetSeed(static_cast<unsigned long long>(std::abs(std::sin(genMETPhi)*100000.)));
+    frac_x = rand.Uniform();
+  }
   ParticleObject::LorentzVector_t const genmet_p4(genMET*std::cos(genMETPhi), genMET*std::sin(genMETPhi), 0, 0);
 
   for (unsigned short iXY=0; iXY<2; iXY++){

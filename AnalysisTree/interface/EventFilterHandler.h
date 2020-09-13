@@ -32,6 +32,7 @@ public:
 protected:
   bool trackDataEvents;
   bool checkUniqueDataEvent;
+  bool checkHLTPathRunRanges;
   bool trackTriggerObjects;
   bool checkTriggerObjectsForHLTPaths;
 
@@ -46,7 +47,7 @@ protected:
   void clear();
 
   bool constructCommonSkim();
-  bool constructHLTPaths();
+  bool constructHLTPaths(SimEventHandler const* simEventHandler);
   bool constructTriggerObjects();
   bool constructMETFilters();
   bool accumulateRunLumiEventBlock();
@@ -58,7 +59,7 @@ public:
   // Destructors
   ~EventFilterHandler(){ clear(); }
 
-  bool constructFilters();
+  bool constructFilters(SimEventHandler const* simEventHandler);
 
   bool hasMatchingTriggerPath(std::vector<std::string> const& hltpaths_) const;
   float getTriggerWeight(std::vector<std::string> const& hltpaths_) const;
@@ -97,6 +98,7 @@ public:
 
   void setTrackDataEvents(bool flag){ this->trackDataEvents=flag; }
   void setCheckUniqueDataEvent(bool flag){ this->checkUniqueDataEvent=flag; }
+  void setCheckHLTPathRunRanges(bool flag){ this->checkHLTPathRunRanges=flag; }
   void setTrackTriggerObjects(bool flag){ this->trackTriggerObjects=flag; }
   void setCheckTriggerObjectsForHLTPaths(bool flag){ this->checkTriggerObjectsForHLTPaths=flag; if (flag) this->trackTriggerObjects=flag; }
 

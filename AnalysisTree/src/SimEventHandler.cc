@@ -61,6 +61,7 @@ void SimEventHandler::clear(){
   this->resetCache();
 
   product_rnds.clear();
+  product_rndnums.clear();
   theChosenDataPeriod = "";
   hasHEM2018Issue = false;
   pileupWeight = -1;
@@ -250,34 +251,69 @@ bool SimEventHandler::constructRandomNumbers(){
   }
   if (this->verbosity>=TVar::DEBUG) MELAout << "SimEventHandler::constructRandomNumbers: All variables are set up!" << endl;
 
+  // Get random number seeds first
   unsigned long long const rndDataPeriod = static_cast<unsigned long long>(std::abs((*genmet_met)*1000.f)) + ((*EventNumber) % 1000000);
-  product_rnds[kDataPeriod] = rndDataPeriod;
-  float rnd_era = -1;
-  theChosenDataPeriod = SampleHelpers::getRandomDataPeriod(rndDataPeriod, &rnd_era);
+  product_rnds[kDataPeriod_global] = product_rnds[kDataPeriod_local] = rndDataPeriod; // Seeds are supposed to be the same because the random numbers just translate between each other.
+  unsigned long long const rndGenMETSmear = static_cast<unsigned long long>(std::abs(std::sin(*genmet_metPhi))*100000.);
+  product_rnds[kGenMETSmear] = rndGenMETSmear;
+
+  // Set the random number generator
+  TRandom3 rand;
+
+  // Determine the MET smearing random number
+  rand.SetSeed(rndGenMETSmear);
+  product_rndnums[kGenMETSmear] = rand.Uniform();
+
+  // Determine the chosen data period, and the global and local version of the data period random number
+  double rndnum_dataPeriod_global = -1;
+  double rndnum_dataPeriod_local = -1;
+  theChosenDataPeriod = SampleHelpers::getRandomDataPeriod(rndDataPeriod, &rndnum_dataPeriod_global, &rndnum_dataPeriod_local);
+  // Determine if SampleHelpers ignored the random number assignment because theDataPeriod is a specific period instead of the year.
+  // If so, get the random number here.
+  bool isSelfRandomEra = (rndnum_dataPeriod_local<0.);
+  if (isSelfRandomEra){
+    rand.SetSeed(rndDataPeriod);
+    rndnum_dataPeriod_local = rand.Uniform();
+
+    // Calculate the global random number from luminosity fractions
+    std::vector<TString> const valid_periods = SampleHelpers::getValidDataPeriods();
+    std::vector<double> lumilist; lumilist.reserve(valid_periods.size());
+    for (TString const& period:valid_periods) lumilist.push_back(SampleHelpers::getIntegratedLuminosity(period));
+    for (size_t il=1; il<lumilist.size(); il++) lumilist.at(il) += lumilist.at(il-1);
+    for (size_t il=0; il<lumilist.size(); il++) lumilist.at(il) /= lumilist.back();
+    for (unsigned char i_era=0; i_era<valid_periods.size(); i_era++){
+      if (theChosenDataPeriod == valid_periods.at(i_era)){
+        rndnum_dataPeriod_global = rndnum_dataPeriod_local*lumilist.at(i_era);
+        if (i_era>0) rndnum_dataPeriod_global += lumilist.at(i_era-1);
+        break;
+      }
+    }
+
+    assert(rndnum_dataPeriod_global>=0.);
+  }
+  product_rndnums[kDataPeriod_global] = rndnum_dataPeriod_global;
+  product_rndnums[kDataPeriod_local] = rndnum_dataPeriod_local;
+
   if (theChosenDataPeriod == "2018C" || theChosenDataPeriod == "2018D") hasHEM2018Issue = true;
   else if (theChosenDataPeriod == "2018B"){
-    float lumi_total = SampleHelpers::getIntegratedLuminosity(SampleHelpers::theDataPeriod);
-    float lumi_nonHEM, rnd_thr;
-    if (rnd_era<0.f){
-      // This case happens if the original data period is already 2018B.
-      lumi_nonHEM = SampleHelpers::getIntegratedLuminosity("2018_HEMaffected") - SampleHelpers::getIntegratedLuminosity("2018C") - SampleHelpers::getIntegratedLuminosity("2018D");
-      TRandom3 rand;
-      rand.SetSeed(rndDataPeriod);
-      rnd_era = rand.Uniform();
-    }
-    else{
-      // This case happens if the original data period is 2018.
-      lumi_nonHEM = SampleHelpers::getIntegratedLuminosity("2018_HEMaffected");
-    }
-    assert(lumi_total>lumi_nonHEM);
-    lumi_nonHEM = lumi_total - lumi_nonHEM;
-    rnd_thr = lumi_nonHEM/lumi_total;
-    hasHEM2018Issue = (rnd_era>rnd_thr);
+    double lumi_total = SampleHelpers::getIntegratedLuminosity(theChosenDataPeriod); // Use the chosen data period in order to be able to use the local random number
+    double lumi_HEMaffected = SampleHelpers::getIntegratedLuminosity("2018B_HEMaffected");
+    double lumi_nonHEM = lumi_total - lumi_HEMaffected;
+    double rnd_thr = lumi_nonHEM/lumi_total;
+    // The latter portion of the 2018B data set was affected by the HEM15/16 failure.
+    hasHEM2018Issue = (rndnum_dataPeriod_local>rnd_thr); // Make sure > vs >= is consistent with SampleHelpers::translateRandomNumberToRunNumber
   }
   else hasHEM2018Issue = false;
 
-  unsigned long long const rndGenMETSmear = static_cast<unsigned long long>(std::abs(std::sin(*genmet_metPhi))*10000.f);
-  product_rnds[kGenMETSmear] = rndGenMETSmear;
+
+  if (this->verbosity>=TVar::DEBUG){
+    MELAout << "SimEventHandler::constructRandomNumbers:\n\t- Random numbers used:" << endl;
+    MELAout << "\t\t- Global data period = " << product_rndnums[kDataPeriod_global] << endl;
+    MELAout << "\t\t- Local data period = " << product_rndnums[kDataPeriod_local] << endl;
+    MELAout << "\t\t- MET smear = " << product_rndnums[kGenMETSmear] << endl;
+    MELAout << "\t- Identified period: " << theChosenDataPeriod << endl;
+    MELAout << "\t- Has HEM issue? " << (hasHEM2018Issue ? 'y' : 'n') << endl;
+  }
 
   return true;
 }
@@ -305,6 +341,8 @@ bool SimEventHandler::constructPUWeight(SystematicsHelpers::SystematicVariationT
   }
 
   const unsigned int isyst = (syst == SystematicsHelpers::ePUDn)*1 + (syst == SystematicsHelpers::ePUUp)*2;
+  if (this->verbosity>=TVar::DEBUG) MELAout << "SimEventHandler::constructPUWeight: Systematics index = " << isyst << endl;
+
   auto it = map_DataPeriod_PUHistList.find(theChosenDataPeriod);
   if (it == map_DataPeriod_PUHistList.cend()){
     if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::constructPUWeight: Histogram map for period \'" << theChosenDataPeriod << "\' is not found!" << endl;
@@ -313,12 +351,17 @@ bool SimEventHandler::constructPUWeight(SystematicsHelpers::SystematicVariationT
   }
   auto const& hlist = it->second;
   if (isyst>=hlist.size()){
-    MELAerr << "SimEventHandler::constructPUWeight: PU histogram list has size " << hlist.size() << ", but the expected size is 3." << endl;
+    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::constructPUWeight: PU histogram list has size " << hlist.size() << ", but the expected size is 3." << endl;
     assert(0);
   }
 
   TH1F* const& hpu_data_MC = hlist.at(isyst);
   pileupWeight = hpu_data_MC->GetBinContent(hpu_data_MC->FindBin(*n_true_int));
+  if (this->verbosity>=TVar::DEBUG) MELAout
+    << "SimEventHandler::constructPUWeight: Extracted PU ratio " << pileupWeight
+    << " from " << hpu_data_MC->GetName()
+    << " evaluated at N_true^int = " << *n_true_int
+    << endl;
   if (this->hasPUException){
     auto itpu = map_exceptionalPUHistList.find(currentTree->sampleIdentifier);
     if (itpu == map_exceptionalPUHistList.cend()){
@@ -330,6 +373,11 @@ bool SimEventHandler::constructPUWeight(SystematicsHelpers::SystematicVariationT
       float wgt_den = hpurewgt->GetBinContent(hpurewgt->FindBin(*n_true_int));
       if (wgt_den != 0.f) pileupWeight /= wgt_den;
       else pileupWeight = 0;
+
+      if (this->verbosity>=TVar::DEBUG) MELAout
+        << "SimEventHandler::constructPUWeight: PU exception correction = 1/" << wgt_den
+        << " evaluated from " << hpurewgt->GetName()
+        << endl;
     }
   }
 
@@ -405,10 +453,27 @@ TString const& SimEventHandler::getChosenDataPeriod() const{
   }
   return theChosenDataPeriod;
 }
+int SimEventHandler::getChosenRunNumber() const{
+  if (theChosenDataPeriod == ""){
+    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::getChosenRunNumber: SimEventHandler::constructSimEvent() needs to be called first..." << endl;
+    assert(0);
+  }
+  return SampleHelpers::translateRandomNumberToRunNumber(theChosenDataPeriod, product_rndnums.find(kDataPeriod_local)->second);
+}
+
 unsigned long long const& SimEventHandler::getRandomNumberSeed(SimEventHandler::EventRandomNumberType type) const{
   auto it = product_rnds.find(type);
   if (it == product_rnds.cend()){
     if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::getRandomNumberSeed: SimEventHandler::constructSimEvent() needs to be called first..." << endl;
+    assert(0);
+  }
+  return it->second;
+}
+
+double const& SimEventHandler::getRandomNumber(SimEventHandler::EventRandomNumberType type) const{
+  auto it = product_rndnums.find(type);
+  if (it == product_rndnums.cend()){
+    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::getRandomNumber: SimEventHandler::constructSimEvent() needs to be called first..." << endl;
     assert(0);
   }
   return it->second;
