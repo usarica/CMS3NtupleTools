@@ -12,7 +12,6 @@ namespace LooperFunctionHelpers{
 
   bool looperRule(BaseTreeLooper*, double const&, SimpleEntry&);
 
-
   // Helper options for MET
   bool use_MET_Puppi = false;
   bool use_MET_XYCorr = true;
@@ -23,12 +22,19 @@ namespace LooperFunctionHelpers{
 
   void setMETOptions(bool use_MET_Puppi_, bool use_MET_XYCorr_, bool use_MET_JERCorr_, bool use_MET_ParticleMomCorr_, bool use_MET_p4Preservation_, bool use_MET_corrections_);
 
+  unsigned* ptr_run = nullptr;
+  unsigned* ptr_lumi = nullptr;
+  ULong64_t* ptr_event = nullptr;
+
+  // ME block
+  CMS3MELAHelpers::GMECBlock MEblock;
+  Discriminant* DjjVBF;
+
   // Helpers for jets
   bool applyPUIdToAK4Jets = true;
   bool applyTightLeptonVetoIdToAK4Jets = false;
 
   void setAK4JetSelectionOptions(bool applyPUIdToAK4Jets_, bool applyTightLeptonVetoIdToAK4Jets_);
-
 
   // Helpers for b-tagging
   float btag_thr_loose = -1;
@@ -134,7 +140,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   /************************/
   // Recorded variables
 #define BRANCH_SCALAR_COMMANDS \
+  BRANCH_COMMAND(int, event_category) \
+  BRANCH_COMMAND(bool, event_is_data) \
   BRANCH_COMMAND(float, event_wgt) \
+  BRANCH_COMMAND(float, event_wgt_pileup) \
   BRANCH_COMMAND(float, event_wgt_triggers) \
   BRANCH_COMMAND(float, event_wgt_SFs) \
   BRANCH_COMMAND(float, event_pTmiss) \
@@ -142,11 +151,23 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(bool, event_passTightMETFilters) \
   BRANCH_COMMAND(float, genmet_pTmiss) \
   BRANCH_COMMAND(float, genmet_phimiss) \
+  BRANCH_COMMAND(float, event_mTZZ) \
+  BRANCH_COMMAND(float, event_mZZ) \
+  BRANCH_COMMAND(float, event_DjjVBF) \
+  BRANCH_COMMAND(float, event_DjjVBF_rl)  \
+  BRANCH_COMMAND(float, event_pTmiss_uncorr)  \
+  BRANCH_COMMAND(float, event_phimiss_uncorr) \
+  BRANCH_COMMAND(float, event_mTZZ_uncorr) \
+  BRANCH_COMMAND(float, event_mZZ_uncorr) \
+  BRANCH_COMMAND(float, event_DjjVBF_uncorr) \
   BRANCH_COMMAND(unsigned int, event_n_vtxs_good) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt30) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt20) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt20_btagged_loose) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt20_btagged_medium) \
+  BRANCH_COMMAND(unsigned int, event_run) \
+  BRANCH_COMMAND(unsigned int, event_lumi) \
+  BRANCH_COMMAND(ULong64_t, event_event) \
   BRANCH_COMMAND(float, ak4jets_HT) \
   BRANCH_COMMAND(float, photon_pt) \
   BRANCH_COMMAND(float, photon_eta) \
@@ -182,9 +203,14 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_VECTOR_COMMANDS;
 #undef BRANCH_COMMAND
 
+  event_is_data = isData;
+  event_run = *ptr_run;
+  event_lumi = *ptr_lumi;
+  event_event = *ptr_event;
 
   // Always assign the external weight first
   event_wgt = extWgt;
+  event_wgt_pileup = 1.0;
 
   if (!isData){
     genInfoHandler->constructGenInfo(theGlobalSyst);
@@ -214,7 +240,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     }
 
     simEventHandler->constructSimEvent(theGlobalSyst);
-    event_wgt *= simEventHandler->getPileUpWeight()*simEventHandler->getL1PrefiringWeight();
+    event_wgt_pileup = simEventHandler->getPileUpWeight()*simEventHandler->getL1PrefiringWeight();
 
     if (event_wgt==0.f) return false;
   }
@@ -273,6 +299,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     }
   }
   if (n_photons_tight!=1) return false;
+  event_category = 3;
 
   photon_pt = theChosenPhoton->pt();
   photon_eta = theChosenPhoton->eta();
@@ -354,6 +381,9 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   event_n_ak4jets_pt30 = ak4jets_tight.size();
 
   auto const& eventmet = (use_MET_Puppi ? jetHandler->getPFPUPPIMET() : jetHandler->getPFMET());
+  auto uncorr_met_p4 = eventmet->p4(false, false, false, false);
+  event_pTmiss_uncorr = uncorr_met_p4.Pt();
+  event_phimiss_uncorr = uncorr_met_p4.Phi();
   if (!isData && use_MET_corrections) metCorrectionHandler->applyCorrections(
     simEventHandler->getChosenDataPeriod(),
     genmet_pTmiss, genmet_phimiss,
@@ -381,6 +411,54 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
 
   // Set the collection of SFs at the last step
   event_wgt_SFs = SF_muons*SF_electrons*SF_photons*SF_btagging;
+
+  ParticleObject::LorentzVector_t boson_p4;
+  boson_p4 = ParticleObject::PolarLorentzVector_t(photon_pt, photon_eta, photon_phi, PDGHelpers::Zmass);
+  boson_p4.SetE(sqrt(pow(boson_p4.P(), 2) + pow(photon_pt, 2)));
+
+  event_mTZZ = sqrt(pow(sqrt(pow(photon_pt, 2) + pow(PDGHelpers::Zmass, 2)) + sqrt(pow(event_pTmiss, 2) + pow(PDGHelpers::Zmass, 2)), 2) - pow((boson_p4 + event_met_p4).Pt(), 2));
+  event_mTZZ_uncorr = sqrt(pow(sqrt(pow(photon_pt, 2) + pow(PDGHelpers::Zmass, 2)) + sqrt(pow(event_pTmiss_uncorr, 2) + pow(PDGHelpers::Zmass, 2)), 2) - pow((boson_p4 + uncorr_met_p4).Pt(), 2));
+  float etamiss_approx = photon_eta;
+  ParticleObject::LorentzVector_t pfmet_p4_approx;
+  pfmet_p4_approx = ParticleObject::PolarLorentzVector_t(event_pTmiss, etamiss_approx, event_phimiss, PDGHelpers::Zmass);
+  ParticleObject::LorentzVector_t pfmet_ZZ_p4_approx = pfmet_p4_approx + boson_p4;
+  event_mZZ = pfmet_ZZ_p4_approx.M();
+  ParticleObject::LorentzVector_t pfmet_p4_uncorr_approx;
+  pfmet_p4_uncorr_approx = ParticleObject::PolarLorentzVector_t(event_pTmiss_uncorr, etamiss_approx, event_phimiss_uncorr, PDGHelpers::Zmass);
+  ParticleObject::LorentzVector_t pfmet_ZZ_p4_uncorr_approx = pfmet_p4_uncorr_approx + boson_p4;
+  event_mZZ_uncorr = pfmet_ZZ_p4_approx.M();
+
+  event_DjjVBF = -1;
+  event_DjjVBF_uncorr = -1;
+  if (ak4jets_tight.size() >= 2){
+    std::unordered_map<std::string, float> ME_values;
+    SimpleParticleCollection_t daughters;
+    daughters.push_back(SimpleParticle_t(25, ParticleObjectHelpers::convertCMSLorentzVectorToTLorentzVector(pfmet_ZZ_p4_approx)));
+    SimpleParticleCollection_t associated;
+    associated.push_back(SimpleParticle_t(0, ParticleObjectHelpers::convertCMSLorentzVectorToTLorentzVector(ak4jets_tight.at(0)->p4())));
+    associated.push_back(SimpleParticle_t(0, ParticleObjectHelpers::convertCMSLorentzVectorToTLorentzVector(ak4jets_tight.at(1)->p4())));
+
+    CMS3MELAHelpers::melaHandle->setCandidateDecayMode(TVar::CandidateDecay_Stable);
+    CMS3MELAHelpers::melaHandle->setInputEvent(&daughters, &associated, nullptr, false);
+    MEblock.computeMELABranches();
+    MEblock.pushMELABranches();
+    MEblock.getBranchValues(ME_values); // Record the MEs into the EDProducer product
+    CMS3MELAHelpers::melaHandle->resetInputEvent();
+
+    DjjVBF->update({ ME_values["p_JJVBF_SIG_ghv1_1_JHUGen_JECNominal"], ME_values["p_JJQCD_SIG_ghg2_1_JHUGen_JECNominal"] }, event_mZZ);
+    event_DjjVBF = float(*DjjVBF);
+
+    ME_values.clear(); daughters.clear(); 
+    daughters.push_back(SimpleParticle_t(25, ParticleObjectHelpers::convertCMSLorentzVectorToTLorentzVector(pfmet_ZZ_p4_uncorr_approx)));
+    CMS3MELAHelpers::melaHandle->setInputEvent(&daughters, &associated, nullptr, false);
+    MEblock.computeMELABranches();
+    MEblock.pushMELABranches();
+    MEblock.getBranchValues(ME_values); // Record the MEs into the EDProducer product
+    CMS3MELAHelpers::melaHandle->resetInputEvent();
+
+    DjjVBF->update({ ME_values["p_JJVBF_SIG_ghv1_1_JHUGen_JECNominal"], ME_values["p_JJQCD_SIG_ghg2_1_JHUGen_JECNominal"] }, event_mZZ_uncorr);
+    event_DjjVBF_uncorr = float(*DjjVBF);
+  }
 
   /*********************/
   /* RECORD THE OUTPUT */
@@ -451,7 +529,10 @@ void getTrees(
   // Get sample specifications
   std::vector<TString> sampledirs;
   SampleHelpers::constructSamplesList(strSampleSet, theGlobalSyst, sampledirs);
-  if (sampledirs.empty()) return;
+  if (sampledirs.empty()) {
+    MELAout << "The generated inputs for " << strSampleSet << " is empty!!" << endl;
+    return;
+  }
   bool isData = SampleHelpers::checkSampleIsData(sampledirs.front());
   if (isData && (nchunks>0 || theGlobalSyst!=sNominal)) return;
 
@@ -604,6 +685,26 @@ void getTrees(
     double sum_wgts = (isData ? 1.f : 0.f);
     float xsec = 1;
     float xsec_scale = 1;
+
+    sample_tree->bookBranch<unsigned>("RunNumber", 0);
+    sample_tree->bookBranch<unsigned>("LuminosityBlock", 0);
+    sample_tree->bookBranch<ULong64_t>("EventNumber", 0);
+    sample_tree->getValRef("RunNumber", LooperFunctionHelpers::ptr_run);
+    sample_tree->getValRef("LuminosityBlock", LooperFunctionHelpers::ptr_lumi);
+    sample_tree->getValRef("EventNumber", LooperFunctionHelpers::ptr_event);
+
+    // MELA setup
+    std::vector<std::string> MElist{
+      "Name:JJVBF_SIG_ghv1_1_JHUGen_JECNominal Alias:<Name> Process:HSMHiggs Production:JJVBF MatrixElement:JHUGen Cluster:J2JECNominal DefaultME:-1 Options:AddPConst=1",
+      "Name:JJQCD_SIG_ghg2_1_JHUGen_JECNominal Alias:<Name> Process:HSMHiggs Production:JJQCD MatrixElement:JHUGen Cluster:J2JECNominal DefaultME:-1 Options:AddPConst=1"
+    };
+    CMS3MELAHelpers::setupMela(SampleHelpers::theDataYear, 125., TVar::ERROR); // Sets up MELA only once
+    LooperFunctionHelpers::MEblock.buildMELABranches(MElist, false);
+    LooperFunctionHelpers::DjjVBF = DiscriminantClasses::constructKDFromType(
+        DiscriminantClasses::kDjjVBF,
+        ANALYSISTREEPKGDATAPATH+"RecoMEConstants/SmoothKDConstant_m4l_DjjVBF_13TeV.root", "sp_gr_varReco_Constant_Smooth");
+    MELAout << "getTree: DjjVBF is built!" << endl;
+
     if (!isData){
       // Get cross section
       sample_tree->bookBranch<float>("xsec", 0.f);
