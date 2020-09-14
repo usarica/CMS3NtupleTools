@@ -1,6 +1,7 @@
 #include <cassert>
 
 #include "SamplesCore.h"
+#include "RunLumiEventBlock.h"
 #include "OffshellSampleHelpers.h"
 #include "OffshellTriggerHelpers.h"
 

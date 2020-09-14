@@ -140,7 +140,7 @@ void METObject::getPtPhi(float& pt, float& phi, bool addXYShifts, bool addJERShi
     if (addParticleShifts) tmp_p4 += particleMomentumCorrections;
 
     if (!currentMETCorrections.empty()) tmp_p4 += currentMETCorrections.at(8*preserveP4 + 4*addParticleShifts + 2*addJERShifts + 1*addXYShifts);
-    if (!currentJetOverlapCorrections.empty()) tmp_p4 += currentMETCorrections.at(2*preserveP4 + 1*addJERShifts);
+    if (!currentJetOverlapCorrections.empty()) tmp_p4 += currentJetOverlapCorrections.at(2*preserveP4 + 1*addJERShifts);
   }
   else{
     float const& pt_ref = extras.met_Raw;

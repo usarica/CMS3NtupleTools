@@ -575,6 +575,7 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
       ak4jets_new.push_back(jet);
     }
     ak4jets = ak4jets_new;
+    ParticleObjectHelpers::sortByGreaterPt(ak4jets);
 
     // Propagate MET corrections from overlap removal
     for (unsigned char ijer=0; ijer<2; ijer++){
@@ -718,6 +719,7 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
       ak8jets_new.push_back(jet);
     }
     ak8jets = ak8jets_new;
+    ParticleObjectHelpers::sortByGreaterPt(ak8jets);
   }
 
   return true;
