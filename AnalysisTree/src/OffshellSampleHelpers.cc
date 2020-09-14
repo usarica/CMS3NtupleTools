@@ -35,7 +35,7 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
     if (sname == "SingleMuon_2018A") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2018A-17Sep2018-v2/MINIAOD" });
     if (sname == "SingleMuon_2018B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2018B-17Sep2018-v1/MINIAOD" });
     if (sname == "SingleMuon_2018C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2018C-17Sep2018-v1/MINIAOD" });
-    if (sname == "SingleMuon_2018D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2018D-PromptReco-v2/MINIAOD" });
+    if (sname == "SingleMuon_2018D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2018D-22Jan2019-v2/MINIAOD" });
     if (sname == "DoubleMuon"){
       constructSamplesList("DoubleMuon_2018A", syst, samples);
       constructSamplesList("DoubleMuon_2018B", syst, samples);
