@@ -341,6 +341,12 @@ bool EventFilterHandler::constructCommonSkim(){
 
 bool EventFilterHandler::constructHLTPaths(SimEventHandler const* simEventHandler){
   bool isData = SampleHelpers::checkSampleIsData(currentTree->sampleIdentifier);
+  if (!isData && simEventHandler){
+    if (!simEventHandler->isAlreadyCached()){
+      if (this->verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::constructHLTPaths: Need to update the SimEventHandler object first!" << endl;
+      assert(0);
+    }
+  }
 
 #define HLTTRIGGERPATH_VARIABLE(TYPE, NAME, DEFVAL) std::vector<TYPE>::const_iterator itBegin_HLTpaths_##NAME, itEnd_HLTpaths_##NAME;
   HLTTRIGGERPATH_VARIABLES;

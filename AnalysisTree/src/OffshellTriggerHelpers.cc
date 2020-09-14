@@ -245,7 +245,6 @@ void TriggerHelpers::configureHLTmap(){
     };
 
     // Assign run range exclusions
-    // FIXME: 2016C
     assignRunRangeExclusions(
       "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v*", {
         { 280919/*281613*/, -1 }
@@ -258,9 +257,7 @@ void TriggerHelpers::configureHLTmap(){
     );
     assignRunRangeExclusions(
       "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*", {
-        { 274968, 275059 }, // 2016B
-                            // FIXME: CHECK 2016C!
-        { 276315, -1 } // Prescales in 2016D-H are crazy, they interchange between 0 and 1.
+        { 274968, -1 } // Prescales in 2016D-H are crazy, they interchange between 0 and 1.
       }
     );
     assignRunRangeExclusions(
@@ -282,8 +279,7 @@ void TriggerHelpers::configureHLTmap(){
     );
     assignRunRangeExclusions(
       "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v*", {
-        { 274968, 275059 },
-        { 276315, -1 } // FIXME: CHECK 2016C!
+        { 274968, -1 }
       }
     );
     assignRunRangeExclusions(
@@ -298,8 +294,7 @@ void TriggerHelpers::configureHLTmap(){
     );
     assignRunRangeExclusions(
       "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*", {
-        { 274968, 275059 },
-        { 276315, -1 } // FIXME: CHECK 2016C!
+        { 274968, -1 }
       }
     );
     assignRunRangeExclusions(
@@ -319,7 +314,7 @@ void TriggerHelpers::configureHLTmap(){
     );
     assignRunRangeExclusions(
       "HLT_TkMu50_v*", {
-        { -1, 274442 } // FIXME: CHECK 2016C!
+        { -1, 274442 }
       }
     );
 
