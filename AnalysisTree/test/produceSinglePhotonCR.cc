@@ -453,7 +453,7 @@ void getTrees(
   SampleHelpers::constructSamplesList(strSampleSet, theGlobalSyst, sampledirs);
   if (sampledirs.empty()) return;
   bool isData = SampleHelpers::checkSampleIsData(sampledirs.front());
-  if (isData && nchunks>0) return;
+  if (isData && (nchunks>0 || theGlobalSyst!=sNominal)) return;
 
   // Set flags for ak4jet tight id
   AK4JetSelectionHelpers::setPUIdWP(applyPUIdToAK4Jets ? AK4JetSelectionHelpers::kTightPUJetId : AK4JetSelectionHelpers::nSelectionBits); // Default is 'tight'
@@ -472,11 +472,12 @@ void getTrees(
     + "_" + (useJetOverlapStripping ? "ParticleStripped" : "ParticleCleaned")
     + "/" + (use_MET_Puppi ? "PUPPIMET" : "PFMET")
     + "_" + (use_MET_XYCorr ? "WithXY" : "NoXY");
-  if (!isData) coutput_main += "_" + (use_MET_JERCorr ? "WithJER" : "NoJER");
-  coutput_main += "_" + (use_MET_ParticleMomCorr ? "WithPartMomCorr" : "NoPartMomCorr")
+  if (!isData) coutput_main = coutput_main + "_" + (use_MET_JERCorr ? "WithJER" : "NoJER");
+  coutput_main = coutput_main
+    + "_" + (use_MET_ParticleMomCorr ? "WithPartMomCorr" : "NoPartMomCorr")
     + "_" + (use_MET_p4Preservation ? "P4Preserved" : "P4Default");
-  if (!isData) coutput_main += "_" + (use_MET_corrections ? "ResolutionCorrected" : "ResolutionUncorrected");
-  coutput_main += "/" + period;
+  if (!isData) coutput_main = coutput_main + "_" + (use_MET_corrections ? "ResolutionCorrected" : "ResolutionUncorrected");
+  coutput_main = coutput_main + "/" + period;
 
   TDirectory* curdir = gDirectory;
   gSystem->mkdir(coutput_main, true);
