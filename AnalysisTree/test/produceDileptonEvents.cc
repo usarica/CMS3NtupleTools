@@ -88,14 +88,24 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     MELAerr << "LooperFunctionHelpers::looperRule: Defining both simple HLT menus and menus with properties is not allowed. Choose only one!" << endl;
     assert(0);
   }
-  auto it_HLTMenuSimple_SinglePhoton = triggerCheckListMap.find("SinglePhoton");
-  auto it_HLTMenuProps_SinglePhoton = triggerPropsCheckListMap.find("SinglePhoton");
+  auto it_HLTMenuSimple_OSDF = triggerCheckListMap.find("Dilepton_OSDF");
+  auto it_HLTMenuProps_OSDF = triggerPropsCheckListMap.find("Dilepton_OSDF");
   if (
-    (hasSimpleHLTMenus && it_HLTMenuSimple_SinglePhoton == triggerCheckListMap.cend())
+    (hasSimpleHLTMenus && it_HLTMenuSimple_OSDF == triggerCheckListMap.cend())
     ||
-    (hasHLTMenuProperties && it_HLTMenuProps_SinglePhoton == triggerPropsCheckListMap.cend())
+    (hasHLTMenuProperties && it_HLTMenuProps_OSDF == triggerPropsCheckListMap.cend())
     ){
-    MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'SinglePhoton' has to be defined in this looper rule!" << endl;
+    MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'Dilepton_OSDF' has to be defined in this looper rule!" << endl;
+    assert(0);
+  }
+  auto it_HLTMenuSimple_OSSF = triggerCheckListMap.find("Dilepton_OSSF");
+  auto it_HLTMenuProps_OSSF = triggerPropsCheckListMap.find("Dilepton_OSSF");
+  if (
+    (hasSimpleHLTMenus && it_HLTMenuSimple_OSSF == triggerCheckListMap.cend())
+    ||
+    (hasHLTMenuProperties && it_HLTMenuProps_OSSF == triggerPropsCheckListMap.cend())
+    ){
+    MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'Dilepton_OSSF' has to be defined in this looper rule!" << endl;
     assert(0);
   }
 
@@ -148,25 +158,20 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt20_btagged_loose) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt20_btagged_medium) \
   BRANCH_COMMAND(float, ak4jets_HT) \
-  BRANCH_COMMAND(float, photon_pt) \
-  BRANCH_COMMAND(float, photon_eta) \
-  BRANCH_COMMAND(float, photon_phi) \
-  BRANCH_COMMAND(float, photon_mass) \
-  BRANCH_COMMAND(bool, photon_is_conversionSafe) \
-  BRANCH_COMMAND(bool, photon_is_inTime) \
-  BRANCH_COMMAND(bool, photon_is_beamHaloSafe) \
-  BRANCH_COMMAND(bool, photon_is_spikeSafe) \
-  BRANCH_COMMAND(bool, photon_is_PFID) \
-  BRANCH_COMMAND(bool, photon_is_METSafe) \
-  BRANCH_COMMAND(bool, photon_pass_HGGSelection) \
-  BRANCH_COMMAND(bool, photon_isGap) \
-  BRANCH_COMMAND(bool, photon_isEB) \
-  BRANCH_COMMAND(bool, photon_isEE) \
-  BRANCH_COMMAND(bool, photon_isEBEEGap) \
-  BRANCH_COMMAND(float, dPhi_pTG_pTmiss) \
-  BRANCH_COMMAND(float, dPhi_pTGjets_pTmiss) \
+  BRANCH_COMMAND(cms3_id_t, dilepton_id) \
+  BRANCH_COMMAND(float, dilepton_pt) \
+  BRANCH_COMMAND(float, dilepton_eta) \
+  BRANCH_COMMAND(float, dilepton_phi) \
+  BRANCH_COMMAND(float, dilepton_mass) \
+  BRANCH_COMMAND(float, dPhi_pTll_pTmiss) \
+  BRANCH_COMMAND(float, dPhi_pTlljets_pTmiss) \
   BRANCH_COMMAND(float, min_abs_dPhi_pTj_pTmiss)
 #define BRANCH_VECTOR_COMMANDS \
+  BRANCH_COMMAND(cms3_id_t, leptons_id) \
+  BRANCH_COMMAND(float, leptons_pt) \
+  BRANCH_COMMAND(float, leptons_eta) \
+  BRANCH_COMMAND(float, leptons_phi) \
+  BRANCH_COMMAND(float, leptons_mass) \
   BRANCH_COMMAND(float, ak4jets_pt) \
   BRANCH_COMMAND(float, ak4jets_eta) \
   BRANCH_COMMAND(float, ak4jets_phi) \
@@ -238,64 +243,35 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   particleDisambiguator.disambiguateParticles(muonHandler, electronHandler, photonHandler);
 
   auto const& muons = muonHandler->getProducts();
-  unsigned int n_muons_veto = 0;
   float SF_muons = 1;
   for (auto const& part:muons){
     float theSF = 1;
     if (!isData) muonSFHandler->getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
     if (theSF == 0.f) continue;
     SF_muons *= theSF;
-
-    if (ParticleSelectionHelpers::isVetoParticle(part)) n_muons_veto++;
   }
-  if (n_muons_veto!=0) return false;
 
   auto const& electrons = electronHandler->getProducts();
-  unsigned int n_electrons_veto = 0;
   float SF_electrons = 1;
   for (auto const& part:electrons){
     float theSF = 1;
     //if (!isData) electronSFHandler.getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
     if (theSF == 0.f) continue;
     SF_electrons *= theSF;
-
-    if (ParticleSelectionHelpers::isVetoParticle(part)) n_electrons_veto++;
   }
-  if (n_electrons_veto!=0) return false;
 
   auto const& photons = photonHandler->getProducts();
   unsigned int n_photons_tight = 0;
   float SF_photons = 1;
-  PhotonObject const* theChosenPhoton = nullptr;
   for (auto const& part:photons){
     float theSF = 1;
     if (!isData) photonSFHandler->getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
     if (theSF == 0.f) continue;
     SF_photons *= theSF;
 
-    if (ParticleSelectionHelpers::isTightParticle(part)){
-      if (!theChosenPhoton) theChosenPhoton = part;
-      n_photons_tight++;
-    }
+    if (ParticleSelectionHelpers::isTightParticle(part)) n_photons_tight++;
   }
-  if (n_photons_tight!=1) return false;
-
-  photon_pt = theChosenPhoton->pt();
-  photon_eta = theChosenPhoton->eta();
-  photon_phi = theChosenPhoton->phi();
-  photon_mass = theChosenPhoton->m();
-
-  photon_is_conversionSafe = theChosenPhoton->testSelection(PhotonSelectionHelpers::kConversionSafe);
-  photon_is_inTime = theChosenPhoton->testSelection(PhotonSelectionHelpers::kInTimeSeed);
-  photon_is_beamHaloSafe = theChosenPhoton->testSelection(PhotonSelectionHelpers::kBeamHaloSafe);
-  photon_is_spikeSafe = theChosenPhoton->testSelection(PhotonSelectionHelpers::kSpikeSafe);
-  photon_is_PFID = theChosenPhoton->testSelection(PhotonSelectionHelpers::kPFPhotonId);
-  photon_is_METSafe = theChosenPhoton->testSelection(PhotonSelectionHelpers::kPFMETSafe);
-  photon_pass_HGGSelection = theChosenPhoton->extras.id_cutBased_HGG_Bits;
-  photon_isGap = theChosenPhoton->isGap();
-  photon_isEBEEGap = theChosenPhoton->isEBEEGap();
-  photon_isEB = theChosenPhoton->isEB();
-  photon_isEE = theChosenPhoton->isEE();
+  if (n_photons_tight!=0) return false;
 
   isotrackHandler->constructIsotracks(&muons, &electrons);
   bool hasVetoIsotrack = false;
@@ -307,12 +283,40 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   }
   if (hasVetoIsotrack) return false;
 
+  dileptonHandler.constructDileptons(&muons, &electrons);
+  auto const& dileptons = dileptonHandler.getProducts();
+  DileptonObject* theChosenDilepton = nullptr;
+  size_t nTightDilep = 0;
+  for (auto const& dilepton:dileptons){
+    if (dilepton->isValid() && dilepton->isOS() && dilepton->nTightDaughters()==2){
+      if (!theChosenDilepton) theChosenDilepton = dilepton;
+      nTightDilep++;
+    }
+  }
+  if (!theChosenDilepton || nTightDilep>1) return false;
+
+  bool const dilepton_is_SF = theChosenDilepton->isSF();
+  dilepton_id = theChosenDilepton->getDaughter(0)->pdgId()*theChosenDilepton->getDaughter(1)->pdgId();
+  dilepton_pt = theChosenDilepton->pt();
+  dilepton_eta = theChosenDilepton->eta();
+  dilepton_phi = theChosenDilepton->phi();
+  dilepton_mass = theChosenDilepton->m();
+  for (auto const& dau:theChosenDilepton->getDaughters()){
+    leptons_id.push_back(dau->pdgId());
+    leptons_pt.push_back(dau->pt());
+    leptons_eta.push_back(dau->eta());
+    leptons_phi.push_back(dau->phi());
+  }
+
   jetHandler->constructJetMET(theGlobalSyst, &muons, &electrons, &photons, &pfcandidates);
   auto const& ak4jets = jetHandler->getAK4Jets();
   auto const& ak8jets = jetHandler->getAK8Jets();
 
-  if (hasSimpleHLTMenus) event_wgt_triggers = eventFilter->getTriggerWeight(it_HLTMenuSimple_SinglePhoton->second);
-  else if (hasHLTMenuProperties) event_wgt_triggers = eventFilter->getTriggerWeight(it_HLTMenuProps_SinglePhoton->second, nullptr, nullptr, &photons, nullptr, nullptr, nullptr);
+  if (hasSimpleHLTMenus) event_wgt_triggers = eventFilter->getTriggerWeight((dilepton_is_SF ? it_HLTMenuSimple_OSSF : it_HLTMenuSimple_OSDF)->second);
+  else if (hasHLTMenuProperties) event_wgt_triggers = eventFilter->getTriggerWeight(
+    (dilepton_is_SF ? it_HLTMenuProps_OSSF : it_HLTMenuProps_OSDF)->second,
+    &muons, &electrons, nullptr, nullptr, nullptr, nullptr
+  );
   if (event_wgt_triggers == 0.f) return false;
 
   // Test HEM filter
@@ -376,8 +380,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     min_abs_dPhi_pTj_pTmiss = std::min(min_abs_dPhi_pTj_pTmiss, dphi_tmp);
   }
 
-  dPhi_pTG_pTmiss = theChosenPhoton->deltaPhi(event_phimiss);
-  HelperFunctions::deltaPhi(float((theChosenPhoton->p4()+sump4_ak4jets).Phi()), event_phimiss, dPhi_pTGjets_pTmiss);
+  dPhi_pTll_pTmiss = theChosenDilepton->deltaPhi(event_phimiss);
+  HelperFunctions::deltaPhi(float((theChosenDilepton->p4()+sump4_ak4jets).Phi()), event_phimiss, dPhi_pTlljets_pTmiss);
 
   // Set the collection of SFs at the last step
   event_wgt_SFs = SF_muons*SF_electrons*SF_photons*SF_btagging;
@@ -445,8 +449,19 @@ void getTrees(
   BtagHelpers::setBtagWPType(BtagHelpers::kDeepFlav_Loose);
   LooperFunctionHelpers::setBtagWPs();
 
-  std::vector<TriggerHelpers::TriggerType> requiredTriggers{ TriggerHelpers::kSinglePho };
-  auto triggerPropsCheckList = TriggerHelpers::getHLTMenuProperties(requiredTriggers);
+  std::vector<TriggerHelpers::TriggerType> requiredTriggers_OSDF{
+    TriggerHelpers::kMuEle,
+    TriggerHelpers::kSingleMu, TriggerHelpers::kSingleMu_HighPt,
+    TriggerHelpers::kSingleEle, TriggerHelpers::kSingleEle_HighPt
+  };
+  std::vector<TriggerHelpers::TriggerType> requiredTriggers_OSSF{
+    TriggerHelpers::kDoubleMu,
+    TriggerHelpers::kDoubleEle, TriggerHelpers::kDoubleEle_HighPt,
+    TriggerHelpers::kSingleMu, TriggerHelpers::kSingleMu_HighPt,
+    TriggerHelpers::kSingleEle, TriggerHelpers::kSingleEle_HighPt
+  };
+  auto triggerPropsCheckList_OSDF = TriggerHelpers::getHLTMenuProperties(requiredTriggers_OSDF);
+  auto triggerPropsCheckList_OSSF = TriggerHelpers::getHLTMenuProperties(requiredTriggers_OSSF);
 
   // Get sample specifications
   std::vector<TString> sampledirs;
@@ -465,7 +480,7 @@ void getTrees(
 
   // Set output directory
   TString coutput_main =
-    "output/SinglePhotonEvents/SkimTrees/" + strdate
+    "output/DileptonEvents/SkimTrees/" + strdate
     + "/AK4Jets"
     + "_" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
     + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
@@ -590,13 +605,14 @@ void getTrees(
   // Set output tree
   theLooper.addOutputTree(tout);
   // Register the HLT menus
-  theLooper.addHLTMenu("SinglePhoton", triggerPropsCheckList);
+  theLooper.addHLTMenu("Dilepton_OSDF", triggerPropsCheckList_OSDF);
+  theLooper.addHLTMenu("Dilepton_OSSF", triggerPropsCheckList_OSSF);
 
   curdir->cd();
 
   std::vector<BaseTree*> sample_trees; sample_trees.reserve(sampledirs.size());
   for (auto const& sname:sampledirs){
-    BaseTree* sample_tree = new BaseTree(SampleHelpers::getDatasetFileName(sname), "cms3ntuple/SinglePhoton", "", ""); sample_trees.push_back(sample_tree);
+    BaseTree* sample_tree = new BaseTree(SampleHelpers::getDatasetFileName(sname), "cms3ntuple/Dilepton", "", ""); sample_trees.push_back(sample_tree);
     sample_tree->sampleIdentifier = SampleHelpers::getSampleIdentifier(sname);
 
     std::vector<TString> allbranchnames; sample_tree->getValidBranchNamesWithoutAlias(allbranchnames, false);
