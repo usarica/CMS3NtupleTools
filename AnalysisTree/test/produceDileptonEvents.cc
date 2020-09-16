@@ -570,6 +570,11 @@ void getTrees(
 
   // Configure the looper
   BaseTreeLooper theLooper;
+  // Set chunk index
+  if (nchunks>0){
+    theLooper.setEventIndexRangeBySampleChunks(true);
+    theLooper.setEventIndexRange(ichunk, nchunks);
+  }
   // Set systematic
   theLooper.setSystematic(theGlobalSyst);
   // Set looper function
