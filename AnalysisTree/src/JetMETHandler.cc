@@ -84,9 +84,13 @@ void JetMETHandler::clear(){
   this->resetCache();
 
   for (auto*& prod:ak4jets) delete prod;
+  for (auto*& prod:ak4jets_masked) delete prod;
   ak4jets.clear();
+  ak4jets_masked.clear();
   for (auto*& prod:ak8jets) delete prod;
+  for (auto*& prod:ak8jets_masked) delete prod;
   ak8jets.clear();
+  ak8jets_masked.clear();
   delete pfmet; pfmet=nullptr;
   delete pfpuppimet; pfpuppimet=nullptr;
 }
@@ -306,8 +310,8 @@ bool JetMETHandler::linkOverlapElements() const{
 }
 
 bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons){
-  std::vector<AK4JetObject*> ak4jets_new; ak4jets_new.reserve(ak4jets.size());
-  std::vector<AK8JetObject*> ak8jets_new; ak8jets_new.reserve(ak8jets.size());
+  std::vector<AK4JetObject*> ak4jets_new; ak4jets_new.reserve(ak4jets.size()); ak4jets_masked.reserve(ak4jets.size());
+  std::vector<AK8JetObject*> ak8jets_new; ak8jets_new.reserve(ak8jets.size()); ak8jets_masked.reserve(ak8jets.size());
 
   if (!usePFCandidates){
     // In this scenario, a simple delta-R cleaning is done.
@@ -316,23 +320,23 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
       if (muons){
         for (auto const* part:(*muons)){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
-          if (reco::deltaR(jet->p4(), part->p4())<jet->ConeRadiusConstant){ doSkip=true; break; }
+          if (jet->deltaR(part)<jet->ConeRadiusConstant){ doSkip=true; break; }
         }
       }
       if (electrons){
         for (auto const* part:(*electrons)){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
-          if (reco::deltaR(jet->p4(), part->p4())<jet->ConeRadiusConstant){ doSkip=true; break; }
+          if (jet->deltaR(part)<jet->ConeRadiusConstant){ doSkip=true; break; }
         }
       }
       if (photons){
         for (auto const* part:(*photons)){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
-          if (reco::deltaR(jet->p4(), part->p4())<jet->ConeRadiusConstant){ doSkip=true; break; }
+          if (jet->deltaR(part)<jet->ConeRadiusConstant){ doSkip=true; break; }
         }
       }
       if (!doSkip) ak4jets_new.push_back(jet);
-      else delete jet;
+      else ak4jets_masked.push_back(jet);
     }
     ak4jets = ak4jets_new;
 
@@ -341,23 +345,23 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
       if (muons){
         for (auto const* part:(*muons)){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
-          if (reco::deltaR(jet->p4(), part->p4())<jet->ConeRadiusConstant){ doSkip=true; break; }
+          if (jet->deltaR(part)<jet->ConeRadiusConstant){ doSkip=true; break; }
         }
       }
       if (electrons){
         for (auto const* part:(*electrons)){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
-          if (reco::deltaR(jet->p4(), part->p4())<jet->ConeRadiusConstant){ doSkip=true; break; }
+          if (jet->deltaR(part)<jet->ConeRadiusConstant){ doSkip=true; break; }
         }
       }
       if (photons){
         for (auto const* part:(*photons)){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
-          if (reco::deltaR(jet->p4(), part->p4())<jet->ConeRadiusConstant){ doSkip=true; break; }
+          if (jet->deltaR(part)<jet->ConeRadiusConstant){ doSkip=true; break; }
         }
       }
       if (!doSkip) ak8jets_new.push_back(jet);
-      else delete jet;
+      else ak8jets_masked.push_back(jet);
     }
     ak8jets = ak8jets_new;
   }
@@ -365,6 +369,7 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
     // In this scenario, overlaps are checked explicitly.
     // No jets are skipped. They are modified instead.
     // Modifications are propagated to MET!
+    constexpr bool applyConeVetoToStripping = true;
     ParticleObject::LorentzVector_t sump4_METContribution_old[4];
     ParticleObject::LorentzVector_t sump4_METContribution_new[4];
 
@@ -374,10 +379,12 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
       ParticleObject::LorentzVector_t sump4_overlaps;
       ParticleObject::LorentzVector_t sump4_overlaps_mucands;
       bool hasCorrections = false;
+      AK4JetObject* oldjet = nullptr;
 
       if (muons){
         for (auto const& part:(*muons)){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
+          if (applyConeVetoToStripping && jet->deltaR(part)>=jet->ConeRadiusConstant) continue;
           MuonObject* thePart = nullptr;
           FSRObject* theFSR = nullptr;
           if (part->hasFSR()){
@@ -393,6 +400,8 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
           // If an overlap element is found, it means the particle overlaps with the jet.
           if (overlapElement){
             hasCorrections = true;
+            if (!oldjet) oldjet = new AK4JetObject(*jet);
+            oldjet->addDaughter(thePart);
             ParticleObject::LorentzVector_t p4_overlap = overlapElement->p4_common();
             ParticleObject::LorentzVector_t p4_overlap_mucands = overlapElement->p4_commonMuCands_goodMET();
             std::vector<ParticleObject*> daughters_part;
@@ -421,6 +430,8 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
           if (theFSR){
             if (HelperFunctions::checkListVariable(theFSR->extras.fsrMatch_ak4jet_index_list, jet->getUniqueIdentifier())){
               hasCorrections = true;
+              if (!oldjet) oldjet = new AK4JetObject(*jet);
+              oldjet->addDaughter(theFSR);
               sump4_overlaps += theFSR->p4();
               if (this->verbosity>=TVar::DEBUG) MELAout
                 << "JetMETHandler::applyJetCleaning: ak4 jet " << jet->getUniqueIdentifier() << " has overlap with muon FSR " << theFSR->getUniqueIdentifier() << ":"
@@ -434,6 +445,7 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
       if (electrons){
         for (auto const& part:(*electrons)){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
+          if (applyConeVetoToStripping && jet->deltaR(part)>=jet->ConeRadiusConstant) continue;
           ElectronObject* thePart = nullptr;
           FSRObject* theFSR = nullptr;
           if (part->hasFSR()){
@@ -449,6 +461,8 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
           // If an overlap element is found, it means the particle overlaps with the jet.
           if (overlapElement){
             hasCorrections = true;
+            if (!oldjet) oldjet = new AK4JetObject(*jet);
+            oldjet->addDaughter(thePart);
             ParticleObject::LorentzVector_t p4_overlap = overlapElement->p4_common();
             ParticleObject::LorentzVector_t p4_overlap_mucands = overlapElement->p4_commonMuCands_goodMET();
             std::vector<ParticleObject*> daughters_part;
@@ -477,6 +491,8 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
           if (theFSR){
             if (HelperFunctions::checkListVariable(theFSR->extras.fsrMatch_ak4jet_index_list, jet->getUniqueIdentifier())){
               hasCorrections = true;
+              if (!oldjet) oldjet = new AK4JetObject(*jet);
+              oldjet->addDaughter(theFSR);
               sump4_overlaps += theFSR->p4();
               if (this->verbosity>=TVar::DEBUG) MELAout
                 << "JetMETHandler::applyJetCleaning: ak4 jet " << jet->getUniqueIdentifier() << " has overlap with electron FSR " << theFSR->getUniqueIdentifier() << ":"
@@ -490,10 +506,13 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
       if (photons){
         for (auto const& part:(*photons)){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
+          if (applyConeVetoToStripping && jet->deltaR(part)>=jet->ConeRadiusConstant) continue;
           auto overlapElement = overlapMap_photons_ak4jets->getMatchingOverlapMap(part, jet);
           // If an overlap element is found, it means the particle overlaps with the jet.
           if (overlapElement){
             hasCorrections = true;
+            if (!oldjet) oldjet = new AK4JetObject(*jet);
+            oldjet->addDaughter(part);
             ParticleObject::LorentzVector_t p4_overlap = overlapElement->p4_common();
             ParticleObject::LorentzVector_t p4_overlap_mucands = overlapElement->p4_commonMuCands_goodMET();
             std::vector<ParticleObject*> daughters_part;
@@ -546,6 +565,9 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
           MELAout << "\t- New uncorrected mu candidates p4 = " << p4_jet_uncorrected_mucands_new << endl;
         }
 
+        assert(oldjet!=nullptr);
+        oldjet->addDaughter(jet); jet->addMother(oldjet);
+
         jet->reset_uncorrected_p4(p4_jet_uncorrected_new);
         jet->reset_p4_mucands(p4_jet_uncorrected_mucands_new);
         jet->makeFinalMomentum(jet->getCurrentSyst());
@@ -573,6 +595,7 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
 
       // Never skip jets in this mode of operation
       ak4jets_new.push_back(jet);
+      if (oldjet) ak4jets_masked.push_back(oldjet);
     }
     ak4jets = ak4jets_new;
     ParticleObjectHelpers::sortByGreaterPt(ak4jets);
@@ -597,10 +620,12 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
       std::vector<PFCandidateObject*> common_pfcands;
       ParticleObject::LorentzVector_t sump4_overlaps;
       bool hasCorrections = false;
+      AK8JetObject* oldjet = nullptr;
 
       if (muons){
         for (auto const& part:(*muons)){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
+          if (applyConeVetoToStripping && jet->deltaR(part)>=jet->ConeRadiusConstant) continue;
           MuonObject* thePart = nullptr;
           FSRObject* theFSR = nullptr;
           if (part->hasFSR()){
@@ -616,6 +641,8 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
           // If an overlap element is found, it means the particle overlaps with the jet.
           if (overlapElement){
             hasCorrections = true;
+            if (!oldjet) oldjet = new AK8JetObject(*jet);
+            oldjet->addDaughter(thePart);
             ParticleObject::LorentzVector_t p4_overlap = overlapElement->p4_common();
             std::vector<ParticleObject*> daughters_part;
             thePart->getDeepDaughters(daughters_part, false);
@@ -634,6 +661,8 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
           if (theFSR){
             if (HelperFunctions::checkListVariable(theFSR->extras.fsrMatch_ak8jet_index_list, jet->getUniqueIdentifier())){
               hasCorrections = true;
+              if (!oldjet) oldjet = new AK8JetObject(*jet);
+              oldjet->addDaughter(theFSR);
               sump4_overlaps += theFSR->p4();
             }
           }
@@ -642,6 +671,7 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
       if (electrons){
         for (auto const& part:(*electrons)){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
+          if (applyConeVetoToStripping && jet->deltaR(part)>=jet->ConeRadiusConstant) continue;
           ElectronObject* thePart = nullptr;
           FSRObject* theFSR = nullptr;
           if (part->hasFSR()){
@@ -657,6 +687,8 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
           // If an overlap element is found, it means the particle overlaps with the jet.
           if (overlapElement){
             hasCorrections = true;
+            if (!oldjet) oldjet = new AK8JetObject(*jet);
+            oldjet->addDaughter(thePart);
             ParticleObject::LorentzVector_t p4_overlap = overlapElement->p4_common();
             std::vector<ParticleObject*> daughters_part;
             thePart->getDeepDaughters(daughters_part, false);
@@ -675,6 +707,8 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
           if (theFSR){
             if (HelperFunctions::checkListVariable(theFSR->extras.fsrMatch_ak8jet_index_list, jet->getUniqueIdentifier())){
               hasCorrections = true;
+              if (!oldjet) oldjet = new AK8JetObject(*jet);
+              oldjet->addDaughter(theFSR);
               sump4_overlaps += theFSR->p4();
             }
           }
@@ -683,10 +717,13 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
       if (photons){
         for (auto const& part:(*photons)){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
+          if (applyConeVetoToStripping && jet->deltaR(part)>=jet->ConeRadiusConstant) continue;
           auto overlapElement = overlapMap_photons_ak8jets->getMatchingOverlapMap(part, jet);
           // If an overlap element is found, it means the particle overlaps with the jet.
           if (overlapElement){
             hasCorrections = true;
+            if (!oldjet) oldjet = new AK8JetObject(*jet);
+            oldjet->addDaughter(part);
             ParticleObject::LorentzVector_t p4_overlap = overlapElement->p4_common();
             std::vector<ParticleObject*> daughters_part;
             part->getDeepDaughters(daughters_part, false);
@@ -710,6 +747,9 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
         ParticleObject::LorentzVector_t p4_jet_uncorrected_new = p4_jet_uncorrected_old - sump4_overlaps;
         for (auto const& pfcand:common_pfcands) p4_jet_uncorrected_new -= pfcand->uncorrected_p4();
 
+        assert(oldjet!=nullptr);
+        oldjet->addDaughter(jet); jet->addMother(oldjet);
+
         jet->reset_uncorrected_p4(p4_jet_uncorrected_new);
         jet->makeFinalMomentum(jet->getCurrentSyst());
         AK8JetSelectionHelpers::setSelectionBits(*jet, false, true);
@@ -717,6 +757,7 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
 
       // Never skip jets in this mode of operation
       ak8jets_new.push_back(jet);
+      if (oldjet) ak8jets_masked.push_back(oldjet);
     }
     ak8jets = ak8jets_new;
     ParticleObjectHelpers::sortByGreaterPt(ak8jets);

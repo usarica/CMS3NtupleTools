@@ -32,7 +32,9 @@ protected:
   OverlapMapHandler<PhotonObject, AK8JetObject>* overlapMap_photons_ak8jets;
 
   std::vector<AK4JetObject*> ak4jets;
+  std::vector<AK4JetObject*> ak4jets_masked;
   std::vector<AK8JetObject*> ak8jets;
+  std::vector<AK8JetObject*> ak8jets_masked;
   METObject* pfmet;
   METObject* pfpuppimet;
 
@@ -66,8 +68,12 @@ public:
 
   std::vector<AK4JetObject*> const& getAK4Jets() const{ return ak4jets; }
   std::vector<AK8JetObject*> const& getAK8Jets() const{ return ak8jets; }
+  std::vector<AK4JetObject*> const& getMaskedAK4Jets() const{ return ak4jets_masked; }
+  std::vector<AK8JetObject*> const& getMaskedAK8Jets() const{ return ak8jets_masked; }
   METObject* const& getPFMET() const{ return pfmet; }
   METObject* const& getPFPUPPIMET() const{ return pfpuppimet; }
+
+  bool const& checkOverlapMaps() const{ return hasOverlapMaps; }
 
   bool wrapTree(BaseTree* tree);
 
