@@ -1438,26 +1438,26 @@ std::unordered_map< TString, std::vector< std::pair<unsigned int, double> > > Sa
 }
 
 std::unordered_map< TString, double > SampleHelpers::define_dataPeriod_lumi_map(){
+  using namespace std;
+  using namespace MELAStreamHelpers;
+
   std::unordered_map<TString, double> res;
   for (auto const& dp_rn_lumi_pair:dataPeriod_runNumber_lumi_pairs_map){
     TString const& period = dp_rn_lumi_pair.first;
-    TString stryear = Form("%i", getDataYearFromPeriod(period));
     auto const& rn_lumi_pairs = dp_rn_lumi_pair.second;
     for (auto const& rn_lumi_pair:rn_lumi_pairs){
       std::unordered_map<TString, double>::iterator it;
       if (!HelperFunctions::getUnorderedMapIterator(period, res, it)) res[period] = rn_lumi_pair.second;
       else it->second += rn_lumi_pair.second;
-      if (!HelperFunctions::getUnorderedMapIterator(stryear, res, it)) res[stryear] = rn_lumi_pair.second;
-      else it->second += rn_lumi_pair.second;
       if (isHEM2018Affected(rn_lumi_pair.first)){
-        TString period_HEMaffected = stryear + "_HEMaffected";
-        if (!HelperFunctions::getUnorderedMapIterator(period_HEMaffected, res, it)) res[period_HEMaffected] = rn_lumi_pair.second;
-        else it->second += rn_lumi_pair.second;
-        period_HEMaffected = period + "_HEMaffected";
+        TString period_HEMaffected = period + "_HEMaffected";
         if (!HelperFunctions::getUnorderedMapIterator(period_HEMaffected, res, it)) res[period_HEMaffected] = rn_lumi_pair.second;
         else it->second += rn_lumi_pair.second;
       }
     }
+  }
+  for (auto const& pp:res){
+    MELAout << pp << endl;
   }
   return res;
 }
