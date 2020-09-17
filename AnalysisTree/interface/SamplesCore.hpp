@@ -1438,9 +1438,6 @@ std::unordered_map< TString, std::vector< std::pair<unsigned int, double> > > Sa
 }
 
 std::unordered_map< TString, double > SampleHelpers::define_dataPeriod_lumi_map(){
-  using namespace std;
-  using namespace MELAStreamHelpers;
-
   std::unordered_map<TString, double> res;
   for (auto const& dp_rn_lumi_pair:dataPeriod_runNumber_lumi_pairs_map){
     TString const& period = dp_rn_lumi_pair.first;
@@ -1455,9 +1452,6 @@ std::unordered_map< TString, double > SampleHelpers::define_dataPeriod_lumi_map(
         else it->second += rn_lumi_pair.second;
       }
     }
-  }
-  for (auto const& pp:res){
-    MELAout << pp << endl;
   }
   return res;
 }
