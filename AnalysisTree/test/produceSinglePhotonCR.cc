@@ -33,6 +33,7 @@ namespace LooperFunctionHelpers{
   // Helpers for b-tagging
   float btag_thr_loose = -1;
   float btag_thr_medium = -1;
+  float btag_thr_tight = -1;
 
   void setBtagWPs();
 
@@ -139,7 +140,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(float, event_wgt_SFs) \
   BRANCH_COMMAND(float, event_pTmiss) \
   BRANCH_COMMAND(float, event_phimiss) \
-  BRANCH_COMMAND(bool, event_passTightMETFilters) \
+  BRANCH_COMMAND(float, event_mTZZ) \
+  BRANCH_COMMAND(bool, event_pass_tightMETFilters) \
   BRANCH_COMMAND(float, genmet_pTmiss) \
   BRANCH_COMMAND(float, genmet_phimiss) \
   BRANCH_COMMAND(unsigned int, event_n_vtxs_good) \
@@ -163,14 +165,27 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(bool, photon_isEB) \
   BRANCH_COMMAND(bool, photon_isEE) \
   BRANCH_COMMAND(bool, photon_isEBEEGap) \
-  BRANCH_COMMAND(float, dPhi_pTG_pTmiss) \
-  BRANCH_COMMAND(float, dPhi_pTGjets_pTmiss) \
+  BRANCH_COMMAND(float, dPhi_pTboson_pTmiss) \
+  BRANCH_COMMAND(float, dPhi_pTbosonjets_pTmiss) \
   BRANCH_COMMAND(float, min_abs_dPhi_pTj_pTmiss)
 #define BRANCH_VECTOR_COMMANDS \
+  BRANCH_COMMAND(bool, ak4jets_is_genMatched) \
+  BRANCH_COMMAND(bool, ak4jets_is_genMatched_fullCone) \
+  BRANCH_COMMAND(cms3_listSize_t, ak4jets_n_overlaps) \
+  BRANCH_COMMAND(float, ak4jets_overlaps_pt) \
+  BRANCH_COMMAND(float, ak4jets_original_pt) \
+  BRANCH_COMMAND(unsigned char, ak4jets_btagWP_Bits) \
   BRANCH_COMMAND(float, ak4jets_pt) \
   BRANCH_COMMAND(float, ak4jets_eta) \
   BRANCH_COMMAND(float, ak4jets_phi) \
-  BRANCH_COMMAND(float, ak4jets_mass)
+  BRANCH_COMMAND(float, ak4jets_mass) \
+  BRANCH_COMMAND(cms3_listSize_t, ak4jets_masked_n_overlaps) \
+  BRANCH_COMMAND(float, ak4jets_masked_overlaps_pt) \
+  BRANCH_COMMAND(unsigned char, ak4jets_masked_btagWP_Bits) \
+  BRANCH_COMMAND(float, ak4jets_masked_pt) \
+  BRANCH_COMMAND(float, ak4jets_masked_eta) \
+  BRANCH_COMMAND(float, ak4jets_masked_phi) \
+  BRANCH_COMMAND(float, ak4jets_masked_mass)
 #define BRANCH_COMMANDS \
   BRANCH_SCALAR_COMMANDS \
   BRANCH_VECTOR_COMMANDS
@@ -227,7 +242,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   if (isData && !eventFilter->isUniqueDataEvent()) return false;
 
   if (!eventFilter->passCommonSkim() || !eventFilter->passMETFilters(EventFilterHandler::kMETFilters_Standard)) return false;
-  event_passTightMETFilters = eventFilter->passMETFilters(EventFilterHandler::kMETFilters_Tight);
+  event_pass_tightMETFilters = eventFilter->passMETFilters(EventFilterHandler::kMETFilters_Tight);
 
   pfcandidateHandler->constructPFCandidates(theGlobalSyst);
   auto const& pfcandidates = pfcandidateHandler->getProducts();
@@ -370,14 +385,127 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     ak4jets_eta.push_back(jet->eta());
     ak4jets_phi.push_back(jet->phi());
     ak4jets_mass.push_back(jet->mass());
+    ak4jets_is_genMatched.push_back(jet->extras.is_genMatched);
+    ak4jets_is_genMatched_fullCone.push_back(jet->extras.is_genMatched_fullCone);
 
+    // Determine b-tag WP passing bits
+    {
+      unsigned char btag_bits=0;
+      if (jet->getBtagValue()>=btag_thr_loose) HelperFunctions::set_bit(btag_bits, 0, true);
+      if (jet->getBtagValue()>=btag_thr_medium) HelperFunctions::set_bit(btag_bits, 1, true);
+      if (jet->getBtagValue()>=btag_thr_tight) HelperFunctions::set_bit(btag_bits, 2, true);
+      ak4jets_btagWP_Bits.push_back(btag_bits);
+    }
+
+    // Determine overlap information
+    {
+      cms3_listSize_t n_overlaps = 0;
+      ParticleObject::LorentzVector_t p4_overlaps;
+      ParticleObject::LorentzVector_t p4_original = jet->p4();
+      for (auto const& mother:jet->getMothers()){
+        AK4JetObject* jet_mother = dynamic_cast<AK4JetObject*>(mother);
+        if (jet_mother){
+          p4_overlaps = jet_mother->uncorrected_p4() - jet->uncorrected_p4();
+          p4_original = jet_mother->p4();
+          for (auto const& dau:jet_mother->getDaughters()){
+            if (dau==jet) continue;
+            if (dynamic_cast<PFCandidateObject*>(dau)) continue;
+            n_overlaps++;
+          }
+        }
+      }
+      ak4jets_n_overlaps.push_back(n_overlaps);
+      ak4jets_overlaps_pt.push_back(p4_overlaps.Pt());
+      ak4jets_original_pt.push_back(p4_original.Pt());
+    }
+
+    // Determine min_abs_dPhi_pTj_pTmiss
     float dphi_tmp;
     HelperFunctions::deltaPhi(float(jet->phi()), event_phimiss, dphi_tmp); dphi_tmp = std::abs(dphi_tmp);
     min_abs_dPhi_pTj_pTmiss = std::min(min_abs_dPhi_pTj_pTmiss, dphi_tmp);
   }
 
-  dPhi_pTG_pTmiss = theChosenPhoton->deltaPhi(event_phimiss);
-  HelperFunctions::deltaPhi(float((theChosenPhoton->p4()+sump4_ak4jets).Phi()), event_phimiss, dPhi_pTGjets_pTmiss);
+  // Also acquire masked jets.
+  // If jet overlap removal is done based on delta-R matching only, the masked jets are simply jets that are removed.
+  // Instead, if overlap removal is done based on jet stripping, the masked jets are mothers, so the information is fundamentally different.
+  // In the latter case, only include jets that are actually removed.
+  {
+    for (auto const& jet:jetHandler->getMaskedAK4Jets()){
+      if (!ParticleSelectionHelpers::isTightJet(jet)) continue;
+
+      // In the case of jet stripping, check if this jet was actually removed from the main collection.
+      if (jetHandler->checkOverlapMaps()){
+        bool isRegularJetMother = false;
+        for (auto const& recojet:ak4jets_tight){
+          for (auto const& mother:recojet->getMothers()){
+            if (mother == jet){
+              isRegularJetMother = true;
+              break;
+            }
+          }
+        }
+        if (isRegularJetMother) continue;
+      }
+
+      ak4jets_masked_pt.push_back(jet->pt());
+      ak4jets_masked_eta.push_back(jet->eta());
+      ak4jets_masked_phi.push_back(jet->phi());
+      ak4jets_masked_mass.push_back(jet->mass());
+
+      // Determine b-tag WP passing bits
+      {
+        unsigned char btag_bits=0;
+        if (jet->getBtagValue()>=btag_thr_loose) HelperFunctions::set_bit(btag_bits, 0, true);
+        if (jet->getBtagValue()>=btag_thr_medium) HelperFunctions::set_bit(btag_bits, 1, true);
+        if (jet->getBtagValue()>=btag_thr_tight) HelperFunctions::set_bit(btag_bits, 2, true);
+        ak4jets_masked_btagWP_Bits.push_back(btag_bits);
+      }
+
+      // Determine overlap information
+      {
+        cms3_listSize_t n_overlaps = 0;
+        ParticleObject::LorentzVector_t p4_overlaps;
+        for (auto const& part:muons){
+          if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
+          if (jet->deltaR(part)<jet->ConeRadiusConstant){
+            p4_overlaps += part->p4();
+            n_overlaps++;
+          }
+        }
+        for (auto const& part:electrons){
+          if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
+          if (jet->deltaR(part)<jet->ConeRadiusConstant){
+            p4_overlaps += part->p4();
+            n_overlaps++;
+          }
+        }
+        for (auto const& part:photons){
+          if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
+          if (jet->deltaR(part)<jet->ConeRadiusConstant){
+            p4_overlaps += part->p4();
+            n_overlaps++;
+          }
+        }
+        ak4jets_masked_n_overlaps.push_back(n_overlaps);
+        ak4jets_masked_overlaps_pt.push_back(p4_overlaps.Pt());
+      }
+    }
+  }
+
+  // Compute dPhi between the dilepton and pTmiss vector
+  dPhi_pTboson_pTmiss = theChosenPhoton->deltaPhi(event_phimiss);
+  HelperFunctions::deltaPhi(float((theChosenPhoton->p4()+sump4_ak4jets).Phi()), event_phimiss, dPhi_pTbosonjets_pTmiss);
+
+  // Compute mass variables
+  event_mTZZ = std::sqrt(
+    std::pow(
+    (
+      std::sqrt(std::pow(photon_pt, 2) + std::pow(PDGHelpers::Zmass, 2))
+      + std::sqrt(std::pow(event_pTmiss, 2) + std::pow(PDGHelpers::Zmass, 2))
+      ), 2
+    )
+    - std::pow((theChosenPhoton->p4() + event_met_p4).Pt(), 2)
+  );
 
   // Set the collection of SFs at the last step
   event_wgt_SFs = SF_muons*SF_electrons*SF_photons*SF_btagging;
@@ -413,6 +541,7 @@ void LooperFunctionHelpers::setBtagWPs(){
   std::vector<float> vwps = BtagHelpers::getBtagWPs(false);
   btag_thr_loose = vwps.at(0);
   btag_thr_medium = vwps.at(1);
+  btag_thr_tight = vwps.at(2);
 }
 
 
@@ -437,7 +566,7 @@ void getTrees(
 
   SampleHelpers::configure(period, "hadoop_skims:"+prodVersion);
 
-  const float lumi = SampleHelpers::getIntegratedLuminosity(SampleHelpers::theDataPeriod);
+  const float lumi = SampleHelpers::getIntegratedLuminosity(SampleHelpers::getDataPeriod());
 
   std::vector<TString> const validDataPeriods = SampleHelpers::getValidDataPeriods();
   size_t const nValidDataPeriods = validDataPeriods.size();

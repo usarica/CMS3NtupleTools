@@ -145,7 +145,7 @@ void produceSkims(
     std::vector<TString> branchnames;
     sample_tree.getValidBranchNamesWithoutAlias(branchnames, false);
 
-    const int nEntries = sample_tree.getSelectedNEvents();
+    const int nEntries = sample_tree.getNEvents();
     int ev_start = 0;
     int ev_end = nEntries;
     if (nchunks>0){
@@ -177,7 +177,7 @@ void produceSkims(
       MELAout << "Initial MC loop over " << ev_end-ev_start << " / " << nEntries << " events in " << sample_tree.sampleIdentifier << " to determine sample normalization:" << endl;
       for (int ev=ev_start; ev<ev_end; ev++){
         HelperFunctions::progressbar(ev, nEntries);
-        sample_tree.getSelectedEvent(ev);
+        sample_tree.getEvent(ev);
 
         genInfoHandler.constructGenInfo(SystematicsHelpers::sNominal); // Use sNominal here in order to get the weight that corresponds to xsec
         auto const& genInfo = genInfoHandler.getGenInfo();
@@ -338,7 +338,7 @@ void produceSkims(
     std::vector<size_t> n_acc(nFinalStateTypes, 0);
     for (int ev=ev_start; ev<ev_end; ev++){
       HelperFunctions::progressbar(ev, nEntries);
-      sample_tree.getSelectedEvent(ev);
+      sample_tree.getEvent(ev);
       if (ev%10000==0) MELAout << sample_tree.sampleIdentifier << " events: " << n_acc << " / " << ev << " / " << nEntries << endl;
 
       if (!isData){
