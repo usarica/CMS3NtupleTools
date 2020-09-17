@@ -69,8 +69,8 @@ namespace PhotonSelectionHelpers{
   constexpr float isoThr_tight = 0.1;
 
   // Seed time threshold for cosmics and other stuff
-  // In ns. A bit tight, but oh well...
-  constexpr float seedTimeThr = 1.;
+  // In ns. Beware that 2016, 2017 vs 2018 have different distributions.
+  constexpr float seedTimeThr = 2.;
 
   // MIP total energy threshold for beam halo safety (meaningful for barrel photons only, endcap photons have MIPTotalEnergy set to 0)
   constexpr float mipTotalEnergyThr = 4.9;
