@@ -1,7 +1,9 @@
+#include <cassert>
+
 #include <algorithm>
 #include <utility>
 #include <iterator>
-#include <cassert>
+#include <fstream>
 
 #include "BaseTreeLooper.h"
 #include "SamplesCore.h"
@@ -11,6 +13,7 @@
 #include "EventFilterHandler.h"
 
 #include "HelperFunctions.h"
+#include "HostHelpersCore.h"
 #include "MELAStreamHelpers.hh"
 
 
@@ -105,6 +108,70 @@ void BaseTreeLooper::addHLTMenu(TString name, std::vector< std::pair<TriggerHelp
   registeredHLTMenuProperties[name] = hltmenu;
 }
 
+void BaseTreeLooper::setMatrixElementList(std::vector<std::string> const& MElist, bool const& isGen){
+  MELAout << "BaseTreeLooper::setMatrixElementList: Setting " << (isGen ? "gen." : "reco.") << " matrix elements:" << endl;
+  for (auto const& sme:MElist) MELAout << '\t' << sme << endl;
+  if (isGen) lheMElist = MElist;
+  else recoMElist = MElist;
+}
+void BaseTreeLooper::setMatrixElementListFromFile(std::string fname, std::string const& MElistTypes, bool const& isGen){
+  if (MElistTypes==""){
+    if (this->verbosity>=TVar::ERROR) MELAerr << "BaseTreeLooper::setMatrixElementListFromFile: The ME list types must be specified." << endl;
+    assert(0);
+  }
+  HostHelpers::ExpandEnvironmentVariables(fname);
+  if (!HostHelpers::FileReadable(fname.data())){
+    if (this->verbosity>=TVar::ERROR) MELAerr << "BaseTreeLooper::setMatrixElementListFromFile: File " << fname << " is not readable." << endl;
+    assert(0);
+  }
+
+  std::vector<std::string> MEtypes;
+  HelperFunctions::splitOptionRecursive(MElistTypes, MEtypes, ',', true);
+
+  // Read the file and collect the MEs
+  std::vector<std::string> MElist;
+  ifstream fin;
+  fin.open(fname.c_str());
+  if (fin.good()){
+    bool acceptString = false;
+    while (!fin.eof()){
+      std::string str_in="";
+      getline(fin, str_in);
+      HelperFunctions::lstrip(str_in);
+      HelperFunctions::lstrip(str_in, "\"\'");
+      HelperFunctions::rstrip(str_in); HelperFunctions::rstrip(str_in, ",\"\'");
+
+      if (str_in=="" || str_in.find('#')==0) continue;
+      else if (str_in.find(']')!=std::string::npos){
+        acceptString = false;
+        continue;
+      }
+
+      bool isMEline = (str_in.find("Name")!=std::string::npos);
+      for (auto const& MEtype:MEtypes){
+        if (str_in.find(MEtype)!=std::string::npos){
+          isMEline = false;
+          acceptString = true;
+        }
+      }
+
+      if (isMEline && acceptString){
+        if (isGen && str_in.find("isGen:1")==std::string::npos){
+          if (this->verbosity>=TVar::ERROR) MELAerr << "BaseTreeLooper::setMatrixElementListFromFile: ME string " << str_in << " is not a gen. ME while the acquisition is done for gen. MEs!" << endl;
+          continue;
+        }
+        MElist.push_back(str_in);
+      }
+    }
+  }
+  fin.close();
+
+  if (!MElist.empty()) setMatrixElementList(MElist, isGen);
+  else{
+    if (this->verbosity>=TVar::ERROR) MELAerr << "BaseTreeLooper::setMatrixElementListFromFile: File " << fname << " does not contain any of the ME types " << MEtypes << "." << endl;
+  }
+}
+
 void BaseTreeLooper::setExternalWeight(BaseTree* tree, double const& wgt){
   if (!tree) return;
   if (this->verbosity>=TVar::INFO && !HelperFunctions::checkListVariable(treeList, tree)) MELAout
@@ -120,14 +187,20 @@ void BaseTreeLooper::setExternalProductList(std::vector<SimpleEntry>* extProduct
 }
 
 void BaseTreeLooper::setCurrentOutputTree(BaseTree* extTree){
+  // Set current product tree to this output tree
   this->currentProductTree = extTree;
-  this->productListRef = &(this->productList); // To make sure product list collects some events before flushing
+  // Print warning if this tree is not in the output tree collection, but do not add.
+  if (extTree && !HelperFunctions::checkListVariable(this->productTreeList, extTree)){
+    if (this->verbosity>=TVar::INFO) MELAout << "BaseTreeLooper::setCurrentOutputTree: Current output tree is not in the output tree collection." << endl;
+  }
+  // Make sure product list collects some events before flushing
+  this->productListRef = &(this->productList);
 }
 
 void BaseTreeLooper::addOutputTree(BaseTree* extTree){
-  if (extTree && !HelperFunctions::checkListVariable(productTreeList, extTree)){
-    productTreeList.push_back(extTree);
-    setCurrentOutputTree(extTree);
+  if (extTree){
+    if (!HelperFunctions::checkListVariable(this->productTreeList, extTree)) this->productTreeList.push_back(extTree);
+    this->setCurrentOutputTree(extTree);
   }
 }
 void BaseTreeLooper::addOutputTrees(std::vector<BaseTree*> trees){
@@ -202,6 +275,27 @@ void BaseTreeLooper::loop(bool keepProducts){
     int ev_inc = static_cast<int>(float(nevents_total)/float(nchunks));
     eventIndex_begin = ev_inc*ichunk;
     eventIndex_end = std::min(nevents_total, (ichunk == nchunks-1 ? nevents_total : eventIndex_begin + ev_inc));
+  }
+
+  // Build the MEs if they are specified
+  if (!lheMElist.empty() || !recoMElist.empty()){
+    // Set up MELA (done only once inside CMS3MELAHelpers)
+    CMS3MELAHelpers::setupMela(SampleHelpers::getDataYear(), 125., TVar::ERROR);
+    // If there are output trees, set the output trees of the MEblock.
+    // Do this before building the branches.
+    MELAout << "Setting up ME block output trees..." << endl;
+    for (auto const& outtree_:productTreeList){
+      MELAout << "\t- Extracting valid output trees" << endl;
+      if (!outtree_) MELAerr << "Output tree is NULL!" << endl;
+      std::vector<TTree*> const& treelist_ = outtree_->getValidTrees();
+      MELAout << "\t- Registering " << treelist_.size() << " trees" << endl;
+      for (auto const& tree_:treelist_) MEblock.addRefTree(tree_);
+      MELAout << "\t- Done" << endl;
+    }
+    // Build the MEs
+    MELAout << "Building the MEs..." << endl;
+    if (!lheMElist.empty()) this->MEblock.buildMELABranches(lheMElist, true);
+    if (!recoMElist.empty()) this->MEblock.buildMELABranches(recoMElist, false);
   }
 
   // Loop over the trees

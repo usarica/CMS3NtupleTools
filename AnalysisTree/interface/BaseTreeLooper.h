@@ -11,6 +11,7 @@
 #include "TriggerHelpersCore.h"
 #include "ParticleDisambiguator.h"
 #include "DileptonHandler.h"
+#include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
 
 
 class BaseTreeLooper : public IvyBase{
@@ -41,6 +42,11 @@ protected:
   // Some ready-made stuff
   ParticleDisambiguator particleDisambiguator;
   DileptonHandler dileptonHandler;
+
+  // ME lists
+  std::vector<std::string> lheMElist;
+  std::vector<std::string> recoMElist;
+  CMS3MELAHelpers::GMECBlock MEblock;
 
   // Input trees
   std::vector<BaseTree*> treeList;
@@ -99,6 +105,8 @@ public:
   void setLooperFunction(BaseTreeLooper::LooperCoreFunction_t fcn){ looperFunction = fcn; }
   void setSystematic(SystematicsHelpers::SystematicVariationTypes const& syst){ registeredSyst = syst; }
   void setExternalWeight(BaseTree* tree, double const& wgt);
+  void setMatrixElementList(std::vector<std::string> const& MElist, bool const& isGen);
+  void setMatrixElementListFromFile(std::string fname, std::string const& MElistTypes, bool const& isGen); // MElistTypes is comman-separated
 
   void setExternalProductList(std::vector<SimpleEntry>* extProductListRef=nullptr);
   void setCurrentOutputTree(BaseTree* extTree=nullptr);
@@ -129,6 +137,9 @@ public:
 
   bool hasSimpleHLTMenus() const{ return registeredHLTMenus.size()>0; }
   bool hasHLTMenuProperties() const{ return registeredHLTMenuProperties.size()>0; }
+
+  bool hasGenMEs() const{ return !lheMElist.empty(); }
+  bool hasRecoMEs() const{ return !recoMElist.empty(); }
 
   // Function to loop over the tree list
   virtual void loop(bool keepProducts);
