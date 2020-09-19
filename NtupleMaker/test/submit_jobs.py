@@ -29,9 +29,18 @@ def get_tasks(csvs, tarfile, tag, doTestRun):
             reader = csv.DictReader(fh)
             for row in reader:
                 dataset = row["#Dataset"]
-                if dataset.strip().startswith("#"): continue
+                if dataset.strip().startswith("#"):
+                    continue
                 sample = DBSSample(dataset=dataset, xsec=row["xsec"], efact=row["BR"])
-                sample.info["options"] = row["options"]
+                opts=row["options"]
+                for key in row:
+                    if "condoroutdir" in key or "Dataset" in key or "options" in key:
+                        continue
+                    if opts == "":
+                        opts="{}={}".format(key,row[key])
+                    else:
+                        opts="{}={} {}".format(key,row[key],opts)
+                sample.info["options"] = opts
                 samples.append(sample)
                 if doTestRun:
                     break # only do one sample per file... FIXME delete this after testing
@@ -50,7 +59,7 @@ def get_tasks(csvs, tarfile, tag, doTestRun):
         print "Output file: ",outputfilename
 
         events_per_output = (150e3 if isdata else 150e3)
-        pset_args = "xsec={} BR={} ".format(sample.info["xsec"], sample.info["efact"]) + sample.info["options"]
+        pset_args = sample.info["options"]
         global_tag = re.search("globaltag=(\w+)",pset_args).groups()[0]
         extra = dict()
         if doTestRun:
@@ -59,7 +68,8 @@ def get_tasks(csvs, tarfile, tag, doTestRun):
 
         # build output directory
         hadoop_user = os.environ.get("GRIDUSER","").strip()  # Set by Metis. Can be different from $USER for some people.
-        if not hadoop_user: hadoop_user = os.environ.get("USER")
+        if not hadoop_user:
+            hadoop_user = os.environ.get("USER")
         part1 = sample.get_datasetname().split("/")[1]
         part2 = sample.get_datasetname().split("/")[2]
         output_dir = "/hadoop/cms/store/user/{}/Offshell_2L2Nu/Production/{}/{}/{}/".format(
@@ -77,6 +87,7 @@ def get_tasks(csvs, tarfile, tag, doTestRun):
                 output_name=outputfilename,
                 output_dir=output_dir,
                 events_per_output=events_per_output,
+                executable="metis_condor_executable.sh",
                 pset="main_pset.py",
                 is_tree_output=False,
                 dont_check_tree=True,
