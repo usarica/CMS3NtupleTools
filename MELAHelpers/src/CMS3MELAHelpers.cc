@@ -35,6 +35,7 @@ namespace CMS3MELAHelpers{
   GMECBlock::GMECBlock(){}
   GMECBlock::~GMECBlock(){ clearMELABranches(); }
 
+  void GMECBlock::addRefTree(TTree* reftree_){ reftrees.push_back(reftree_); }
   void GMECBlock::setRefTrees(std::vector<TTree*> const& reftrees_){ reftrees = reftrees_; }
 
   void GMECBlock::buildMELABranches(std::vector<std::string> const& MElist, bool isGen){

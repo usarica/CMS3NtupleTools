@@ -43,12 +43,16 @@ namespace CMS3MELAHelpers{
     GMECBlock();
     ~GMECBlock();
 
+    void addRefTree(TTree* reftree_);
     void setRefTrees(std::vector<TTree*> const& reftrees_);
 
     void buildMELABranches(std::vector<std::string> const& MElist, bool isGen);
     void clearMELABranches();
 
+    void computeMELABranches(bool isGen);
     void computeMELABranches();
+
+    void pushMELABranches(bool isGen);
     void pushMELABranches();
 
     void getBranchValues(std::unordered_map<std::string, float>& io_rcd, bool isGen);
@@ -57,9 +61,6 @@ namespace CMS3MELAHelpers{
   protected:
     void bookMELABranches(MELAOptionParser* me_opt, MELAComputation* computer, bool doCopy);
     void clearMELABranches(bool isGen);
-
-    void computeMELABranches(bool isGen);
-    void pushMELABranches(bool isGen);
 
     void updateMELAClusters_Common(const std::string clustertype, bool isGen);
     void updateMELAClusters_J1JECJER(const std::string clustertype, bool isGen);
