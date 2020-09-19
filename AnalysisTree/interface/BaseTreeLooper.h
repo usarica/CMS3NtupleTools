@@ -134,10 +134,13 @@ public:
   ParticleDisambiguator const& getParticleDisambiguator() const{ return particleDisambiguator; }
   DileptonHandler& getDileptonHandler(){ return dileptonHandler; }
   DileptonHandler const& getDileptonHandler() const{ return dileptonHandler; }
+  CMS3MELAHelpers::GMECBlock& getMEblock(){ return MEblock; }
+  CMS3MELAHelpers::GMECBlock const& getMEblock() const{ return MEblock; }
 
   bool hasSimpleHLTMenus() const{ return registeredHLTMenus.size()>0; }
   bool hasHLTMenuProperties() const{ return registeredHLTMenuProperties.size()>0; }
 
+  bool hasLinkedOutputTrees() const{ return !productTreeList.empty(); }
   bool hasGenMEs() const{ return !lheMElist.empty(); }
   bool hasRecoMEs() const{ return !recoMElist.empty(); }
 

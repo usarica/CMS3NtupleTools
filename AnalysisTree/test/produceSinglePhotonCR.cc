@@ -72,6 +72,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   SystematicsHelpers::SystematicVariationTypes const& theGlobalSyst = theLooper->getSystematic();
   ParticleDisambiguator& particleDisambiguator = theLooper->getParticleDisambiguator();
   DileptonHandler& dileptonHandler = theLooper->getDileptonHandler();
+  CMS3MELAHelpers::GMECBlock& MEblock = theLooper->getMEblock();
 
   // Acquire sample flags
   bool const& isData = theLooper->getCurrentTreeFlag_IsData();
@@ -141,6 +142,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(float, event_pTmiss) \
   BRANCH_COMMAND(float, event_phimiss) \
   BRANCH_COMMAND(float, event_mTZZ) \
+  BRANCH_COMMAND(float, event_mZZ) \
   BRANCH_COMMAND(bool, event_pass_tightMETFilters) \
   BRANCH_COMMAND(float, genmet_pTmiss) \
   BRANCH_COMMAND(float, genmet_phimiss) \
@@ -507,6 +509,34 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     - std::pow((theChosenPhoton->p4() + event_met_p4).Pt(), 2)
   );
 
+  ParticleObject::LorentzVector_t p4_ZZ_approx;
+  float etamiss_approx = theChosenPhoton->eta();
+  p4_ZZ_approx = ParticleObject::PolarLorentzVector_t(event_pTmiss, etamiss_approx, event_phimiss, PDGHelpers::Zmass);
+  p4_ZZ_approx = p4_ZZ_approx + theChosenPhoton->p4();
+  event_mZZ = p4_ZZ_approx.M();
+
+  // Compute MEs
+  if (theLooper->hasRecoMEs()){
+    SimpleParticleCollection_t daughters;
+    daughters.push_back(SimpleParticle_t(25, ParticleObjectHelpers::convertCMSLorentzVectorToTLorentzVector(p4_ZZ_approx)));
+
+    SimpleParticleCollection_t associated;
+    for (auto const& jet:ak4jets_tight) associated.push_back(SimpleParticle_t(0, ParticleObjectHelpers::convertCMSLorentzVectorToTLorentzVector(jet->p4())));
+
+    CMS3MELAHelpers::melaHandle->setCandidateDecayMode(TVar::CandidateDecay_Stable);
+    CMS3MELAHelpers::melaHandle->setInputEvent(&daughters, &associated, nullptr, false);
+    MEblock.computeMELABranches();
+    MEblock.pushMELABranches();
+
+    std::unordered_map<std::string, float> ME_values;
+    MEblock.getBranchValues(ME_values);
+    CMS3MELAHelpers::melaHandle->resetInputEvent();
+
+    // Insert the ME values into commonEntry only when the productTreeList collection is empty.
+    // Otherwise, the branches are already made.
+    if (!theLooper->hasLinkedOutputTrees()){ for (auto const& it:ME_values) commonEntry.setNamedVal(it.first, it.second); }
+  }
+
   // Set the collection of SFs at the last step
   event_wgt_SFs = SF_muons*SF_electrons*SF_photons*SF_btagging;
 
@@ -551,6 +581,8 @@ void getTrees(
   TString prodVersion, TString strdate,
   int ichunk, int nchunks,
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal,
+  // ME option
+  bool computeMEs=false,
   // Jet ID options
   bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false, bool useJetOverlapStripping=true,
   // MET options
@@ -725,6 +757,13 @@ void getTrees(
   theLooper.addOutputTree(tout);
   // Register the HLT menus
   theLooper.addHLTMenu("SinglePhoton", triggerPropsCheckList);
+  // Set the MEs
+  if (computeMEs) theLooper.setMatrixElementListFromFile(
+    "${CMSSW_BASE}/src/CMS3/AnalysisTree/data/RecoProbabilities/RecoProbabilities.me",
+    "AJetsVBFProbabilities_SpinZero_JHUGen,AJetsQCDProbabilities_SpinZero_JHUGen",
+    //"AJetsVBFProbabilities_SpinZero_JHUGen,AJetsQCDProbabilities_SpinZero_JHUGen,AJetsVHProbabilities_SpinZero_JHUGen,PMAVJJ_SUPERDIJETMELA",
+    false
+  );
 
   curdir->cd();
 
