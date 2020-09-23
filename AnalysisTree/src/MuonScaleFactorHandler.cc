@@ -158,6 +158,15 @@ void MuonScaleFactorHandler::evalScaleFactorFromHistogram(float& theSF, float& t
 void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, float const& pt, float const& eta, bool const& passId, bool const& passLooseIso, bool const& passTightIso, float& val, float* effval) const{
   using namespace SystematicsHelpers;
 
+  if (verbosity>=TVar::DEBUG) MELAout
+    << "MuonScaleFactorHandler::getIdIsoSFAndEff: Evaluating " << (effval ? "SFs and efficiencies" : "SFs")
+    << " for pT=" << pt
+    << ", eta=" << eta
+    << ", passId=" << passId
+    << ", passLooseIso=" << passLooseIso
+    << ", passTightIso=" << passTightIso
+    << endl;
+
   val = 1;
   if (effval) *effval = 1;
 
@@ -174,6 +183,7 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
   if (syst == eMuEffDn) activeSysts = std::vector<SystematicVariationTypes>{ eMuEffStatDn, eMuEffSystDn, eMuEffAltMCDn };
   else if (syst == eMuEffUp) activeSysts = std::vector<SystematicVariationTypes>{ eMuEffStatUp, eMuEffSystUp, eMuEffAltMCUp };
   else if (HelperFunctions::checkListVariable(allowedSysts, syst)) activeSysts = std::vector<SystematicVariationTypes>{ syst };
+  if (verbosity>=TVar::DEBUG) MELAout << "\t- Active systematics: " << activeSysts << endl;
 
   // Obtain nominal histograms
   std::vector<ExtendedHistogram_2D const*> hlist_eff_mc; hlist_eff_mc.reserve(n_ID_iso_types);
@@ -254,6 +264,13 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
       tmp_eff_unscaled = 1. - eff_nominal_unscaled_list.at(isel);
       tmp_eff_scaled = 1. - eff_nominal_scaled_list.at(isel);
     }
+    if (verbosity>=TVar::DEBUG){
+      if (isel==0) MELAout << "\t- Nominal ID efficiency ";
+      else if (isel==1) MELAout << "\t- Nominal loose iso. efficiency ";
+      else MELAout << "\t- Nominal tight iso. efficiency ";
+      MELAout << "(pass/fail, unscaled, scaled, SF) = (" << checkFlag << ", " << tmp_eff_unscaled << ", " << tmp_eff_scaled << ", " << tmp_eff_scaled / tmp_eff_unscaled << ")" << endl;
+    }
+
     SF_nominal_val *= tmp_eff_scaled / tmp_eff_unscaled;
     eff_nominal_unscaled_val *= tmp_eff_unscaled;
     eff_nominal_scaled_val *= tmp_eff_scaled;
@@ -311,6 +328,10 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
               float val_err = 0;
               evalScaleFactorFromHistogram(SF_val, val_err, pt, eta, **it_SF, false, false);
               *it_eff_syst_scaled_val = std::max(0.f, std::min(1.f, SF_val * (*it_eff_nominal_unscaled_val)));
+
+              if (verbosity>=TVar::DEBUG) MELAout
+                << "\t\t- Evaluating SF for syst " << asyst << ". SF_syst = " << SF_val << ", eff = " << *it_eff_syst_scaled_val
+                << " from histogram " << (*it_SF)->getName() << endl;
             }
             else *it_eff_syst_scaled_val = *it_eff_nominal_scaled_val;
 
@@ -320,6 +341,10 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
                 float val_err = 0;
                 evalScaleFactorFromHistogram(SF_val, val_err, pt, eta, **it_SF_cpl, false, false);
                 *it_eff_syst_scaled_cpl_val = std::max(0.f, std::min(1.f, SF_val * (*it_eff_nominal_unscaled_val)));
+
+                if (verbosity>=TVar::DEBUG) MELAout
+                  << "\t\t- Evaluating complementary SF for syst " << asyst << ". SF_syst = " << SF_val << ", eff = " << *it_eff_syst_scaled_cpl_val
+                  << " from histogram " << (*it_SF_cpl)->getName() << endl;
               }
               else *it_eff_syst_scaled_cpl_val = *it_eff_nominal_scaled_val;
 
@@ -344,33 +369,44 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
       std::vector<float> const& eff_syst_scaled_complement_list = eff_syst_scaled_complement_lists.at(ias);
 
       float eff_syst = 1;
+      float eff_syst_cpl = 1;
       for (unsigned int isel=0; isel<n_ID_iso_types; isel++){
         if (!passId && isel>0) continue;
         if (!passLooseIso && isel>1) continue;
         
         float tmp_eff_syst=1;
-        
+        float tmp_eff_syst_cpl=1;
+
         bool checkFlag = false;
         if (isel==0) checkFlag = passId;
         else if (isel==1) checkFlag = passLooseIso;
         else checkFlag = passTightIso;
 
-        if (activeSysts.size() == 1) tmp_eff_syst = eff_syst_scaled_list.at(isel);
-        else{
-          if (isDownSystematic(asyst)) tmp_eff_syst = std::min(eff_syst_scaled_list.at(isel), eff_syst_scaled_complement_list.at(isel));
-          else tmp_eff_syst = std::max(eff_syst_scaled_list.at(isel), eff_syst_scaled_complement_list.at(isel));
+        tmp_eff_syst = eff_syst_scaled_list.at(isel);
+        if (activeSysts.size()>1) tmp_eff_syst_cpl = eff_syst_scaled_complement_list.at(isel);
+
+        if (!checkFlag){
+          tmp_eff_syst = 1. - tmp_eff_syst;
+          tmp_eff_syst_cpl = 1. - tmp_eff_syst_cpl;
         }
 
-        if (!checkFlag) tmp_eff_syst = 1. - tmp_eff_syst;
-
         eff_syst *= tmp_eff_syst;
+        eff_syst_cpl *= tmp_eff_syst_cpl;
       }
 
       float SF_syst = eff_syst / eff_nominal_unscaled_val;
+      float SF_syst_cpl = eff_syst_cpl / eff_nominal_unscaled_val;
       if (activeSysts.size() == 1) SF_err_val = SF_syst - SF_nominal_val;
       else{
-        SF_err_val = std::sqrt(std::pow(SF_err_val, 2) + std::pow(SF_syst - SF_nominal_val, 2));
-        if (SF_syst < SF_nominal_val) SF_err_val *= -1.;
+        if (verbosity>=TVar::DEBUG) MELAout
+          << "\t\t- Adding SF for syst " << asyst << ". SF_syst = " << SF_syst << ", SF_syst_cpl = " << SF_syst_cpl
+          << ", SF_nominal=" << SF_nominal_val
+          << ", current SF error value = " << SF_err_val
+          << endl;
+        float SF_syst_eff = (isDownSystematic(syst) ? std::min(SF_syst, SF_syst_cpl) : std::max(SF_syst, SF_syst_cpl));
+
+        SF_err_val = std::sqrt(std::pow(SF_err_val, 2) + std::pow(SF_syst_eff - SF_nominal_val, 2));
+        if (SF_syst_eff < SF_nominal_val) SF_err_val *= -1.;
       }
     }
   }
@@ -380,10 +416,11 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
 }
 void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, MuonObject const* obj, float& val, float* effval) const{
   val = 1;
-  if (effval) *effval = 0;
+  if (effval) *effval = 1;
 
   if (!obj) return;
   if (!obj->extras.is_genMatched_prompt) return;
+  if (verbosity>=TVar::DEBUG) MELAout << "MuonScaleFactorHandler::getIdIsoSFAndEff: Electron gen matching flags: " << obj->extras.is_genMatched << ", " << obj->extras.is_genMatched_prompt << endl;
 
   bool passId = obj->testSelectionBit(MuonSelectionHelpers::bit_preselectionTight_id); // More id stuff => more flags
   bool passLooseIso = passId && obj->testSelectionBit(MuonSelectionHelpers::kFakeableBaseIso);

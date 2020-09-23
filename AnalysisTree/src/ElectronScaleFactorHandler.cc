@@ -64,7 +64,7 @@ bool ElectronScaleFactorHandler::setup(){
     }
     TFile* finput = TFile::Open(cinput, "read"); curdir->cd();
     for (unsigned int igap=0; igap<n_non_gap_gap; igap++){
-      res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_SF_id_map[sNominal].at(igap), finput, "EGamma_SF2D");
+      res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_SF_reco_map[sNominal].at(igap), finput, "EGamma_SF2D");
       res &= getHistogram<TH2F, ExtendedHistogram_2D>(eff_mc_reco_hists.at(igap), finput, "EGamma_EffMC2D");
     }
     ScaleFactorHandlerBase::closeFile(finput); curdir->cd();
@@ -181,6 +181,16 @@ void ElectronScaleFactorHandler::evalScaleFactorFromHistogram(float& theSF, floa
 void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, float const& pt, float const& etaSC, bool const& is_gap, bool const& passId, bool const& passLooseIso, bool const& passTightIso, float& val, float* effval) const{
   using namespace SystematicsHelpers;
 
+  if (verbosity>=TVar::DEBUG) MELAout
+    << "ElectronScaleFactorHandler::getIdIsoSFAndEff: Evaluating " << (effval ? "SFs and efficiencies" : "SFs")
+    << " for pT=" << pt
+    << ", etaSC=" << etaSC
+    << ", is_gap=" << is_gap
+    << ", passId=" << passId
+    << ", passLooseIso=" << passLooseIso
+    << ", passTightIso=" << passTightIso
+    << endl;
+
   val = 1;
   if (effval) *effval = 1;
 
@@ -197,6 +207,7 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
   if (syst == eEleEffDn) activeSysts = std::vector<SystematicVariationTypes>{ eEleEffStatDn, eEleEffSystDn, eEleEffAltMCDn };
   else if (syst == eEleEffUp) activeSysts = std::vector<SystematicVariationTypes>{ eEleEffStatUp, eEleEffSystUp, eEleEffAltMCUp };
   else if (HelperFunctions::checkListVariable(allowedSysts, syst)) activeSysts = std::vector<SystematicVariationTypes>{ syst };
+  if (verbosity>=TVar::DEBUG) MELAout << "\t- Active systematics: " << activeSysts << endl;
 
   std::vector<ExtendedHistogram_2D const*> hlist_eff_mc; hlist_eff_mc.reserve(kAllEffs);
   std::vector<ExtendedHistogram_2D const*> hlist_SF_nominal; hlist_SF_nominal.reserve(kAllEffs);
@@ -286,6 +297,14 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
       tmp_eff_unscaled = 1. - eff_nominal_unscaled_list.at(isel);
       tmp_eff_scaled = 1. - eff_nominal_scaled_list.at(isel);
     }
+    if (verbosity>=TVar::DEBUG){
+      if (isel==0) MELAout << "\t- Nominal tracking efficiency ";
+      else if (isel==1) MELAout << "\t- Nominal ID efficiency ";
+      else if (isel==2) MELAout << "\t- Nominal loose iso. efficiency ";
+      else MELAout << "\t- Nominal tight iso. efficiency ";
+      MELAout << "(pass/fail, unscaled, scaled, SF) = (" << checkFlag << ", " << tmp_eff_unscaled << ", " << tmp_eff_scaled << ", " << tmp_eff_scaled / tmp_eff_unscaled << ")" << endl;
+    }
+
     SF_nominal_val *= tmp_eff_scaled / tmp_eff_unscaled;
     eff_nominal_unscaled_val *= tmp_eff_unscaled;
     eff_nominal_scaled_val *= tmp_eff_scaled;
@@ -355,6 +374,10 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
               evalScaleFactorFromHistogram(SF_val, val_err, pt, etaSC, **it_SF, false, false);
               if (ihist>0) *it_eff_syst_scaled_val = std::max(0.f, std::min(1.f, SF_val * (*it_eff_nominal_unscaled_val)));
               else *it_eff_syst_scaled_val = std::max(0.f, std::min(1.f, (SF_val + val_err*(1.f*(asyst==eEleEffSystUp)-1.f*(asyst==eEleEffSystDn))) * (*it_eff_nominal_unscaled_val)));
+
+              if (verbosity>=TVar::DEBUG) MELAout
+                << "\t\t- Evaluating SF for syst " << asyst << ". SF_syst = " << SF_val << ", eff = " << *it_eff_syst_scaled_val
+                << " from histogram " << (*it_SF)->getName() << endl;
             }
             else *it_eff_syst_scaled_val = *it_eff_nominal_scaled_val;
 
@@ -362,8 +385,13 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
               if (*it_SF_cpl){
                 float SF_val = 1;
                 float val_err = 0;
-                if (ihist>0) evalScaleFactorFromHistogram(SF_val, val_err, pt, etaSC, **it_SF_cpl, false, false);
+                evalScaleFactorFromHistogram(SF_val, val_err, pt, etaSC, **it_SF_cpl, false, false);
+                if (ihist>0) *it_eff_syst_scaled_cpl_val = std::max(0.f, std::min(1.f, SF_val * (*it_eff_nominal_unscaled_val)));
                 else *it_eff_syst_scaled_cpl_val = std::max(0.f, std::min(1.f, (SF_val + val_err*(1.f*(asyst==eEleEffSystUp)-1.f*(asyst==eEleEffSystDn))) * (*it_eff_nominal_unscaled_val)));
+
+                if (verbosity>=TVar::DEBUG) MELAout
+                  << "\t\t- Evaluating complementary SF for syst " << asyst << ". SF_syst = " << SF_val << ", eff = " << *it_eff_syst_scaled_cpl_val
+                  << " from histogram " << (*it_SF_cpl)->getName() << endl;
               }
               else *it_eff_syst_scaled_cpl_val = *it_eff_nominal_scaled_val;
 
@@ -389,11 +417,13 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
       std::vector<float> const& eff_syst_scaled_complement_list = eff_syst_scaled_complement_lists.at(ias);
 
       float eff_syst = 1;
+      float eff_syst_cpl = 1;
       for (unsigned int isel=0; isel<n_ID_iso_types+1; isel++){
         if (!passId && isel>1) continue;
         if (!passLooseIso && isel>2) continue;
 
         float tmp_eff_syst=1;
+        float tmp_eff_syst_cpl=1;
 
         bool checkFlag = false;
         if (isel==0) checkFlag = true;
@@ -401,35 +431,50 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
         else if (isel==2) checkFlag = passLooseIso;
         else checkFlag = passTightIso;
 
-        if (activeSysts.size() == 1) tmp_eff_syst = eff_syst_scaled_list.at(isel);
-        else{
-          if (isDownSystematic(asyst)) tmp_eff_syst = std::min(eff_syst_scaled_list.at(isel), eff_syst_scaled_complement_list.at(isel));
-          else tmp_eff_syst = std::max(eff_syst_scaled_list.at(isel), eff_syst_scaled_complement_list.at(isel));
+        tmp_eff_syst = eff_syst_scaled_list.at(isel);
+        if (activeSysts.size()>1) tmp_eff_syst_cpl = eff_syst_scaled_complement_list.at(isel);
+
+        if (!checkFlag){
+          tmp_eff_syst = 1. - tmp_eff_syst;
+          tmp_eff_syst_cpl = 1. - tmp_eff_syst_cpl;
         }
 
-        if (!checkFlag) tmp_eff_syst = 1. - tmp_eff_syst;
-
         eff_syst *= tmp_eff_syst;
+        eff_syst_cpl *= tmp_eff_syst_cpl;
       }
 
       float SF_syst = eff_syst / eff_nominal_unscaled_val;
+      float SF_syst_cpl = eff_syst_cpl / eff_nominal_unscaled_val;
       if (activeSysts.size() == 1) SF_err_val = SF_syst - SF_nominal_val;
       else{
-        SF_err_val = std::sqrt(std::pow(SF_err_val, 2) + std::pow(SF_syst - SF_nominal_val, 2));
-        if (SF_syst < SF_nominal_val) SF_err_val *= -1.;
+        if (verbosity>=TVar::DEBUG) MELAout
+          << "\t\t- Adding SF for syst " << asyst << ". SF_syst = " << SF_syst << ", SF_syst_cpl = " << SF_syst_cpl
+          << ", SF_nominal=" << SF_nominal_val
+          << ", current SF error value = " << SF_err_val
+          << endl;
+        float SF_syst_eff = (isDownSystematic(syst) ? std::min(SF_syst, SF_syst_cpl) : std::max(SF_syst, SF_syst_cpl));
+
+        SF_err_val = std::sqrt(std::pow(SF_err_val, 2) + std::pow(SF_syst_eff - SF_nominal_val, 2));
+        if (SF_syst_eff < SF_nominal_val) SF_err_val *= -1.;
       }
     }
   }
 
   val = SF_nominal_val + SF_err_val;
   if (effval) *effval = std::max(0.f, std::min(1.f, eff_nominal_unscaled_val*val));
+
+  if (verbosity>=TVar::DEBUG){
+    MELAout << "\t- Final SF = " << SF_nominal_val << " + " << SF_err_val << " = " << val << endl;
+    if (effval) MELAout << "\t- Final eff = " << eff_nominal_unscaled_val << " x " << val << " = " << *effval << endl;
+  }
 }
 void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, ElectronObject const* obj, float& val, float* effval) const{
   val = 1;
-  if (effval) *effval = 0;
+  if (effval) *effval = 1;
 
   if (!obj) return;
   if (!obj->extras.is_genMatched_prompt) return;
+  if (verbosity>=TVar::DEBUG) MELAout << "ElectronScaleFactorHandler::getIdIsoSFAndEff: Electron gen matching flags: " << obj->extras.is_genMatched << ", " << obj->extras.is_genMatched_prompt << endl;
 
   bool passId = obj->testSelectionBit(ElectronSelectionHelpers::bit_preselectionTight_id);
   bool passLooseIso = passId && obj->testSelectionBit(ElectronSelectionHelpers::kFakeableBaseIso);

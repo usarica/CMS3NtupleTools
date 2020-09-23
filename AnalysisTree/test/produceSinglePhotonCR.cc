@@ -276,7 +276,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   float SF_electrons = 1;
   for (auto const& part:electrons){
     float theSF = 1;
-    //if (!isData) electronSFHandler.getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
+    if (!isData) electronSFHandler.getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
     if (theSF == 0.f) continue;
     SF_electrons *= theSF;
 
@@ -588,11 +588,13 @@ void getTrees(
   // ME option
   bool computeMEs=false,
   // Jet ID options
-  bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false, bool useJetOverlapStripping=true,
+  bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false,
   // MET options
   bool use_MET_Puppi=false,
   bool use_MET_XYCorr=true, bool use_MET_JERCorr=true, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true
 ){
+  constexpr bool useJetOverlapStripping = false; // Keep overlap removal turned off
+
   if (nchunks==1){ nchunks = 0; ichunk=0; }
   if (nchunks>0 && (ichunk<0 || ichunk==nchunks)) return;
 

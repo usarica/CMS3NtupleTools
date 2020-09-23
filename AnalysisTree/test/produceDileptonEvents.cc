@@ -178,6 +178,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(float, leptons_eta) \
   BRANCH_COMMAND(float, leptons_phi) \
   BRANCH_COMMAND(float, leptons_mass) \
+  BRANCH_COMMAND(float, leptons_eff) \
   BRANCH_COMMAND(bool, ak4jets_is_genMatched) \
   BRANCH_COMMAND(bool, ak4jets_is_genMatched_fullCone) \
   BRANCH_COMMAND(cms3_listSize_t, ak4jets_n_overlaps) \
@@ -265,26 +266,32 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   photonHandler->constructPhotons(theGlobalSyst, &pfcandidates);
   particleDisambiguator.disambiguateParticles(muonHandler, electronHandler, photonHandler);
 
+  std::unordered_map<ParticleObject const*, float> lepton_eff_map;
+
   auto const& muons = muonHandler->getProducts();
   float SF_muons = 1;
   for (auto const& part:muons){
     float theSF = 1;
-    if (!isData) muonSFHandler->getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
+    float theEff = 1;
+    if (!isData) muonSFHandler->getIdIsoSFAndEff(theGlobalSyst, part, theSF, &theEff);
     if (theSF == 0.f) continue;
     SF_muons *= theSF;
+    lepton_eff_map[part] = theEff;
   }
 
   auto const& electrons = electronHandler->getProducts();
   float SF_electrons = 1;
   for (auto const& part:electrons){
     float theSF = 1;
-    //if (!isData) electronSFHandler.getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
+    float theEff = 1;
+    if (!isData) electronSFHandler->getIdIsoSFAndEff(theGlobalSyst, part, theSF, &theEff);
     if (theSF == 0.f) continue;
     SF_electrons *= theSF;
+    lepton_eff_map[part] = theEff;
   }
 
   auto const& photons = photonHandler->getProducts();
-  unsigned int n_photons_tight = 0;
+  unsigned int n_photons_veto = 0;
   float SF_photons = 1;
   for (auto const& part:photons){
     float theSF = 1;
@@ -292,9 +299,9 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     if (theSF == 0.f) continue;
     SF_photons *= theSF;
 
-    if (ParticleSelectionHelpers::isTightParticle(part)) n_photons_tight++;
+    if (ParticleSelectionHelpers::isVetoParticle(part)) n_photons_veto++;
   }
-  if (n_photons_tight!=0) return false;
+  if (n_photons_veto!=0) return false;
 
   isotrackHandler->constructIsotracks(&muons, &electrons);
   bool hasVetoIsotrack = false;
@@ -329,6 +336,9 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     leptons_pt.push_back(dau->pt());
     leptons_eta.push_back(dau->eta());
     leptons_phi.push_back(dau->phi());
+
+    auto it_eff = lepton_eff_map.find(dau);
+    leptons_eff.push_back((it_eff==lepton_eff_map.end() ? 1 : it_eff->second));
   }
 
   jetHandler->constructJetMET(theGlobalSyst, &muons, &electrons, &photons, &pfcandidates);
@@ -594,11 +604,13 @@ void getTrees(
   // ME option
   bool computeMEs=false,
   // Jet ID options
-  bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false, bool useJetOverlapStripping=true,
+  bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false,
   // MET options
   bool use_MET_Puppi=false,
   bool use_MET_XYCorr=true, bool use_MET_JERCorr=true, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true
 ){
+  constexpr bool useJetOverlapStripping = false; // Keep overlap removal turned off
+
   if (nchunks==1){ nchunks = 0; ichunk=0; }
   if (nchunks>0 && (ichunk<0 || ichunk==nchunks)) return;
 

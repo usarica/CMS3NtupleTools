@@ -301,13 +301,13 @@ void TriggerHelpers::configureHLTmap(){
       }
     );
     assignRunRangeExclusions(
-      "HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_DZ_v*", {
-        { -1, 278240 }
+      "HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_v*", {
+        { 280919/*281613*/, -1 }
       }
     );
     assignRunRangeExclusions(
-      "HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_v*", {
-        { 280919/*281613*/, -1 }
+      "HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_DZ_v*", {
+        { -1, 278240 }
       }
     );
     assignRunRangeExclusions(
