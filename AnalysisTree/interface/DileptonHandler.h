@@ -9,6 +9,8 @@
 
 class DileptonHandler{
 protected:
+  TVar::VerbosityLevel verbosity;
+
   std::vector<DileptonObject*> productList;
 
   void clear(){ for (auto& prod:productList) delete prod; productList.clear(); }
@@ -26,6 +28,8 @@ protected:
 public:
   DileptonHandler();
   ~DileptonHandler(){ clear(); }
+
+  void setVerbosity(TVar::VerbosityLevel verbosity_){ verbosity=verbosity_; }
 
   bool constructDileptons(
     std::vector<MuonObject*> const* muons,

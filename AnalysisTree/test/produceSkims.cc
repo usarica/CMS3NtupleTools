@@ -33,8 +33,8 @@ void produceSkims(
   std::vector<TriggerHelpers::TriggerType> requiredTriggers_Dilepton{
     TriggerHelpers::kTripleLep,
     TriggerHelpers::kDoubleMu, TriggerHelpers::kDoubleMu_Prescaled,
-    TriggerHelpers::kDoubleEle, TriggerHelpers::kDoubleEle_HighPt,
-    TriggerHelpers::kMuEle
+    TriggerHelpers::kDoubleEle, TriggerHelpers::kDoubleEle_HighPt, TriggerHelpers::kSingleEle_L1EG,
+    TriggerHelpers::kMuEle, TriggerHelpers::kMuEle_Extra
   };
   std::vector<TriggerHelpers::TriggerType> requiredTriggers_SingleLepton{
     TriggerHelpers::kSingleMu, TriggerHelpers::kSingleMu_HighPt, TriggerHelpers::kSingleMu_Prescaled, TriggerHelpers::kSingleMu_Control,

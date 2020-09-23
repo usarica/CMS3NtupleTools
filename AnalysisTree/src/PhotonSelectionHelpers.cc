@@ -3,6 +3,7 @@
 
 #include <CMS3/Dictionaries/interface/EgammaFiduciality.h>
 
+#include "SamplesCore.h"
 #include "PhotonSelectionHelpers.h"
 #include "HelperFunctions.h"
 #include "MELAStreamHelpers.hh"
@@ -85,7 +86,12 @@ float PhotonSelectionHelpers::relPFIso_DR0p3(PhotonObject const& part){ float pt
 
 bool PhotonSelectionHelpers::testConversionSafe(PhotonObject const& part){ return (!part.extras.hasPixelSeed && part.extras.passElectronVeto); }
 
-bool PhotonSelectionHelpers::testInTimeSeed(PhotonObject const& part){ return std::abs(part.extras.seedTime)<seedTimeThr; }
+bool PhotonSelectionHelpers::testInTimeSeed(PhotonObject const& part){
+  float seedTime_Dn = -seedTimeThr_DnUp;
+  float seedTime_Up = seedTimeThr_DnUp;
+  if (SampleHelpers::getDataYear()==2018) seedTime_Up = seedTimeThr_Up_2018;
+  return (part.extras.seedTime>seedTime_Dn && part.extras.seedTime<seedTime_Up);
+}
 bool PhotonSelectionHelpers::testBeamHaloSafe(PhotonObject const& part){ return part.extras.MIPTotalEnergy<mipTotalEnergyThr; }
 bool PhotonSelectionHelpers::testSpikeSafe(PhotonObject const& part){
   return part.extras.full5x5_sigmaIEtaIEta>=full5x5_sigmaIEtaIEtaThr && part.extras.full5x5_sigmaIPhiIPhi>=full5x5_sigmaIPhiIPhiThr;

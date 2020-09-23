@@ -234,6 +234,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     event_wgt *= simEventHandler->getPileUpWeight()*simEventHandler->getL1PrefiringWeight();
 
     if (event_wgt==0.f) return false;
+
+    // Record LHE MEs and K factors
+    for (auto const& it:genInfo->extras.LHE_ME_weights) commonEntry.setNamedVal(it.first, it.second);
+    for (auto const& it:genInfo->extras.Kfactors) commonEntry.setNamedVal(it.first, it.second);
   }
 
   vertexHandler->constructVertices();

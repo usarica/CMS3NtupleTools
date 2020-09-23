@@ -24,6 +24,10 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
 
   using namespace SystematicsHelpers;
 
+  if (sname == Form("Run%i", theDataYear)){
+    for (auto const& pp:getValidDataPeriods()) constructSamplesList(Form("Run%s", pp.Data()), syst, samples);
+  }
+
   if (theDataYear == 2018){
     // Data
     if (sname == "SingleMuon"){

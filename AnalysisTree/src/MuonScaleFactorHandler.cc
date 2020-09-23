@@ -383,12 +383,9 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
   if (effval) *effval = 0;
 
   if (!obj) return;
+  if (!obj->extras.is_genMatched_prompt) return;
 
-  bool passId = (
-    obj->testSelectionBit(MuonSelectionHelpers::bit_preselectionTight_id)
-    &&
-    (MuonSelectionHelpers::bit_preselection_time != MuonSelectionHelpers::kValidMuonSystemTime || obj->testSelectionBit(MuonSelectionHelpers::bit_preselection_time))
-    );
+  bool passId = obj->testSelectionBit(MuonSelectionHelpers::bit_preselectionTight_id); // More id stuff => more flags
   bool passLooseIso = passId && obj->testSelectionBit(MuonSelectionHelpers::kFakeableBaseIso);
   bool passTightIso = passId && obj->testSelectionBit(MuonSelectionHelpers::bit_preselectionTight_iso);
   if (passTightIso) assert(passLooseIso);

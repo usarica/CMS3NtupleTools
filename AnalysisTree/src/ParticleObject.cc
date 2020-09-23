@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <utility>
 #include "ParticleObject.h"
+#include "PFCandidateObject.h"
 #include "HelperFunctions.h"
 #include "PDGHelpers.h"
 #include "TMath.h"
@@ -80,6 +81,17 @@ bool ParticleObject::checkDeepDaughtership(ParticleObject const* part1, Particle
   std::vector<ParticleObject*> const& daughters1 = part1->getDaughters();
   std::vector<ParticleObject*> const& daughters2 = part2->getDaughters();
   return HelperFunctions::hasCommonElements(daughters1, daughters2);
+}
+bool ParticleObject::checkDeepDaughtership_NoPFCandidates(ParticleObject const* part1, ParticleObject const* part2){
+  if (!part1 || !part2) return false;
+  if (part1 == part2) return true;
+  std::vector<ParticleObject*> const& daughters1 = part1->getDaughters();
+  std::vector<ParticleObject*> daughters1_filtered; daughters1_filtered.reserve(daughters1.size());
+  for (auto const& dau:daughters1){ if (dynamic_cast<PFCandidateObject*>(dau)==nullptr) daughters1_filtered.push_back(dau); }
+  std::vector<ParticleObject*> const& daughters2 = part2->getDaughters();
+  std::vector<ParticleObject*> daughters2_filtered; daughters2_filtered.reserve(daughters2.size());
+  for (auto const& dau:daughters2){ if (dynamic_cast<PFCandidateObject*>(dau)==nullptr) daughters2_filtered.push_back(dau); }
+  return HelperFunctions::hasCommonElements(daughters1_filtered, daughters2_filtered);
 }
 
 void ParticleObject::addMother(ParticleObject* myParticle){ if (!checkParticleExists(myParticle, mothers)) mothers.push_back(myParticle); }

@@ -106,10 +106,8 @@ namespace OffshellCutflow{
     return val>=thr;
   }
 
-  bool check_ml1(DileptonObject const& dilepton){
+  bool check_mll(float const& val, bool const& isSF){
     constexpr float MZ_VAL_CUTS = 91.2f;
-    bool const isSF = dilepton.isSF();
-    float const val = dilepton.m();
     float thr[2]={ -1, -1 };
     switch (activeFinalState){
     case fs_ZZ_2l2nu:
@@ -125,6 +123,10 @@ namespace OffshellCutflow{
       break;
     }
     return (thr[0]<0.f || val>=thr[0]) && (thr[1]<0.f || val<thr[1]);
+  }
+
+  bool check_mll(DileptonObject const& dilepton){
+    return check_mll(dilepton.m(), dilepton.isSF());
   }
 
   bool check_cutbased_VBF_category(std::vector<AK4JetObject*> const& ak4jets_tight, ParticleObject const* theChosenCand){

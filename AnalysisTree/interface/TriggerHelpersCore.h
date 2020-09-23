@@ -14,8 +14,10 @@ namespace TriggerHelpers{
 
     kDoubleEle,
     kDoubleEle_HighPt,
+    kSingleEle_L1EG, // We should use these for double-ele or egamma, not for single electron
 
     kMuEle,
+    kMuEle_Extra,
 
     kSingleMu,
     kSingleMu_Prescaled,

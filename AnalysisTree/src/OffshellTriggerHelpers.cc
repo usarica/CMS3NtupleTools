@@ -121,8 +121,8 @@ void TriggerHelpers::configureHLTmap(){
       { "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kMuon } } }
     };
     HLT_type_proplist_map[kDoubleMu_Prescaled] = std::vector<HLTTriggerPathProperties>{
-      { "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v*", { { HLTObjectProperties::kMuon, { { HLTObjectProperties::kPt, 17.f*1.1f } } }, { HLTObjectProperties::kMuon, { { HLTObjectProperties::kPt, 8.f*1.1f } } } } },
-      { "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v*", { { HLTObjectProperties::kMuon, { { HLTObjectProperties::kPt, 17.f*1.1f } } }, { HLTObjectProperties::kMuon, { { HLTObjectProperties::kPt, 8.f*1.1f } } } } }
+      { "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kMuon } } },
+      { "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kMuon } } }
     };
     HLT_type_proplist_map[kDoubleEle] = std::vector<HLTTriggerPathProperties>{
       { "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*", { { HLTObjectProperties::kElectron }, { HLTObjectProperties::kElectron } } },
@@ -133,13 +133,17 @@ void TriggerHelpers::configureHLTmap(){
     HLT_type_proplist_map[kDoubleEle_HighPt] = std::vector<HLTTriggerPathProperties>{
       { "HLT_DoublePhoton60_v*", { { HLTObjectProperties::kElectron }, { HLTObjectProperties::kElectron } } }
     };
+    HLT_type_proplist_map[kSingleEle_L1EG] = std::vector<HLTTriggerPathProperties>();
     // These MuEle triggers are tricky to deal with because they are disabled for part of the run...
     HLT_type_proplist_map[kMuEle] = std::vector<HLTTriggerPathProperties>{
-      { "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kElectron } } },
       { "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kElectron } } },
       { "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kElectron } } },
-      { "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kElectron } } },
       { "HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kElectron } } },
+      { "HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_DZ_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kElectron } } }
+    };
+    HLT_type_proplist_map[kMuEle_Extra] = std::vector<HLTTriggerPathProperties>{
+      { "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kElectron } } },
+      { "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kElectron } } },
       { "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kElectron } } },
       { "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kElectron } } }
     };
@@ -160,12 +164,11 @@ void TriggerHelpers::configureHLTmap(){
     };
     HLT_type_proplist_map[kSingleEle] = std::vector<HLTTriggerPathProperties>{
       { "HLT_Ele25_eta2p1_WPTight_Gsf_v*", { { HLTObjectProperties::kElectron } } },
+      { "HLT_Ele27_eta2p1_WPLoose_Gsf_v*", { { HLTObjectProperties::kElectron } } }, // Prescale>1 for 2016H, but we include here with a run range exclusion below
       { "HLT_Ele27_WPTight_Gsf_v*", { { HLTObjectProperties::kElectron } } },
       { "HLT_Ele32_eta2p1_WPTight_Gsf_v*", { { HLTObjectProperties::kElectron } } }
     };
-    HLT_type_proplist_map[kSingleEle_Prescaled] = std::vector<HLTTriggerPathProperties>{
-      { "HLT_Ele27_eta2p1_WPLoose_Gsf_v*", { { HLTObjectProperties::kElectron, { { HLTObjectProperties::kPt, 27.f+3.f } } } } }
-    };
+    HLT_type_proplist_map[kSingleEle_Prescaled] = std::vector<HLTTriggerPathProperties>();
     HLT_type_proplist_map[kSingleEle_HighPt] = std::vector<HLTTriggerPathProperties>{ { "HLT_Photon175_v*", { { HLTObjectProperties::kElectron } } } };
     HLT_type_proplist_map[kSinglePho] = std::vector<HLTTriggerPathProperties>{
       //{ "HLT_Photon300_NoHE_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 300.f+40.f } } } } }, // Unprescaled
@@ -274,7 +277,7 @@ void TriggerHelpers::configureHLTmap(){
     */
     assignRunRangeExclusions(
       "HLT_DoubleEle33_CaloIdL_MW_v*", {
-        { -1/*276453*//*276454*/, 278822 } 
+        { -1/*276453*//*276454*/, 278822 }
       }
     );
     assignRunRangeExclusions(
@@ -298,6 +301,11 @@ void TriggerHelpers::configureHLTmap(){
       }
     );
     assignRunRangeExclusions(
+      "HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_DZ_v*", {
+        { -1, 278240 }
+      }
+    );
+    assignRunRangeExclusions(
       "HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_v*", {
         { 280919/*281613*/, -1 }
       }
@@ -317,15 +325,11 @@ void TriggerHelpers::configureHLTmap(){
         { -1, 274442 }
       }
     );
-
-    // Because HLT_Ele27_eta2p1_WPLoose_Gsf_v* is already identified as prescaled, ignore run range exclusions.
-    // It is prescaled only for these runs though, so it could in principle be included as unprescaled with run range exclusions.
-    //assignRunRangeExclusions(
-    //  "HLT_Ele27_eta2p1_WPLoose_Gsf_v*", {
-    //    { 280919/*281613*/, -1 } // Prescale>1 for 2016H
-    //  }
-    //);
-
+    assignRunRangeExclusions(
+      "HLT_Ele27_eta2p1_WPLoose_Gsf_v*", {
+        { 280919/*281613*/, -1 } // Prescale>1 for 2016H
+      }
+    );
     // HLT_PFHT800_v* seems disabled in 2016H. However, this would create a gap in the HT spectrum, so it is excluded from the set of control triggers altogether.
     assignRunRangeExclusions(
       "HLT_PFHT800_v*", {
@@ -348,12 +352,16 @@ void TriggerHelpers::configureHLTmap(){
     HLT_type_proplist_map[kDoubleEle_HighPt] = std::vector<HLTTriggerPathProperties>{
       { "HLT_DoublePhoton70_v*", { { HLTObjectProperties::kElectron }, { HLTObjectProperties::kElectron } } }
     };
+    HLT_type_proplist_map[kSingleEle_L1EG] = std::vector<HLTTriggerPathProperties>{
+      { "HLT_Ele32_WPTight_Gsf_L1DoubleEG_v*", { { HLTObjectProperties::kElectron }, { HLTObjectProperties::kElectron } } }
+    };
     HLT_type_proplist_map[kMuEle] = std::vector<HLTTriggerPathProperties>{
       { "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kElectron } } },
       { "HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kElectron } } },
       { "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kElectron } } },
       { "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kElectron } } }
     };
+    HLT_type_proplist_map[kMuEle_Extra] = std::vector<HLTTriggerPathProperties>();
     HLT_type_proplist_map[kSingleMu] = std::vector<HLTTriggerPathProperties>{ { "HLT_IsoMu27_v*", { { HLTObjectProperties::kMuon } } } };
     // HLT_IsoMu20_v* have L1 and HLT prescales
     // HLT_IsoMu24_v* is disabled for a large portion of 2017, so omit it.
@@ -449,18 +457,38 @@ void TriggerHelpers::configureHLTmap(){
       { "HLT_PFMET120_PFMHT120_IDTight_v*", { { HLTObjectProperties::kMET, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT, { { HLTObjectProperties::kMass, 120.f } } } } }*/
     };
 
-    // Since there are only two triggers to place run range exclusions, and since both are only for control,
-    // we exclude them entirely instead of placing exclusions in order to speed up the looping procedure.
-    //assignRunRangeExclusions(
-    //  "HLT_PFMET120_PFMHT120_IDTight_v*", {
-    //    { 305586, -1 }
-    //  }
-    //);
-    //assignRunRangeExclusions(
-    //  "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v*", {
-    //    { 305586, -1 }
-    //  }
-    //);
+    assignRunRangeExclusions(
+      "HLT_PFMET120_PFMHT120_IDTight_v*", {
+        { 305586, -1 }
+      }
+    );
+    assignRunRangeExclusions(
+      "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v*", {
+        { 305586, -1 }
+      }
+    );
+    // These triggers need to exclude 2017B because prescale=0
+    // Mu50 is unprescaled for the entire run.
+    assignRunRangeExclusions(
+      "HLT_TkMu100_v*", {
+        { -1, 299329 }
+      }
+    );
+    assignRunRangeExclusions(
+      "HLT_OldMu100_v*", {
+        { -1, 299329 }
+      }
+    );
+    assignRunRangeExclusions(
+      "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8_v*", {
+        { -1, 299329 }
+      }
+    );
+    assignRunRangeExclusions(
+      "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*", {
+        { -1, 299329 }
+      }
+    );
     break;
   case 2018:
     HLT_type_proplist_map[kDoubleMu] = std::vector<HLTTriggerPathProperties>{
@@ -478,12 +506,14 @@ void TriggerHelpers::configureHLTmap(){
     HLT_type_proplist_map[kDoubleEle_HighPt] = std::vector<HLTTriggerPathProperties>{
       { "HLT_DoublePhoton70_v*", { { HLTObjectProperties::kElectron }, { HLTObjectProperties::kElectron } } }
     };
+    HLT_type_proplist_map[kSingleEle_L1EG] = std::vector<HLTTriggerPathProperties>();
     HLT_type_proplist_map[kMuEle] = std::vector<HLTTriggerPathProperties>{
       { "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kElectron } } },
       { "HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kElectron } } },
       { "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kElectron } } },
       { "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kElectron } } }
     };
+    HLT_type_proplist_map[kMuEle_Extra] = std::vector<HLTTriggerPathProperties>();
     HLT_type_proplist_map[kSingleMu] = std::vector<HLTTriggerPathProperties>{ { "HLT_IsoMu24_v*", { { HLTObjectProperties::kMuon } } } };
     HLT_type_proplist_map[kSingleMu_Prescaled] = std::vector<HLTTriggerPathProperties>{ { "HLT_IsoMu20_v*", { { HLTObjectProperties::kMuon } } } };
     HLT_type_proplist_map[kSingleMu_HighPt] = std::vector<HLTTriggerPathProperties>{

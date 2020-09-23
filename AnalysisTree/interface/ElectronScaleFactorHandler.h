@@ -39,8 +39,8 @@ public:
   bool setup();
   void reset();
 
-  void getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, float const& pt, float const& etaSC, bool const& is_gap, ElectronScaleFactorHandler::EfficiencyType type, float& val, float* effval) const;
-  void getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, ElectronObject const* obj, ElectronScaleFactorHandler::EfficiencyType type, float& val, float* effval) const;
+  void getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, float const& pt, float const& etaSC, bool const& is_gap, bool const& passId, bool const& passLooseIso, bool const& passTightIso, float& val, float* effval) const;
+  void getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, ElectronObject const* obj, float& val, float* effval) const;
 
 };
 

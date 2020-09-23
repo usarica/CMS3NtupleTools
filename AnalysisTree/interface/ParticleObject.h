@@ -126,6 +126,7 @@ public:
 
   static bool checkParticleExists(ParticleObject*, const std::vector<ParticleObject*>&);
   static bool checkDeepDaughtership(ParticleObject const* part1, ParticleObject const* part2);
+  static bool checkDeepDaughtership_NoPFCandidates(ParticleObject const* part1, ParticleObject const* part2);
 
 };
 
