@@ -125,12 +125,21 @@ class BatchManager:
             print "=========="
          # Configure jobs
          if not self.opt.dry:
+            firstJob=True
             for cmdarg in cmdlist:
-               os.system(
-                  "submitCMS3AnalysisProduction.sh{} script=produceSkims.cc function=produceSkims arguments=\'{}\' date=skimProduction_{}".format(
-                     self.extracmd, cmdarg, "{}_{}".format(self.infile.replace('.csv',''), self.opt.date)
+               if firstJob:
+                  os.system(
+                     "submitCMS3AnalysisProduction.sh{} script=produceSkims.cc function=produceSkims arguments=\'{}\' date=skimProduction_{}".format(
+                        self.extracmd, cmdarg, "{}_{}".format(self.infile.replace('.csv',''), self.opt.date)
+                     )
                   )
-               )
+               else:
+                  os.system(
+                     "submitCMS3AnalysisProduction.sh{} script=produceSkims.cc function=produceSkims arguments=\'{}\' date=skimProduction_{} no-proxycheck".format(
+                        self.extracmd, cmdarg, "{}_{}".format(self.infile.replace('.csv',''), self.opt.date)
+                     )
+                  )
+               firstJob=False
 
 
 
