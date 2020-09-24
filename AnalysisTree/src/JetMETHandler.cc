@@ -314,6 +314,7 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
   std::vector<AK8JetObject*> ak8jets_new; ak8jets_new.reserve(ak8jets.size()); ak8jets_masked.reserve(ak8jets.size());
 
   if (!usePFCandidates){
+    constexpr bool undoT1METCorrFromCleaned = true; // Gives slightly better performance, also more consistent with particle momentum corrections
     // In this scenario, a simple delta-R cleaning is done.
     for (auto*& jet:ak4jets){
       bool doSkip=false;
@@ -339,6 +340,34 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
       else ak4jets_masked.push_back(jet);
     }
     ak4jets = ak4jets_new;
+
+    // Correct T1 PF MET for the cleaned jets
+    if (undoT1METCorrFromCleaned){
+      ParticleObject::LorentzVector_t sump4_METContribution[4];
+      for (auto const& jet:ak4jets_masked){
+        ParticleObject::LorentzVector_t p4_METContribution;
+        for (unsigned char ijer=0; ijer<2; ijer++){
+          for (unsigned char ip4=0; ip4<2; ip4++){
+            ParticleObject::LorentzVector_t p4_METContribution;
+            jet->getT1METShift(ip4, ijer, p4_METContribution);
+            sump4_METContribution[2*ip4 + ijer] += p4_METContribution;
+          }
+        }
+      }
+      for (unsigned char ijer=0; ijer<2; ijer++){
+        for (unsigned char ip4=0; ip4<2; ip4++){
+          ParticleObject::LorentzVector_t p4_corr = -sump4_METContribution[2*ip4 + ijer];
+          if (this->verbosity>=TVar::DEBUG) MELAout
+            << "Total MET overlap correction "
+            << (ijer==0 ? "without" : "with") << " JER, "
+            << (ip4==0 ? "without" : "with") << " p4 preservation = " << p4_corr
+            << endl;
+          pfmet->setJetOverlapCorrection(p4_corr, ijer, ip4);
+          // Set the same correction for PUPPI
+          pfpuppimet->setJetOverlapCorrection(p4_corr, ijer, ip4);
+        }
+      }
+    }
 
     for (auto*& jet:ak8jets){
       bool doSkip=false;
