@@ -197,11 +197,11 @@ void PhotonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVa
 
 void PhotonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, PhotonObject const* obj, float& val, float* effval) const{
   val = 1;
-  if (effval) *effval = 0;
+  if (effval) *effval = 1;
 
   if (!obj) return;
+  if (!obj->extras.is_genMatched_prompt) return;
 
-  // FIXME(?): May need to revise this selection later...
   bool const isTight = (
     obj->testSelectionBit(bit_preselectionTight_id)
     &&

@@ -39,7 +39,8 @@ public:
   bool setup();
   void reset();
 
-  void getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, float const& pt, float const& etaSC, bool const& is_gap, bool const& passId, bool const& passLooseIso, bool const& passTightIso, float& val, float* effval) const;
+  // idx_gap==0: Non-gap, ==1: gap, ==2: combined
+  void getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, float const& pt, float const& etaSC, unsigned short const& idx_gap, bool const& passId, bool const& passLooseIso, bool const& passTightIso, float& val, float* effval) const;
   void getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, ElectronObject const* obj, float& val, float* effval) const;
 
 };

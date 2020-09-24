@@ -39,7 +39,7 @@ bool ElectronScaleFactorHandler::setup(){
     eEleEffAltMCDn, eEleEffAltMCUp,
     ePUDn, ePUUp
   };
-  constexpr unsigned int n_non_gap_gap = 2;
+  constexpr unsigned int n_non_gap_gap = 3;
   for (auto const& syst:allowedSysts){
     std::vector<ExtendedHistogram_2D> tmpvec(n_non_gap_gap, ExtendedHistogram_2D());
 
@@ -71,7 +71,7 @@ bool ElectronScaleFactorHandler::setup(){
   }
 
   for (unsigned int igap=0; igap<n_non_gap_gap; igap++){
-    TString cinput = cinput_main + Form("Efficiencies_ee_%s_id_looseIso_tightIso.root", (igap==0 ? "nongap" : "gap"));
+    TString cinput = cinput_main + Form("Efficiencies_ee_%s_id_looseIso_tightIso.root", (igap==0 ? "nongap" : (igap==1 ? "gap" : "nongap_gap")));
     if (!HostHelpers::FileReadable(cinput.Data())){
       MELAerr << "ElectronScaleFactorHandler::setup: File " << cinput << " is not readable." << endl;
       assert(0);
@@ -178,14 +178,14 @@ void ElectronScaleFactorHandler::evalScaleFactorFromHistogram(float& theSF, floa
   theSF *= bc; theSFRelErr = sqrt(pow(theSFRelErr, 2)+pow(be, 2));
 }
 
-void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, float const& pt, float const& etaSC, bool const& is_gap, bool const& passId, bool const& passLooseIso, bool const& passTightIso, float& val, float* effval) const{
+void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, float const& pt, float const& etaSC, unsigned short const& idx_gap, bool const& passId, bool const& passLooseIso, bool const& passTightIso, float& val, float* effval) const{
   using namespace SystematicsHelpers;
 
   if (verbosity>=TVar::DEBUG) MELAout
     << "ElectronScaleFactorHandler::getIdIsoSFAndEff: Evaluating " << (effval ? "SFs and efficiencies" : "SFs")
     << " for pT=" << pt
     << ", etaSC=" << etaSC
-    << ", is_gap=" << is_gap
+    << ", idx_gap=" << idx_gap
     << ", passId=" << passId
     << ", passLooseIso=" << passLooseIso
     << ", passTightIso=" << passTightIso
@@ -217,32 +217,32 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
     auto it_syst_SF_iso_loose_map = syst_SF_iso_loose_map.find(sNominal);
     auto it_syst_SF_iso_tight_map = syst_SF_iso_tight_map.find(sNominal);
     if (it_syst_SF_reco_map!=syst_SF_reco_map.cend()){
-      hlist_eff_mc.push_back(&(eff_mc_reco_hists.at((unsigned int) is_gap)));
-      hlist_SF_nominal.push_back(&(it_syst_SF_reco_map->second.at((unsigned int) is_gap)));
+      hlist_eff_mc.push_back(&(eff_mc_reco_hists.at(idx_gap)));
+      hlist_SF_nominal.push_back(&(it_syst_SF_reco_map->second.at(idx_gap)));
     }
     else{
       hlist_eff_mc.push_back(nullptr);
       hlist_SF_nominal.push_back(nullptr);
     }
     if (it_syst_SF_id_map!=syst_SF_id_map.cend()){
-      hlist_eff_mc.push_back(&eff_mc_id_hists.at((unsigned int) is_gap));
-      hlist_SF_nominal.push_back(&(it_syst_SF_id_map->second.at((unsigned int) is_gap)));
+      hlist_eff_mc.push_back(&eff_mc_id_hists.at(idx_gap));
+      hlist_SF_nominal.push_back(&(it_syst_SF_id_map->second.at(idx_gap)));
     }
     else{
       hlist_eff_mc.push_back(nullptr);
       hlist_SF_nominal.push_back(nullptr);
     }
     if (it_syst_SF_iso_loose_map!=syst_SF_iso_loose_map.cend()){
-      hlist_eff_mc.push_back(&eff_mc_iso_loose_hists.at((unsigned int) is_gap));
-      hlist_SF_nominal.push_back(&(it_syst_SF_iso_loose_map->second.at((unsigned int) is_gap)));
+      hlist_eff_mc.push_back(&eff_mc_iso_loose_hists.at(idx_gap));
+      hlist_SF_nominal.push_back(&(it_syst_SF_iso_loose_map->second.at(idx_gap)));
     }
     else{
       hlist_eff_mc.push_back(nullptr);
       hlist_SF_nominal.push_back(nullptr);
     }
     if (it_syst_SF_iso_tight_map!=syst_SF_iso_tight_map.cend()){
-      hlist_eff_mc.push_back(&eff_mc_iso_tight_hists.at((unsigned int) is_gap));
-      hlist_SF_nominal.push_back(&(it_syst_SF_iso_tight_map->second.at((unsigned int) is_gap)));
+      hlist_eff_mc.push_back(&eff_mc_iso_tight_hists.at(idx_gap));
+      hlist_SF_nominal.push_back(&(it_syst_SF_iso_tight_map->second.at(idx_gap)));
     }
     else{
       hlist_eff_mc.push_back(nullptr);
@@ -330,18 +330,18 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
           auto it_syst_SF_iso_tight_map = syst_SF_iso_tight_map.find(asyst);
 
           if (it_syst_SF_reco_map!=syst_SF_reco_map.cend()){
-            hlist_SF.push_back(&(it_syst_SF_reco_map->second.at((unsigned int) is_gap)));
-            if (activeSysts.size() > 1) hlist_SF_cpl.push_back(&(it_syst_SF_reco_map->second.at((unsigned int) is_gap)));
+            hlist_SF.push_back(&(it_syst_SF_reco_map->second.at(idx_gap)));
+            if (activeSysts.size() > 1) hlist_SF_cpl.push_back(&(it_syst_SF_reco_map->second.at(idx_gap)));
           }
           else{
             hlist_SF.push_back(nullptr);
             if (activeSysts.size() > 1) hlist_SF_cpl.push_back(nullptr);
           }
-          if (it_syst_SF_id_map!=syst_SF_id_map.cend()) hlist_SF.push_back(&(it_syst_SF_id_map->second.at((unsigned int) is_gap)));
+          if (it_syst_SF_id_map!=syst_SF_id_map.cend()) hlist_SF.push_back(&(it_syst_SF_id_map->second.at(idx_gap)));
           else hlist_SF.push_back(nullptr);
-          if (it_syst_SF_iso_loose_map!=syst_SF_iso_loose_map.cend()) hlist_SF.push_back(&(it_syst_SF_iso_loose_map->second.at((unsigned int) is_gap)));
+          if (it_syst_SF_iso_loose_map!=syst_SF_iso_loose_map.cend()) hlist_SF.push_back(&(it_syst_SF_iso_loose_map->second.at(idx_gap)));
           else hlist_SF.push_back(nullptr);
-          if (it_syst_SF_iso_tight_map!=syst_SF_iso_tight_map.cend()) hlist_SF.push_back(&(it_syst_SF_iso_tight_map->second.at((unsigned int) is_gap)));
+          if (it_syst_SF_iso_tight_map!=syst_SF_iso_tight_map.cend()) hlist_SF.push_back(&(it_syst_SF_iso_tight_map->second.at(idx_gap)));
           else hlist_SF.push_back(nullptr);
         }
 
@@ -351,11 +351,11 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
           auto it_syst_SF_iso_loose_map = syst_SF_iso_loose_map.find(asyst_cpl);
           auto it_syst_SF_iso_tight_map = syst_SF_iso_tight_map.find(asyst_cpl);
 
-          if (it_syst_SF_id_map!=syst_SF_id_map.cend()) hlist_SF_cpl.push_back(&(it_syst_SF_id_map->second.at((unsigned int) is_gap)));
+          if (it_syst_SF_id_map!=syst_SF_id_map.cend()) hlist_SF_cpl.push_back(&(it_syst_SF_id_map->second.at(idx_gap)));
           else hlist_SF_cpl.push_back(nullptr);
-          if (it_syst_SF_iso_loose_map!=syst_SF_iso_loose_map.cend()) hlist_SF_cpl.push_back(&(it_syst_SF_iso_loose_map->second.at((unsigned int) is_gap)));
+          if (it_syst_SF_iso_loose_map!=syst_SF_iso_loose_map.cend()) hlist_SF_cpl.push_back(&(it_syst_SF_iso_loose_map->second.at(idx_gap)));
           else hlist_SF_cpl.push_back(nullptr);
-          if (it_syst_SF_iso_tight_map!=syst_SF_iso_tight_map.cend()) hlist_SF_cpl.push_back(&(it_syst_SF_iso_tight_map->second.at((unsigned int) is_gap)));
+          if (it_syst_SF_iso_tight_map!=syst_SF_iso_tight_map.cend()) hlist_SF_cpl.push_back(&(it_syst_SF_iso_tight_map->second.at(idx_gap)));
           else hlist_SF_cpl.push_back(nullptr);
         }
 
@@ -481,5 +481,5 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
   bool passTightIso = passId && obj->testSelectionBit(ElectronSelectionHelpers::bit_preselectionTight_iso);
   if (passTightIso) assert(passLooseIso);
 
-  getIdIsoSFAndEff(syst, obj->pt(), obj->etaSC(), obj->isAnyGap(), passId, passLooseIso, passTightIso, val, effval);
+  getIdIsoSFAndEff(syst, obj->pt(), obj->etaSC(), static_cast<unsigned short>(obj->isAnyGap()), passId, passLooseIso, passTightIso, val, effval);
 }
