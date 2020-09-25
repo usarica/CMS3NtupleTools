@@ -91,6 +91,9 @@ std::string SystematicsHelpers::getSystCoreName(SystematicsHelpers::SystematicVa
   case ePUDn:
   case ePUUp:
     return "PU";
+  case ePUJetIdEffDn:
+  case ePUJetIdEffUp:
+    return "PUJetIdEff";
   case eBTagSFDn:
   case eBTagSFUp:
     return "BTagSF";

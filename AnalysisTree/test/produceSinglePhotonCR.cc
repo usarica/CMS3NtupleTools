@@ -61,6 +61,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   HANDLER_DIRECTIVE(MuonScaleFactorHandler, muonSFHandler) \
   HANDLER_DIRECTIVE(ElectronScaleFactorHandler, electronSFHandler) \
   HANDLER_DIRECTIVE(PhotonScaleFactorHandler, photonSFHandler) \
+  HANDLER_DIRECTIVE(PUJetIdScaleFactorHandler, pujetidSFHandler) \
   HANDLER_DIRECTIVE(BtagScaleFactorHandler, btagSFHandler) \
   HANDLER_DIRECTIVE(METCorrectionHandler, metCorrectionHandler)
 
@@ -276,7 +277,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   float SF_electrons = 1;
   for (auto const& part:electrons){
     float theSF = 1;
-    if (!isData) electronSFHandler.getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
+    if (!isData) electronSFHandler->getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
     if (theSF == 0.f) continue;
     SF_electrons *= theSF;
 
@@ -342,11 +343,17 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   ParticleObject::LorentzVector_t sump4_ak4jets(0, 0, 0, 0);
   std::vector<AK4JetObject*> ak4jets_tight; ak4jets_tight.reserve(ak4jets.size());
   unsigned int n_ak4jets_tight_pt30_btagged_loose = 0;
+  float SF_PUJetId = 1;
   float SF_btagging = 1;
   for (auto const& jet:ak4jets){
-    float theSF = 1;
-    if (!isData) btagSFHandler->getSFAndEff(theGlobalSyst, jet, theSF, nullptr);
-    if (theSF != 0.f) SF_btagging *= theSF;
+    float theSF_btag = 1;
+    float theSF_PUJetId = 1;
+    if (!isData){
+      pujetidSFHandler->getSFAndEff(theGlobalSyst, jet, theSF_PUJetId, nullptr);
+      btagSFHandler->getSFAndEff(theGlobalSyst, jet, theSF_btag, nullptr);
+    }
+    if (theSF_PUJetId != 0.f) SF_PUJetId *= theSF_PUJetId;
+    if (theSF_btag != 0.f) SF_btagging *= theSF_btag;
 
     if (ParticleSelectionHelpers::isTightJet(jet)){
       ak4jets_tight.push_back(jet);
@@ -542,7 +549,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   }
 
   // Set the collection of SFs at the last step
-  event_wgt_SFs = SF_muons*SF_electrons*SF_photons*SF_btagging;
+  event_wgt_SFs = SF_muons*SF_electrons*SF_photons*SF_PUJetId*SF_btagging;
 
   /*********************/
   /* RECORD THE OUTPUT */
@@ -711,6 +718,7 @@ void getTrees(
   MuonScaleFactorHandler muonSFHandler;
   ElectronScaleFactorHandler electronSFHandler;
   PhotonScaleFactorHandler photonSFHandler;
+  PUJetIdScaleFactorHandler pujetidSFHandler;
   BtagScaleFactorHandler btagSFHandler;
   METCorrectionHandler metCorrectionHandler;
 
@@ -757,6 +765,7 @@ void getTrees(
   theLooper.addSFHandler(&muonSFHandler);
   theLooper.addSFHandler(&electronSFHandler);
   theLooper.addSFHandler(&photonSFHandler);
+  theLooper.addSFHandler(&pujetidSFHandler);
   theLooper.addSFHandler(&btagSFHandler);
   theLooper.addSFHandler(&metCorrectionHandler);
   // Set output tree

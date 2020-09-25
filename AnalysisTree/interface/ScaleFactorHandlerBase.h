@@ -22,6 +22,7 @@ public:
 
   static void closeFile(TFile*& f);
   template<typename T, typename U> static bool getHistogram(U& h, TFile*& f, TString s);
+  template<typename T, typename U> static bool getHistogramWithUncertainy(U& h, TFile*& f, TString s, TString su);
   static void getAxisBinning(TAxis const* ax, ExtendedBinning& res);
 
   virtual bool setup() = 0;
@@ -37,6 +38,11 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH1F, ExtendedHistogram_1D>
 template<> bool ScaleFactorHandlerBase::getHistogram<TH1D, ExtendedHistogram_1D>(ExtendedHistogram_1D& h, TFile*& f, TString s);
 template<> bool ScaleFactorHandlerBase::getHistogram<TH2F, ExtendedHistogram_2D>(ExtendedHistogram_2D& h, TFile*& f, TString s);
 template<> bool ScaleFactorHandlerBase::getHistogram<TH2D, ExtendedHistogram_2D>(ExtendedHistogram_2D& h, TFile*& f, TString s);
+
+template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH1F, ExtendedHistogram_1D>(ExtendedHistogram_1D& h, TFile*& f, TString s, TString su);
+template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH1D, ExtendedHistogram_1D>(ExtendedHistogram_1D& h, TFile*& f, TString s, TString su);
+template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH2F, ExtendedHistogram_2D>(ExtendedHistogram_2D& h, TFile*& f, TString s, TString su);
+template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH2D, ExtendedHistogram_2D>(ExtendedHistogram_2D& h, TFile*& f, TString s, TString su);
 
 
 #endif

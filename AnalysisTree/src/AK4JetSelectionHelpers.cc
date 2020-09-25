@@ -40,6 +40,8 @@ using namespace std;
 using namespace MELAStreamHelpers;
 
 
+bool const& AK4JetSelectionHelpers::getApplyTightLeptonVetoIdToJetsFlag(){ return applyTightLeptonVetoIdToJets; }
+
 bool AK4JetSelectionHelpers::testLoosePUJetId(AK4JetObject const& part){
   return part.pt()>=ptThr_PUId || std::abs(part.eta())>=etaThr_PUId || HelperFunctions::test_bit(part.extras.pileupJetId, 2);
 }

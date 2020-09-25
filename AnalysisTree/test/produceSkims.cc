@@ -303,6 +303,7 @@ void produceSkims(
       TH2D hCounters("Counters", "", 3, 0, 3, nValidDataPeriods+1, 0, nValidDataPeriods+1);
       hCounters.SetBinContent(0, 0, sum_wgts_noPU); // Sum with no PU reweighting
       hCounters.SetBinContent(0, 1, frac_zero_genwgts); // Fraction of discarded events
+      hCounters.SetBinContent(0, 2, (ev_end-ev_start)); // Total number of events iterated
       for (size_t idp=0; idp<nValidDataPeriods+1; idp++){
         hCounters.SetBinContent(1, idp+1, sum_wgts.at(idp));
         hCounters.SetBinContent(2, idp+1, sum_wgts_PUDn.at(idp));

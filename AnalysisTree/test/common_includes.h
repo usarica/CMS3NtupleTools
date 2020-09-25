@@ -33,6 +33,7 @@
 #include "MuonScaleFactorHandler.h"
 #include "ElectronScaleFactorHandler.h"
 #include "PhotonScaleFactorHandler.h"
+#include "PUJetIdScaleFactorHandler.h"
 #include "BtagScaleFactorHandler.h"
 #include "METCorrectionHandler.h"
 

@@ -55,6 +55,8 @@ namespace AK4JetSelectionHelpers{
   void setPUIdWP(SelectionBits flag);
   void setApplyTightLeptonVetoIdToJets(bool flag);
 
+  bool const& getApplyTightLeptonVetoIdToJetsFlag();
+
   void setSelectionBits(AK4JetObject& part, bool resetIDs = true, bool resetKinematics = true);
 }
 

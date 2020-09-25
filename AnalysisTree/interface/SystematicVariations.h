@@ -38,6 +38,7 @@ namespace SystematicsHelpers{
     eJECDn, eJECUp,
     eJERDn, eJERUp,
     ePUDn, ePUUp,
+    ePUJetIdEffDn, ePUJetIdEffUp,
     eBTagSFDn, eBTagSFUp,
 
     eL1PrefiringDn, eL1PrefiringUp,
