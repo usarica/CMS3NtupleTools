@@ -193,8 +193,8 @@ void PUJetIdScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariat
       float eff_err = 0;
       float SF_err = 0;
 
-      evalScaleFactorFromHistogram(*it_eff_val, eff_err, pt, eta, *it_eff_hist, false, false);
-      evalScaleFactorFromHistogram(*it_SF_val, SF_err, pt, eta, *it_SF_hist, false, false);
+      evalScaleFactorFromHistogram(*it_eff_val, eff_err, pt, eta, *it_eff_hist, true, false);
+      evalScaleFactorFromHistogram(*it_SF_val, SF_err, pt, eta, *it_SF_hist, true, false);
       if (syst==ePUJetIdEffUp) *it_SF_val += SF_err;
       else if (syst==ePUJetIdEffDn) *it_SF_val -= SF_err;
 
@@ -204,10 +204,17 @@ void PUJetIdScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariat
       it_SF_val++;
     }
   }
+
   std::vector<float> eff_vals_corrected = eff_vals_uncorrected;
   for (unsigned short iwp=0; iwp<hlist_eff_MC.size(); iwp++){
     float SF_eff = SF_vals.at(iwp)/(iwp==0 ? 1.f : SF_vals.at(iwp-1));
     eff_vals_corrected.at(iwp) *= SF_eff;
+  }
+
+  if (verbosity>=TVar::DEBUG){
+    MELAout << "\t- Raw SFs: " << SF_vals << endl;
+    MELAout << "\t- Uncorrected efficiencies: " << eff_vals_uncorrected << endl;
+    MELAout << "\t- Corrected efficiencies: " << eff_vals_corrected << endl;
   }
 
   float eff_uncorrected = 1;
@@ -240,6 +247,12 @@ void PUJetIdScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariat
     val = 0;
     if (effval) *effval = 0;
   }
+
+  if (verbosity>=TVar::DEBUG){
+    MELAout << "\t- Calculated final uncorrected efficiency: " << eff_uncorrected << endl;
+    MELAout << "\t- Calculated final corrected efficiency: " << eff_corrected << endl;
+    MELAout << "\t- Calculated final SF: " << val << endl;
+  }
 }
 void PUJetIdScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, AK4JetObject const* obj, float& val, float* effval) const{
   val = 1;
@@ -248,7 +261,7 @@ void PUJetIdScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariat
   if (!obj) return;
   if (
     !(
-      obj->testSelectionBit(AK4JetSelectionHelpers::kTightId)
+      obj->testSelectionBit(AK4JetSelectionHelpers::bit_preselectionTight_id)
       &&
       (!AK4JetSelectionHelpers::getApplyTightLeptonVetoIdToJetsFlag() || obj->testSelectionBit(AK4JetSelectionHelpers::kTightLeptonVetoId))
       )
