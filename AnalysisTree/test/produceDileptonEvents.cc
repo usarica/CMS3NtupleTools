@@ -150,7 +150,6 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(float, event_wgt) \
   BRANCH_COMMAND(float, event_wgt_triggers) \
   BRANCH_COMMAND(float, event_wgt_SFs) \
-  BRANCH_COMMAND(float, event_wgt_SF_PUJetId) \
   BRANCH_COMMAND(float, event_pTmiss) \
   BRANCH_COMMAND(float, event_phimiss) \
   BRANCH_COMMAND(float, event_mTZZ) \
@@ -413,7 +412,6 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     }
   }
   event_n_ak4jets_pt30 = ak4jets_tight.size();
-  event_wgt_SF_PUJetId = SF_PUJetId;
 
   auto const& eventmet = (use_MET_Puppi ? jetHandler->getPFPUPPIMET() : jetHandler->getPFMET());
   if (!isData && use_MET_corrections) metCorrectionHandler->applyCorrections(

@@ -347,7 +347,7 @@ void producePUJetIdEfficiencies(
       std::vector<AK4JetObject*> ak4jets_tight; ak4jets_tight.reserve(ak4jets.size());
       for (auto const& jet:ak4jets){
         if (
-          jet->testSelectionBit(AK4JetSelectionHelpers::kTightId)
+          jet->testSelectionBit(AK4JetSelectionHelpers::bit_preselectionTight_id)
           &&
           (!applyTightLeptonVetoIdToAK4Jets || jet->testSelectionBit(AK4JetSelectionHelpers::kTightLeptonVetoId))
           ) ak4jets_tight.push_back(jet);

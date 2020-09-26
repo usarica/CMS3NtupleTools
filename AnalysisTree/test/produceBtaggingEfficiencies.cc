@@ -12,7 +12,8 @@ void produceBtaggingEfficiencies(
   TString strSampleSet, TString period,
   TString prodVersion, TString strdate,
   int ichunk, int nchunks,
-  SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal
+  SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal,
+  bool applyTightLeptonVetoIdToAK4Jets=false
 ){
   if (nchunks==1) nchunks = 0;
   if (nchunks>0 && (ichunk<0 || ichunk==nchunks)) return;
@@ -20,6 +21,9 @@ void produceBtaggingEfficiencies(
   gStyle->SetOptStat(0);
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
+
+  AK4JetSelectionHelpers::setPUIdWP(AK4JetSelectionHelpers::nSelectionBits); // Default is 'tight'
+  AK4JetSelectionHelpers::setApplyTightLeptonVetoIdToJets(applyTightLeptonVetoIdToAK4Jets); // Default is 'false'
 
   SampleHelpers::configure(period, "hadoop_skims:"+prodVersion);
 
@@ -42,17 +46,19 @@ void produceBtaggingEfficiencies(
 
   std::vector<std::string> triggerCheckList_Dilepton = TriggerHelpers::getHLTMenus(
     {
-      TriggerHelpers::kDoubleMu, TriggerHelpers::kDoubleEle, TriggerHelpers::kMuEle,
-      TriggerHelpers::kSingleMu, TriggerHelpers::kSingleEle
+      TriggerHelpers::kDoubleMu,
+      TriggerHelpers::kDoubleEle, TriggerHelpers::kDoubleEle_HighPt,
+      TriggerHelpers::kMuEle,
+      TriggerHelpers::kSingleMu, TriggerHelpers::kSingleMu_HighPt,
+      TriggerHelpers::kSingleEle, TriggerHelpers::kSingleEle_HighPt
     }
   );
   std::vector<std::string> triggerCheckList_SinglePhoton = TriggerHelpers::getHLTMenus(TriggerHelpers::kSinglePho);
 
   // Binning for efficiencies
-  ExtendedBinning ptbins({ 0, 20, 25, 30, 40, 50, 60, 70, 85, 100, 125, 150, 200 });
+  ExtendedBinning ptbins({ AK4JetSelectionHelpers::ptThr_btag, 25, 30, 40, 50, 60, 70, 85, 100, 125, 150, 200 });
   ExtendedBinning etabins(24, -2.4, 2.4);
-  etabins.addBinBoundary(-2.5); etabins.addBinBoundary(2.5);
-  etabins.addBinBoundary(-5.); etabins.addBinBoundary(5.);
+  if (SampleHelpers::getDataYear()>=2017){ etabins.addBinBoundary(-2.5); etabins.addBinBoundary(2.5); }
 
   // Get handlers
   GenInfoHandler genInfoHandler;
@@ -67,7 +73,10 @@ void produceBtaggingEfficiencies(
   ParticleDisambiguator particleDisambiguator;
   DileptonHandler dileptonHandler;
 
+  MuonScaleFactorHandler muonSFHandler;
+  ElectronScaleFactorHandler electronSFHandler;
   PhotonScaleFactorHandler photonSFHandler;
+  PUJetIdScaleFactorHandler pujetidSFHandler; pujetidSFHandler.setVerbosity(TVar::DEBUG);
 
   genInfoHandler.setAcquireLHEMEWeights(false);
   genInfoHandler.setAcquireLHEParticles(false);
@@ -76,7 +85,9 @@ void produceBtaggingEfficiencies(
   std::vector<TString> sampleList;
   SampleHelpers::constructSamplesList(strSampleSet, theGlobalSyst, sampleList);
 
-  TString const coutput_main = "output/BtaggingEffs/" + strdate + "/" + period;
+  TString const coutput_main = "output/BtaggingEffs/" + strdate + "/" + period
+    + "/AK4Jets"
+    + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId");
   gSystem->mkdir(coutput_main, true);
 
   MELAout << "List of samples to process: " << sampleList << endl;
@@ -203,49 +214,60 @@ void produceBtaggingEfficiencies(
     TFile* foutput = TFile::Open(stroutput, "recreate");
 
     foutput->cd();
-    std::vector<TH2F> h_All{
-      TH2F("AllJets_b", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning()),
-      TH2F("AllJets_c", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning()),
-      TH2F("AllJets_udsg", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning())
+    std::vector<std::vector<TH2F>> h_All{
+      {
+        TH2F("AllJets_b_PUJetId_T", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning()),
+        TH2F("AllJets_c_PUJetId_T", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning()),
+        TH2F("AllJets_udsg_PUJetId_T", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning())
+      },
+      {
+        TH2F("AllJets_b_PUJetId_MnT", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning()),
+        TH2F("AllJets_c_PUJetId_MnT", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning()),
+        TH2F("AllJets_udsg_PUJetId_MnT", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning())
+      },
+      {
+        TH2F("AllJets_b_PUJetId_LnM", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning()),
+        TH2F("AllJets_c_PUJetId_LnM", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning()),
+        TH2F("AllJets_udsg_PUJetId_LnM", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning())
+      },
+      {
+        TH2F("AllJets_b_PUJetId_F", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning()),
+        TH2F("AllJets_c_PUJetId_F", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning()),
+        TH2F("AllJets_udsg_PUJetId_F", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning())
+      }
     };
-    std::vector<TH2F> h_DeepCSV_Loose{
-      TH2F("DeepCSV_LooseJets_b", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning()),
-      TH2F("DeepCSV_LooseJets_c", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning()),
-      TH2F("DeepCSV_LooseJets_udsg", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning())
-    };
-    std::vector<TH2F> h_DeepCSV_Medium{
-      TH2F("DeepCSV_MediumJets_b", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning()),
-      TH2F("DeepCSV_MediumJets_c", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning()),
-      TH2F("DeepCSV_MediumJets_udsg", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning())
-    };
-    std::vector<TH2F> h_DeepCSV_Tight{
-      TH2F("DeepCSV_TightJets_b", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning()),
-      TH2F("DeepCSV_TightJets_c", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning()),
-      TH2F("DeepCSV_TightJets_udsg", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning())
-    };
-    std::vector<TH2F> h_DeepFlavor_Loose{
-      TH2F("DeepFlavor_LooseJets_b", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning()),
-      TH2F("DeepFlavor_LooseJets_c", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning()),
-      TH2F("DeepFlavor_LooseJets_udsg", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning())
-    };
-    std::vector<TH2F> h_DeepFlavor_Medium{
-      TH2F("DeepFlavor_MediumJets_b", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning()),
-      TH2F("DeepFlavor_MediumJets_c", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning()),
-      TH2F("DeepFlavor_MediumJets_udsg", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning())
-    };
-    std::vector<TH2F> h_DeepFlavor_Tight{
-      TH2F("DeepFlavor_TightJets_b", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning()),
-      TH2F("DeepFlavor_TightJets_c", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning()),
-      TH2F("DeepFlavor_TightJets_udsg", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning())
-    };
-    for (unsigned int iflav=0; iflav<3; iflav++){
-      h_All.at(iflav).Sumw2();
-      h_DeepCSV_Loose.at(iflav).Sumw2();
-      h_DeepCSV_Medium.at(iflav).Sumw2();
-      h_DeepCSV_Tight.at(iflav).Sumw2();
-      h_DeepFlavor_Loose.at(iflav).Sumw2();
-      h_DeepFlavor_Medium.at(iflav).Sumw2();
-      h_DeepFlavor_Tight.at(iflav).Sumw2();
+    unsigned short const nPUWPs = h_All.size();
+    std::vector<std::vector<TH2F>> h_DeepCSV_Loose(nPUWPs, std::vector<TH2F>());
+    std::vector<std::vector<TH2F>> h_DeepCSV_Medium(nPUWPs, std::vector<TH2F>());
+    std::vector<std::vector<TH2F>> h_DeepCSV_Tight(nPUWPs, std::vector<TH2F>());
+    std::vector<std::vector<TH2F>> h_DeepFlavor_Loose(nPUWPs, std::vector<TH2F>());
+    std::vector<std::vector<TH2F>> h_DeepFlavor_Medium(nPUWPs, std::vector<TH2F>());
+    std::vector<std::vector<TH2F>> h_DeepFlavor_Tight(nPUWPs, std::vector<TH2F>());
+    for (unsigned short ipuwp=0; ipuwp<nPUWPs; ipuwp++){
+      h_DeepCSV_Loose.at(ipuwp).reserve(3);
+      h_DeepCSV_Medium.at(ipuwp).reserve(3);
+      h_DeepCSV_Tight.at(ipuwp).reserve(3);
+      h_DeepFlavor_Loose.at(ipuwp).reserve(3);
+      h_DeepFlavor_Medium.at(ipuwp).reserve(3);
+      h_DeepFlavor_Tight.at(ipuwp).reserve(3);
+      for (unsigned short ih=0; ih<h_All.at(ipuwp).size(); ih++){
+        TString const hnamecore = h_All.at(ipuwp).at(ih).GetName();
+        TString hname;
+        hname = hnamecore; HelperFunctions::replaceString(hname, "AllJets", "DeepCSV_LooseJets"); h_DeepCSV_Loose.at(ipuwp).emplace_back(hname, "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning());
+        hname = hnamecore; HelperFunctions::replaceString(hname, "AllJets", "DeepCSV_MediumJets"); h_DeepCSV_Medium.at(ipuwp).emplace_back(hname, "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning());
+        hname = hnamecore; HelperFunctions::replaceString(hname, "AllJets", "DeepCSV_TightJets"); h_DeepCSV_Tight.at(ipuwp).emplace_back(hname, "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning());
+        hname = hnamecore; HelperFunctions::replaceString(hname, "AllJets", "DeepFlavor_LooseJets"); h_DeepFlavor_Loose.at(ipuwp).emplace_back(hname, "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning());
+        hname = hnamecore; HelperFunctions::replaceString(hname, "AllJets", "DeepFlavor_MediumJets"); h_DeepFlavor_Medium.at(ipuwp).emplace_back(hname, "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning());
+        hname = hnamecore; HelperFunctions::replaceString(hname, "AllJets", "DeepFlavor_TightJets"); h_DeepFlavor_Tight.at(ipuwp).emplace_back(hname, "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning());
+
+        h_All.at(ipuwp).at(ih).Sumw2();
+        h_DeepCSV_Loose.at(ipuwp).back().Sumw2();
+        h_DeepCSV_Medium.at(ipuwp).back().Sumw2();
+        h_DeepCSV_Tight.at(ipuwp).back().Sumw2();
+        h_DeepFlavor_Loose.at(ipuwp).back().Sumw2();
+        h_DeepFlavor_Medium.at(ipuwp).back().Sumw2();
+        h_DeepFlavor_Tight.at(ipuwp).back().Sumw2();
+      }
     }
 
     // Loop over the tree
@@ -276,9 +298,9 @@ void produceBtaggingEfficiencies(
 
       double wgt = genwgt * puwgt;
 
-      eventFilter.constructFilters();
+      eventFilter.constructFilters(&simEventHandler);
       if (isData && !eventFilter.isUniqueDataEvent()) continue;
-      if (!eventFilter.passCommonSkim() || !eventFilter.passMETFilters() || !eventFilter.hasGoodVertex()) continue;
+      if (!eventFilter.passCommonSkim() || !eventFilter.passMETFilters(EventFilterHandler::kMETFilters_Standard)) continue;
 
       vertexHandler.constructVertices();
       if (!vertexHandler.hasGoodPrimaryVertex()) continue;
@@ -286,9 +308,9 @@ void produceBtaggingEfficiencies(
       wgt *= eventFilter.getTriggerWeight((doDileptons ? triggerCheckList_Dilepton : triggerCheckList_SinglePhoton));
       if (wgt==0.f) continue;
 
-      muonHandler.constructMuons(theGlobalSyst);
-      electronHandler.constructElectrons(theGlobalSyst);
-      photonHandler.constructPhotons(theGlobalSyst);
+      muonHandler.constructMuons(theGlobalSyst, nullptr);
+      electronHandler.constructElectrons(theGlobalSyst, nullptr);
+      photonHandler.constructPhotons(theGlobalSyst, nullptr);
       particleDisambiguator.disambiguateParticles(&muonHandler, &electronHandler, &photonHandler);
 
       auto const& muons = muonHandler.getProducts();
@@ -296,7 +318,7 @@ void produceBtaggingEfficiencies(
       float SF_muons = 1;
       for (auto const& part:muons){
         float theSF = 1;
-        //if (!isData) muonSFHandler.getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
+        if (!isData) muonSFHandler.getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
         if (theSF == 0.f) continue;
         SF_muons *= theSF;
 
@@ -308,7 +330,7 @@ void produceBtaggingEfficiencies(
       float SF_electrons = 1;
       for (auto const& part:electrons){
         float theSF = 1;
-        //if (!isData) electronSFHandler.getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
+        if (!isData) electronSFHandler.getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
         if (theSF == 0.f) continue;
         SF_electrons *= theSF;
 
@@ -317,6 +339,7 @@ void produceBtaggingEfficiencies(
 
       auto const& photons = photonHandler.getProducts();
       unsigned int n_photons_tight = 0;
+      unsigned int n_photons_veto = 0;
       float SF_photons = 1;
       PhotonObject const* theChosenPhoton = nullptr;
       for (auto const& part:photons){
@@ -329,6 +352,7 @@ void produceBtaggingEfficiencies(
           if (!theChosenPhoton) theChosenPhoton = part;
           n_photons_tight++;
         }
+        else if (ParticleSelectionHelpers::isVetoParticle(part)) n_photons_veto++;
       }
 
       wgt *= SF_muons*SF_electrons*SF_photons;
@@ -344,7 +368,7 @@ void produceBtaggingEfficiencies(
       }
       if (hasVetoIsotrack) continue;
 
-      if (!doDileptons && (n_muons_veto+n_electrons_veto)>0) continue;
+      if (!doDileptons && !((n_muons_veto+n_electrons_veto)==0 && n_photons_veto==0 && n_photons_tight==1)) continue;
 
       dileptonHandler.constructDileptons(&muons, &electrons);
       DileptonObject* theChosenDilepton = nullptr;
@@ -357,22 +381,22 @@ void produceBtaggingEfficiencies(
       }
       if (doDileptons && nTightDilep==0) continue;
 
-      jetHandler.constructJetMET(theGlobalSyst, &muons, &electrons, &photons);
+      jetHandler.constructJetMET(theGlobalSyst, &muons, &electrons, &photons, nullptr);
       auto const& ak4jets = jetHandler.getAK4Jets();
       auto const& ak8jets = jetHandler.getAK8Jets();
 
       if (!eventFilter.test2018HEMFilter(&simEventHandler, nullptr, nullptr, &ak4jets, &ak8jets)) continue;
 
       std::vector<AK4JetObject*> ak4jets_tight; ak4jets_tight.reserve(ak4jets.size());
+      float SF_PUJetId = 1;
       for (auto const& jet:ak4jets){
-        if (
-          jet->testSelectionBit(AK4JetSelectionHelpers::kTightId)
-          &&
-          jet->testSelectionBit(AK4JetSelectionHelpers::kPUJetId)
-          &&
-          fabs(jet->eta())<AK4JetSelectionHelpers::etaThr_skim_tight
-          ) ak4jets_tight.push_back(jet);
+        float theSF_PUJetId = 1;
+        if (!isData) pujetidSFHandler.getSFAndEff(theGlobalSyst, jet, theSF_PUJetId, nullptr);
+        if (theSF_PUJetId != 0.f) SF_PUJetId *= theSF_PUJetId;
+
+        if (jet->testSelectionBit(AK4JetSelectionHelpers::kBtaggable)) ak4jets_tight.push_back(jet);
       }
+      wgt *= SF_PUJetId;
       size_t n_ak4jets_tight = ak4jets_tight.size();
       if (n_ak4jets_tight==0) continue;
 
@@ -383,37 +407,73 @@ void produceBtaggingEfficiencies(
         if (abs(jetFlavor)==5) iflav = 0;
         else if (abs(jetFlavor)==4) iflav = 1;
 
-        float jetpt_JEConly = jet->pt() / jet->currentSystScale * jet->currentJEC_full;
+        float jetpt = jet->pt();
+        float jeteta = jet->eta();
 
-        h_All.at(iflav).Fill(jetpt_JEConly, jet->eta(), wgt);
+        auto it_All = h_All.begin();
+        auto it_DeepCSV_Loose = h_DeepCSV_Loose.begin();
+        auto it_DeepCSV_Medium = h_DeepCSV_Medium.begin();
+        auto it_DeepCSV_Tight = h_DeepCSV_Tight.begin();
+        auto it_DeepFlavor_Loose = h_DeepFlavor_Loose.begin();
+        auto it_DeepFlavor_Medium = h_DeepFlavor_Medium.begin();
+        auto it_DeepFlavor_Tight = h_DeepFlavor_Tight.begin();
+        if (!jet->testSelectionBit(AK4JetSelectionHelpers::kTightPUJetId)){
+          it_All++;
+          it_DeepCSV_Loose++;
+          it_DeepCSV_Medium++;
+          it_DeepCSV_Tight++;
+          it_DeepFlavor_Loose++;
+          it_DeepFlavor_Medium++;
+          it_DeepFlavor_Tight++;
+        }
+        if (!jet->testSelectionBit(AK4JetSelectionHelpers::kMediumPUJetId)){
+          it_All++;
+          it_DeepCSV_Loose++;
+          it_DeepCSV_Medium++;
+          it_DeepCSV_Tight++;
+          it_DeepFlavor_Loose++;
+          it_DeepFlavor_Medium++;
+          it_DeepFlavor_Tight++;
+        }
+        if (!jet->testSelectionBit(AK4JetSelectionHelpers::kLoosePUJetId)){
+          it_All++;
+          it_DeepCSV_Loose++;
+          it_DeepCSV_Medium++;
+          it_DeepCSV_Tight++;
+          it_DeepFlavor_Loose++;
+          it_DeepFlavor_Medium++;
+          it_DeepFlavor_Tight++;
+        }
+
+        it_All->at(iflav).Fill(jetpt, jeteta, wgt);
         for (auto const& btagwptype:btagwptypes){
           BtagHelpers::setBtagWPType(btagwptype);
 
-          std::vector<TH2F>* hlist = nullptr;
+          TH2F* hh = nullptr;
           switch (btagwptype){
           case BtagHelpers::kDeepCSV_Loose:
-            hlist = &h_DeepCSV_Loose;
+            hh = &(it_DeepCSV_Loose->at(iflav));
             break;
           case BtagHelpers::kDeepCSV_Medium:
-            hlist = &h_DeepCSV_Medium;
+            hh = &(it_DeepCSV_Medium->at(iflav));
             break;
           case BtagHelpers::kDeepCSV_Tight:
-            hlist = &h_DeepCSV_Tight;
+            hh = &(it_DeepCSV_Tight->at(iflav));
             break;
           case BtagHelpers::kDeepFlav_Loose:
-            hlist = &h_DeepFlavor_Loose;
+            hh = &(it_DeepFlavor_Loose->at(iflav));
             break;
           case BtagHelpers::kDeepFlav_Medium:
-            hlist = &h_DeepFlavor_Medium;
+            hh = &(it_DeepFlavor_Medium->at(iflav));
             break;
           case BtagHelpers::kDeepFlav_Tight:
-            hlist = &h_DeepFlavor_Tight;
+            hh = &(it_DeepFlavor_Tight->at(iflav));
             break;
           default:
             continue;
           }
 
-          if (jet->getBtagValue()>=btagwp_type_val_map[btagwptype]) hlist->at(iflav).Fill(jetpt_JEConly, jet->eta(), wgt);
+          if (jet->getBtagValue()>=btagwp_type_val_map[btagwptype]) hh->Fill(jetpt, jeteta, wgt);
         }
       }
 
@@ -421,22 +481,24 @@ void produceBtaggingEfficiencies(
       n_acc++;
     }
 
-    for (unsigned int iflav=0; iflav<3; iflav++){
-      h_All.at(iflav).Scale(((double) n_acc)/sum_acc_wgts);
-      h_DeepCSV_Loose.at(iflav).Scale(((double) n_acc)/sum_acc_wgts);
-      h_DeepCSV_Medium.at(iflav).Scale(((double) n_acc)/sum_acc_wgts);
-      h_DeepCSV_Tight.at(iflav).Scale(((double) n_acc)/sum_acc_wgts);
-      h_DeepFlavor_Loose.at(iflav).Scale(((double) n_acc)/sum_acc_wgts);
-      h_DeepFlavor_Medium.at(iflav).Scale(((double) n_acc)/sum_acc_wgts);
-      h_DeepFlavor_Tight.at(iflav).Scale(((double) n_acc)/sum_acc_wgts);
+    for (unsigned short ipuwp=0; ipuwp<nPUWPs; ipuwp++){
+      for (unsigned int iflav=0; iflav<3; iflav++){
+        h_All.at(ipuwp).at(iflav).Scale(((double) n_acc)/sum_acc_wgts);
+        h_DeepCSV_Loose.at(ipuwp).at(iflav).Scale(((double) n_acc)/sum_acc_wgts);
+        h_DeepCSV_Medium.at(ipuwp).at(iflav).Scale(((double) n_acc)/sum_acc_wgts);
+        h_DeepCSV_Tight.at(ipuwp).at(iflav).Scale(((double) n_acc)/sum_acc_wgts);
+        h_DeepFlavor_Loose.at(ipuwp).at(iflav).Scale(((double) n_acc)/sum_acc_wgts);
+        h_DeepFlavor_Medium.at(ipuwp).at(iflav).Scale(((double) n_acc)/sum_acc_wgts);
+        h_DeepFlavor_Tight.at(ipuwp).at(iflav).Scale(((double) n_acc)/sum_acc_wgts);
 
-      foutput->WriteTObject(&h_All.at(iflav));
-      foutput->WriteTObject(&h_DeepCSV_Loose.at(iflav));
-      foutput->WriteTObject(&h_DeepCSV_Medium.at(iflav));
-      foutput->WriteTObject(&h_DeepCSV_Tight.at(iflav));
-      foutput->WriteTObject(&h_DeepFlavor_Loose.at(iflav));
-      foutput->WriteTObject(&h_DeepFlavor_Medium.at(iflav));
-      foutput->WriteTObject(&h_DeepFlavor_Tight.at(iflav));
+        foutput->WriteTObject(&h_All.at(ipuwp).at(iflav));
+        foutput->WriteTObject(&h_DeepCSV_Loose.at(ipuwp).at(iflav));
+        foutput->WriteTObject(&h_DeepCSV_Medium.at(ipuwp).at(iflav));
+        foutput->WriteTObject(&h_DeepCSV_Tight.at(ipuwp).at(iflav));
+        foutput->WriteTObject(&h_DeepFlavor_Loose.at(ipuwp).at(iflav));
+        foutput->WriteTObject(&h_DeepFlavor_Medium.at(ipuwp).at(iflav));
+        foutput->WriteTObject(&h_DeepFlavor_Tight.at(ipuwp).at(iflav));
+      }
     }
     foutput->Close();
 
