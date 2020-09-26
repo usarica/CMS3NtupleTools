@@ -398,7 +398,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
 
     // Check for pT>20 objects and count them
     if (
-      jet->testSelectionBit(AK4JetSelectionHelpers::kTightId)
+      jet->testSelectionBit(AK4JetSelectionHelpers::bit_preselectionTight_id)
       &&
       (!applyPUIdToAK4Jets || jet->testSelectionBit(AK4JetSelectionHelpers::kTightPUJetId))
       &&

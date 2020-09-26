@@ -91,6 +91,16 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     MELAerr << "LooperFunctionHelpers::looperRule: Defining both simple HLT menus and menus with properties is not allowed. Choose only one!" << endl;
     assert(0);
   }
+  auto it_HLTMenuSimple_OSSF = triggerCheckListMap.find("Dilepton_OSSF");
+  auto it_HLTMenuProps_OSSF = triggerPropsCheckListMap.find("Dilepton_OSSF");
+  if (
+    (hasSimpleHLTMenus && it_HLTMenuSimple_OSSF == triggerCheckListMap.cend())
+    ||
+    (hasHLTMenuProperties && it_HLTMenuProps_OSSF == triggerPropsCheckListMap.cend())
+    ){
+    MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'Dilepton_OSSF' has to be defined in this looper rule!" << endl;
+    assert(0);
+  }
   auto it_HLTMenuSimple_SinglePhoton = triggerCheckListMap.find("SinglePhoton");
   auto it_HLTMenuProps_SinglePhoton = triggerPropsCheckListMap.find("SinglePhoton");
   if (
@@ -98,7 +108,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     ||
     (hasHLTMenuProperties && it_HLTMenuProps_SinglePhoton == triggerPropsCheckListMap.cend())
     ){
-    MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'SinglePhoton' has to be defined in this looper rule!" << endl;
+    MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'Dilepton_SinglePhoton' has to be defined in this looper rule!" << endl;
     assert(0);
   }
 
@@ -138,21 +148,30 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   // Recorded variables
 #define BRANCH_SCALAR_COMMANDS \
   BRANCH_COMMAND(float, event_wgt) \
-  BRANCH_COMMAND(float, event_wgt_triggers) \
+  BRANCH_COMMAND(float, event_wgt_triggers_OSSF) \
+  BRANCH_COMMAND(float, event_wgt_triggers_SinglePhoton) \
   BRANCH_COMMAND(float, event_wgt_SFs) \
   BRANCH_COMMAND(float, event_pTmiss) \
   BRANCH_COMMAND(float, event_phimiss) \
   BRANCH_COMMAND(float, event_mTZZ) \
   BRANCH_COMMAND(float, event_mZZ) \
+  BRANCH_COMMAND(float, event_mllg) \
   BRANCH_COMMAND(bool, event_pass_tightMETFilters) \
   BRANCH_COMMAND(float, genmet_pTmiss) \
   BRANCH_COMMAND(float, genmet_phimiss) \
   BRANCH_COMMAND(unsigned int, event_n_vtxs_good) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt30) \
+  BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt30_btagged_loose) \
+  BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt30_btagged_medium) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt20) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt20_btagged_loose) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt20_btagged_medium) \
   BRANCH_COMMAND(float, ak4jets_HT) \
+  BRANCH_COMMAND(cms3_id_t, dilepton_id) \
+  BRANCH_COMMAND(float, dilepton_pt) \
+  BRANCH_COMMAND(float, dilepton_eta) \
+  BRANCH_COMMAND(float, dilepton_phi) \
+  BRANCH_COMMAND(float, dilepton_mass) \
   BRANCH_COMMAND(float, photon_pt) \
   BRANCH_COMMAND(float, photon_eta) \
   BRANCH_COMMAND(float, photon_phi) \
@@ -174,23 +193,19 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(float, dPhi_pTbosonjets_pTmiss) \
   BRANCH_COMMAND(float, min_abs_dPhi_pTj_pTmiss)
 #define BRANCH_VECTOR_COMMANDS \
+  BRANCH_COMMAND(bool, leptons_is_genMatched_prompt) \
+  BRANCH_COMMAND(cms3_id_t, leptons_id) \
+  BRANCH_COMMAND(float, leptons_pt) \
+  BRANCH_COMMAND(float, leptons_eta) \
+  BRANCH_COMMAND(float, leptons_phi) \
+  BRANCH_COMMAND(float, leptons_mass) \
   BRANCH_COMMAND(bool, ak4jets_is_genMatched) \
   BRANCH_COMMAND(bool, ak4jets_is_genMatched_fullCone) \
-  BRANCH_COMMAND(cms3_listSize_t, ak4jets_n_overlaps) \
-  BRANCH_COMMAND(float, ak4jets_overlaps_pt) \
-  BRANCH_COMMAND(float, ak4jets_original_pt) \
   BRANCH_COMMAND(unsigned char, ak4jets_btagWP_Bits) \
   BRANCH_COMMAND(float, ak4jets_pt) \
   BRANCH_COMMAND(float, ak4jets_eta) \
   BRANCH_COMMAND(float, ak4jets_phi) \
-  BRANCH_COMMAND(float, ak4jets_mass) \
-  BRANCH_COMMAND(cms3_listSize_t, ak4jets_masked_n_overlaps) \
-  BRANCH_COMMAND(float, ak4jets_masked_overlaps_pt) \
-  BRANCH_COMMAND(unsigned char, ak4jets_masked_btagWP_Bits) \
-  BRANCH_COMMAND(float, ak4jets_masked_pt) \
-  BRANCH_COMMAND(float, ak4jets_masked_eta) \
-  BRANCH_COMMAND(float, ak4jets_masked_phi) \
-  BRANCH_COMMAND(float, ak4jets_masked_mass)
+  BRANCH_COMMAND(float, ak4jets_mass)
 #define BRANCH_COMMANDS \
   BRANCH_SCALAR_COMMANDS \
   BRANCH_VECTOR_COMMANDS
@@ -262,33 +277,29 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   particleDisambiguator.disambiguateParticles(muonHandler, electronHandler, photonHandler);
 
   auto const& muons = muonHandler->getProducts();
-  unsigned int n_muons_veto = 0;
   float SF_muons = 1;
   for (auto const& part:muons){
     float theSF = 1;
-    if (!isData) muonSFHandler->getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
-    if (theSF == 0.f) continue;
-    SF_muons *= theSF;
-
-    if (ParticleSelectionHelpers::isVetoParticle(part)) n_muons_veto++;
+    if (!isData){
+      muonSFHandler->getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
+      if (theSF == 0.f) continue;
+      SF_muons *= theSF;
+    }
   }
-  if (n_muons_veto!=0) return false;
 
   auto const& electrons = electronHandler->getProducts();
-  unsigned int n_electrons_veto = 0;
   float SF_electrons = 1;
   for (auto const& part:electrons){
     float theSF = 1;
-    if (!isData) electronSFHandler->getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
-    if (theSF == 0.f) continue;
-    SF_electrons *= theSF;
-
-    if (ParticleSelectionHelpers::isVetoParticle(part)) n_electrons_veto++;
+    if (!isData){
+      electronSFHandler->getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
+      if (theSF == 0.f) continue;
+      SF_electrons *= theSF;
+    }
   }
-  if (n_electrons_veto!=0) return false;
 
   auto const& photons = photonHandler->getProducts();
-  unsigned int n_photons_tight = 0;
+  unsigned int n_photons_veto = 0;
   float SF_photons = 1;
   PhotonObject const* theChosenPhoton = nullptr;
   for (auto const& part:photons){
@@ -297,12 +308,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     if (theSF == 0.f) continue;
     SF_photons *= theSF;
 
-    if (ParticleSelectionHelpers::isTightParticle(part)){
-      if (!theChosenPhoton) theChosenPhoton = part;
-      n_photons_tight++;
-    }
+    if (!theChosenPhoton && ParticleSelectionHelpers::isTightParticle(part)) theChosenPhoton = part;
+    else if (ParticleSelectionHelpers::isVetoParticle(part)) n_photons_veto++;
   }
-  if (n_photons_tight!=1) return false;
+  if (!theChosenPhoton || n_photons_veto!=0) return false;
 
   photon_pt = theChosenPhoton->pt();
   photon_eta = theChosenPhoton->eta();
@@ -332,13 +341,55 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   }
   if (hasVetoIsotrack) return false;
 
+  dileptonHandler.constructDileptons(&muons, &electrons);
+  auto const& dileptons = dileptonHandler.getProducts();
+  DileptonObject* theChosenDilepton = nullptr;
+  size_t nTightDilep = 0;
+  for (auto const& dilepton:dileptons){
+    if (dilepton->isValid() && dilepton->isOS() && dilepton->nTightDaughters()==2){
+      if (!theChosenDilepton) theChosenDilepton = dilepton;
+      nTightDilep++;
+    }
+  }
+  // Veto also emu final states
+  if (!theChosenDilepton || !theChosenDilepton->isSF() || nTightDilep>1) return false;
+
+  dilepton_id = theChosenDilepton->getDaughter(0)->pdgId()*theChosenDilepton->getDaughter(1)->pdgId();
+  dilepton_pt = theChosenDilepton->pt();
+  dilepton_eta = theChosenDilepton->eta();
+  dilepton_phi = theChosenDilepton->phi();
+  dilepton_mass = theChosenDilepton->m();
+  for (auto const& dau:theChosenDilepton->getDaughters()){
+    MuonObject* dau_muon = dynamic_cast<MuonObject*>(dau);
+    ElectronObject* dau_electron = dynamic_cast<ElectronObject*>(dau);
+
+    bool is_genMatched_prompt = (dau_muon ? dau_muon->extras.is_genMatched_prompt : dau_electron->extras.is_genMatched_prompt);
+    leptons_is_genMatched_prompt.push_back(is_genMatched_prompt);
+    leptons_id.push_back(dau->pdgId());
+    leptons_pt.push_back(dau->pt());
+    leptons_eta.push_back(dau->eta());
+    leptons_phi.push_back(dau->phi());
+  }
+
   jetHandler->constructJetMET(theGlobalSyst, &muons, &electrons, &photons, &pfcandidates);
   auto const& ak4jets = jetHandler->getAK4Jets();
   auto const& ak8jets = jetHandler->getAK8Jets();
 
-  if (hasSimpleHLTMenus) event_wgt_triggers = eventFilter->getTriggerWeight(it_HLTMenuSimple_SinglePhoton->second);
-  else if (hasHLTMenuProperties) event_wgt_triggers = eventFilter->getTriggerWeight(it_HLTMenuProps_SinglePhoton->second, nullptr, nullptr, &photons, nullptr, nullptr, nullptr);
-  if (event_wgt_triggers == 0.f) return false;
+  if (hasSimpleHLTMenus){
+    event_wgt_triggers_OSSF = eventFilter->getTriggerWeight(it_HLTMenuSimple_OSSF->second);
+    event_wgt_triggers_SinglePhoton = eventFilter->getTriggerWeight(it_HLTMenuSimple_SinglePhoton->second);
+  }
+  else if (hasHLTMenuProperties){
+    event_wgt_triggers_OSSF = eventFilter->getTriggerWeight(
+      it_HLTMenuProps_OSSF->second,
+      &muons, &electrons, nullptr, nullptr, nullptr, nullptr
+    );
+    event_wgt_triggers_SinglePhoton = eventFilter->getTriggerWeight(
+      it_HLTMenuProps_SinglePhoton->second,
+      nullptr, nullptr, &photons, nullptr, nullptr, nullptr
+    );
+  }
+  if ((event_wgt_triggers_OSSF + event_wgt_triggers_SinglePhoton) == 0.f) return false;
 
   // Test HEM filter
   if (!eventFilter->test2018HEMFilter(simEventHandler, nullptr, nullptr, &ak4jets, &ak8jets)) return false;
@@ -360,7 +411,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
 
     if (ParticleSelectionHelpers::isTightJet(jet)){
       ak4jets_tight.push_back(jet);
-      if (jet->getBtagValue()>=btag_thr_loose) n_ak4jets_tight_pt30_btagged_loose++;
+      if (jet->getBtagValue()>=btag_thr_loose) event_n_ak4jets_pt30_btagged_loose++;
+      if (jet->getBtagValue()>=btag_thr_medium) event_n_ak4jets_pt30_btagged_medium++;
 
       ak4jets_HT += jet->pt();
       sump4_ak4jets += jet->p4();
@@ -381,7 +433,6 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       if (jet->getBtagValue()>=btag_thr_medium) event_n_ak4jets_pt20_btagged_medium++;
     }
   }
-  if (n_ak4jets_tight_pt30_btagged_loose>0) return false;
   event_n_ak4jets_pt30 = ak4jets_tight.size();
 
   auto const& eventmet = (use_MET_Puppi ? jetHandler->getPFPUPPIMET() : jetHandler->getPFMET());
@@ -394,6 +445,11 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   auto event_met_p4 = eventmet->p4(use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr, use_MET_p4Preservation);
   event_pTmiss = event_met_p4.Pt();
   event_phimiss = event_met_p4.Phi();
+
+  // dPhi variables between pTmiss and boson are corrected in this looper by adding the momentum of the dilepton object
+  ParticleObject::LorentzVector_t p4_llmet = event_met_p4 + theChosenDilepton->p4();
+  float pt_llmet = p4_llmet.Pt();
+  float phi_llmet = p4_llmet.Phi();
 
   min_abs_dPhi_pTj_pTmiss = TMath::Pi();
   for (auto const& jet:ak4jets_tight){
@@ -430,102 +486,33 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
           }
         }
       }
-      ak4jets_n_overlaps.push_back(n_overlaps);
-      ak4jets_overlaps_pt.push_back(p4_overlaps.Pt());
-      ak4jets_original_pt.push_back(p4_original.Pt());
     }
 
     // Determine min_abs_dPhi_pTj_pTmiss
     float dphi_tmp;
-    HelperFunctions::deltaPhi(float(jet->phi()), event_phimiss, dphi_tmp); dphi_tmp = std::abs(dphi_tmp);
+    HelperFunctions::deltaPhi(float(jet->phi()), phi_llmet, dphi_tmp); dphi_tmp = std::abs(dphi_tmp);
     min_abs_dPhi_pTj_pTmiss = std::min(min_abs_dPhi_pTj_pTmiss, dphi_tmp);
   }
-
-  // Also acquire masked jets.
-  // If jet overlap removal is done based on delta-R matching only, the masked jets are simply jets that are removed.
-  // Instead, if overlap removal is done based on jet stripping, the masked jets are mothers, so the information is fundamentally different.
-  // In the latter case, only include jets that are actually removed.
-  {
-    for (auto const& jet:jetHandler->getMaskedAK4Jets()){
-      if (!ParticleSelectionHelpers::isTightJet(jet)) continue;
-
-      // In the case of jet stripping, check if this jet was actually removed from the main collection.
-      if (jetHandler->checkOverlapMaps()){
-        bool isRegularJetMother = false;
-        for (auto const& recojet:ak4jets_tight){
-          for (auto const& mother:recojet->getMothers()){
-            if (mother == jet){
-              isRegularJetMother = true;
-              break;
-            }
-          }
-        }
-        if (isRegularJetMother) continue;
-      }
-
-      ak4jets_masked_pt.push_back(jet->pt());
-      ak4jets_masked_eta.push_back(jet->eta());
-      ak4jets_masked_phi.push_back(jet->phi());
-      ak4jets_masked_mass.push_back(jet->mass());
-
-      // Determine b-tag WP passing bits
-      {
-        unsigned char btag_bits=0;
-        if (jet->getBtagValue()>=btag_thr_loose) HelperFunctions::set_bit(btag_bits, 0, true);
-        if (jet->getBtagValue()>=btag_thr_medium) HelperFunctions::set_bit(btag_bits, 1, true);
-        if (jet->getBtagValue()>=btag_thr_tight) HelperFunctions::set_bit(btag_bits, 2, true);
-        ak4jets_masked_btagWP_Bits.push_back(btag_bits);
-      }
-
-      // Determine overlap information
-      {
-        cms3_listSize_t n_overlaps = 0;
-        ParticleObject::LorentzVector_t p4_overlaps;
-        for (auto const& part:muons){
-          if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
-          if (jet->deltaR(part)<jet->ConeRadiusConstant){
-            p4_overlaps += part->p4();
-            n_overlaps++;
-          }
-        }
-        for (auto const& part:electrons){
-          if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
-          if (jet->deltaR(part)<jet->ConeRadiusConstant){
-            p4_overlaps += part->p4();
-            n_overlaps++;
-          }
-        }
-        for (auto const& part:photons){
-          if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
-          if (jet->deltaR(part)<jet->ConeRadiusConstant){
-            p4_overlaps += part->p4();
-            n_overlaps++;
-          }
-        }
-        ak4jets_masked_n_overlaps.push_back(n_overlaps);
-        ak4jets_masked_overlaps_pt.push_back(p4_overlaps.Pt());
-      }
-    }
-  }
-
+  
   // Compute dPhi between the dilepton and pTmiss vector
-  dPhi_pTboson_pTmiss = theChosenPhoton->deltaPhi(event_phimiss);
-  HelperFunctions::deltaPhi(float((theChosenPhoton->p4()+sump4_ak4jets).Phi()), event_phimiss, dPhi_pTbosonjets_pTmiss);
+  dPhi_pTboson_pTmiss = theChosenPhoton->deltaPhi(phi_llmet);
+  HelperFunctions::deltaPhi(float((theChosenPhoton->p4()+sump4_ak4jets).Phi()), phi_llmet, dPhi_pTbosonjets_pTmiss);
 
   // Compute mass variables
   event_mTZZ = std::sqrt(
     std::pow(
     (
       std::sqrt(std::pow(photon_pt, 2) + std::pow(PDGHelpers::Zmass, 2))
-      + std::sqrt(std::pow(event_pTmiss, 2) + std::pow(PDGHelpers::Zmass, 2))
+      + std::sqrt(std::pow(pt_llmet, 2) + std::pow(PDGHelpers::Zmass, 2))
       ), 2
     )
-    - std::pow((theChosenPhoton->p4() + event_met_p4).Pt(), 2)
+    - std::pow((theChosenPhoton->p4() + p4_llmet).Pt(), 2)
   );
+  event_mllg = (theChosenPhoton->p4() + theChosenDilepton->p4()).M();
 
   ParticleObject::LorentzVector_t p4_ZZ_approx;
   float etamiss_approx = theChosenPhoton->eta();
-  p4_ZZ_approx = ParticleObject::PolarLorentzVector_t(event_pTmiss, etamiss_approx, event_phimiss, PDGHelpers::Zmass);
+  p4_ZZ_approx = ParticleObject::PolarLorentzVector_t(pt_llmet, etamiss_approx, phi_llmet, PDGHelpers::Zmass);
   p4_ZZ_approx = p4_ZZ_approx + theChosenPhoton->p4();
   event_mZZ = p4_ZZ_approx.M();
 
@@ -612,7 +599,20 @@ void getTrees(
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
-  SampleHelpers::configure(period, "hadoop_skims:"+prodVersion);
+  bool useSkims = !(
+    strSampleSet.Contains("GluGluH") || strSampleSet.Contains("GGH")
+    ||
+    strSampleSet.Contains("VBF")
+    ||
+    strSampleSet.Contains("WminusH")
+    ||
+    strSampleSet.Contains("WplusH")
+    ||
+    strSampleSet.Contains("ZH")
+    ||
+    strSampleSet.Contains("JHUGen") || strSampleSet.Contains("JHUgen") || strSampleSet.Contains("jhugen")
+    );
+  SampleHelpers::configure(period, Form("%s:%s", (useSkims ? "hadoop_skims" : "hadoop"), prodVersion.Data()));
 
   const float lumi = SampleHelpers::getIntegratedLuminosity(SampleHelpers::getDataPeriod());
 
@@ -622,8 +622,15 @@ void getTrees(
   BtagHelpers::setBtagWPType(BtagHelpers::kDeepFlav_Loose);
   LooperFunctionHelpers::setBtagWPs();
 
-  std::vector<TriggerHelpers::TriggerType> requiredTriggers{ TriggerHelpers::kSinglePho };
-  auto triggerPropsCheckList = TriggerHelpers::getHLTMenuProperties(requiredTriggers);
+  std::vector<TriggerHelpers::TriggerType> requiredTriggers_OSSF{
+    TriggerHelpers::kDoubleMu,
+    TriggerHelpers::kDoubleEle, TriggerHelpers::kDoubleEle_HighPt,
+    TriggerHelpers::kSingleMu, TriggerHelpers::kSingleMu_HighPt,
+    TriggerHelpers::kSingleEle, TriggerHelpers::kSingleEle_HighPt
+  };
+  std::vector<TriggerHelpers::TriggerType> requiredTriggers_SinglePhoton{ TriggerHelpers::kSinglePho };
+  auto triggerPropsCheckList_OSSF = TriggerHelpers::getHLTMenuProperties(requiredTriggers_OSSF);
+  auto triggerPropsCheckList_SinglePhoton = TriggerHelpers::getHLTMenuProperties(requiredTriggers_SinglePhoton);
 
   // Get sample specifications
   std::vector<TString> sampledirs;
@@ -642,7 +649,7 @@ void getTrees(
 
   // Set output directory
   TString coutput_main =
-    "output/SinglePhotonEvents/SkimTrees/" + strdate
+    "output/LLGEvents/SkimTrees/" + strdate
     + "/AK4Jets"
     + "_" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
     + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
@@ -774,7 +781,8 @@ void getTrees(
   // Set output tree
   theLooper.addOutputTree(tout);
   // Register the HLT menus
-  theLooper.addHLTMenu("SinglePhoton", triggerPropsCheckList);
+  theLooper.addHLTMenu("Dilepton_OSSF", triggerPropsCheckList_OSSF);
+  theLooper.addHLTMenu("SinglePhoton", triggerPropsCheckList_SinglePhoton);
   // Set the MEs
   if (computeMEs) theLooper.setMatrixElementListFromFile(
     "${CMSSW_BASE}/src/CMS3/AnalysisTree/data/RecoProbabilities/RecoProbabilities.me",
@@ -787,11 +795,12 @@ void getTrees(
 
   std::vector<BaseTree*> sample_trees; sample_trees.reserve(sampledirs.size());
   for (auto const& sname:sampledirs){
-    BaseTree* sample_tree = new BaseTree(SampleHelpers::getDatasetFileName(sname), "cms3ntuple/SinglePhoton", "", ""); sample_trees.push_back(sample_tree);
+    BaseTree* sample_tree = new BaseTree(SampleHelpers::getDatasetFileName(sname), (useSkims ? "cms3ntuple/Dilepton" : "cms3ntuple/Events"), "", ""); sample_trees.push_back(sample_tree);
     sample_tree->sampleIdentifier = SampleHelpers::getSampleIdentifier(sname);
 
     std::vector<TString> allbranchnames; sample_tree->getValidBranchNamesWithoutAlias(allbranchnames, false);
 
+    const int nEntries = sample_tree->getSelectedNEvents();
     double sum_wgts = (isData ? 1.f : 0.f);
     float xsec = 1;
     float xsec_scale = 1;
@@ -850,9 +859,37 @@ void getTrees(
         }
         if (hasCounters) MELAout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
       }
-      if (!hasCounters){
-        MELAerr << "Please use skim ntuples!" << endl;
+      if (!hasCounters && useSkims){
+        MELAerr << "Skims should have contained counters histograms!" << endl;
         assert(0);
+      }
+      if (!hasCounters){
+        MELAout << "No counters histograms are found. Initiation loop over " << nEntries << " events to determine the sample normalization:" << endl;
+
+        simEventHandler.wrapTree(sample_tree);
+        genInfoHandler.wrapTree(sample_tree);
+
+        unsigned int n_zero_genwgts=0;
+        double frac_zero_genwgts=0;
+        for (int ev=0; ev<nEntries; ev++){
+          HelperFunctions::progressbar(ev, nEntries);
+          sample_tree->getEvent(ev);
+
+          genInfoHandler.constructGenInfo(SystematicsHelpers::sNominal); // Use sNominal here in order to get the weight that corresponds to xsec
+          auto const& genInfo = genInfoHandler.getGenInfo();
+          double genwgt = genInfo->getGenWeight(true);
+          if (genwgt==0.){
+            n_zero_genwgts++;
+            continue;
+          }
+
+          simEventHandler.constructSimEvent(SystematicsHelpers::sNominal);
+
+          sum_wgts_raw_withveto += genwgt;
+          sum_wgts += genwgt * simEventHandler.getPileUpWeight();
+        }
+        if (nEntries>0) frac_zero_genwgts = double(n_zero_genwgts)/double(nEntries);
+        sum_wgts_raw_noveto = sum_wgts_raw_withveto / (1. - frac_zero_genwgts);
       }
       xsec_scale = sum_wgts_raw_withveto / sum_wgts_raw_noveto;
     }
