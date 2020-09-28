@@ -1,6 +1,7 @@
 #include <cassert>
 #include "PUJetIdScaleFactorHandler.h"
 #include "AK4JetSelectionHelpers.h"
+#include "SampleHelpersCore.h"
 #include "SamplesCore.h"
 #include "HelperFunctions.h"
 #include "TDirectory.h"
@@ -27,11 +28,13 @@ bool PUJetIdScaleFactorHandler::setup(){
   bool res = true;
   this->reset();
 
-  TDirectory* curdir = gDirectory;
+  if (verbosity>=TVar::INFO) MELAout << "PUJetIdScaleFactorHandler::setup: Setting up efficiency and SF histograms for year " << SampleHelpers::getDataYear() << endl;
 
-  TString cinput_main = ANALYSISTREEPKGDATAPATH+Form("ScaleFactors/PUJetId/%i/", SampleHelpers::theDataYear);
+  TDirectory* curdir = gDirectory;
+  TDirectory* uppermostdir = SampleHelpers::rootTDirectory;
+
+  TString cinput_main = ANALYSISTREEPKGDATAPATH+Form("ScaleFactors/PUJetId/%i/", SampleHelpers::getDataYear());
   HostHelpers::ExpandEnvironmentVariables(cinput_main);
-  MELAout << "PUJetIdScaleFactorHandler::setup: Setting up efficiency and SF histograms for year " << SampleHelpers::getDataYear() << endl;
 
   std::vector<TString> pujetidwpnames{
     "PUJetId_LooseJets",
@@ -68,7 +71,7 @@ bool PUJetIdScaleFactorHandler::setup(){
       assert(0);
     }
 
-    TFile* finput = TFile::Open(cinput, "read"); curdir->cd();
+    TFile* finput = TFile::Open(cinput, "read"); uppermostdir->cd();
     for (auto const& syst:allowedSysts){
       TString systname = SystematicsHelpers::getSystName(syst).data();
       unsigned short iwp=0;
@@ -92,7 +95,7 @@ bool PUJetIdScaleFactorHandler::setup(){
       assert(0);
     }
 
-    TFile* finput = TFile::Open(cinput, "read"); curdir->cd();
+    TFile* finput = TFile::Open(cinput, "read"); uppermostdir->cd();
     {
       unsigned short iwp=0;
       for (auto pujetidwpsfname:pujetidwpsfnames){

@@ -1,8 +1,8 @@
 #include <CMSDataTools/AnalysisTree/interface/HostHelpersCore.h>
-#include "PhotonScaleFactorHandler.h"
-#include "ParticleSelectionHelpers.h"
 #include "SampleHelpersCore.h"
 #include "SamplesCore.h"
+#include "PhotonScaleFactorHandler.h"
+#include "ParticleSelectionHelpers.h"
 #include "MELAStreamHelpers.hh"
 
 
@@ -72,19 +72,21 @@ bool PhotonScaleFactorHandler::setup(){
   bool res = true;
   this->reset();
 
+  if (verbosity>=TVar::INFO) MELAout << "PhotonScaleFactorHandler::setup: Setting up efficiency and SF histograms for year " << SampleHelpers::getDataYear() << endl;
+
   TDirectory* curdir = gDirectory;
   TDirectory* uppermostdir = SampleHelpers::rootTDirectory;
 
   // Get tampon SFs
   {
-    TFile* finput = TFile::Open(getScaleFactorFileName(bit_SFTampon_id, SampleHelpers::theDataYear), "read"); uppermostdir->cd();
+    TFile* finput = TFile::Open(getScaleFactorFileName(bit_SFTampon_id, SampleHelpers::getDataYear()), "read"); uppermostdir->cd();
     res &= getHistogram<TH2F, ExtendedHistogram_2D>(h_eff_mc_tampon, finput, "EGamma_EffMC2D");
     res &= getHistogram<TH2F, ExtendedHistogram_2D>(h_SF_tampon, finput, "EGamma_SF2D");
     ScaleFactorHandlerBase::closeFile(finput); curdir->cd();
   }
   // Get tight SFs
   {
-    TFile* finput = TFile::Open(getScaleFactorFileName(bit_preselectionTight_id, SampleHelpers::theDataYear), "read"); uppermostdir->cd();
+    TFile* finput = TFile::Open(getScaleFactorFileName(bit_preselectionTight_id, SampleHelpers::getDataYear()), "read"); uppermostdir->cd();
     res &= getHistogram<TH2F, ExtendedHistogram_2D>(h_eff_mc_tight, finput, "EGamma_EffMC2D");
     res &= getHistogram<TH2F, ExtendedHistogram_2D>(h_SF_tight, finput, "EGamma_SF2D");
     ScaleFactorHandlerBase::closeFile(finput); curdir->cd();

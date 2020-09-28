@@ -1,4 +1,5 @@
 #include "ElectronScaleFactorHandler.h"
+#include "SampleHelpersCore.h"
 #include "SamplesCore.h"
 #include "ElectronSelectionHelpers.h"
 #include "HelperFunctions.h"
@@ -26,11 +27,13 @@ bool ElectronScaleFactorHandler::setup(){
   bool res = true;
   this->reset();
 
-  TDirectory* curdir = gDirectory;
+  if (verbosity>=TVar::INFO) MELAout << "ElectronScaleFactorHandler::setup: Setting up efficiency and SF histograms for year " << SampleHelpers::getDataYear() << endl;
 
-  TString cinput_main = ANALYSISTREEPKGDATAPATH+Form("ScaleFactors/Electrons/%i/", SampleHelpers::theDataYear);
+  TDirectory* curdir = gDirectory;
+  TDirectory* uppermostdir = SampleHelpers::rootTDirectory;
+
+  TString cinput_main = ANALYSISTREEPKGDATAPATH+Form("ScaleFactors/Electrons/%i/", SampleHelpers::getDataYear());
   HostHelpers::ExpandEnvironmentVariables(cinput_main);
-  MELAout << "ElectronScaleFactorHandler::setup: Setting up efficiency and SF histograms for year " << SampleHelpers::theDataYear << endl;
 
   std::vector<SystematicVariationTypes> const allowedSysts={
     sNominal,
@@ -62,7 +65,7 @@ bool ElectronScaleFactorHandler::setup(){
       MELAerr << "ElectronScaleFactorHandler::setup: File " << cinput << " is not readable." << endl;
       assert(0);
     }
-    TFile* finput = TFile::Open(cinput, "read"); curdir->cd();
+    TFile* finput = TFile::Open(cinput, "read"); uppermostdir->cd();
     for (unsigned int igap=0; igap<n_non_gap_gap; igap++){
       res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_SF_reco_map[sNominal].at(igap), finput, "EGamma_SF2D");
       res &= getHistogram<TH2F, ExtendedHistogram_2D>(eff_mc_reco_hists.at(igap), finput, "EGamma_EffMC2D");
@@ -77,7 +80,7 @@ bool ElectronScaleFactorHandler::setup(){
       assert(0);
     }
 
-    TFile* finput = TFile::Open(cinput, "read"); curdir->cd();
+    TFile* finput = TFile::Open(cinput, "read"); uppermostdir->cd();
     for (auto const& syst:allowedSysts){
       TString systname;
       switch (syst){

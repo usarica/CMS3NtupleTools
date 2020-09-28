@@ -87,7 +87,7 @@ BTagEntry::JetFlavor AK4JetObject::getBTagJetFlavor() const{
   else return BTagEntry::FLAV_UDSG;
 }
 float AK4JetObject::getBtagValue() const{
-  if (!this->testSelectionBit(AK4JetSelectionHelpers::kBtaggable)) return -1;
+  if (!this->testSelectionBit(AK4JetSelectionHelpers::kBtaggableKin)) return -1;
 
   switch (BtagHelpers::btagWPType){
   case BtagHelpers::kDeepFlav_Loose:

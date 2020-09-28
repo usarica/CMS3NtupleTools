@@ -33,6 +33,8 @@ class BatchManager:
 
       self.parser.add_option("--fcnargs", type="string", help="The arguments to main_pset.py")
 
+      self.parser.add_option("--required_memory", type="string", default="2048M", help="Required RAM for the job")
+
       self.parser.add_option("--dry", dest="dryRun", action="store_true", default=False, help="Do not submit jobs, just set up the files")
 
       (self.opt,self.args) = self.parser.parse_args()
@@ -95,19 +97,20 @@ class BatchManager:
          "SCRAMARCH" : scramver,
          "SUBMITDIR" : currendir_noCMSSWsrc,
          "TARFILE" : self.opt.tarfile,
-         "FCNARGS" : self.opt.fcnargs
+         "FCNARGS" : self.opt.fcnargs,
+         "REQMEM" : self.opt.required_memory
       }
 
       scriptcontents = """
 universe={QUEUE}
-+DESIRED_Sites="T2_US_UCSD,T2_US_Caltech,T3_US_UCR,T2_US_MIT,T2_US_Vanderbilt,T2_US_Wisconsin,T3_US_Baylor,T3_US_Colorado,T3_US_NotreDame,T3_US_Rice,T3_US_Rutgers,T3_US_UMD,T3_US_Vanderbilt_EC2,T3_US_OSU"
++DESIRED_Sites="T2_US_UCSD,T2_US_Caltech,T2_US_MIT,T2_US_Purdue,T2_US_Vanderbilt,T2_US_Wisconsin,T3_US_UCR,T3_US_Baylor,T3_US_Colorado,T3_US_NotreDame,T3_US_Rice,T3_US_Rutgers,T3_US_UMD,T3_US_Vanderbilt_EC2,T3_US_OSU"
 executable              = {batchScript}
 arguments               = {CMSSWVERSION} {SCRAMARCH} {SUBMITDIR} {TARFILE} {FCNARGS} {CONDORSITE} {CONDOROUTDIR}
 Initialdir              = {outDir}
 output                  = {outLog}.$(ClusterId).$(ProcId).txt
 error                   = {errLog}.$(ClusterId).$(ProcId).err
 log                     = $(ClusterId).$(ProcId).log
-request_memory          = 4000M
+request_memory          = {REQMEM}
 +JobFlavour             = "tomorrow"
 x509userproxy           = {home}/x509up_u{uid}
 #https://www-auth.cs.wisc.edu/lists/htcondor-users/2010-September/msg00009.shtml

@@ -1,6 +1,7 @@
 #include <cassert>
 #include "MuonScaleFactorHandler.h"
 #include "MuonSelectionHelpers.h"
+#include "SampleHelpersCore.h"
 #include "SamplesCore.h"
 #include "HelperFunctions.h"
 #include "TDirectory.h"
@@ -27,11 +28,13 @@ bool MuonScaleFactorHandler::setup(){
   bool res = true;
   this->reset();
 
-  TDirectory* curdir = gDirectory;
+  if (verbosity>=TVar::INFO) MELAout << "MuonScaleFactorHandler::setup: Setting up efficiency and SF histograms for year " << SampleHelpers::getDataYear() << endl;
 
-  TString cinput_main = ANALYSISTREEPKGDATAPATH+Form("ScaleFactors/Muons/%i/", SampleHelpers::theDataYear);
+  TDirectory* curdir = gDirectory;
+  TDirectory* uppermostdir = SampleHelpers::rootTDirectory;
+
+  TString cinput_main = ANALYSISTREEPKGDATAPATH+Form("ScaleFactors/Muons/%i/", SampleHelpers::getDataYear());
   HostHelpers::ExpandEnvironmentVariables(cinput_main);
-  MELAout << "MuonScaleFactorHandler::setup: Setting up efficiency and SF histograms for year " << SampleHelpers::theDataYear << endl;
 
   std::vector<SystematicVariationTypes> const allowedSysts={
     sNominal,
@@ -56,7 +59,7 @@ bool MuonScaleFactorHandler::setup(){
       assert(0);
     }
 
-    TFile* finput = TFile::Open(cinput, "read"); curdir->cd();
+    TFile* finput = TFile::Open(cinput, "read"); uppermostdir->cd();
     for (auto const& syst:allowedSysts){
       TString systname;
       switch (syst){

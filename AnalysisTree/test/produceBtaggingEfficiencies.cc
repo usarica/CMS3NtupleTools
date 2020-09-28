@@ -398,7 +398,7 @@ void produceBtaggingEfficiencies(
         if (!isData) pujetidSFHandler.getSFAndEff(theGlobalSyst, jet, theSF_PUJetId, nullptr);
         if (theSF_PUJetId != 0.f) SF_PUJetId *= theSF_PUJetId;
 
-        if (jet->testSelectionBit(AK4JetSelectionHelpers::kBtaggable)) ak4jets_tight.push_back(jet);
+        if (jet->testSelectionBit(AK4JetSelectionHelpers::kBtaggable_NoPUJetId)) ak4jets_tight.push_back(jet);
       }
       wgt *= SF_PUJetId;
       size_t n_ak4jets_tight = ak4jets_tight.size();

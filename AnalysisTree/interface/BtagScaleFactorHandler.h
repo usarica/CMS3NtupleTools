@@ -6,12 +6,14 @@
 #include "BTagCalibrationStandalone.h"
 #include "ScaleFactorHandlerBase.h"
 #include "AK4JetObject.h"
+#include "SystematicVariations.h"
 #include "BtagHelpers.h"
 
 
 class BtagScaleFactorHandler : public ScaleFactorHandlerBase{
 protected:
-  std::unordered_map<BtagHelpers::BtagWPType, std::unordered_map<BTagEntry::JetFlavor, ExtendedHistogram_2D> > WP_flav_mceffhist_map;
+  std::unordered_map< SystematicsHelpers::SystematicVariationTypes, std::unordered_map< BTagEntry::JetFlavor, std::vector<std::vector<ExtendedHistogram_2D>> > > syst_flav_pujetid_WP_mceffhist_map;
+
   std::unordered_map<BtagHelpers::BtagWPType, BTagCalibration*> WP_calib_map;
   std::unordered_map<BtagHelpers::BtagWPType, BTagCalibrationReader*> WP_calibreader_map_nominal;
   std::unordered_map<BtagHelpers::BtagWPType, BTagCalibrationReader*> WP_calibreader_map_dn;
@@ -33,7 +35,7 @@ public:
   bool setup();
   void reset();
 
-  void getSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, BTagEntry::JetFlavor const& flav, float const& pt, float const& eta, float const& btagval, float& val, float* effval) const;
+  void getSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, float const& pt, float const& eta, unsigned short const& pujetidcat, BTagEntry::JetFlavor const& flav, float const& btagval, float& val, float* effval) const;
   void getSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, AK4JetObject const* obj, float& val, float* effval) const;
 
 };

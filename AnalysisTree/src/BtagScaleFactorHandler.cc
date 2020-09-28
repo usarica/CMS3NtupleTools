@@ -2,6 +2,7 @@
 #include "SampleHelpersCore.h"
 #include "SamplesCore.h"
 #include "BtagScaleFactorHandler.h"
+#include "AK4JetSelectionHelpers.h"
 #include "ParticleSelectionHelpers.h"
 #include "MELAStreamHelpers.hh"
 
@@ -50,8 +51,12 @@ void BtagScaleFactorHandler::evalEfficiencyFromHistogram(float& theSF, float con
 }
 
 bool BtagScaleFactorHandler::setup(){
+  using namespace SystematicsHelpers;
+
   bool res = true;
   this->reset();
+
+  if (verbosity>=TVar::INFO) MELAout << "BtagScaleFactorHandler::setup: Setting up efficiency and SF histograms for year " << SampleHelpers::getDataYear() << endl;
 
   TDirectory* curdir = gDirectory;
   TDirectory* uppermostdir = SampleHelpers::rootTDirectory;
@@ -107,28 +112,40 @@ bool BtagScaleFactorHandler::setup(){
     loadBTagCalibrations(WP_calibreader_map_up[type], calibration);
   }
 
+  std::vector<SystematicsHelpers::SystematicVariationTypes> const allowedSysts{
+    sNominal,
+    eJECDn, eJECUp,
+    eJERDn, eJERUp,
+    ePUDn, ePUUp,
+    ePUJetIdEffDn, ePUJetIdEffUp
+  };
+  std::vector< std::pair<BTagEntry::JetFlavor, TString> > const flavpairs{ { BTagEntry::FLAV_B, "b" }, { BTagEntry::FLAV_C, "c" }, { BTagEntry::FLAV_UDSG, "udsg" } };
+  std::vector<TString> const strpujetidcats{ "T", "MnT", "LnM", "F" };
   TFile* finput_eff = TFile::Open(BtagHelpers::getBtagEffFileName(), "read"); uppermostdir->cd();
-  for (int iwp=0; iwp<(int) nBtagWPTypes; iwp++){
-    BtagWPType type = (BtagWPType) iwp;
-    TString hname;
+  if (verbosity>=TVar::INFO) MELAout << "BtagScaleFactorHandler::setup: Reading " << finput_eff->GetName() << " to acquire efficiency histograms..." << endl;
+  {
     ExtendedHistogram_2D empty_hist; empty_hist.reset();
-
-    WP_flav_mceffhist_map[type] = std::unordered_map<BTagEntry::JetFlavor, ExtendedHistogram_2D>();
-
-    WP_flav_mceffhist_map[type][BTagEntry::FLAV_B] = empty_hist; WP_flav_mceffhist_map[type][BTagEntry::FLAV_B].reset();
-    hname = BtagHelpers::getBtagEffHistName(type, "b");
-    //MELAout << "BtagScaleFactorHandler::setup: Acquiring histogram " << hname << endl;
-    res &= getHistogram<TH2F, ExtendedHistogram_2D>(WP_flav_mceffhist_map[type][BTagEntry::FLAV_B], finput_eff, hname);
-
-    WP_flav_mceffhist_map[type][BTagEntry::FLAV_C] = empty_hist; WP_flav_mceffhist_map[type][BTagEntry::FLAV_C].reset();
-    hname = BtagHelpers::getBtagEffHistName(type, "c");
-    //MELAout << "BtagScaleFactorHandler::setup: Acquiring histogram " << hname << endl;
-    res &= getHistogram<TH2F, ExtendedHistogram_2D>(WP_flav_mceffhist_map[type][BTagEntry::FLAV_C], finput_eff, hname);
-
-    WP_flav_mceffhist_map[type][BTagEntry::FLAV_UDSG] = empty_hist; WP_flav_mceffhist_map[type][BTagEntry::FLAV_UDSG].reset();
-    hname = BtagHelpers::getBtagEffHistName(type, "udsg");
-    //MELAout << "BtagScaleFactorHandler::setup: Acquiring histogram " << hname << endl;
-    res &= getHistogram<TH2F, ExtendedHistogram_2D>(WP_flav_mceffhist_map[type][BTagEntry::FLAV_UDSG], finput_eff, hname);
+    TString hname;
+    for (auto const& syst:allowedSysts){
+      TString systname = SystematicsHelpers::getSystName(syst).data();
+      syst_flav_pujetid_WP_mceffhist_map[syst] = std::unordered_map< BTagEntry::JetFlavor, std::vector<std::vector<ExtendedHistogram_2D>> >();
+      for (auto const& flavpair:flavpairs){
+        BTagEntry::JetFlavor jflav = flavpair.first;
+        TString const& strflav = flavpair.second;
+        syst_flav_pujetid_WP_mceffhist_map[syst][jflav] = std::vector<std::vector<ExtendedHistogram_2D>>(strpujetidcats.size(), std::vector<ExtendedHistogram_2D>(nBtagWPTypes, empty_hist));
+        for (unsigned short ipujetidwp=0; ipujetidwp<strpujetidcats.size(); ipujetidwp++){
+          TString const& strpujetidcat = strpujetidcats.at(ipujetidwp);
+          for (int iwp=0; iwp<(int) nBtagWPTypes; iwp++){
+            BtagWPType wptype = (BtagWPType) iwp;
+            hname = BtagHelpers::getBtagEffHistName(wptype, strflav.Data()); hname = hname + "_PUJetId_" + strpujetidcat + "_" + systname;
+            if (verbosity>=TVar::DEBUG) MELAout << "\t- Extracting MC efficiency histogram " << hname << "..." << endl;
+            bool tmpres = getHistogram<TH2F, ExtendedHistogram_2D>(syst_flav_pujetid_WP_mceffhist_map[syst][jflav].at(ipujetidwp).at(iwp), finput_eff, hname);
+            if (!tmpres && verbosity>=TVar::DEBUG) MELAerr << "\t\t- FAILED!" << endl;
+            res &= tmpres;
+          }
+        }
+      }
+    }
   }
   ScaleFactorHandlerBase::closeFile(finput_eff); curdir->cd();
 
@@ -141,17 +158,16 @@ void BtagScaleFactorHandler::loadBTagCalibrations(BTagCalibrationReader* const& 
 }
 
 void BtagScaleFactorHandler::reset(){
-  for (auto it:WP_flav_mceffhist_map){ for (auto it2:it.second) it2.second.reset(); }
   for (auto it:WP_calibreader_map_up) delete it.second;
   for (auto it:WP_calibreader_map_dn) delete it.second;
   for (auto it:WP_calibreader_map_nominal) delete it.second;
   for (auto it:WP_calib_map) delete it.second;
 
-  WP_flav_mceffhist_map.clear();
   WP_calibreader_map_up.clear();
   WP_calibreader_map_dn.clear();
   WP_calibreader_map_nominal.clear();
   WP_calib_map.clear();
+  syst_flav_pujetid_WP_mceffhist_map.clear();
 }
 
 float BtagScaleFactorHandler::getSFFromBTagCalibrationReader(
@@ -159,7 +175,7 @@ float BtagScaleFactorHandler::getSFFromBTagCalibrationReader(
   SystematicsHelpers::SystematicVariationTypes const& syst, BTagEntry::JetFlavor const& flav, float const& pt, float const& eta
 ) const{
   float myPt = pt;
-  float const MaxJetEta = (SampleHelpers::theDataYear<=2016 ? 2.4 : 2.5);
+  float const MaxJetEta = (SampleHelpers::getDataYear()<=2016 ? 2.4 : 2.5);
   if (std::abs(eta) > MaxJetEta) return 1; // Do not apply SF for jets with eta higher than the threshold
 
   std::pair<float, float> pt_min_max = calibReader->min_max_pt(flav, eta);
@@ -183,8 +199,15 @@ float BtagScaleFactorHandler::getSFFromBTagCalibrationReader(
   return SF;
 }
 
-void BtagScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, BTagEntry::JetFlavor const& flav, float const& btagval, float const& pt, float const& eta, float& val, float* effval) const{
+void BtagScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, float const& pt, float const& eta, unsigned short const& pujetidcat, BTagEntry::JetFlavor const& flav, float const& btagval, float& val, float* effval) const{
+  using namespace SystematicsHelpers;
+
   val = 1;
+
+  if (this->verbosity>=TVar::DEBUG) MELAout
+    << "BtagScaleFactorHandler::getSFAndEff: Calling for jet (pt, eta, PU jet id cat, flav, btagval) = ("
+    << pt << ", " << eta << ", " << pujetidcat << ", " << flav << ", " << btagval << "):"
+    << endl;
 
   std::unordered_map<BtagHelpers::BtagWPType, BTagCalibrationReader*> const* WP_calibreader_map = nullptr;
   switch (syst){
@@ -199,9 +222,20 @@ void BtagScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariation
     break;
   }
 
+  std::vector<SystematicsHelpers::SystematicVariationTypes> const allowedJetSysts{
+    sNominal,
+    eJECDn, eJECUp,
+    eJERDn, eJERUp,
+    ePUDn, ePUUp,
+    ePUJetIdEffDn, ePUJetIdEffUp
+  };
+  SystematicsHelpers::SystematicVariationTypes const jetsyst = (HelperFunctions::checkListVariable(allowedJetSysts, syst) ? syst : SystematicsHelpers::sNominal);
+
   std::vector<BTagCalibrationReader const*> calibReaders;
   std::vector<BTagCalibrationReader const*> calibReaders_Nominal;
-  std::vector<ExtendedHistogram_2D const*> effhists;
+  std::vector<float> const btagwps = BtagHelpers::getBtagWPs(false);
+  std::vector<ExtendedHistogram_2D> const& effhists = syst_flav_pujetid_WP_mceffhist_map.find(jetsyst)->second.find(flav)->second.at(pujetidcat);
+  unsigned short idx_offset_effmc = 0;
   switch (BtagHelpers::btagWPType){
   case kDeepCSV_Loose:
   case kDeepCSV_Medium:
@@ -215,9 +249,7 @@ void BtagScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariation
     calibReaders_Nominal.push_back(WP_calibreader_map_nominal.find(BtagHelpers::kDeepCSV_Medium)->second);
     calibReaders_Nominal.push_back(WP_calibreader_map_nominal.find(BtagHelpers::kDeepCSV_Tight)->second);
 
-    effhists.push_back(&(WP_flav_mceffhist_map.find(BtagHelpers::kDeepCSV_Loose)->second.find(flav)->second));
-    effhists.push_back(&(WP_flav_mceffhist_map.find(BtagHelpers::kDeepCSV_Medium)->second.find(flav)->second));
-    effhists.push_back(&(WP_flav_mceffhist_map.find(BtagHelpers::kDeepCSV_Tight)->second.find(flav)->second));
+    idx_offset_effmc = (unsigned short) kDeepCSV_Loose;
     break;
   }
   case kDeepFlav_Loose:
@@ -232,9 +264,7 @@ void BtagScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariation
     calibReaders_Nominal.push_back(WP_calibreader_map_nominal.find(BtagHelpers::kDeepFlav_Medium)->second);
     calibReaders_Nominal.push_back(WP_calibreader_map_nominal.find(BtagHelpers::kDeepFlav_Tight)->second);
 
-    effhists.push_back(&(WP_flav_mceffhist_map.find(BtagHelpers::kDeepFlav_Loose)->second.find(flav)->second));
-    effhists.push_back(&(WP_flav_mceffhist_map.find(BtagHelpers::kDeepFlav_Medium)->second.find(flav)->second));
-    effhists.push_back(&(WP_flav_mceffhist_map.find(BtagHelpers::kDeepFlav_Tight)->second.find(flav)->second));
+    idx_offset_effmc = (unsigned short) kDeepFlav_Loose;
     break;
   }
   default:
@@ -243,72 +273,65 @@ void BtagScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariation
     break;
   }
 
-  std::vector<float> effraw(calibReaders.size(), 1);
-  std::vector<float> SFraw(calibReaders.size(), 1);
+  std::vector<float> effs_unscaled(calibReaders.size(), 1);
+  std::vector<float> effs_scaled(calibReaders.size(), 1);
+  std::vector<float> SFs(calibReaders.size(), 1);
   for (unsigned int i=0; i<calibReaders.size(); i++){
-    SFraw.at(i) = getSFFromBTagCalibrationReader(
+    SFs.at(i) = getSFFromBTagCalibrationReader(
       calibReaders.at(i), calibReaders_Nominal.at(i),
       syst, flav, pt, eta
     );
-    evalEfficiencyFromHistogram(effraw.at(i), pt, eta, *(effhists.at(i)), true, false);
+    if (i>0) SFs.at(i) /= SFs.at(i-1);
+    evalEfficiencyFromHistogram(effs_unscaled.at(i), pt, eta, effhists.at(i+idx_offset_effmc), true, false);
+    effs_scaled.at(i) = std::max(0.f, std::min(1.f, effs_unscaled.at(i) * SFs.at(i)));
   }
 
-  std::vector<float> eff(calibReaders.size()+1, 1);
-  std::vector<float> effScaled(calibReaders.size()+1, 1);
-  for (unsigned int i=0; i<calibReaders.size()+1; i++){
-    if (i==0){
-      eff.at(i) = std::max(0.f, 1.f - effraw.at(i));
-      effScaled.at(i) = std::max(0.f, 1.f - effraw.at(i)*SFraw.at(i));
-    }
-    else if (i==calibReaders.size()){
-      eff.at(i) = std::max(0.f, effraw.at(i-1));
-      effScaled.at(i) = std::max(0.f, effraw.at(i-1)*SFraw.at(i-1));
+  float eff_unscaled = 1;
+  float eff_scaled = 1;
+  for (unsigned short iwp=0; iwp<calibReaders.size(); iwp++){
+    float tmp_eff_unscaled = 1;
+    float tmp_eff_scaled = 1;
+    bool doContinue = true;
+    if (btagval>=btagwps.at(iwp)){
+      tmp_eff_unscaled *= effs_unscaled.at(iwp);
+      tmp_eff_scaled *= effs_scaled.at(iwp);
+      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Passed";
     }
     else{
-      eff.at(i) = std::max(0.f, effraw.at(i-1) - effraw.at(i));
-      effScaled.at(i) = std::max(0.f, effraw.at(i-1)*SFraw.at(i-1) - effraw.at(i)*SFraw.at(i));
+      tmp_eff_unscaled *= 1.f - effs_unscaled.at(iwp);
+      tmp_eff_scaled *= 1.f - effs_scaled.at(iwp);
+      doContinue = false;
+      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Failed";
     }
+    if (this->verbosity>=TVar::DEBUG) MELAout << " WP " << iwp << " with unscaled, scaled effs = " << tmp_eff_unscaled << ", " << tmp_eff_scaled << endl;
+    eff_unscaled *= tmp_eff_unscaled;
+    eff_scaled *= tmp_eff_scaled;
+    if (!doContinue) break;
   }
 
-  std::vector<float> btagwps = BtagHelpers::getBtagWPs(false);
-  assert(btagwps.size()+1 == eff.size());
-  unsigned int idx_tag = btagwps.size();
-  for (unsigned int i=0; i<btagwps.size(); i++){
-    if (btagval<btagwps.at(i)){
-      idx_tag = i;
-      break;
-    }
-  }
-
-  float const& eff_region = eff.at(idx_tag);
-  float const& eff_region_corr = effScaled.at(idx_tag);
-  if (eff_region == 0.f){
-    val = 1;
-    if (effval) *effval = 0;
-  }
-  else{
-    val = eff_region_corr / eff_region;
-    if (effval) *effval = eff_region_corr;
-  }
+  val = (eff_unscaled>0.f ? eff_scaled / eff_unscaled : 0.f);
+  if (effval) *effval = (val>0.f ? eff_scaled : 0.f);
 
   if (this->verbosity>=TVar::DEBUG){
-    MELAout << "Jet (pt, eta, flav, btagval) = (" << pt << ", " << eta << ", " << flav << ", " << btagval << "):" << endl;
     MELAout << "\t- WPs: " << btagwps << endl;
-    MELAout << "\t- Raw effs: " << effraw << endl;
-    MELAout << "\t- Raw SFs: " << SFraw << endl;
-    MELAout << "\t- Region effs: " << eff << endl;
-    MELAout << "\t- Region scaled effs: " << effScaled << endl;
+    MELAout << "\t- Unscaled effs: " << effs_unscaled << endl;
+    MELAout << "\t- Scaled effs: " << effs_scaled << endl;
+    MELAout << "\t- SFs: " << SFs << endl;
     MELAout << "\t- Final SF: " << val << endl;
-    MELAout << "\t- Final eff: " << eff_region_corr << endl;
+    MELAout << "\t- Final eff: " << eff_scaled << endl;
   }
 }
 void BtagScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, AK4JetObject const* obj, float& val, float* effval) const{
   val = 1;
-  if (effval) *effval = 0;
+  if (effval) *effval = 1;
 
   if (!obj) return;
-  if (!ParticleSelectionHelpers::isJetForBtagSF(obj)) return;
+  if (!obj->testSelectionBit(AK4JetSelectionHelpers::kBtaggable_NoPUJetId)) return;
 
-  float pt = obj->pt() / obj->currentSystScale * obj->extras.JECNominal;
-  getSFAndEff(syst, obj->getBTagJetFlavor(), obj->getBtagValue(), pt, obj->eta(), val, effval);
+  unsigned short pujetidcat=0;
+  if (!obj->testSelectionBit(AK4JetSelectionHelpers::kTightPUJetId)) pujetidcat++;
+  if (!obj->testSelectionBit(AK4JetSelectionHelpers::kMediumPUJetId)) pujetidcat++;
+  if (!obj->testSelectionBit(AK4JetSelectionHelpers::kLoosePUJetId)) pujetidcat++;
+
+  getSFAndEff(syst, obj->pt(), obj->eta(), pujetidcat, obj->getBTagJetFlavor(), obj->getBtagValue(), val, effval);
 }

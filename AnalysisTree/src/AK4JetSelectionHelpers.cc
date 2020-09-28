@@ -29,6 +29,8 @@ namespace AK4JetSelectionHelpers{
   bool testTightId(AK4JetObject const& part);
   bool testTightKin(AK4JetObject const& part);
 
+  bool testBtaggableKin(AK4JetObject const& part);
+  bool testBtaggable_NoPUJetId(AK4JetObject const& part);
   bool testBtaggable(AK4JetObject const& part);
 
   bool testPreselectionLoose(AK4JetObject const& part);
@@ -96,16 +98,25 @@ bool AK4JetSelectionHelpers::testPreselectionTight(AK4JetObject const& part){
     );
 }
 
-bool AK4JetSelectionHelpers::testBtaggable(AK4JetObject const& part){
+bool AK4JetSelectionHelpers::testBtaggableKin(AK4JetObject const& part){
+  return (
+    part.pt()>=ptThr_btag && std::abs(part.eta())<(SampleHelpers::theDataYear<=2016 ? 2.4f : 2.5f) // For jets out of tracker acceptance, b-tagging is meanningless.
+    );
+}
+bool AK4JetSelectionHelpers::testBtaggable_NoPUJetId(AK4JetObject const& part){
   return (
     part.testSelectionBit(bit_preselectionTight_id)
     &&
-    part.pt()>=ptThr_btag && std::abs(part.eta())<(SampleHelpers::theDataYear<=2016 ? 2.4f : 2.5f) // For jets out of tracker acceptance, b-tagging is meanningless.
-    &&
-    (PUIdWP==nSelectionBits || part.testSelectionBit(PUIdWP))
-    &&
     (!applyTightLeptonVetoIdToJets || part.testSelectionBit(kTightLeptonVetoId))
+    &&
+    part.testSelectionBit(kBtaggableKin)
     );
+}
+bool AK4JetSelectionHelpers::testBtaggable(AK4JetObject const& part){
+  return (
+    part.testSelectionBit(kBtaggable_NoPUJetId)
+    &&
+    (PUIdWP==nSelectionBits || part.testSelectionBit(PUIdWP))    );
 }
 
 void AK4JetSelectionHelpers::setPUIdWP(SelectionBits flag){
@@ -142,7 +153,11 @@ void AK4JetSelectionHelpers::setSelectionBits(AK4JetObject& part, bool resetIDs,
   // The functions below test the bits set in the steps above.
   // The b-taggable function tests pT and eta, but they should pertain to values before any external jet modifications. Hence the use of 'resetIDs'.
   // The rest should always be re-tested.
-  if (resetIDs) part.setSelectionBit(kBtaggable, testBtaggable(part));
+  if (resetKinematics) part.setSelectionBit(kBtaggableKin, testBtaggableKin(part));
+  if (resetIDs){
+    part.setSelectionBit(kBtaggable_NoPUJetId, testBtaggable_NoPUJetId(part)); // Tests kBtaggableKin
+    part.setSelectionBit(kBtaggable, testBtaggable(part)); // Tests kBtaggable_NoPUJetId
+  }
   part.setSelectionBit(kPreselectionLoose, testPreselectionLoose(part));
   part.setSelectionBit(kPreselectionTight, testPreselectionTight(part));
 }

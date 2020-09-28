@@ -349,14 +349,14 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   float SF_PUJetId = 1;
   float SF_btagging = 1;
   for (auto const& jet:ak4jets){
-    float theSF_btag = 1;
-    float theSF_PUJetId = 1;
     if (!isData){
+      float theSF_PUJetId = 1;
+      float theSF_btag = 1;
       pujetidSFHandler->getSFAndEff(theGlobalSyst, jet, theSF_PUJetId, nullptr);
       btagSFHandler->getSFAndEff(theGlobalSyst, jet, theSF_btag, nullptr);
+      if (theSF_PUJetId != 0.f) SF_PUJetId *= theSF_PUJetId;
+      if (theSF_btag != 0.f) SF_btagging *= theSF_btag;
     }
-    if (theSF_PUJetId != 0.f) SF_PUJetId *= theSF_PUJetId;
-    if (theSF_btag != 0.f) SF_btagging *= theSF_btag;
 
     if (ParticleSelectionHelpers::isTightJet(jet)){
       ak4jets_tight.push_back(jet);

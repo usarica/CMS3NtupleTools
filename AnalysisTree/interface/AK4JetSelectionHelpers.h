@@ -24,6 +24,8 @@ namespace AK4JetSelectionHelpers{
     kTightId,
     kTightKin,
 
+    kBtaggableKin,
+    kBtaggable_NoPUJetId,
     kBtaggable,
 
     kPreselectionLoose,
