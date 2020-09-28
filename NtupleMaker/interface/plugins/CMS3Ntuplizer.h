@@ -162,13 +162,13 @@ protected:
   edm::EDGetTokenT< edm::View<reco::GenJet> > genAK8JetsToken;
 
 
-  void recordGenInfo(edm::Event const&);
-  void recordGenParticles(
+  bool recordGenInfo(edm::Event const&);
+  bool recordGenParticles(
     edm::Event const&,
     std::vector<pat::Muon const*>*, std::vector<pat::Electron const*>*, std::vector<pat::Photon const*>*,
     std::vector<reco::GenParticle const*>*, std::vector<pat::PackedGenParticle const*>*
   );
-  void recordGenJets(edm::Event const&, bool const&, std::vector<reco::GenJet const*>*);
+  bool recordGenJets(edm::Event const&, bool const&, std::vector<reco::GenJet const*>*);
 
   size_t fillMuons(edm::Event const&, std::vector<pat::Muon const*>*);
   size_t fillElectrons(edm::Event const&, std::vector<pat::Electron const*>*);

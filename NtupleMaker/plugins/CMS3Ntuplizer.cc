@@ -260,17 +260,20 @@ void CMS3Ntuplizer::analyze(edm::Event const& iEvent, const edm::EventSetup& iSe
   /*size_t n_isotracks = */this->fillIsotracks(iEvent, nullptr);
 
   // Gen. variables
+  bool hasGoodGenInfo = true;
   std::vector<reco::GenParticle const*> filledPrunedGenParts;
   std::vector<pat::PackedGenParticle const*> filledPackedGenParts;
   std::vector<reco::GenJet const*> filledGenAK4Jets;
   std::vector<reco::GenJet const*> filledGenAK8Jets;
-  if (this->isMC) isSelected &= this->fillGenVariables(
+  if (this->isMC) hasGoodGenInfo = this->fillGenVariables(
     iEvent,
     &filledMuons, &filledElectrons, &filledPhotons,
     // No need to pass reco jets since gen.-matching info is already filled.
     &filledPrunedGenParts, &filledPackedGenParts,
     &filledGenAK4Jets, &filledGenAK8Jets
   );
+  isSelected &= hasGoodGenInfo;
+  if (!hasGoodGenInfo) return; // Do not go beyond this point if the gen. events are buggy!
 
   // The (data) event should have at least one electron, muon, or photon.
   // If all cuts are -1, passNobjects is true and no filtering on the number of objects is done.
@@ -348,10 +351,13 @@ void CMS3Ntuplizer::analyze(edm::Event const& iEvent, const edm::EventSetup& iSe
   if (firstEvent) firstEvent = false;
 }
 
-void CMS3Ntuplizer::recordGenInfo(edm::Event const& iEvent){
+bool CMS3Ntuplizer::recordGenInfo(edm::Event const& iEvent){
   edm::Handle< GenInfo > genInfoHandle;
   iEvent.getByToken(genInfoToken, genInfoHandle);
-  if (!genInfoHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::recordGenInfo: Error getting the gen. info. from the event...");
+  if (!genInfoHandle.isValid()){
+    edm::LogError("BuggyGenInfo") << "CMS3Ntuplizer::recordGenInfo: Error getting the gen. info. from the event...";
+    return false;
+  }
   const GenInfo& genInfo = *genInfoHandle;
 
 #define SET_GENINFO_VARIABLE(var) commonEntry.setNamedVal(#var, genInfo.var);
@@ -438,8 +444,10 @@ void CMS3Ntuplizer::recordGenInfo(edm::Event const& iEvent){
 
   for (auto const& it:genInfo.LHE_ME_weights) commonEntry.setNamedVal(it.first, it.second);
   for (auto const& it:genInfo.Kfactors) commonEntry.setNamedVal(it.first, it.second);
+
+  return true;
 }
-void CMS3Ntuplizer::recordGenParticles(
+bool CMS3Ntuplizer::recordGenParticles(
   edm::Event const& iEvent,
   std::vector<pat::Muon const*>* filledMuons,
   std::vector<pat::Electron const*>* filledElectrons,
@@ -451,7 +459,10 @@ void CMS3Ntuplizer::recordGenParticles(
 
   edm::Handle<reco::GenParticleCollection> prunedGenParticlesHandle;
   iEvent.getByToken(prunedGenParticlesToken, prunedGenParticlesHandle);
-  if (!prunedGenParticlesHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::recordGenParticles: Error getting the pruned gen. particles from the event...");
+  if (!prunedGenParticlesHandle.isValid()){
+    edm::LogError("BuggyGenParticles") << "CMS3Ntuplizer::recordGenParticles: Error getting the pruned gen. particles from the event...";
+    return false;
+  }
   std::vector<reco::GenParticle> const* prunedGenParticles = prunedGenParticlesHandle.product();
 
   {
@@ -546,11 +557,14 @@ void CMS3Ntuplizer::recordGenParticles(
     }
   }
 
-  if (this->keepGenParticles==kNone) return;
+  if (this->keepGenParticles==kNone) return true;
 
   edm::Handle<pat::PackedGenParticleCollection> packedGenParticlesHandle;
   iEvent.getByToken(packedGenParticlesToken, packedGenParticlesHandle);
-  if (!prunedGenParticlesHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::recordGenParticles: Error getting the packed gen. particles from the event...");
+  if (!packedGenParticlesHandle.isValid()){
+    edm::LogError("BuggyGenParticles") << "CMS3Ntuplizer::recordGenParticles: Error getting the packed gen. particles from the event...";
+    return false;
+  }
   std::vector<pat::PackedGenParticle> const* packedGenParticles = packedGenParticlesHandle.product();
 
   // Make a collection of all unique reco::GenParticle pointers
@@ -833,13 +847,17 @@ void CMS3Ntuplizer::recordGenParticles(
   PUSH_VECTOR_WITH_NAME(colName, mom0_index);
   PUSH_VECTOR_WITH_NAME(colName, mom1_index);
 
+  return true;
 }
-void CMS3Ntuplizer::recordGenJets(edm::Event const& iEvent, bool const& isFatJet, std::vector<reco::GenJet const*>* filledObjects){
+bool CMS3Ntuplizer::recordGenJets(edm::Event const& iEvent, bool const& isFatJet, std::vector<reco::GenJet const*>* filledObjects){
   std::string strColName = (isFatJet ? "genak4jets" : "genak8jets");
   const char* colName = strColName.data();
   edm::Handle< edm::View<reco::GenJet> > genJetsHandle;
   iEvent.getByToken((isFatJet ? genAK4JetsToken : genAK8JetsToken), genJetsHandle);
-  if (!genJetsHandle.isValid()) throw cms::Exception((std::string("CMS3Ntuplizer::recordGenJets: Error getting the gen. ") + (isFatJet ? "ak4" : "ak8") + " jets from the event...").data());
+  if (!genJetsHandle.isValid()){
+    edm::LogError("BuggyGenJets") << "CMS3Ntuplizer::recordGenJets: Error getting the gen. " << (isFatJet ? "ak4" : "ak8") << " jets from the event...";
+    return false;
+  }
 
   size_t n_objects = genJetsHandle->size();
   if (filledObjects) filledObjects->reserve(n_objects);
@@ -865,6 +883,8 @@ void CMS3Ntuplizer::recordGenJets(edm::Event const& iEvent, bool const& isFatJet
   PUSH_VECTOR_WITH_NAME(colName, eta);
   PUSH_VECTOR_WITH_NAME(colName, phi);
   PUSH_VECTOR_WITH_NAME(colName, mass);
+
+  return true;
 }
 
 size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon const*>* filledObjects){
@@ -3902,11 +3922,13 @@ bool CMS3Ntuplizer::fillGenVariables(
 ){
   if (!this->isMC) return true;
 
+  bool res = true;
+
   // Gen. info.
-  recordGenInfo(iEvent);
+  res &= recordGenInfo(iEvent);
 
   // Gen. particles
-  recordGenParticles(
+  res &= recordGenParticles(
     iEvent,
     filledMuons, filledElectrons, filledPhotons,
     filledPrunedGenParts, filledPackedGenParts
@@ -3914,11 +3936,11 @@ bool CMS3Ntuplizer::fillGenVariables(
 
   // Gen. jets
   if (this->keepGenJets){
-    recordGenJets(iEvent, false, filledGenAK4Jets); // ak4jets
-    recordGenJets(iEvent, true, filledGenAK8Jets); // ak8jets
+    res &= recordGenJets(iEvent, false, filledGenAK4Jets); // ak4jets
+    res &= recordGenJets(iEvent, true, filledGenAK8Jets); // ak8jets
   }
 
-  return true;
+  return res;
 }
 
 
