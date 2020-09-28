@@ -23,6 +23,7 @@ for d in $(ls $skimdir); do
     fi
     sample="/$d/$dd"
     sampledir=${skimdir}${sample}
+    sample="${sample}/MINIAODSIM"
 
     let nfiles=$(ls $sampledir | grep -e ".root" | wc -l)
     echo "$sampledir has $nfiles files"
