@@ -140,6 +140,11 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(float, event_wgt) \
   BRANCH_COMMAND(float, event_wgt_triggers) \
   BRANCH_COMMAND(float, event_wgt_SFs) \
+  BRANCH_COMMAND(float, event_wgt_SFs_muons) \
+  BRANCH_COMMAND(float, event_wgt_SFs_electrons) \
+  BRANCH_COMMAND(float, event_wgt_SFs_photons) \
+  BRANCH_COMMAND(float, event_wgt_SFs_PUJetId) \
+  BRANCH_COMMAND(float, event_wgt_SFs_btagging) \
   BRANCH_COMMAND(float, event_pTmiss) \
   BRANCH_COMMAND(float, event_phimiss) \
   BRANCH_COMMAND(float, event_mTZZ) \
@@ -276,6 +281,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
 
     if (ParticleSelectionHelpers::isVetoParticle(part)) n_muons_veto++;
   }
+  event_wgt_SFs_muons = SF_muons;
   if (n_muons_veto!=0) return false;
 
   auto const& electrons = electronHandler->getProducts();
@@ -289,6 +295,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
 
     if (ParticleSelectionHelpers::isVetoParticle(part)) n_electrons_veto++;
   }
+  event_wgt_SFs_electrons = SF_electrons;
   if (n_electrons_veto!=0) return false;
 
   auto const& photons = photonHandler->getProducts();
@@ -306,6 +313,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       n_photons_tight++;
     }
   }
+  event_wgt_SFs_photons = SF_photons;
   if (n_photons_tight!=1) return false;
 
   photon_pt = theChosenPhoton->pt();
@@ -390,6 +398,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     }
   }
   if (n_ak4jets_tight_pt30_btagged_loose>0) return false;
+  event_wgt_SFs_PUJetId = SF_PUJetId;
+  event_wgt_SFs_btagging = SF_btagging;
   event_n_ak4jets_pt30 = ak4jets_tight.size();
 
   auto const& eventmet = (use_MET_Puppi ? jetHandler->getPFPUPPIMET() : jetHandler->getPFMET());

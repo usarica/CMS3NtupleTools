@@ -271,7 +271,7 @@ void PUJetIdScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariat
     ||
     !
     (
-      obj->pt()<AK4JetSelectionHelpers::ptThr_PUId
+      obj->pt()>=AK4JetSelectionHelpers::ptThr_gen && obj->pt()<AK4JetSelectionHelpers::ptThr_PUId
       &&
       std::abs(obj->eta())<AK4JetSelectionHelpers::etaThr_PUId
       )

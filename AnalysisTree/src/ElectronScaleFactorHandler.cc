@@ -270,6 +270,7 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
         evalScaleFactorFromHistogram(eff_nominal_unscaled_list.at(isel), eff_err, pt, etaSC, **it_eff_mc, false, false);
       }
 
+      eff_nominal_unscaled_list.at(isel) = std::max(0.f, std::min(1.f, eff_nominal_unscaled_list.at(isel)));
       eff_nominal_scaled_list.at(isel) = std::max(0.f, std::min(1.f, SF_val * eff_nominal_unscaled_list.at(isel)));
 
       it_SF++;
@@ -278,6 +279,7 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
     }
   }
   // Calculate the actual ID+iso efficiency based on the three flags
+  bool hasErrors_Nominal = false;
   float SF_err_val = 0;
   float SF_nominal_val = 1;
   float eff_nominal_unscaled_val = 1;
@@ -308,9 +310,33 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
       MELAout << "(pass/fail, unscaled, scaled, SF) = (" << checkFlag << ", " << tmp_eff_unscaled << ", " << tmp_eff_scaled << ", " << tmp_eff_scaled / tmp_eff_unscaled << ")" << endl;
     }
 
+    if (tmp_eff_unscaled<=0.f || tmp_eff_scaled<0.f){
+      if (verbosity>=TVar::ERROR) MELAerr
+        << "ElectronScaleFactorHandler::getIdIsoSFAndEff: Nominal unscaled, scaled eff = "
+        << tmp_eff_unscaled << ", " << tmp_eff_scaled << " at selection WP " << isel
+        << " for pT=" << pt
+        << ", etaSC=" << etaSC
+        << ", idx_gap=" << idx_gap
+        << ", passId=" << passId
+        << ", passLooseIso=" << passLooseIso
+        << ", passTightIso=" << passTightIso
+        << endl;
+      SF_nominal_val = 0;
+      eff_nominal_unscaled_val = 0;
+      eff_nominal_scaled_val = 0;
+      hasErrors_Nominal = true;
+      break;
+    }
+
     SF_nominal_val *= tmp_eff_scaled / tmp_eff_unscaled;
     eff_nominal_unscaled_val *= tmp_eff_unscaled;
     eff_nominal_scaled_val *= tmp_eff_scaled;
+  }
+
+  if (hasErrors_Nominal){
+    val = 1;
+    if (effval) *effval = 0;
+    return;
   }
 
   if (!(activeSysts.size() == 1 && activeSysts.front() == sNominal)){

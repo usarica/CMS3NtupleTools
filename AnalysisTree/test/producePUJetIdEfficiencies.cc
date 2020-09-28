@@ -403,6 +403,24 @@ void producePUJetIdEfficiencies(
   }
 }
 
+bool checkGoodHistogram(TH2F const* hist){
+  if (!HelperFunctions::checkHistogramIntegrity(hist)) return false;
+
+  for (int ix=0; ix<=hist->GetNbinsX()+1; ix++){
+    for (int iy=0; iy<=hist->GetNbinsY()+1; iy++){
+      double val=hist->GetBinContent(ix, iy);
+      double err=hist->GetBinError(ix, iy);
+      double Neff=(err<=0. ? 0. : std::pow(val/err, 2));
+      if (err>0. && Neff<1.){
+        MELAerr << "checkGoodHistogram: " << hist->GetName() << " integrity check was good, but bin (" << ix << ", " << iy << ") has too little Neff = (" << val << "/" << err << ")^2 = " << Neff << endl;
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 void getFinalEfficiencies(
   TString period, TString strdate,
   bool applyTightLeptonVetoIdToAK4Jets=false
@@ -448,29 +466,47 @@ void getFinalEfficiencies(
       TString cinput = cinput_main + "/" + fname;
       MELAout << "Reading " << cinput << "..." << endl;
       TFile* finput = TFile::Open(cinput, "read");
-      finput->cd();
 
-      if (firstFile){
-        MELAout << "\t- First file, so copying histograms..." << endl;
-        for (unsigned short im=0; im<strmatches.size(); im++){
-          for (unsigned short iwp=0; iwp<hnames.size(); iwp++){
-            TH2F* htmp = (TH2F*) finput->Get(Form("%s_%s", hnames.at(iwp).Data(), strmatches.at(im).Data()));
-            foutput->cd();
-            hlist.at(im).at(iwp) = (TH2F*) htmp->Clone(Form("%s_%s_%s", hnames.at(iwp).Data(), strmatches.at(im).Data(), systname.Data()));
-            finput->cd();
+      std::vector<std::vector<TH2F*>> htmplist(strmatches.size(), std::vector<TH2F*>(hnames.size(), nullptr));
+      for (unsigned short im=0; im<strmatches.size(); im++){
+        for (unsigned short iwp=0; iwp<hnames.size(); iwp++){
+          finput->cd();
+          htmplist.at(im).at(iwp) = (TH2F*) finput->Get(Form("%s_%s", hnames.at(iwp).Data(), strmatches.at(im).Data()));
+          foutput->cd();
+        }
+      }
+
+      // Check histogram integrity
+      bool omitFile = false;
+      for (unsigned short im=0; im<strmatches.size(); im++){
+        for (unsigned short iwp=0; iwp<hnames.size(); iwp++){
+          TH2F const* htmp = htmplist.at(im).at(iwp);
+          if (!checkGoodHistogram(htmp)){
+            MELAerr << "\t- Histogram " << htmp->GetName() << " from " << cinput << " failed integrity checks..." << endl;
+            omitFile = true;
           }
         }
       }
-      else{
-        MELAout << "\t- Adding to existing histograms..." << endl;
-        for (unsigned short im=0; im<strmatches.size(); im++){
-          for (unsigned short iwp=0; iwp<hnames.size(); iwp++){
-            TH2F* htmp = (TH2F*) finput->Get(Form("%s_%s", hnames.at(iwp).Data(), strmatches.at(im).Data()));
-            hlist.at(im).at(iwp)->Add(htmp);
-            finput->cd();
-          }
+      
+      // If integrity checks fail, skip the entire file.
+      if (omitFile){
+        finput->Close();
+        foutput->cd();
+        continue;
+      }
+
+      if (firstFile) MELAout << "\t- First file, so copying histograms..." << endl;
+      else MELAout << "\t- Adding to existing histograms..." << endl;
+      for (unsigned short im=0; im<strmatches.size(); im++){
+        for (unsigned short iwp=0; iwp<hnames.size(); iwp++){
+          TH2F* const& htmp = htmplist.at(im).at(iwp);
+          foutput->cd();
+          if (firstFile) hlist.at(im).at(iwp) = (TH2F*) htmp->Clone(Form("%s_%s_%s", hnames.at(iwp).Data(), strmatches.at(im).Data(), systname.Data()));
+          else hlist.at(im).at(iwp)->Add(htmp);
+          finput->cd();
         }
       }
+
       finput->Close();
       firstFile = false;
 

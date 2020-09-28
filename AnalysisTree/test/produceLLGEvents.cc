@@ -151,6 +151,11 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(float, event_wgt_triggers_OSSF) \
   BRANCH_COMMAND(float, event_wgt_triggers_SinglePhoton) \
   BRANCH_COMMAND(float, event_wgt_SFs) \
+  BRANCH_COMMAND(float, event_wgt_SFs_muons) \
+  BRANCH_COMMAND(float, event_wgt_SFs_electrons) \
+  BRANCH_COMMAND(float, event_wgt_SFs_photons) \
+  BRANCH_COMMAND(float, event_wgt_SFs_PUJetId) \
+  BRANCH_COMMAND(float, event_wgt_SFs_btagging) \
   BRANCH_COMMAND(float, event_pTmiss) \
   BRANCH_COMMAND(float, event_phimiss) \
   BRANCH_COMMAND(float, event_mTZZ) \
@@ -294,6 +299,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       SF_muons *= theSF;
     }
   }
+  event_wgt_SFs_muons = SF_muons;
 
   auto const& electrons = electronHandler->getProducts();
   float SF_electrons = 1;
@@ -305,6 +311,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       SF_electrons *= theSF;
     }
   }
+  event_wgt_SFs_electrons = SF_electrons;
 
   auto const& photons = photonHandler->getProducts();
   unsigned int n_photons_veto = 0;
@@ -319,6 +326,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     if (!theChosenPhoton && ParticleSelectionHelpers::isTightParticle(part)) theChosenPhoton = part;
     else if (ParticleSelectionHelpers::isVetoParticle(part)) n_photons_veto++;
   }
+  event_wgt_SFs_photons = SF_photons;
   if (!theChosenPhoton || n_photons_veto!=0) return false;
 
   photon_pt = theChosenPhoton->pt();
@@ -455,6 +463,9 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       if (jet->getBtagValue()>=btag_thr_medium) event_n_ak4jets_pt20_btagged_medium++;
     }
   }
+  if (n_ak4jets_tight_pt30_btagged_loose>0) return false;
+  event_wgt_SFs_PUJetId = SF_PUJetId;
+  event_wgt_SFs_btagging = SF_btagging;
   event_n_ak4jets_pt30 = ak4jets_tight.size();
 
   auto const& eventmet = (use_MET_Puppi ? jetHandler->getPFPUPPIMET() : jetHandler->getPFMET());
