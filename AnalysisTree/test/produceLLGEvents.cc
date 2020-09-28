@@ -176,7 +176,11 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(float, photon_eta) \
   BRANCH_COMMAND(float, photon_phi) \
   BRANCH_COMMAND(float, photon_mass) \
+  BRANCH_COMMAND(float, photon_full5x5_sigmaIEtaIEta) \
+  BRANCH_COMMAND(float, photon_full5x5_sigmaIPhiIPhi) \
   BRANCH_COMMAND(float, photon_full5x5_r9) \
+  BRANCH_COMMAND(float, photon_seedTime) \
+  BRANCH_COMMAND(float, photon_MIPTotalEnergy) \
   BRANCH_COMMAND(bool, photon_is_genMatched_prompt) \
   BRANCH_COMMAND(bool, photon_is_conversionSafe) \
   BRANCH_COMMAND(bool, photon_is_inTime) \
@@ -199,6 +203,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(float, leptons_eta) \
   BRANCH_COMMAND(float, leptons_phi) \
   BRANCH_COMMAND(float, leptons_mass) \
+  BRANCH_COMMAND(float, electrons_full5x5_sigmaIEtaIEta) \
+  BRANCH_COMMAND(float, electrons_full5x5_sigmaIPhiIPhi) \
+  BRANCH_COMMAND(float, electrons_full5x5_r9) \
+  BRANCH_COMMAND(float, electrons_seedTime) \
   BRANCH_COMMAND(bool, ak4jets_is_genMatched) \
   BRANCH_COMMAND(bool, ak4jets_is_genMatched_fullCone) \
   BRANCH_COMMAND(unsigned char, ak4jets_btagWP_Bits) \
@@ -329,7 +337,11 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   photon_isEBEEGap = theChosenPhoton->isEBEEGap();
   photon_isEB = theChosenPhoton->isEB();
   photon_isEE = theChosenPhoton->isEE();
+  photon_full5x5_sigmaIEtaIEta = theChosenPhoton->extras.full5x5_sigmaIEtaIEta;
+  photon_full5x5_sigmaIPhiIPhi = theChosenPhoton->extras.full5x5_sigmaIPhiIPhi;
   photon_full5x5_r9 = theChosenPhoton->extras.full5x5_r9;
+  photon_seedTime = theChosenPhoton->extras.seedTime;
+  photon_MIPTotalEnergy = theChosenPhoton->extras.MIPTotalEnergy;
 
   isotrackHandler->constructIsotracks(&muons, &electrons);
   bool hasVetoIsotrack = false;
@@ -369,6 +381,16 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     leptons_pt.push_back(dau->pt());
     leptons_eta.push_back(dau->eta());
     leptons_phi.push_back(dau->phi());
+
+    // Extra variables for e/gamma efficiency studies
+    if (dau_electron){
+      auto const& extras = dau_electron->extras;
+
+      electrons_full5x5_sigmaIEtaIEta.push_back(extras.full5x5_sigmaIEtaIEta);
+      electrons_full5x5_sigmaIPhiIPhi.push_back(extras.full5x5_sigmaIPhiIPhi);
+      electrons_full5x5_r9.push_back(extras.full5x5_r9);
+      electrons_seedTime.push_back(extras.seedTime);
+    }
   }
 
   jetHandler->constructJetMET(theGlobalSyst, &muons, &electrons, &photons, &pfcandidates);

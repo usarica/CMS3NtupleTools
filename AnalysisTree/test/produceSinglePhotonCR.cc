@@ -157,7 +157,11 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(float, photon_eta) \
   BRANCH_COMMAND(float, photon_phi) \
   BRANCH_COMMAND(float, photon_mass) \
+  BRANCH_COMMAND(float, photon_full5x5_sigmaIEtaIEta) \
+  BRANCH_COMMAND(float, photon_full5x5_sigmaIPhiIPhi) \
   BRANCH_COMMAND(float, photon_full5x5_r9) \
+  BRANCH_COMMAND(float, photon_seedTime) \
+  BRANCH_COMMAND(float, photon_MIPTotalEnergy) \
   BRANCH_COMMAND(bool, photon_is_genMatched_prompt) \
   BRANCH_COMMAND(bool, photon_is_conversionSafe) \
   BRANCH_COMMAND(bool, photon_is_inTime) \
@@ -320,7 +324,11 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   photon_isEBEEGap = theChosenPhoton->isEBEEGap();
   photon_isEB = theChosenPhoton->isEB();
   photon_isEE = theChosenPhoton->isEE();
+  photon_full5x5_sigmaIEtaIEta = theChosenPhoton->extras.full5x5_sigmaIEtaIEta;
+  photon_full5x5_sigmaIPhiIPhi = theChosenPhoton->extras.full5x5_sigmaIPhiIPhi;
   photon_full5x5_r9 = theChosenPhoton->extras.full5x5_r9;
+  photon_seedTime = theChosenPhoton->extras.seedTime;
+  photon_MIPTotalEnergy = theChosenPhoton->extras.MIPTotalEnergy;
 
   isotrackHandler->constructIsotracks(&muons, &electrons);
   bool hasVetoIsotrack = false;

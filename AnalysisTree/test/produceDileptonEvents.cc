@@ -182,6 +182,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(float, leptons_mass) \
   BRANCH_COMMAND(float, leptons_eff) \
   BRANCH_COMMAND(float, leptons_eff_DF) \
+  BRANCH_COMMAND(float, electrons_full5x5_sigmaIEtaIEta) \
+  BRANCH_COMMAND(float, electrons_full5x5_sigmaIPhiIPhi) \
+  BRANCH_COMMAND(float, electrons_full5x5_r9) \
+  BRANCH_COMMAND(float, electrons_seedTime) \
   BRANCH_COMMAND(bool, ak4jets_is_genMatched) \
   BRANCH_COMMAND(bool, ak4jets_is_genMatched_fullCone) \
   BRANCH_COMMAND(unsigned char, ak4jets_btagWP_Bits) \
@@ -355,6 +359,16 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       if (dau_muon) electronSFHandler->getIdIsoSFAndEff(theGlobalSyst, dau->pt(), dau->eta(), 2, true, true, true, SF_dummy, &eff_DF);
       else muonSFHandler->getIdIsoSFAndEff(theGlobalSyst, dau->pt(), dau_electron->etaSC(), true, true, true, SF_dummy, &eff_DF);
       leptons_eff_DF.push_back(eff_DF);
+    }
+
+    // Extra variables for e/gamma efficiency studies
+    if (dau_electron){
+      auto const& extras = dau_electron->extras;
+
+      electrons_full5x5_sigmaIEtaIEta.push_back(extras.full5x5_sigmaIEtaIEta);
+      electrons_full5x5_sigmaIPhiIPhi.push_back(extras.full5x5_sigmaIPhiIPhi);
+      electrons_full5x5_r9.push_back(extras.full5x5_r9);
+      electrons_seedTime.push_back(extras.seedTime);
     }
   }
 
