@@ -408,8 +408,8 @@ void getFinalEfficiencies(
   bool applyTightLeptonVetoIdToAK4Jets=false
 ){
   TString const cinput_main =
-    //"output/PUJetIdEffs/"
-    "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/PUJetIdEffs/"
+    TString("/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/")
+    + "output/PUJetIdEffs/"
     + strdate + "/" + period
     + "/AK4Jets"
     + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId");
@@ -440,12 +440,15 @@ void getFinalEfficiencies(
     TString systname = SystematicsHelpers::getSystName(syst).data();
     TString file_suffix = systname + ".root";
     std::vector<std::vector<TH2F*>> hlist(strmatches.size(), std::vector<TH2F*>(hnames.size(), nullptr));
+
+    // Merge all input histograms
     bool firstFile = true;
     for (auto const& fname:infiles){
       if (!fname.Contains(file_suffix)) continue;
       TString cinput = cinput_main + "/" + fname;
       MELAout << "Reading " << cinput << "..." << endl;
       TFile* finput = TFile::Open(cinput, "read");
+      finput->cd();
 
       if (firstFile){
         MELAout << "\t- First file, so copying histograms..." << endl;
@@ -464,6 +467,7 @@ void getFinalEfficiencies(
           for (unsigned short iwp=0; iwp<hnames.size(); iwp++){
             TH2F* htmp = (TH2F*) finput->Get(Form("%s_%s", hnames.at(iwp).Data(), strmatches.at(im).Data()));
             hlist.at(im).at(iwp)->Add(htmp);
+            finput->cd();
           }
         }
       }
@@ -473,6 +477,7 @@ void getFinalEfficiencies(
       foutput->cd();
     }
 
+    // Extract the recursive efficiencies and record them
     for (unsigned short im=0; im<strmatches.size(); im++){
       for (unsigned short iwp=hnames.size()-1; iwp>=1; iwp--){
         hlist.at(im).at(iwp)->Divide(hlist.at(im).at(iwp-1));
@@ -480,6 +485,8 @@ void getFinalEfficiencies(
         foutput->WriteTObject(hlist.at(im).at(iwp));
       }
     }
+
+    // Since the histograms are also owned, delete them in a separate loop
     for (unsigned short im=0; im<strmatches.size(); im++){
       for (unsigned short iwp=1; iwp<hnames.size(); iwp++){
         delete hlist.at(im).at(iwp);

@@ -7,6 +7,17 @@
 using namespace std;
 
 
+std::vector<BtagHelpers::BtagWPType> get_btagwptypes(){
+  return std::vector<BtagHelpers::BtagWPType>{
+    BtagHelpers::kDeepCSV_Loose,
+      BtagHelpers::kDeepCSV_Medium,
+      BtagHelpers::kDeepCSV_Tight,
+      BtagHelpers::kDeepFlav_Loose,
+      BtagHelpers::kDeepFlav_Medium,
+      BtagHelpers::kDeepFlav_Tight
+  };
+}
+
 using namespace SystematicsHelpers;
 void produceBtaggingEfficiencies(
   TString strSampleSet, TString period,
@@ -30,14 +41,7 @@ void produceBtaggingEfficiencies(
   std::vector<TString> const validDataPeriods = SampleHelpers::getValidDataPeriods();
   size_t const nValidDataPeriods = validDataPeriods.size();
 
-  std::vector<BtagHelpers::BtagWPType> btagwptypes{
-    BtagHelpers::kDeepCSV_Loose,
-    BtagHelpers::kDeepCSV_Medium,
-    BtagHelpers::kDeepCSV_Tight,
-    BtagHelpers::kDeepFlav_Loose,
-    BtagHelpers::kDeepFlav_Medium,
-    BtagHelpers::kDeepFlav_Tight
-  };
+  std::vector<BtagHelpers::BtagWPType> btagwptypes = get_btagwptypes();
   std::unordered_map<BtagHelpers::BtagWPType, float> btagwp_type_val_map;
   for (auto const& btagwptype:btagwptypes){
     BtagHelpers::setBtagWPType(btagwptype);
@@ -76,7 +80,7 @@ void produceBtaggingEfficiencies(
   MuonScaleFactorHandler muonSFHandler;
   ElectronScaleFactorHandler electronSFHandler;
   PhotonScaleFactorHandler photonSFHandler;
-  PUJetIdScaleFactorHandler pujetidSFHandler; pujetidSFHandler.setVerbosity(TVar::DEBUG);
+  PUJetIdScaleFactorHandler pujetidSFHandler;
 
   genInfoHandler.setAcquireLHEMEWeights(false);
   genInfoHandler.setAcquireLHEParticles(false);
@@ -506,11 +510,32 @@ void produceBtaggingEfficiencies(
   }
 }
 
-void getFinalEfficiencies(TString period, TString strdate){
-  TString const cinput_main = "output/BtaggingEffs/" + strdate + "/" + period;
-  TString coutput_main = cinput_main;
-  TFile* finput = TFile::Open(cinput_main + "/allMC.root", "read");
-  TFile* foutput = TFile::Open(coutput_main + "/Final_bTag_Efficiencies_AllMC.root", "recreate");
+void getFinalEfficiencies(
+  TString period, TString strdate,
+  bool applyTightLeptonVetoIdToAK4Jets=false
+){
+  TString const cinput_main =
+    TString("/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/")
+    + "output/BtaggingEffs/"
+    + strdate + "/" + period
+    + "/AK4Jets"
+    + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId");
+  TString coutput_main = "output/BtaggingEffs/" + strdate + "/" + period
+    + "/AK4Jets"
+    + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
+    + "/FinalEffs";
+  gSystem->mkdir(coutput_main, true);
+
+  std::vector<SystematicsHelpers::SystematicVariationTypes> allowedSysts{
+    sNominal,
+    eJECDn, eJECUp,
+    eJERDn, eJERUp,
+    ePUDn, ePUUp,
+    ePUJetIdEffDn, ePUJetIdEffUp
+  };
+
+  std::vector<TString> strpujetidcats{ "T", "MnT", "LnM", "F" }; unsigned short const npujetidcats = strpujetidcats.size();
+  std::vector<TString> strflavs{ "b", "c", "udsg" }; unsigned short const nflavs = strflavs.size();
   std::vector<TString> hnames{
     "AllJets",
     "DeepCSV_LooseJets",
@@ -519,17 +544,75 @@ void getFinalEfficiencies(TString period, TString strdate){
     "DeepFlavor_LooseJets",
     "DeepFlavor_MediumJets",
     "DeepFlavor_TightJets"
-  };
-  std::vector<TString> strflavs{ "b", "c", "udsg" };
-  for (auto const& strflav:strflavs){
-    std::vector<TH2F*> hlist; hlist.reserve(hnames.size());
-    for (auto const& hname:hnames) hlist.push_back((TH2F*) finput->Get(hname + "_" + strflav));
-    for (unsigned int i=1; i<hlist.size(); i++){
-      hlist.at(i)->Divide(hlist.front());
-      hlist.at(i)->GetZaxis()->SetRangeUser(0, 1);
-      foutput->WriteTObject(hlist.at(i));
+  }; unsigned short const nhists = hnames.size();
+  // Histogram names are like 'AllJets_b_PUJetId_T'
+
+  TFile* foutput = TFile::Open(coutput_main + "/Final_bTag_Efficiencies_AllMC.root", "recreate");
+  foutput->cd();
+
+  auto infiles = SampleHelpers::lsdir(cinput_main);
+  for (auto const& syst:allowedSysts){
+    TString systname = SystematicsHelpers::getSystName(syst).data();
+    TString file_suffix = systname + ".root";
+
+    std::vector<std::vector<std::vector<TH2F*>>> hlist(npujetidcats, std::vector<std::vector<TH2F*>>(nflavs, std::vector<TH2F*>(nhists, nullptr)));
+
+    // Merge all input histograms
+    bool firstFile = true;
+    for (auto const& fname:infiles){
+      if (!fname.Contains(file_suffix)) continue;
+      TString cinput = cinput_main + "/" + fname;
+      MELAout << "Reading " << cinput << "..." << endl;
+      TFile* finput = TFile::Open(cinput, "read");
+      finput->cd();
+
+      if (firstFile) MELAout << "\t- First file, so copying histograms..." << endl;
+      else MELAout << "\t- Adding to existing histograms..." << endl;
+      auto it_hist_pujetidcat = hlist.begin();
+      for (auto const& strpujetidcat:strpujetidcats){
+        auto it_hist_flav = it_hist_pujetidcat->begin();
+        for (auto const& strflav:strflavs){
+          auto it_hist = it_hist_flav->begin();
+          for (auto const& hname:hnames){
+            TString const hnamecore = Form("%s_%s_PUJetId_%s", hname.Data(), strflav.Data(), strpujetidcat.Data());
+            TH2F* htmp = (TH2F*) finput->Get(hnamecore);
+            if (firstFile){
+              TString const hnamercd = Form("%s_%s", hnamecore.Data(), systname.Data());
+              foutput->cd();
+              *it_hist = (TH2F*) htmp->Clone(hnamercd);
+            }
+            else (*it_hist)->Add(htmp);
+            finput->cd();
+            it_hist++;
+          }
+          it_hist_flav++;
+        }
+        it_hist_pujetidcat++;
+      }
+      finput->Close();
+      firstFile = false;
+
+      foutput->cd();
+    }
+
+    // Extract the recursive efficiencies and record them
+    for (auto& hist_pujetidcat:hlist){
+      for (auto& hist_flav:hist_pujetidcat){
+        for (unsigned short ih=nhists-1; ih>=1; ih--){
+          unsigned short idenom = ((ih-1)%3==0 ? 0 : ih-1);
+          hist_flav.at(ih)->Divide(hist_flav.at(idenom));
+          hist_flav.at(ih)->GetZaxis()->SetRangeUser(0, 1);
+          foutput->WriteTObject(hist_flav.at(ih));
+        }
+      }
+    }
+
+    // Since the histograms are also owned, delete them in a separate loop
+    for (auto& hist_pujetidcat:hlist){
+      for (auto& hist_flav:hist_pujetidcat){
+        for (auto& hh:hist_flav) delete hh;
+      }
     }
   }
   foutput->Close();
-  finput->Close();
 }
