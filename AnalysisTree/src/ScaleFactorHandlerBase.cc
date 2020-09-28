@@ -30,6 +30,11 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH1F, ExtendedHistogram_1D>
   curdir->cd();
 
   if (hh){
+    if (!HelperFunctions::checkHistogramIntegrity(hh)){
+      MELAerr << "ScaleFactorHandlerBase::getHistogram: " << hh->GetName() << " does not have integrity!" << endl;
+      return false;
+    }
+
     ExtendedBinning xbins; getAxisBinning(hh->GetXaxis(), xbins);
     unsigned int nbinsx = xbins.getNbins();
     h.setBinning(xbins, 0, "x");
@@ -56,6 +61,11 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH1D, ExtendedHistogram_1D>
   curdir->cd();
 
   if (hh){
+    if (!HelperFunctions::checkHistogramIntegrity(hh)){
+      MELAerr << "ScaleFactorHandlerBase::getHistogram: " << hh->GetName() << " does not have integrity!" << endl;
+      return false;
+    }
+
     ExtendedBinning xbins; getAxisBinning(hh->GetXaxis(), xbins);
     unsigned int nbinsx = xbins.getNbins();
     h.setBinning(xbins, 0, "x");
@@ -82,6 +92,11 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH2F, ExtendedHistogram_2D>
   curdir->cd();
 
   if (hh){
+    if (!HelperFunctions::checkHistogramIntegrity(hh)){
+      MELAerr << "ScaleFactorHandlerBase::getHistogram: " << hh->GetName() << " does not have integrity!" << endl;
+      return false;
+    }
+
     ExtendedBinning xbins; getAxisBinning(hh->GetXaxis(), xbins);
     unsigned int nbinsx = xbins.getNbins();
     h.setBinning(xbins, 0, "x");
@@ -114,6 +129,11 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH2D, ExtendedHistogram_2D>
   curdir->cd();
 
   if (hh){
+    if (!HelperFunctions::checkHistogramIntegrity(hh)){
+      MELAerr << "ScaleFactorHandlerBase::getHistogram: " << hh->GetName() << " does not have integrity!" << endl;
+      return false;
+    }
+
     ExtendedBinning xbins; getAxisBinning(hh->GetXaxis(), xbins);
     unsigned int nbinsx = xbins.getNbins();
     h.setBinning(xbins, 0, "x");
@@ -148,6 +168,15 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH1F, Extende
   curdir->cd();
 
   if (hh){
+    if (!HelperFunctions::checkHistogramIntegrity(hh)){
+      MELAerr << "ScaleFactorHandlerBase::getHistogram: " << hh->GetName() << " does not have integrity!" << endl;
+      return false;
+    }
+    if (!HelperFunctions::checkHistogramIntegrity(hu)){
+      MELAerr << "ScaleFactorHandlerBase::getHistogram: " << hu->GetName() << " does not have integrity!" << endl;
+      return false;
+    }
+
     ExtendedBinning xbins; getAxisBinning(hh->GetXaxis(), xbins);
     unsigned int nbinsx = xbins.getNbins();
     h.setBinning(xbins, 0, "x");
@@ -174,7 +203,16 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH1D, Extende
   TH1D* hu = (TH1D*) f->Get(su);
   curdir->cd();
 
-  if (hh){
+  if (hh && hu){
+    if (!HelperFunctions::checkHistogramIntegrity(hh)){
+      MELAerr << "ScaleFactorHandlerBase::getHistogram: " << hh->GetName() << " does not have integrity!" << endl;
+      return false;
+    }
+    if (!HelperFunctions::checkHistogramIntegrity(hu)){
+      MELAerr << "ScaleFactorHandlerBase::getHistogram: " << hu->GetName() << " does not have integrity!" << endl;
+      return false;
+    }
+
     ExtendedBinning xbins; getAxisBinning(hh->GetXaxis(), xbins);
     unsigned int nbinsx = xbins.getNbins();
     h.setBinning(xbins, 0, "x");
@@ -201,7 +239,16 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH2F, Extende
   TH2F* hu = (TH2F*) f->Get(su);
   curdir->cd();
 
-  if (hh){
+  if (hh && hu){
+    if (!HelperFunctions::checkHistogramIntegrity(hh)){
+      MELAerr << "ScaleFactorHandlerBase::getHistogram: " << hh->GetName() << " does not have integrity!" << endl;
+      return false;
+    }
+    if (!HelperFunctions::checkHistogramIntegrity(hu)){
+      MELAerr << "ScaleFactorHandlerBase::getHistogram: " << hu->GetName() << " does not have integrity!" << endl;
+      return false;
+    }
+
     ExtendedBinning xbins; getAxisBinning(hh->GetXaxis(), xbins);
     unsigned int nbinsx = xbins.getNbins();
     h.setBinning(xbins, 0, "x");
@@ -234,7 +281,16 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH2D, Extende
   TH2D* hu = (TH2D*) f->Get(su);
   curdir->cd();
 
-  if (hh){
+  if (hh && hu){
+    if (!HelperFunctions::checkHistogramIntegrity(hh)){
+      MELAerr << "ScaleFactorHandlerBase::getHistogram: " << hh->GetName() << " does not have integrity!" << endl;
+      return false;
+    }
+    if (!HelperFunctions::checkHistogramIntegrity(hu)){
+      MELAerr << "ScaleFactorHandlerBase::getHistogram: " << hu->GetName() << " does not have integrity!" << endl;
+      return false;
+    }
+
     ExtendedBinning xbins; getAxisBinning(hh->GetXaxis(), xbins);
     unsigned int nbinsx = xbins.getNbins();
     h.setBinning(xbins, 0, "x");
