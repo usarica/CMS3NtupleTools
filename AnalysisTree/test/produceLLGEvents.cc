@@ -215,6 +215,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(bool, ak4jets_is_genMatched) \
   BRANCH_COMMAND(bool, ak4jets_is_genMatched_fullCone) \
   BRANCH_COMMAND(unsigned char, ak4jets_btagWP_Bits) \
+  BRANCH_COMMAND(float, ak4jets_NEMF) \
+  BRANCH_COMMAND(float, ak4jets_CEMF) \
   BRANCH_COMMAND(float, ak4jets_pt) \
   BRANCH_COMMAND(float, ak4jets_eta) \
   BRANCH_COMMAND(float, ak4jets_phi) \
@@ -492,6 +494,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     ak4jets_mass.push_back(jet->mass());
     ak4jets_is_genMatched.push_back(jet->extras.is_genMatched);
     ak4jets_is_genMatched_fullCone.push_back(jet->extras.is_genMatched_fullCone);
+    ak4jets_NEMF.push_back(jet->extras.NEMF);
+    ak4jets_CEMF.push_back(jet->extras.CEMF);
 
     // Determine b-tag WP passing bits
     {
@@ -500,25 +504,6 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       if (jet->getBtagValue()>=btag_thr_medium) HelperFunctions::set_bit(btag_bits, 1, true);
       if (jet->getBtagValue()>=btag_thr_tight) HelperFunctions::set_bit(btag_bits, 2, true);
       ak4jets_btagWP_Bits.push_back(btag_bits);
-    }
-
-    // Determine overlap information
-    {
-      cms3_listSize_t n_overlaps = 0;
-      ParticleObject::LorentzVector_t p4_overlaps;
-      ParticleObject::LorentzVector_t p4_original = jet->p4();
-      for (auto const& mother:jet->getMothers()){
-        AK4JetObject* jet_mother = dynamic_cast<AK4JetObject*>(mother);
-        if (jet_mother){
-          p4_overlaps = jet_mother->uncorrected_p4() - jet->uncorrected_p4();
-          p4_original = jet_mother->p4();
-          for (auto const& dau:jet_mother->getDaughters()){
-            if (dau==jet) continue;
-            if (dynamic_cast<PFCandidateObject*>(dau)) continue;
-            n_overlaps++;
-          }
-        }
-      }
     }
 
     // Determine min_abs_dPhi_pTj_pTmiss
@@ -623,6 +608,8 @@ void getTrees(
   bool use_MET_Puppi=false,
   bool use_MET_XYCorr=true, bool use_MET_JERCorr=true, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true
 ){
+  if (!SampleHelpers::checkRunOnCondor()) std::signal(SIGINT, SampleHelpers::setSignalInterrupt);
+
   constexpr bool useJetOverlapStripping = false; // Keep overlap removal turned off
 
   if (nchunks==1){ nchunks = 0; ichunk=0; }

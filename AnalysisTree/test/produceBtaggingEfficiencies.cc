@@ -510,13 +510,33 @@ void produceBtaggingEfficiencies(
   }
 }
 
+bool checkGoodHistogram(TH2F const* hist){
+  if (!HelperFunctions::checkHistogramIntegrity(hist)) return false;
+
+  /*
+  for (int ix=0; ix<=hist->GetNbinsX()+1; ix++){
+    for (int iy=0; iy<=hist->GetNbinsY()+1; iy++){
+      double val=hist->GetBinContent(ix, iy);
+      double err=hist->GetBinError(ix, iy);
+      double Neff=(err<=0. ? 0. : std::pow(val/err, 2));
+      if (err>0. && Neff<1.){
+        MELAerr << "checkGoodHistogram: " << hist->GetName() << " integrity check was good, but bin (" << ix << ", " << iy << ") has too little Neff = (" << val << "/" << err << ")^2 = " << Neff << endl;
+        return false;
+      }
+    }
+  }
+  */
+
+  return true;
+}
+
 void getFinalEfficiencies(
   TString period, TString strdate,
   bool applyTightLeptonVetoIdToAK4Jets=false
 ){
   TString const cinput_main =
-    TString("/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/")
-    + "output/BtaggingEffs/"
+    /*TString("/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/")
+    + */"output/BtaggingEffs/"
     + strdate + "/" + period
     + "/AK4Jets"
     + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId");
@@ -561,10 +581,32 @@ void getFinalEfficiencies(
     bool firstFile = true;
     for (auto const& fname:infiles){
       if (!fname.Contains(file_suffix)) continue;
+      if (fname.Contains("Final_bTag_Efficiencies_AllMC")) continue;
       TString cinput = cinput_main + "/" + fname;
       MELAout << "Reading " << cinput << "..." << endl;
       TFile* finput = TFile::Open(cinput, "read");
       finput->cd();
+
+      // Seems like double work, but better this way
+      bool hasGoodHists = true;
+      for (auto const& strpujetidcat:strpujetidcats){
+        for (auto const& strflav:strflavs){
+          for (auto const& hname:hnames){
+            TString const hnamecore = Form("%s_%s_PUJetId_%s", hname.Data(), strflav.Data(), strpujetidcat.Data());
+            TH2F* htmp = (TH2F*) finput->Get(hnamecore);
+            if (!checkGoodHistogram(htmp)){
+              hasGoodHists = false;
+              break;
+            }
+          }
+        }
+      }
+
+      if (!hasGoodHists){
+        finput->Close();
+        foutput->cd();
+        continue;
+      }
 
       if (firstFile) MELAout << "\t- First file, so copying histograms..." << endl;
       else MELAout << "\t- Adding to existing histograms..." << endl;

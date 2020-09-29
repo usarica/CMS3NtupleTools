@@ -85,6 +85,8 @@ protected:
 
   bool wrapTree(BaseTree* tree);
 
+  void sigint_callback_handler(int snum);
+
 public:
   // Constructors
   BaseTreeLooper();

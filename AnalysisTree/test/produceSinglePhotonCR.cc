@@ -185,21 +185,13 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
 #define BRANCH_VECTOR_COMMANDS \
   BRANCH_COMMAND(bool, ak4jets_is_genMatched) \
   BRANCH_COMMAND(bool, ak4jets_is_genMatched_fullCone) \
-  BRANCH_COMMAND(cms3_listSize_t, ak4jets_n_overlaps) \
-  BRANCH_COMMAND(float, ak4jets_overlaps_pt) \
-  BRANCH_COMMAND(float, ak4jets_original_pt) \
   BRANCH_COMMAND(unsigned char, ak4jets_btagWP_Bits) \
+  BRANCH_COMMAND(float, ak4jets_NEMF) \
+  BRANCH_COMMAND(float, ak4jets_CEMF) \
   BRANCH_COMMAND(float, ak4jets_pt) \
   BRANCH_COMMAND(float, ak4jets_eta) \
   BRANCH_COMMAND(float, ak4jets_phi) \
-  BRANCH_COMMAND(float, ak4jets_mass) \
-  BRANCH_COMMAND(cms3_listSize_t, ak4jets_masked_n_overlaps) \
-  BRANCH_COMMAND(float, ak4jets_masked_overlaps_pt) \
-  BRANCH_COMMAND(unsigned char, ak4jets_masked_btagWP_Bits) \
-  BRANCH_COMMAND(float, ak4jets_masked_pt) \
-  BRANCH_COMMAND(float, ak4jets_masked_eta) \
-  BRANCH_COMMAND(float, ak4jets_masked_phi) \
-  BRANCH_COMMAND(float, ak4jets_masked_mass)
+  BRANCH_COMMAND(float, ak4jets_mass)
 #define BRANCH_COMMANDS \
   BRANCH_SCALAR_COMMANDS \
   BRANCH_VECTOR_COMMANDS
@@ -421,6 +413,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     ak4jets_mass.push_back(jet->mass());
     ak4jets_is_genMatched.push_back(jet->extras.is_genMatched);
     ak4jets_is_genMatched_fullCone.push_back(jet->extras.is_genMatched_fullCone);
+    ak4jets_NEMF.push_back(jet->extras.NEMF);
+    ak4jets_CEMF.push_back(jet->extras.CEMF);
 
     // Determine b-tag WP passing bits
     {
@@ -431,99 +425,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       ak4jets_btagWP_Bits.push_back(btag_bits);
     }
 
-    // Determine overlap information
-    {
-      cms3_listSize_t n_overlaps = 0;
-      ParticleObject::LorentzVector_t p4_overlaps;
-      ParticleObject::LorentzVector_t p4_original = jet->p4();
-      for (auto const& mother:jet->getMothers()){
-        AK4JetObject* jet_mother = dynamic_cast<AK4JetObject*>(mother);
-        if (jet_mother){
-          p4_overlaps = jet_mother->uncorrected_p4() - jet->uncorrected_p4();
-          p4_original = jet_mother->p4();
-          for (auto const& dau:jet_mother->getDaughters()){
-            if (dau==jet) continue;
-            if (dynamic_cast<PFCandidateObject*>(dau)) continue;
-            n_overlaps++;
-          }
-        }
-      }
-      ak4jets_n_overlaps.push_back(n_overlaps);
-      ak4jets_overlaps_pt.push_back(p4_overlaps.Pt());
-      ak4jets_original_pt.push_back(p4_original.Pt());
-    }
-
     // Determine min_abs_dPhi_pTj_pTmiss
     float dphi_tmp;
     HelperFunctions::deltaPhi(float(jet->phi()), event_phimiss, dphi_tmp); dphi_tmp = std::abs(dphi_tmp);
     min_abs_dPhi_pTj_pTmiss = std::min(min_abs_dPhi_pTj_pTmiss, dphi_tmp);
-  }
-
-  // Also acquire masked jets.
-  // If jet overlap removal is done based on delta-R matching only, the masked jets are simply jets that are removed.
-  // Instead, if overlap removal is done based on jet stripping, the masked jets are mothers, so the information is fundamentally different.
-  // In the latter case, only include jets that are actually removed.
-  {
-    for (auto const& jet:jetHandler->getMaskedAK4Jets()){
-      if (!ParticleSelectionHelpers::isTightJet(jet)) continue;
-
-      // In the case of jet stripping, check if this jet was actually removed from the main collection.
-      if (jetHandler->checkOverlapMaps()){
-        bool isRegularJetMother = false;
-        for (auto const& recojet:ak4jets_tight){
-          for (auto const& mother:recojet->getMothers()){
-            if (mother == jet){
-              isRegularJetMother = true;
-              break;
-            }
-          }
-        }
-        if (isRegularJetMother) continue;
-      }
-
-      ak4jets_masked_pt.push_back(jet->pt());
-      ak4jets_masked_eta.push_back(jet->eta());
-      ak4jets_masked_phi.push_back(jet->phi());
-      ak4jets_masked_mass.push_back(jet->mass());
-
-      // Determine b-tag WP passing bits
-      {
-        unsigned char btag_bits=0;
-        if (jet->getBtagValue()>=btag_thr_loose) HelperFunctions::set_bit(btag_bits, 0, true);
-        if (jet->getBtagValue()>=btag_thr_medium) HelperFunctions::set_bit(btag_bits, 1, true);
-        if (jet->getBtagValue()>=btag_thr_tight) HelperFunctions::set_bit(btag_bits, 2, true);
-        ak4jets_masked_btagWP_Bits.push_back(btag_bits);
-      }
-
-      // Determine overlap information
-      {
-        cms3_listSize_t n_overlaps = 0;
-        ParticleObject::LorentzVector_t p4_overlaps;
-        for (auto const& part:muons){
-          if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
-          if (jet->deltaR(part)<jet->ConeRadiusConstant){
-            p4_overlaps += part->p4();
-            n_overlaps++;
-          }
-        }
-        for (auto const& part:electrons){
-          if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
-          if (jet->deltaR(part)<jet->ConeRadiusConstant){
-            p4_overlaps += part->p4();
-            n_overlaps++;
-          }
-        }
-        for (auto const& part:photons){
-          if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
-          if (jet->deltaR(part)<jet->ConeRadiusConstant){
-            p4_overlaps += part->p4();
-            n_overlaps++;
-          }
-        }
-        ak4jets_masked_n_overlaps.push_back(n_overlaps);
-        ak4jets_masked_overlaps_pt.push_back(p4_overlaps.Pt());
-      }
-    }
   }
 
   // Compute dPhi between the dilepton and pTmiss vector
@@ -621,6 +526,8 @@ void getTrees(
   bool use_MET_Puppi=false,
   bool use_MET_XYCorr=true, bool use_MET_JERCorr=true, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true
 ){
+  if (!SampleHelpers::checkRunOnCondor()) std::signal(SIGINT, SampleHelpers::setSignalInterrupt);
+
   constexpr bool useJetOverlapStripping = false; // Keep overlap removal turned off
 
   if (nchunks==1){ nchunks = 0; ichunk=0; }

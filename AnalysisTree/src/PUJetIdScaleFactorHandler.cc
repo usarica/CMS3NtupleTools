@@ -1,6 +1,7 @@
 #include <cassert>
 #include "PUJetIdScaleFactorHandler.h"
 #include "AK4JetSelectionHelpers.h"
+#include "ParticleSelectionHelpers.h"
 #include "SampleHelpersCore.h"
 #include "SamplesCore.h"
 #include "HelperFunctions.h"
@@ -262,20 +263,7 @@ void PUJetIdScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariat
   if (effval) *effval = 1;
 
   if (!obj) return;
-  if (
-    !(
-      obj->testSelectionBit(AK4JetSelectionHelpers::bit_preselectionTight_id)
-      &&
-      (!AK4JetSelectionHelpers::getApplyTightLeptonVetoIdToJetsFlag() || obj->testSelectionBit(AK4JetSelectionHelpers::kTightLeptonVetoId))
-      )
-    ||
-    !
-    (
-      obj->pt()>=AK4JetSelectionHelpers::ptThr_gen && obj->pt()<AK4JetSelectionHelpers::ptThr_PUId
-      &&
-      std::abs(obj->eta())<AK4JetSelectionHelpers::etaThr_PUId
-      )
-    ) return;
+  if (!ParticleSelectionHelpers::isJetForPUJetIdSF(obj)) return;
 
   bool isMatched = obj->extras.is_genMatched_fullCone;
   bool isLoose = obj->testSelectionBit(AK4JetSelectionHelpers::kLoosePUJetId);

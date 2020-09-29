@@ -326,7 +326,7 @@ void BtagScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariation
   if (effval) *effval = 1;
 
   if (!obj) return;
-  if (!obj->testSelectionBit(AK4JetSelectionHelpers::kBtaggable_NoPUJetId)) return;
+  if (!ParticleSelectionHelpers::isJetForBtagSF(obj)) return;
 
   unsigned short pujetidcat=0;
   if (!obj->testSelectionBit(AK4JetSelectionHelpers::kTightPUJetId)) pujetidcat++;

@@ -105,6 +105,16 @@ template<> bool ParticleSelectionHelpers::isJetForHEMVeto<AK8JetObject>(AK8JetOb
   return jet->testSelectionBit(AK8JetSelectionHelpers::bit_preselectionTight_id) && jet->pt()>=AK8JetSelectionHelpers::ptThr_skim_HEMcheck;
 }
 
+template<> bool ParticleSelectionHelpers::isJetForPUJetIdSF<AK4JetObject>(AK4JetObject const* jet){
+  return (
+    jet->testSelectionBit(AK4JetSelectionHelpers::bit_preselectionTight_id)
+    &&
+    (!AK4JetSelectionHelpers::getApplyTightLeptonVetoIdToJetsFlag() || jet->testSelectionBit(AK4JetSelectionHelpers::kTightLeptonVetoId))
+    &&
+    jet->testSelectionBit(AK4JetSelectionHelpers::kLooseKin) && jet->pt()<AK4JetSelectionHelpers::ptThr_PUId
+    );
+}
+
 template<> bool ParticleSelectionHelpers::isJetForBtagSF<AK4JetObject>(AK4JetObject const* jet){
-  return jet->testSelectionBit(AK4JetSelectionHelpers::kBtaggable);
+  return jet->testSelectionBit(AK4JetSelectionHelpers::kBtaggable_NoPUJetId);
 }

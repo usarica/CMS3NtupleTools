@@ -6,6 +6,7 @@
 #include <fstream>
 
 #include "BaseTreeLooper.h"
+#include "SampleHelpersCore.h"
 #include "SamplesCore.h"
 
 #include "SimEventHandler.h"
@@ -23,6 +24,7 @@ using namespace MELAStreamHelpers;
 
 BaseTreeLooper::BaseTreeLooper() :
   IvyBase(),
+
   looperFunction(nullptr),
   registeredSyst(SystematicsHelpers::nSystematicVariations),
 
@@ -41,6 +43,7 @@ BaseTreeLooper::BaseTreeLooper() :
 }
 BaseTreeLooper::BaseTreeLooper(BaseTree* inTree, double wgt) :
   IvyBase(),
+
   looperFunction(nullptr),
   registeredSyst(SystematicsHelpers::nSystematicVariations),
 
@@ -322,7 +325,11 @@ void BaseTreeLooper::loop(bool keepProducts){
     const int nevents = tree->getNEvents();
     MELAout << "BaseTreeLooper::loop: Looping over " << nevents << " events in " << tree->sampleIdentifier << "..." << endl;
     for (int ev=0; ev<nevents; ev++){
-      if (maxNEvents>=0 && (int) ev_rec==maxNEvents) break;
+      if (
+        SampleHelpers::doSignalInterrupt==1
+        ||
+        (maxNEvents>=0 && (int) ev_rec==maxNEvents)
+        ) break;
       if (
         (eventIndex_begin<0 || (int) ev_traversed>=eventIndex_begin)
         &&
