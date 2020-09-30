@@ -1,5 +1,4 @@
 #include "common_includes.h"
-#include "offshell_cutflow.h"
 #include "TStyle.h"
 #include "TCanvas.h"
 #include "TText.h"
@@ -82,6 +81,8 @@ void getTrees(
   VertexHandler vertexHandler;
   ParticleDisambiguator particleDisambiguator;
 
+  MuonScaleFactorHandler muonSFHandler;
+  ElectronScaleFactorHandler electronSFHandler;
   PhotonScaleFactorHandler photonSFHandler;
   BtagScaleFactorHandler btagSFHandler;
 
@@ -189,6 +190,14 @@ void getTrees(
     BRANCH_COMMAND(float, event_wgt);
     BRANCH_COMMAND(float, event_wgt_triggers);
     BRANCH_COMMAND(float, event_wgt_SFs);
+    BRANCH_COMMAND(float, pfmet_pTmiss_XY_JER_PartMomShifts_p4Preserved); BRANCH_COMMAND(float, pfmet_phimiss_XY_JER_PartMomShifts_p4Preserved);
+    BRANCH_COMMAND(float, pfmet_pTmiss_XY_JER_p4Preserved); BRANCH_COMMAND(float, pfmet_phimiss_XY_JER_p4Preserved);
+    BRANCH_COMMAND(float, pfmet_pTmiss_XY_PartMomShifts_p4Preserved); BRANCH_COMMAND(float, pfmet_phimiss_XY_PartMomShifts_p4Preserved);
+    BRANCH_COMMAND(float, pfmet_pTmiss_JER_PartMomShifts_p4Preserved); BRANCH_COMMAND(float, pfmet_phimiss_JER_PartMomShifts_p4Preserved);
+    BRANCH_COMMAND(float, pfmet_pTmiss_XY_p4Preserved); BRANCH_COMMAND(float, pfmet_phimiss_XY_p4Preserved);
+    BRANCH_COMMAND(float, pfmet_pTmiss_JER_p4Preserved); BRANCH_COMMAND(float, pfmet_phimiss_JER_p4Preserved);
+    BRANCH_COMMAND(float, pfmet_pTmiss_PartMomShifts_p4Preserved); BRANCH_COMMAND(float, pfmet_phimiss_PartMomShifts_p4Preserved);
+    BRANCH_COMMAND(float, pfmet_pTmiss_p4Preserved); BRANCH_COMMAND(float, pfmet_phimiss_p4Preserved);
     BRANCH_COMMAND(float, pfmet_pTmiss_XY_JER_PartMomShifts); BRANCH_COMMAND(float, pfmet_phimiss_XY_JER_PartMomShifts);
     BRANCH_COMMAND(float, pfmet_pTmiss_XY_JER); BRANCH_COMMAND(float, pfmet_phimiss_XY_JER);
     BRANCH_COMMAND(float, pfmet_pTmiss_XY_PartMomShifts); BRANCH_COMMAND(float, pfmet_phimiss_XY_PartMomShifts);
@@ -197,17 +206,25 @@ void getTrees(
     BRANCH_COMMAND(float, pfmet_pTmiss_JER); BRANCH_COMMAND(float, pfmet_phimiss_JER);
     BRANCH_COMMAND(float, pfmet_pTmiss_PartMomShifts); BRANCH_COMMAND(float, pfmet_phimiss_PartMomShifts);
     BRANCH_COMMAND(float, pfmet_pTmiss); BRANCH_COMMAND(float, pfmet_phimiss);
+    BRANCH_COMMAND(float, puppimet_pTmiss_PartMomShifts_p4Preserved); BRANCH_COMMAND(float, puppimet_phimiss_PartMomShifts_p4Preserved);
+    BRANCH_COMMAND(float, puppimet_pTmiss_p4Preserved); BRANCH_COMMAND(float, puppimet_phimiss_p4Preserved);
     BRANCH_COMMAND(float, puppimet_pTmiss_PartMomShifts); BRANCH_COMMAND(float, puppimet_phimiss_PartMomShifts);
     BRANCH_COMMAND(float, puppimet_pTmiss); BRANCH_COMMAND(float, puppimet_phimiss);
-    BRANCH_COMMAND(unsigned int, event_nvtxs_good);
+    BRANCH_COMMAND(bool, event_pass_tightMETFilters);
+    BRANCH_COMMAND(unsigned int, event_n_vtxs_good);
     BRANCH_COMMAND(unsigned int, event_Njets);
     // Photon
     BRANCH_COMMAND(float, pt_gamma);
     BRANCH_COMMAND(float, eta_gamma);
     BRANCH_COMMAND(float, phi_gamma);
     BRANCH_COMMAND(float, mass_gamma);
-    BRANCH_COMMAND(bool, isConversionSafe);
-    BRANCH_COMMAND(bool, passHGGSelection);
+    BRANCH_COMMAND(bool, is_conversionSafe);
+    BRANCH_COMMAND(bool, is_inTime);
+    BRANCH_COMMAND(bool, is_beamHaloSafe);
+    BRANCH_COMMAND(bool, is_spikeSafe);
+    BRANCH_COMMAND(bool, is_PFID);
+    BRANCH_COMMAND(bool, is_METSafe);
+    BRANCH_COMMAND(bool, pass_HGGSelection);
     BRANCH_COMMAND(bool, isGap);
     BRANCH_COMMAND(bool, isEB);
     BRANCH_COMMAND(bool, isEE);
@@ -296,9 +313,9 @@ void getTrees(
       }
       n_pass_genWeights++;
 
-      muonHandler.constructMuons(theGlobalSyst);
-      electronHandler.constructElectrons(theGlobalSyst);
-      photonHandler.constructPhotons(theGlobalSyst);
+      muonHandler.constructMuons(theGlobalSyst, nullptr);
+      electronHandler.constructElectrons(theGlobalSyst, nullptr);
+      photonHandler.constructPhotons(theGlobalSyst, nullptr);
       particleDisambiguator.disambiguateParticles(&muonHandler, &electronHandler, &photonHandler);
 
       auto const& muons = muonHandler.getProducts();
@@ -306,7 +323,7 @@ void getTrees(
       float SF_muons = 1;
       for (auto const& part:muons){
         float theSF = 1;
-        //if (!isData) muonSFHandler.getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
+        if (!isData) muonSFHandler.getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
         if (theSF == 0.f) continue;
         SF_muons *= theSF;
 
@@ -319,7 +336,7 @@ void getTrees(
       float SF_electrons = 1;
       for (auto const& part:electrons){
         float theSF = 1;
-        //if (!isData) electronSFHandler.getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
+        if (!isData) electronSFHandler.getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
         if (theSF == 0.f) continue;
         SF_electrons *= theSF;
 
@@ -348,13 +365,18 @@ void getTrees(
       eta_gamma = theChosenPhoton->eta();
       phi_gamma = theChosenPhoton->phi();
       mass_gamma = theChosenPhoton->m();
-      isConversionSafe = theChosenPhoton->testSelection(PhotonSelectionHelpers::kConversionSafe);
-      passHGGSelection = theChosenPhoton->extras.id_cutBased_HGG_Bits;
+      is_conversionSafe = theChosenPhoton->testSelection(PhotonSelectionHelpers::kConversionSafe);
+      is_inTime = theChosenPhoton->testSelection(PhotonSelectionHelpers::kInTimeSeed);
+      is_beamHaloSafe = theChosenPhoton->testSelection(PhotonSelectionHelpers::kBeamHaloSafe);
+      is_spikeSafe = theChosenPhoton->testSelection(PhotonSelectionHelpers::kSpikeSafe);
+      is_PFID = theChosenPhoton->testSelection(PhotonSelectionHelpers::kPFPhotonId);
+      is_METSafe = theChosenPhoton->testSelection(PhotonSelectionHelpers::kPFMETSafe);
+      pass_HGGSelection = theChosenPhoton->extras.id_cutBased_HGG_Bits;
       isGap = theChosenPhoton->isGap();
       isEBEEGap = theChosenPhoton->isEBEEGap();
       isEB = theChosenPhoton->isEB();
       isEE = theChosenPhoton->isEE();
-      if ((theGlobalSyst!=SystematicsHelpers::sNominal && pt_gamma<150.f) || pt_gamma<50.f) continue; // Skip photons that are more likely to be pi^0s
+      if (pt_gamma<100.f) continue; // Skip photons that are more likely to be pi^0s
       n_pass_photons++;
 
       event_wgt_SFs = SF_muons*SF_electrons*SF_photons;
@@ -370,44 +392,60 @@ void getTrees(
       if (hasVetoIsotrack) continue;
       n_pass_isotrackVeto++;
 
-      jetHandler.constructJetMET(theGlobalSyst, &muons, &electrons, &photons);
+      jetHandler.constructJetMET(theGlobalSyst, &muons, &electrons, &photons, nullptr);
       auto const& ak4jets = jetHandler.getAK4Jets();
       auto const& ak8jets = jetHandler.getAK8Jets();
       auto const& pfmet = jetHandler.getPFMET();
       auto const& puppimet = jetHandler.getPFPUPPIMET();
 
-#define PTMISS_FILL_COMMAND(SUFFIX, OPT_XY, OPT_JER, OPT_PARTMOMSHIFTS) \
-      auto pfmet_p4_##SUFFIX = pfmet->p4(OPT_XY, OPT_JER, OPT_PARTMOMSHIFTS); \
+#define PTMISS_FILL_COMMAND(SUFFIX, OPT_XY, OPT_JER, OPT_PARTMOMSHIFTS, OPT_P4PRESERVE) \
+      auto pfmet_p4_##SUFFIX = pfmet->p4(OPT_XY, OPT_JER, OPT_PARTMOMSHIFTS, OPT_P4PRESERVE); \
       pfmet_pTmiss_##SUFFIX = pfmet_p4_##SUFFIX.Pt(); pfmet_phimiss_##SUFFIX = pfmet_p4_##SUFFIX.Phi();
-      PTMISS_FILL_COMMAND(XY_JER_PartMomShifts, true, true, true);
-      PTMISS_FILL_COMMAND(XY_JER, true, true, false);
-      PTMISS_FILL_COMMAND(XY_PartMomShifts, true, false, true);
-      PTMISS_FILL_COMMAND(JER_PartMomShifts, false, true, true);
-      PTMISS_FILL_COMMAND(XY, true, false, false);
-      PTMISS_FILL_COMMAND(JER, false, true, false);
-      PTMISS_FILL_COMMAND(PartMomShifts, false, false, true);
+      PTMISS_FILL_COMMAND(XY_JER_PartMomShifts_p4Preserved, true, true, true, true);
+      PTMISS_FILL_COMMAND(XY_JER_PartMomShifts, true, true, true, false);
+      PTMISS_FILL_COMMAND(XY_JER_p4Preserved, true, true, false, true);
+      PTMISS_FILL_COMMAND(XY_PartMomShifts_p4Preserved, true, false, true, true);
+      PTMISS_FILL_COMMAND(JER_PartMomShifts_p4Preserved, false, true, true, true);
+      PTMISS_FILL_COMMAND(XY_JER, true, true, false, false);
+      PTMISS_FILL_COMMAND(XY_PartMomShifts, true, false, true, false);
+      PTMISS_FILL_COMMAND(JER_PartMomShifts, false, true, true, false);
+      PTMISS_FILL_COMMAND(XY_p4Preserved, true, false, false, true);
+      PTMISS_FILL_COMMAND(JER_p4Preserved, false, true, false, true);
+      PTMISS_FILL_COMMAND(PartMomShifts_p4Preserved, false, false, true, true);
+      PTMISS_FILL_COMMAND(XY, true, false, false, false);
+      PTMISS_FILL_COMMAND(JER, false, true, false, false);
+      PTMISS_FILL_COMMAND(PartMomShifts, false, false, true, false);
+      PTMISS_FILL_COMMAND(p4Preserved, false, false, false, true);
 #undef PTMISS_FILL_COMMAND
-      auto pfmet_p4 = pfmet->p4(false, false, false);
+      auto pfmet_p4 = pfmet->p4(false, false, false, false);
       pfmet_pTmiss = pfmet_p4.Pt();
       pfmet_phimiss = pfmet_p4.Phi();
 
-      auto puppimet_p4_PartMomShifts = puppimet->p4(false, false, true);
+      auto puppimet_p4_PartMomShifts_p4Preserved = puppimet->p4(false, false, true, true);
+      puppimet_pTmiss_PartMomShifts_p4Preserved = puppimet_p4_PartMomShifts_p4Preserved.Pt();
+      puppimet_phimiss_PartMomShifts_p4Preserved = puppimet_p4_PartMomShifts_p4Preserved.Phi();
+      auto puppimet_p4_p4Preserved = puppimet->p4(false, false, false, true);
+      puppimet_pTmiss_p4Preserved = puppimet_p4_p4Preserved.Pt();
+      puppimet_phimiss_p4Preserved = puppimet_p4_p4Preserved.Phi();
+      auto puppimet_p4_PartMomShifts = puppimet->p4(false, false, true, false);
       puppimet_pTmiss_PartMomShifts = puppimet_p4_PartMomShifts.Pt();
       puppimet_phimiss_PartMomShifts = puppimet_p4_PartMomShifts.Phi();
-      auto puppimet_p4 = puppimet->p4(false, false, false);
+      auto puppimet_p4 = puppimet->p4(false, false, false, false);
       puppimet_pTmiss = puppimet_p4.Pt();
       puppimet_phimiss = puppimet_p4.Phi();
 
-      eventFilter.constructFilters();
+      eventFilter.constructFilters(&simEventHandler);
       if (isData && !eventFilter.isUniqueDataEvent()) continue;
       n_pass_uniqueEvent++;
 
-      if (!eventFilter.passCommonSkim() || !eventFilter.passMETFilters() || !eventFilter.hasGoodVertex()) continue;
+      if (!eventFilter.passCommonSkim() || !eventFilter.passMETFilters(EventFilterHandler::kMETFilters_Standard)) continue;
       n_pass_commonFilters++;
+      event_pass_tightMETFilters = eventFilter.passMETFilters(EventFilterHandler::kMETFilters_Tight);
 
       vertexHandler.constructVertices();
       if (!vertexHandler.hasGoodPrimaryVertex()) continue;
       n_pass_goodPVFilter++;
+      event_n_vtxs_good = vertexHandler.getNGoodVertices();
 
       event_wgt_triggers = eventFilter.getTriggerWeight(triggerPropsCheckList, nullptr, nullptr, &photons, nullptr, nullptr, nullptr);
       if (event_wgt_triggers == 0.f) continue;
@@ -444,8 +482,6 @@ void getTrees(
       eta_jets = ak4jets_sump4.Eta();
       phi_jets = ak4jets_sump4.Phi();
       mass_jets = ak4jets_sump4.M();
-
-      sample_tree.getVal("vtxs_nvtxs_good", event_nvtxs_good);
 
       tout->Fill();
       n_evts_acc++;

@@ -233,7 +233,7 @@ void produceCorrection(
   constexpr bool applyTightLeptonVetoIdToAK4Jets=false;
 
   // Set flags for ak4jet tight id
-  AK4JetSelectionHelpers::setApplyPUIdToJets(applyPUIdToAK4Jets); // Default is 'true'
+  AK4JetSelectionHelpers::setPUIdWP(applyPUIdToAK4Jets ? AK4JetSelectionHelpers::kTightPUJetId : AK4JetSelectionHelpers::nSelectionBits); // Default is 'tight'
   AK4JetSelectionHelpers::setApplyTightLeptonVetoIdToJets(applyTightLeptonVetoIdToAK4Jets); // Default is 'false'
 
   TString const cinput_main =
@@ -301,14 +301,18 @@ void produceCorrection(
   BRANCH_COMMAND(float, event_wgt) \
   BRANCH_COMMAND(float, event_wgt_triggers) \
   BRANCH_COMMAND(float, event_wgt_SFs) \
-  BRANCH_COMMAND(unsigned int, event_nvtxs_good) \
+  BRANCH_COMMAND(unsigned int, event_n_vtxs_good) \
   BRANCH_COMMAND(unsigned int, event_Njets) \
   BRANCH_COMMAND(float, pt_gamma) \
   BRANCH_COMMAND(float, eta_gamma) \
   BRANCH_COMMAND(float, phi_gamma) \
   BRANCH_COMMAND(float, mass_gamma) \
-  BRANCH_COMMAND(bool, isConversionSafe) \
-  BRANCH_COMMAND(bool, passHGGSelection) \
+  BRANCH_COMMAND(bool, is_conversionSafe) \
+  BRANCH_COMMAND(bool, is_inTime) \
+  BRANCH_COMMAND(bool, is_beamHaloSafe) \
+  BRANCH_COMMAND(bool, is_spikeSafe) \
+  BRANCH_COMMAND(bool, is_PFID) \
+  BRANCH_COMMAND(bool, is_METSafe) \
   BRANCH_COMMAND(bool, isGap) \
   BRANCH_COMMAND(bool, isEB) \
   BRANCH_COMMAND(bool, isEE) \
@@ -392,7 +396,7 @@ void produceCorrection(
       tin->GetEntry(ev);
       HelperFunctions::progressbar(ev, nEntries);
 
-      if (!isConversionSafe) continue;
+      if (!is_conversionSafe || !is_beamHaloSafe || !is_spikeSafe || !is_PFID || !is_METSafe) continue;
       if (event_Njets==0) continue;
       if (pt_gamma<150.f) continue;
       
@@ -407,7 +411,7 @@ void produceCorrection(
       for (auto& var:allvars){
         if (var->name=="pt_gamma") var->setVal(pt_gamma);
         else if (var->name=="eta_gamma") var->setVal(eta_gamma);
-        else if (var->name=="Nvtx") var->setVal(event_nvtxs_good);
+        else if (var->name=="Nvtx") var->setVal(event_n_vtxs_good);
         else if (var->name=="Njets") var->setVal(event_Njets);
         else if (var->name=="HT_jets") var->setVal(HT_jets);
         else if (var->name=="abs_uPerp") var->setVal(std::abs(uPerp));
@@ -539,9 +543,16 @@ void produceFinalFits(
   if (METtype!="pfmet" && METtype!="puppimet") return;
   TString strMET = METtype;
   TString strMETsuffix;
-  if (METCorrectionLevels.Contains("XY")) strMETsuffix += "_XY";
-  if (METCorrectionLevels.Contains("JER")) strMETsuffix += "_JER";
+  if (METCorrectionLevels.Contains("XY")){
+    if (METtype=="puppimet") return;
+    strMETsuffix += "_XY";
+  }
+  if (METCorrectionLevels.Contains("JER")){
+    if (METtype=="puppimet") return;
+    strMETsuffix += "_JER";
+  }
   if (METCorrectionLevels.Contains("PartMomShifts")) strMETsuffix += "_PartMomShifts";
+  if (METCorrectionLevels.Contains("p4Preserved")) strMETsuffix += "_p4Preserved";
   TString const strMET_pTmiss = strMET + "_pTmiss" + strMETsuffix;
   TString const strMET_phimiss = strMET + "_phimiss" + strMETsuffix;
   TString const strMEToutname = strMET + "_JEC" + strMETsuffix;
@@ -556,7 +567,7 @@ void produceFinalFits(
   constexpr bool applyTightLeptonVetoIdToAK4Jets=false;
 
   // Set flags for ak4jet tight id
-  AK4JetSelectionHelpers::setApplyPUIdToJets(applyPUIdToAK4Jets); // Default is 'true'
+  AK4JetSelectionHelpers::setPUIdWP(applyPUIdToAK4Jets ? AK4JetSelectionHelpers::kTightPUJetId : AK4JetSelectionHelpers::nSelectionBits); // Default is 'tight'
   AK4JetSelectionHelpers::setApplyTightLeptonVetoIdToJets(applyTightLeptonVetoIdToAK4Jets); // Default is 'false'
 
   TString const cinput_main =
@@ -621,14 +632,18 @@ void produceFinalFits(
   BRANCH_COMMAND(float, event_wgt) \
   BRANCH_COMMAND(float, event_wgt_triggers) \
   BRANCH_COMMAND(float, event_wgt_SFs) \
-  BRANCH_COMMAND(unsigned int, event_nvtxs_good) \
+  BRANCH_COMMAND(unsigned int, event_n_vtxs_good) \
   BRANCH_COMMAND(unsigned int, event_Njets) \
   BRANCH_COMMAND(float, pt_gamma) \
   BRANCH_COMMAND(float, eta_gamma) \
   BRANCH_COMMAND(float, phi_gamma) \
   BRANCH_COMMAND(float, mass_gamma) \
-  BRANCH_COMMAND(bool, isConversionSafe) \
-  BRANCH_COMMAND(bool, passHGGSelection) \
+  BRANCH_COMMAND(bool, is_conversionSafe) \
+  BRANCH_COMMAND(bool, is_inTime) \
+  BRANCH_COMMAND(bool, is_beamHaloSafe) \
+  BRANCH_COMMAND(bool, is_spikeSafe) \
+  BRANCH_COMMAND(bool, is_PFID) \
+  BRANCH_COMMAND(bool, is_METSafe) \
   BRANCH_COMMAND(bool, isGap) \
   BRANCH_COMMAND(bool, isEB) \
   BRANCH_COMMAND(bool, isEE) \
@@ -747,7 +762,7 @@ void produceFinalFits(
         tin->GetEntry(ev);
         HelperFunctions::progressbar(ev, nEntries);
 
-        if (!isConversionSafe) continue;
+        if (!is_conversionSafe || !is_beamHaloSafe || !is_spikeSafe || !is_PFID || !is_METSafe) continue;
         if (event_Njets==0) continue;
         if (pt_gamma<150.f) continue;
 
@@ -768,7 +783,7 @@ void produceFinalFits(
         for (auto& var:allvars){
           if (var->name=="pt_gamma") var->setVal(pt_gamma);
           else if (var->name=="eta_gamma") var->setVal(eta_gamma);
-          else if (var->name=="Nvtx") var->setVal(event_nvtxs_good);
+          else if (var->name=="Nvtx") var->setVal(event_n_vtxs_good);
           else if (var->name=="Njets") var->setVal(event_Njets);
           else if (var->name=="HT_jets") var->setVal(HT_jets);
           else if (var->name=="abs_uPerp") var->setVal(std::abs(uPerp));
@@ -1317,6 +1332,40 @@ void produceFinalFitSets(int year, TString prodVersion, TString strdate){
   for (auto const& period:SampleHelpers::getValidDataPeriods()){
     produceFinalFits(
       period, prodVersion, strdate,
+      "pfmet", "XY:JER:PartMomShifts:p4Preserved"
+    );
+    produceFinalFits(
+      period, prodVersion, strdate,
+      "pfmet", "XY:PartMomShifts:p4Preserved"
+    );
+    produceFinalFits(
+      period, prodVersion, strdate,
+      "pfmet", "JER:PartMomShifts:p4Preserved"
+    );
+    produceFinalFits(
+      period, prodVersion, strdate,
+      "pfmet", "PartMomShifts:p4Preserved"
+    );
+    /*
+    produceFinalFits(
+      period, prodVersion, strdate,
+      "pfmet", "XY:JER:p4Preserved"
+    );
+    produceFinalFits(
+      period, prodVersion, strdate,
+      "pfmet", "XY:p4Preserved"
+    );
+    produceFinalFits(
+      period, prodVersion, strdate,
+      "pfmet", "JER:p4Preserved"
+    );
+    produceFinalFits(
+      period, prodVersion, strdate,
+      "pfmet", "p4Preserved"
+    );
+    */
+    produceFinalFits(
+      period, prodVersion, strdate,
       "pfmet", "XY:JER:PartMomShifts"
     );
     produceFinalFits(
@@ -1347,6 +1396,17 @@ void produceFinalFitSets(int year, TString prodVersion, TString strdate){
     produceFinalFits(
       period, prodVersion, strdate,
       "pfmet", ""
+    );
+    */
+
+    produceFinalFits(
+      period, prodVersion, strdate,
+      "puppimet", "PartMomShifts:p4Preserved"
+    );
+    /*
+    produceFinalFits(
+      period, prodVersion, strdate,
+      "puppimet", "p4Preserved"
     );
     */
     produceFinalFits(
@@ -1380,9 +1440,11 @@ void getCorrectionValidationHistograms(
   bool addXY = METCorrectionLevels.Contains("XY");
   bool addJER = METCorrectionLevels.Contains("JER");
   bool addPartMomShifts = METCorrectionLevels.Contains("PartMomShifts");
+  bool addP4Preserve = METCorrectionLevels.Contains("p4Preserved");
   if (addXY) strMETsuffix += "_XY";
   if (addJER) strMETsuffix += "_JER";
   if (addPartMomShifts) strMETsuffix += "_PartMomShifts";
+  if (addP4Preserve) strMETsuffix += "_p4Preserved";
   TString const strMET_pTmiss = strMET + "_pTmiss" + strMETsuffix;
   TString const strMET_phimiss = strMET + "_phimiss" + strMETsuffix;
   TString const strMEToutname = strMET + "_JEC" + strMETsuffix;
@@ -1403,7 +1465,7 @@ void getCorrectionValidationHistograms(
   HelperFunctions::replaceString<TString, const TString>(systlabel, "Nominal", "nominal");
 
   // Set flags for ak4jet tight id
-  AK4JetSelectionHelpers::setApplyPUIdToJets(applyPUIdToAK4Jets); // Default is 'true'
+  AK4JetSelectionHelpers::setPUIdWP(applyPUIdToAK4Jets ? AK4JetSelectionHelpers::kTightPUJetId : AK4JetSelectionHelpers::nSelectionBits); // Default is 'tight'
   AK4JetSelectionHelpers::setApplyTightLeptonVetoIdToJets(applyTightLeptonVetoIdToAK4Jets); // Default is 'false'
 
   TString const cinput_main =
@@ -1465,14 +1527,18 @@ void getCorrectionValidationHistograms(
   BRANCH_COMMAND(float, event_wgt) \
   BRANCH_COMMAND(float, event_wgt_triggers) \
   BRANCH_COMMAND(float, event_wgt_SFs) \
-  BRANCH_COMMAND(unsigned int, event_nvtxs_good) \
+  BRANCH_COMMAND(unsigned int, event_n_vtxs_good) \
   BRANCH_COMMAND(unsigned int, event_Njets) \
   BRANCH_COMMAND(float, pt_gamma) \
   BRANCH_COMMAND(float, eta_gamma) \
   BRANCH_COMMAND(float, phi_gamma) \
   BRANCH_COMMAND(float, mass_gamma) \
-  BRANCH_COMMAND(bool, isConversionSafe) \
-  BRANCH_COMMAND(bool, passHGGSelection) \
+  BRANCH_COMMAND(bool, is_conversionSafe) \
+  BRANCH_COMMAND(bool, is_inTime) \
+  BRANCH_COMMAND(bool, is_beamHaloSafe) \
+  BRANCH_COMMAND(bool, is_spikeSafe) \
+  BRANCH_COMMAND(bool, is_PFID) \
+  BRANCH_COMMAND(bool, is_METSafe) \
   BRANCH_COMMAND(bool, isGap) \
   BRANCH_COMMAND(bool, isEB) \
   BRANCH_COMMAND(bool, isEE) \
@@ -1598,7 +1664,7 @@ void getCorrectionValidationHistograms(
         tin->GetEntry(ev);
         HelperFunctions::progressbar(ev, nEntries);
 
-        if (!isConversionSafe) continue;
+        if (!is_conversionSafe || !is_beamHaloSafe || !is_spikeSafe || !is_PFID || !is_METSafe) continue;
         if (event_Njets==0) continue;
         if (pt_gamma<150.f) continue;
         //if (!isEB) continue;
@@ -1616,7 +1682,7 @@ void getCorrectionValidationHistograms(
         for (auto& var:allvars){
           if (var->name=="pt_gamma") var->setVal(pt_gamma);
           else if (var->name=="eta_gamma") var->setVal(eta_gamma);
-          else if (var->name=="Nvtx") var->setVal(event_nvtxs_good);
+          else if (var->name=="Nvtx") var->setVal(event_n_vtxs_good);
           else if (var->name=="Njets") var->setVal(event_Njets);
           else if (var->name=="HT_jets") var->setVal(HT_jets);
           else if (var->name=="abs_uPerp") var->setVal(std::abs(uPerp));
@@ -1655,7 +1721,7 @@ void getCorrectionValidationHistograms(
               genmet, genmet_phimiss,
               &metobj, true
             );
-            auto met_p4_corr = metobj.p4(addXY, addJER, addPartMomShifts);
+            auto met_p4_corr = metobj.p4(addXY, addJER, addPartMomShifts, addP4Preserve);
             hlist.at(3).Fill(met_p4_corr.Pt(), wgt*wgt_corrs);
 
             metobj.setSystematic(SystematicsHelpers::eMETDn);
@@ -1664,7 +1730,7 @@ void getCorrectionValidationHistograms(
               genmet, genmet_phimiss,
               &metobj, true
             );
-            met_p4_corr = metobj.p4(addXY, addJER, addPartMomShifts);
+            met_p4_corr = metobj.p4(addXY, addJER, addPartMomShifts, addP4Preserve);
             hlist.at(4).Fill(met_p4_corr.Pt(), wgt*wgt_corrs);
 
             metobj.setSystematic(SystematicsHelpers::eMETUp);
@@ -1673,7 +1739,7 @@ void getCorrectionValidationHistograms(
               genmet, genmet_phimiss,
               &metobj, true
             );
-            met_p4_corr = metobj.p4(addXY, addJER, addPartMomShifts);
+            met_p4_corr = metobj.p4(addXY, addJER, addPartMomShifts, addP4Preserve);
             hlist.at(5).Fill(met_p4_corr.Pt(), wgt*wgt_corrs);
           }
         }
@@ -1703,7 +1769,10 @@ void getCorrectionValidationHistogramSets(int year, TString prodVersion, TString
   std::vector<SystematicsHelpers::SystematicVariationTypes> allowedSysts = getAllowedSysts();
 
   for (auto const& period:SampleHelpers::getValidDataPeriods()){
-    for(auto const& syst:allowedSysts) getCorrectionValidationHistograms(period, prodVersion, strdate, "pfmet", "XY:JER:PartMomShifts", syst);
+    for (auto const& syst:allowedSysts){
+      getCorrectionValidationHistograms(period, prodVersion, strdate, "pfmet", "XY:JER:PartMomShifts:p4Preserved", syst);
+      getCorrectionValidationHistograms(period, prodVersion, strdate, "pfmet", "XY:JER:PartMomShifts", syst);
+    }
   }
 }
 
@@ -1951,6 +2020,8 @@ void plotValidationHistogramSets(int year, TString prodVersion, TString strdate)
   SampleHelpers::configure(Form("%i", year), "hadoop_skims:"+prodVersion);
 
   for (auto const& period:SampleHelpers::getValidDataPeriods()){
+    plotValidationHistograms(period, prodVersion, strdate, "pfmet", "XY:JER:PartMomShifts:p4Preserved", false);
+    plotValidationHistograms(period, prodVersion, strdate, "pfmet", "XY:JER:PartMomShifts:p4Preserved", true);
     plotValidationHistograms(period, prodVersion, strdate, "pfmet", "XY:JER:PartMomShifts", false);
     plotValidationHistograms(period, prodVersion, strdate, "pfmet", "XY:JER:PartMomShifts", true);
   }
