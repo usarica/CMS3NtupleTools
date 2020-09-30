@@ -446,10 +446,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     - std::pow((theChosenPhoton->p4() + event_met_p4).Pt(), 2)
   );
 
-  ParticleObject::LorentzVector_t p4_ZZ_approx;
   float etamiss_approx = theChosenPhoton->eta();
-  p4_ZZ_approx = ParticleObject::PolarLorentzVector_t(event_pTmiss, etamiss_approx, event_phimiss, PDGHelpers::Zmass);
-  p4_ZZ_approx = p4_ZZ_approx + theChosenPhoton->p4();
+  ParticleObject::LorentzVector_t p4_photon_Z_approx; p4_photon_Z_approx = ParticleObject::PolarLorentzVector_t(photon_pt, photon_eta, photon_phi, PDGHelpers::Zmass);
+  ParticleObject::LorentzVector_t p4_ZZ_approx; p4_ZZ_approx = ParticleObject::PolarLorentzVector_t(event_pTmiss, etamiss_approx, event_phimiss, PDGHelpers::Zmass);
+  p4_ZZ_approx = p4_ZZ_approx + p4_photon_Z_approx;
   event_mZZ = p4_ZZ_approx.M();
 
   // Compute MEs
