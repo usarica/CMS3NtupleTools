@@ -309,6 +309,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   if (n_photons_tight!=1) return false;
 
   photon_pt = theChosenPhoton->pt();
+  if (!OffshellCutflow::check_pTll(photon_pt)) return false; // Skim photons below the pTll threshold
   photon_eta = theChosenPhoton->eta();
   photon_phi = theChosenPhoton->phi();
   photon_mass = theChosenPhoton->m();
@@ -546,6 +547,8 @@ void getTrees(
 
   BtagHelpers::setBtagWPType(BtagHelpers::kDeepFlav_Loose);
   LooperFunctionHelpers::setBtagWPs();
+
+  OffshellCutflow::setActiveFinalState(OffshellCutflow::fs_ZZ_2l2nu); // This region is only relevant for the ZZ->2l2nu final state.
 
   std::vector<TriggerHelpers::TriggerType> requiredTriggers{ TriggerHelpers::kSinglePho };
   auto triggerPropsCheckList = TriggerHelpers::getHLTMenuProperties(requiredTriggers);
