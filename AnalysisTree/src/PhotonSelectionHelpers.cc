@@ -99,7 +99,7 @@ bool PhotonSelectionHelpers::testSpikeSafe(PhotonObject const& part){
 
 bool PhotonSelectionHelpers::testPFPhotonId(PhotonObject const& part){
   auto const& ibit = part.extras.id_egamma_pfPhoton_Bits;
-  constexpr bool testBadHCAL = true;
+  constexpr bool testBadHCAL = false; // This protection is not present in 2016, and in 2017 and 2018, it is off.
   return (
     part.extras.n_associated_pfphotons==1
     &&
