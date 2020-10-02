@@ -497,7 +497,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   );
 
   ParticleObject::LorentzVector_t p4_ZZ_approx;
-  float etamiss_approx = theChosenDilepton->eta();
+  float const& etamiss_approx = dilepton_eta;
   p4_ZZ_approx = ParticleObject::PolarLorentzVector_t(event_pTmiss, etamiss_approx, event_phimiss, PDGHelpers::Zmass);
   p4_ZZ_approx = p4_ZZ_approx + theChosenDilepton->p4();
   event_mZZ = p4_ZZ_approx.M();

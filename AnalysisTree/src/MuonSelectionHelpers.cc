@@ -228,7 +228,7 @@ bool MuonSelectionHelpers::testFakeable(MuonObject const& part){
   return (
     part.testSelectionBit(kFakeableBase)
     &&
-    (isoThr_fakeable_trkIso<0.f || part.extras.trkIso03_trackerSumPt<isoThr_fakeable_trkIso)
+    (isoThr_fakeable_trkIso<0.f || part.extras.trkIso03_trackerSumPt<isoThr_fakeable_trkIso*part.pt())
     );
 }
 bool MuonSelectionHelpers::testPreselectionVeto(MuonObject const& part){

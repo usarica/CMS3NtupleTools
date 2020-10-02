@@ -517,21 +517,22 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   HelperFunctions::deltaPhi(float((theChosenPhoton->p4()+sump4_ak4jets).Phi()), phi_llmet, dPhi_pTbosonjets_pTmiss);
 
   // Compute mass variables
-  event_mTZZ = std::sqrt(
-    std::pow(
-    (
-      std::sqrt(std::pow(photon_pt, 2) + std::pow(PDGHelpers::Zmass, 2))
-      + std::sqrt(std::pow(pt_llmet, 2) + std::pow(PDGHelpers::Zmass, 2))
-      ), 2
-    )
-    - std::pow((theChosenPhoton->p4() + p4_llmet).Pt(), 2)
-  );
   event_mllg = (theChosenPhoton->p4() + theChosenDilepton->p4()).M();
 
-  float etamiss_approx = theChosenPhoton->eta();
+  float const& etamiss_approx = photon_eta;
   ParticleObject::LorentzVector_t p4_photon_Z_approx; p4_photon_Z_approx = ParticleObject::PolarLorentzVector_t(photon_pt, photon_eta, photon_phi, PDGHelpers::Zmass);
   ParticleObject::LorentzVector_t p4_ZZ_approx; p4_ZZ_approx = ParticleObject::PolarLorentzVector_t(pt_llmet, etamiss_approx, phi_llmet, PDGHelpers::Zmass);
   p4_ZZ_approx = p4_ZZ_approx + p4_photon_Z_approx;
+
+  event_mTZZ = std::sqrt(
+    std::pow(
+    (
+      std::sqrt(std::pow(photon_pt, 2) + std::pow(p4_photon_Z_approx.M(), 2))
+      + std::sqrt(std::pow(pt_llmet, 2) + std::pow(PDGHelpers::Zmass, 2)) // Do not use the invariant mass of the ll+MET p4 because ll+MET is now the MET proxy, and the formula uses Z mass for this part.
+      ), 2
+    )
+    - std::pow((p4_photon_Z_approx + p4_llmet).Pt(), 2)
+  );
   event_mZZ = p4_ZZ_approx.M();
 
   // Compute MEs
