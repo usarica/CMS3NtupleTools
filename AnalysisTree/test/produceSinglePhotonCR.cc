@@ -165,6 +165,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(float, photon_full5x5_sigmaIEtaIEta) \
   BRANCH_COMMAND(float, photon_full5x5_sigmaIPhiIPhi) \
   BRANCH_COMMAND(float, photon_full5x5_r9) \
+  BRANCH_COMMAND(float, photon_r9) \
   BRANCH_COMMAND(float, photon_seedTime) \
   BRANCH_COMMAND(float, photon_MIPTotalEnergy) \
   BRANCH_COMMAND(bool, photon_is_genMatched_prompt) \
@@ -328,6 +329,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   photon_full5x5_sigmaIEtaIEta = theChosenPhoton->extras.full5x5_sigmaIEtaIEta;
   photon_full5x5_sigmaIPhiIPhi = theChosenPhoton->extras.full5x5_sigmaIPhiIPhi;
   photon_full5x5_r9 = theChosenPhoton->extras.full5x5_r9;
+  photon_r9 = theChosenPhoton->extras.r9;
   photon_seedTime = theChosenPhoton->extras.seedTime;
   photon_MIPTotalEnergy = theChosenPhoton->extras.MIPTotalEnergy;
 
