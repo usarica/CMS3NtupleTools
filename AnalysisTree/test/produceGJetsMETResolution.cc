@@ -1,4 +1,5 @@
 #include "common_includes.h"
+#include "SampleHelpersCore.h"
 #include "TStyle.h"
 #include "TCanvas.h"
 #include "TText.h"
@@ -15,6 +16,8 @@ void getTrees(
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal,
   bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false
 ){
+  if (!SampleHelpers::checkRunOnCondor()) std::signal(SIGINT, SampleHelpers::setSignalInterrupt);
+
   if (nchunks==1) nchunks = 0;
   if (nchunks>0 && (ichunk<0 || ichunk==nchunks)) return;
 
@@ -84,6 +87,7 @@ void getTrees(
   MuonScaleFactorHandler muonSFHandler;
   ElectronScaleFactorHandler electronSFHandler;
   PhotonScaleFactorHandler photonSFHandler;
+  PUJetIdScaleFactorHandler pujetidSFHandler;
   BtagScaleFactorHandler btagSFHandler;
 
   genInfoHandler.setAcquireLHEMEWeights(false);
@@ -92,6 +96,8 @@ void getTrees(
 
   bool isFirstInputFile=true;
   for (auto const& sname:sampledirs){
+    if (SampleHelpers::doSignalInterrupt==1) break;
+
     TString coutput = SampleHelpers::getSampleIdentifier(sname);
     HelperFunctions::replaceString(coutput, "_MINIAODSIM", "");
     HelperFunctions::replaceString(coutput, "_MINIAOD", "");
@@ -151,6 +157,7 @@ void getTrees(
     // Set data tracking options
     eventFilter.setTrackDataEvents(isData);
     eventFilter.setCheckUniqueDataEvent(isData && !isFirstInputFile);
+    eventFilter.setCheckTriggerObjectsForHLTPaths(true);
 
     // Configure handlers
     muonHandler.bookBranches(&sample_tree);
@@ -216,6 +223,7 @@ void getTrees(
     // Photon
     BRANCH_COMMAND(float, pt_gamma);
     BRANCH_COMMAND(float, eta_gamma);
+    BRANCH_COMMAND(float, etaSC_gamma);
     BRANCH_COMMAND(float, phi_gamma);
     BRANCH_COMMAND(float, mass_gamma);
     BRANCH_COMMAND(bool, is_conversionSafe);
@@ -266,6 +274,8 @@ void getTrees(
     size_t n_pass_btagVeto=0;
     bool firstEvent=true;
     for (int ev=ev_start; ev<ev_end; ev++){
+      if (SampleHelpers::doSignalInterrupt==1) break;
+
       HelperFunctions::progressbar(ev, nEntries);
       sample_tree.getSelectedEvent(ev);
 
@@ -363,6 +373,7 @@ void getTrees(
       if (n_photons_tight!=1) continue;
       pt_gamma = theChosenPhoton->pt();
       eta_gamma = theChosenPhoton->eta();
+      etaSC_gamma = theChosenPhoton->etaSC();
       phi_gamma = theChosenPhoton->phi();
       mass_gamma = theChosenPhoton->m();
       is_conversionSafe = theChosenPhoton->testSelection(PhotonSelectionHelpers::kConversionSafe);
@@ -459,11 +470,15 @@ void getTrees(
       ParticleObject::LorentzVector_t ak4jets_sump4(0, 0, 0, 0);
       std::vector<AK4JetObject*> ak4jets_tight; ak4jets_tight.reserve(ak4jets.size());
       unsigned int n_ak4jets_tight_btagged = 0;
+      float SF_PUJetId = 1;
       float SF_btagging = 1;
       for (auto* jet:ak4jets){
-        float theSF = 1;
-        if (!isData) btagSFHandler.getSFAndEff(theGlobalSyst, jet, theSF, nullptr);
-        if (theSF != 0.f) SF_btagging *= theSF;
+        float theSF_PUJetId = 1;
+        float theSF_btag = 1;
+        pujetidSFHandler.getSFAndEff(theGlobalSyst, jet, theSF_PUJetId, nullptr);
+        btagSFHandler.getSFAndEff(theGlobalSyst, jet, theSF_btag, nullptr);
+        if (theSF_PUJetId != 0.f) SF_PUJetId *= theSF_PUJetId;
+        if (theSF_btag != 0.f) SF_btagging *= theSF_btag;
 
         if (ParticleSelectionHelpers::isTightJet(jet)){
           ak4jets_tight.push_back(jet);
@@ -474,7 +489,7 @@ void getTrees(
         }
       }
       if (n_ak4jets_tight_btagged>0) continue;
-      event_wgt_SFs *= SF_btagging;
+      event_wgt_SFs *= SF_PUJetId*SF_btagging;
       n_pass_btagVeto++;
 
       event_Njets = ak4jets_tight.size();

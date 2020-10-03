@@ -688,6 +688,9 @@ void getTrees(
   IsotrackHandler isotrackHandler;
   VertexHandler vertexHandler;
 
+  // Require trigger matching
+  eventFilter.setCheckTriggerObjectsForHLTPaths(true);
+
   OverlapMapHandler<MuonObject, AK4JetObject> overlapMap_muons_ak4jets;
   OverlapMapHandler<MuonObject, AK8JetObject> overlapMap_muons_ak8jets;
   OverlapMapHandler<ElectronObject, AK4JetObject> overlapMap_electrons_ak4jets;
