@@ -57,13 +57,17 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
 #define OBJECT_HANDLER_DIRECTIVES \
   OBJECT_HANDLER_COMMON_DIRECTIVES \
   OBJECT_HANDLER_SIM_DIRECTIVES
-#define SCALEFACTOR_HANDLER_DIRECTIVES \
+#define SCALEFACTOR_HANDLER_COMMON_DIRECTIVES \
   HANDLER_DIRECTIVE(MuonScaleFactorHandler, muonSFHandler) \
-  HANDLER_DIRECTIVE(ElectronScaleFactorHandler, electronSFHandler) \
+  HANDLER_DIRECTIVE(ElectronScaleFactorHandler, electronSFHandler)
+#define SCALEFACTOR_HANDLER_SIM_DIRECTIVES \
   HANDLER_DIRECTIVE(PhotonScaleFactorHandler, photonSFHandler) \
   HANDLER_DIRECTIVE(PUJetIdScaleFactorHandler, pujetidSFHandler) \
   HANDLER_DIRECTIVE(BtagScaleFactorHandler, btagSFHandler) \
   HANDLER_DIRECTIVE(METCorrectionHandler, metCorrectionHandler)
+#define SCALEFACTOR_HANDLER_DIRECTIVES \
+  SCALEFACTOR_HANDLER_COMMON_DIRECTIVES \
+  SCALEFACTOR_HANDLER_SIM_DIRECTIVES
 
   // Get the current tree
   BaseTree* currentTree = theLooper->getWrappedTree();
@@ -124,9 +128,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       OBJECT_HANDLER_SIM_DIRECTIVES;
     }
   }
-  if (!isData){
-    for (auto const& handler:theLooper->getSFHandlers()){
-      SCALEFACTOR_HANDLER_DIRECTIVES;
+  for (auto const& handler:theLooper->getSFHandlers()){
+    SCALEFACTOR_HANDLER_COMMON_DIRECTIVES;
+    if (!isData){
+      SCALEFACTOR_HANDLER_SIM_DIRECTIVES;
     }
   }
 #undef HANDLER_DIRECTIVE
@@ -136,9 +141,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     assert(0); \
   }
   OBJECT_HANDLER_COMMON_DIRECTIVES;
+  SCALEFACTOR_HANDLER_COMMON_DIRECTIVES;
   if (!isData){
     OBJECT_HANDLER_SIM_DIRECTIVES;
-    SCALEFACTOR_HANDLER_DIRECTIVES;
+    SCALEFACTOR_HANDLER_SIM_DIRECTIVES;
   }
 #undef HANDLER_DIRECTIVE
 
@@ -208,6 +214,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(float, leptons_eta) \
   BRANCH_COMMAND(float, leptons_phi) \
   BRANCH_COMMAND(float, leptons_mass) \
+  BRANCH_COMMAND(float, leptons_eff) \
   BRANCH_COMMAND(float, electrons_full5x5_sigmaIEtaIEta) \
   BRANCH_COMMAND(float, electrons_full5x5_sigmaIPhiIPhi) \
   BRANCH_COMMAND(float, electrons_full5x5_r9) \
@@ -291,15 +298,22 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   photonHandler->constructPhotons(theGlobalSyst, &pfcandidates);
   particleDisambiguator.disambiguateParticles(muonHandler, electronHandler, photonHandler);
 
+  std::unordered_map<ParticleObject const*, float> lepton_eff_map;
+
   auto const& muons = muonHandler->getProducts();
   float SF_muons = 1;
   for (auto const& part:muons){
     float theSF = 1;
+    float theEff = 1;
     if (!isData){
-      muonSFHandler->getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
+      muonSFHandler->getIdIsoSFAndEff(theGlobalSyst, part, theSF, &theEff);
       if (theSF == 0.f) continue;
       SF_muons *= theSF;
     }
+    else if (ParticleSelectionHelpers::isTightParticle(part)){
+      muonSFHandler->getIdIsoSFAndEff(theGlobalSyst, part->pt(), part->eta(), true, true, true, theSF, &theEff);
+    }
+    lepton_eff_map[part] = theEff;
   }
   event_wgt_SFs_muons = SF_muons;
 
@@ -307,11 +321,16 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   float SF_electrons = 1;
   for (auto const& part:electrons){
     float theSF = 1;
+    float theEff = 1;
     if (!isData){
-      electronSFHandler->getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
+      electronSFHandler->getIdIsoSFAndEff(theGlobalSyst, part, theSF, &theEff);
       if (theSF == 0.f) continue;
       SF_electrons *= theSF;
     }
+    else if (ParticleSelectionHelpers::isTightParticle(part)){
+      electronSFHandler->getIdIsoSFAndEff(theGlobalSyst, part->pt(), part->etaSC(), part->isGap(), true, true, true, theSF, &theEff);
+    }
+    lepton_eff_map[part] = theEff;
   }
   event_wgt_SFs_electrons = SF_electrons;
 
@@ -391,6 +410,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     leptons_pt.push_back(dau->pt());
     leptons_eta.push_back(dau->eta());
     leptons_phi.push_back(dau->phi());
+
+    // Fill efficiency for the lepton
+    auto it_eff = lepton_eff_map.find(dau);
+    leptons_eff.push_back((it_eff==lepton_eff_map.end() ? 1 : it_eff->second));
 
     // Extra variables for e/gamma efficiency studies
     if (dau_electron){

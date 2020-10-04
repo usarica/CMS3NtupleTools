@@ -141,9 +141,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     assert(0); \
   }
   OBJECT_HANDLER_COMMON_DIRECTIVES;
+  SCALEFACTOR_HANDLER_COMMON_DIRECTIVES;
   if (!isData){
     OBJECT_HANDLER_SIM_DIRECTIVES;
-    SCALEFACTOR_HANDLER_DIRECTIVES;
+    SCALEFACTOR_HANDLER_SIM_DIRECTIVES;
   }
 #undef HANDLER_DIRECTIVE
 
