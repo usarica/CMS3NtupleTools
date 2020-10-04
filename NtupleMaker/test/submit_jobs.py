@@ -56,7 +56,7 @@ def get_tasks(csvs, tarfile, tag, doTestRun):
         outputfilename = outputfilename.lstrip('/')
         outputfilename = outputfilename.replace('/','_')
         outputfilename = outputfilename + ".root"
-        print "Output file: ",outputfilename
+        print("Output file: ",outputfilename)
 
         events_per_output = (150e3 if isdata else 150e3)
         pset_args = sample.info["options"]

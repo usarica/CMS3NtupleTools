@@ -103,7 +103,7 @@ if opts.data and opts.year<2016:
    raise RuntimeError("Data processing must define a year>=2016!")
 
 if opts.doTimingTest:
-   print "Timing test is enabled. Please redirect output to a text file."
+   print("Timing test is enabled. Please redirect output to a text file.")
 
 import CMS3.NtupleMaker.configProcessName as configProcessName
 configProcessName.isFastSim=opts.fastsim
@@ -322,7 +322,7 @@ if opts.triggerListFromFile:
    if triglistfile is None:
       raise RuntimeError("Trigger list file {} cannot be found!".format(opts.triggerListFromFile))
    execfile(triglistfile)
-   print "Applying filter on the following triggers:",customPrunedTriggerCollection
+   print("Applying filter on the following triggers:",customPrunedTriggerCollection)
    process.hltMaker.prunedTriggerNames.extend(customPrunedTriggerCollection)
    doProcessTrigObjs = opts.doTrigObjMatching and len(customPrunedTriggerCollection)>0 and not opts.is80x
    process.hltMaker.recordFilteredTrigObjects = cms.bool(doProcessTrigObjs)
@@ -657,7 +657,7 @@ fixProcessPuppiSources(process, slimmedJetsPuppiCollection, ak4puppijetsTag)
 #process.slimmedCorrectedJets.userData.userFloats.src += ['pileupJetIdUpdated:fullDiscriminant']
 #process.slimmedCorrectedJets.userData.userInts.src += ['pileupJetIdUpdated:fullId']
 
-#print "jetSelectorForMetModifiedMET.cut = ",process.jetSelectorForMetModifiedMET.cut
+#print("jetSelectorForMetModifiedMET.cut = ",process.jetSelectorForMetModifiedMET.cut)
 
 
 # Apply E/Gamma corrections if needed
