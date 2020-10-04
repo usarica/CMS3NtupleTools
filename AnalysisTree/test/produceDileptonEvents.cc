@@ -206,7 +206,11 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(float, ak4jets_pt) \
   BRANCH_COMMAND(float, ak4jets_eta) \
   BRANCH_COMMAND(float, ak4jets_phi) \
-  BRANCH_COMMAND(float, ak4jets_mass)
+  BRANCH_COMMAND(float, ak4jets_mass) \
+  BRANCH_COMMAND(float, ak8jets_pt) \
+  BRANCH_COMMAND(float, ak8jets_eta) \
+  BRANCH_COMMAND(float, ak8jets_phi) \
+  BRANCH_COMMAND(float, ak8jets_mass)
 #define BRANCH_COMMANDS \
   BRANCH_SCALAR_COMMANDS \
   BRANCH_VECTOR_COMMANDS
@@ -450,6 +454,17 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   event_wgt_SFs_PUJetId = SF_PUJetId;
   event_wgt_SFs_btagging = SF_btagging;
   event_n_ak4jets_pt30 = ak4jets_tight.size();
+
+  // Accumulate ak8 jets as well
+  for (auto const& jet:ak8jets){
+    if (!ParticleSelectionHelpers::isTightJet(jet)) continue;
+    if (jet->mass()<60.f) continue;
+
+    ak8jets_pt.push_back(jet->pt());
+    ak8jets_eta.push_back(jet->eta());
+    ak8jets_phi.push_back(jet->phi());
+    ak8jets_mass.push_back(jet->mass());
+  }
 
   auto const& eventmet = (use_MET_Puppi ? jetHandler->getPFPUPPIMET() : jetHandler->getPFMET());
   if (!isData && use_MET_corrections) metCorrectionHandler->applyCorrections(
