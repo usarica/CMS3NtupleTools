@@ -243,6 +243,11 @@ void getTrees(
     BRANCH_COMMAND(float, phi_jets);
     BRANCH_COMMAND(float, mass_jets);
     BRANCH_COMMAND(float, HT_jets);
+    BRANCH_COMMAND(float, pt_jets_eta_lt_2p4);
+    BRANCH_COMMAND(float, eta_jets_eta_lt_2p4);
+    BRANCH_COMMAND(float, phi_jets_eta_lt_2p4);
+    BRANCH_COMMAND(float, mass_jets_eta_lt_2p4);
+    BRANCH_COMMAND(float, HT_jets_eta_lt_2p4);
 #undef BRANCH_COMMAND
     float genmet = 0; float genmet_phimiss = 0;
     if (!isData){
@@ -467,7 +472,9 @@ void getTrees(
       n_pass_HEMfilter++;
 
       HT_jets = 0;
+      HT_jets_eta_lt_2p4 = 0;
       ParticleObject::LorentzVector_t ak4jets_sump4(0, 0, 0, 0);
+      ParticleObject::LorentzVector_t ak4jets_sump4_eta_lt_2p4(0, 0, 0, 0);
       std::vector<AK4JetObject*> ak4jets_tight; ak4jets_tight.reserve(ak4jets.size());
       unsigned int n_ak4jets_tight_btagged = 0;
       float SF_PUJetId = 1;
@@ -486,6 +493,10 @@ void getTrees(
 
           HT_jets += jet->pt();
           ak4jets_sump4 += jet->p4();
+          if (std::abs(jet->eta())<2.4){
+            HT_jets_eta_lt_2p4 += jet->pt();
+            ak4jets_sump4_eta_lt_2p4 += jet->p4();
+          }
         }
       }
       if (n_ak4jets_tight_btagged>0) continue;
@@ -497,6 +508,10 @@ void getTrees(
       eta_jets = ak4jets_sump4.Eta();
       phi_jets = ak4jets_sump4.Phi();
       mass_jets = ak4jets_sump4.M();
+      pt_jets_eta_lt_2p4 = ak4jets_sump4_eta_lt_2p4.Pt();
+      eta_jets_eta_lt_2p4 = ak4jets_sump4_eta_lt_2p4.Eta();
+      phi_jets_eta_lt_2p4 = ak4jets_sump4_eta_lt_2p4.Phi();
+      mass_jets_eta_lt_2p4 = ak4jets_sump4_eta_lt_2p4.M();
 
       tout->Fill();
       n_evts_acc++;
