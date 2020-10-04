@@ -92,11 +92,11 @@ class BatchManager:
             cmdline = cmdline.replace("<doGJets>",row["doGJets"])
 
             spath = self.opt.production_dir+'/'+self.opt.production_tag+'/'+ffoutcore
-            print "=========="
-            print "Checking {}:{}".format(strsample,spath)
+            print("==========")
+            print("Checking {}:{}".format(strsample,spath))
             if not os.path.isdir(spath):
-               print "Sample does not exist!"
-               print "=========="
+               print("Sample does not exist!")
+               print("==========")
                continue
             filelist = [f for f in os.listdir(spath) if (os.path.isfile(os.path.join(spath, f)) and '.root' in f)]
             nfiles = len(filelist)
@@ -119,10 +119,10 @@ class BatchManager:
                   if os.path.isfile(skimname):
                      continue
                   else:
-                     print "Need to regenerate {}".format(skimname)
-               print cmdstr
+                     print("Need to regenerate {}".format(skimname))
+               print(cmdstr)
                cmdlist.append(cmdstr)
-            print "=========="
+            print("==========")
          # Configure jobs
          if not self.opt.dry:
             firstJob=True

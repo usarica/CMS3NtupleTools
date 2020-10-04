@@ -57,15 +57,15 @@ class BatchManager:
          self.opt.outdir = self.opt.outdir.replace(".",os.getcwd(),1)
 
       if not os.path.isfile(self.opt.batchscript):
-         print "Batch script does not exist in current directory, will search for CMSSW_BASE/bin"
+         print("Batch script does not exist in current directory, will search for CMSSW_BASE/bin")
          if os.path.isfile(os.getenv("CMSSW_BASE")+"/bin/"+os.getenv("SCRAM_ARCH")+"/"+self.opt.batchscript):
             self.opt.batchscript = os.getenv("CMSSW_BASE")+"/bin/"+os.getenv("SCRAM_ARCH")+"/"+self.opt.batchscript
-            print "\t- Found the batch script"
+            print("\t- Found the batch script")
          else:
             sys.exit("Batch script {} does not exist. Exiting...".format(self.opt.batchscript))
 
       for theOpt in optchecks:
-         print "Option {}={}".format(theOpt,getattr(self.opt, theOpt))
+         print("Option {}={}".format(theOpt,getattr(self.opt, theOpt)))
 
       self.submitJobs()
 
@@ -143,7 +143,7 @@ queue
 
       jobcmd = "cd {}; condor_submit {}; cd -".format(self.opt.outdir, self.condorScriptName)
       if self.opt.dryRun:
-         print "Job command: '{}'".format(jobcmd)
+         print("Job command: '{}'".format(jobcmd))
       else:
          ret = os.system( jobcmd )
 

@@ -5,7 +5,7 @@ import sys
 
 
 if len(sys.argv) < 3:
-   print "  usage: {0} <JSON file> <first run> <last run>".format(sys.argv[0])
+   print("  usage: {0} <JSON file> <first run> <last run>".format(sys.argv[0]))
    exit(0)
 
 

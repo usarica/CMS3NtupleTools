@@ -6,7 +6,7 @@ import ROOT
 
 
 if len(sys.argv) < 1:
-   print "  usage: {0} <year>".format(sys.argv[0])
+   print("  usage: {0} <year>".format(sys.argv[0]))
    exit(0)
 
 

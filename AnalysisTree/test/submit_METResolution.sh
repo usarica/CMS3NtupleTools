@@ -20,11 +20,7 @@ elif [[ "$period" == "2016" ]]; then
 fi
 
 csvfile="skimSamples_${period}.csv"
-for line in $(cat $csvfile | grep -v "Dataset" | grep -v "#" | grep -e "MINIAODSIM"); do
-  if [[ "${line##*,}" != "true"* ]]; then
-    continue
-  fi
-  sample=${line%%,*}
+for sample in $(readCMS3SkimSamplesFromCSV.py --csv=${csvfile} --sim --tree_req="SinglePhoton"); do
   sampleDir=${sample//MINIAODSIM}
 
   echo "====="

@@ -96,7 +96,7 @@ class BatchManager:
                   condorffout = ffoutcore
                   ffoutcore = ffoutcore.replace('/','_')
 
-                  print "Checking {}".format(strsample)
+                  print("Checking {}".format(strsample))
                   filelist = listFiles(
                      sample = strsample,
                      path = self.opt.method,
@@ -143,7 +143,7 @@ class BatchManager:
                            if row[ix]:
                               stroutlist.append('{}={}'.format(indices[ix],row[ix]))
                      strout = " ".join(stroutlist)
-                     print strout
+                     print(strout)
                      outfile.write(strout+'\n')
                      index_ff = index_ff+1
                      if self.opt.nfiles>0 and index_ff == self.opt.nfiles:
