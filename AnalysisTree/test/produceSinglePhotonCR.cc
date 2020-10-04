@@ -138,6 +138,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   // Recorded variables
 #define BRANCH_SCALAR_COMMANDS \
   BRANCH_COMMAND(float, event_wgt) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_NNPDF30) \
   BRANCH_COMMAND(float, event_wgt_triggers) \
   BRANCH_COMMAND(float, event_wgt_SFs) \
   BRANCH_COMMAND(float, event_wgt_SFs_muons) \
@@ -206,11 +207,16 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
 
   // Always assign the external weight first
   event_wgt = extWgt;
+  // Set NNPDF 3.0 adjustment to 1
+  event_wgt_adjustment_NNPDF30 = 1;
 
   if (!isData){
     genInfoHandler->constructGenInfo(theGlobalSyst);
     auto const& genInfo = genInfoHandler->getGenInfo();
-    event_wgt *= genInfo->getGenWeight(true);
+    double genwgt_NNPDF30 = genInfo->getGenWeight(false);
+    double genwgt_default = genInfo->getGenWeight(true);
+    event_wgt_adjustment_NNPDF30 = (genwgt_default!=0. ? genwgt_NNPDF30 / genwgt_default : 0.);
+    event_wgt *= genwgt_default;
     genmet_pTmiss = genInfo->extras.genmet_met;
     genmet_phimiss = genInfo->extras.genmet_metPhi;
     auto const& genparticles = genInfoHandler->getGenParticles();
