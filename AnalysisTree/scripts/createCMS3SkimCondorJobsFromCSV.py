@@ -63,7 +63,7 @@ class BatchManager:
 
 
    def run(self):
-      cmdlinebase="\"<strSampleSet>\",\"<period>\",\"<prodVersion>\",\"<strdate>\",<ichunk>,<nchunks>,<doDilepton>,<doDilepton_Control>,<doSingleLepton>,<doGJets>"
+      cmdlinebase="\"<strSampleSet>\",\"<period>\",\"<prodVersion>\",\"<strdate>\",<ichunk>,<nchunks>,<doDilepton>,<doDilepton_Control>,<doSingleLepton>,<doSinglePhoton>"
 
       with open(self.infile,"rb") as csvfile:
          csvreader = csv.DictReader(csvfile)
@@ -89,7 +89,7 @@ class BatchManager:
             cmdline = cmdline.replace("<doDilepton>",row["doDilepton"])
             cmdline = cmdline.replace("<doDilepton_Control>",row["doDilepton_Control"])
             cmdline = cmdline.replace("<doSingleLepton>",row["doSingleLepton"])
-            cmdline = cmdline.replace("<doGJets>",row["doGJets"])
+            cmdline = cmdline.replace("<doSinglePhoton>",row["doSinglePhoton"])
 
             spath = self.opt.production_dir+'/'+self.opt.production_tag+'/'+ffoutcore
             print("==========")

@@ -1,4 +1,4 @@
-Dataset,Period,doDilepton,doDilepton_Control,doSingleLepton,doGJets
+Dataset,Period,doDilepton,doDilepton_Control,doSingleLepton,doSinglePhoton
 /DoubleMuon/Run2018A-17Sep2018-v2/MINIAOD,2018,true,true,true,true
 /DoubleMuon/Run2018B-17Sep2018-v1/MINIAOD,2018,true,true,true,true
 /DoubleMuon/Run2018C-17Sep2018-v1/MINIAOD,2018,true,true,true,true

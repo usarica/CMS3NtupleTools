@@ -10,13 +10,13 @@ void produceSkims(
   TString strSampleSet, TString period,
   TString prodVersion, TString strdate="",
   int ichunk=0, int nchunks=0,
-  bool doDilepton=true, bool doDilepton_Control=true, bool doSingleLepton=true, bool doGJets=true
+  bool doDilepton=true, bool doDilepton_Control=true, bool doSingleLepton=true, bool doSinglePhoton=true
 ){
   enum FinalStateType{
     kDilepton,
     kDilepton_Control,
     kSingleLepton,
-    kGJets,
+    kSinglePhoton,
     nFinalStateTypes
   };
 
@@ -40,7 +40,7 @@ void produceSkims(
     TriggerHelpers::kSingleMu, TriggerHelpers::kSingleMu_HighPt, TriggerHelpers::kSingleMu_Prescaled, TriggerHelpers::kSingleMu_Control,
     TriggerHelpers::kSingleEle, TriggerHelpers::kSingleEle_HighPt, TriggerHelpers::kSingleEle_Prescaled, TriggerHelpers::kSingleEle_Control
   };
-  std::vector<TriggerHelpers::TriggerType> requiredTriggers_GJets{
+  std::vector<TriggerHelpers::TriggerType> requiredTriggers_SinglePhoton{
     TriggerHelpers::kSinglePho
   };
   std::vector<TriggerHelpers::TriggerType> requiredTriggers_OrtogonalControl{
@@ -50,7 +50,7 @@ void produceSkims(
   };
   std::vector<std::string> triggerCheckList_Dilepton = TriggerHelpers::getHLTMenus(requiredTriggers_Dilepton);
   std::vector<std::string> triggerCheckList_SingleLepton = TriggerHelpers::getHLTMenus(requiredTriggers_SingleLepton);
-  std::vector<std::string> triggerCheckList_GJets = TriggerHelpers::getHLTMenus(requiredTriggers_GJets);
+  std::vector<std::string> triggerCheckList_SinglePhoton = TriggerHelpers::getHLTMenus(requiredTriggers_SinglePhoton);
   std::vector<std::string> triggerCheckList_OrtogonalControl = TriggerHelpers::getHLTMenus(requiredTriggers_OrtogonalControl);
 
   std::vector<TString> validDataPeriods = SampleHelpers::getValidDataPeriods();
@@ -329,10 +329,10 @@ void produceSkims(
       outtree[kSingleLepton]->SetName("SingleLepton");
       outtree[kSingleLepton]->SetAutoSave(0);
     }
-    if (doGJets){
-      outtree[kGJets] = sample_tree.getSelectedTree()->CloneTree(0);
-      outtree[kGJets]->SetName("SinglePhoton");
-      outtree[kGJets]->SetAutoSave(0);
+    if (doSinglePhoton){
+      outtree[kSinglePhoton] = sample_tree.getSelectedTree()->CloneTree(0);
+      outtree[kSinglePhoton]->SetName("SinglePhoton");
+      outtree[kSinglePhoton]->SetAutoSave(0);
     }
 
     // Loop over the tree
@@ -357,7 +357,7 @@ void produceSkims(
 
       float trigwgt_dilepton = eventFilter.getTriggerWeight(triggerCheckList_Dilepton);
       float trigwgt_singlelepton = eventFilter.getTriggerWeight(triggerCheckList_SingleLepton);
-      float trigwgt_gjets = eventFilter.getTriggerWeight(triggerCheckList_GJets);
+      float trigwgt_gjets = eventFilter.getTriggerWeight(triggerCheckList_SinglePhoton);
       float trigwgt_orthogonalcontrol = eventFilter.getTriggerWeight(triggerCheckList_OrtogonalControl);
       trigwgt_singlelepton += trigwgt_orthogonalcontrol;
       trigwgt_gjets += trigwgt_orthogonalcontrol;
@@ -462,7 +462,7 @@ void produceSkims(
           ||
           (n_leptons_tight_predisambiguation==0 && (n_muons_fakeable_predisambiguation==1 || n_electrons_fakeable_predisambiguation==1))
           );
-        doRecordTree[kGJets] |= (
+        doRecordTree[kSinglePhoton] |= (
           (n_photons_tight==1 && n_leptons_tight==0)
           ||
           (n_photons_tight_predisambiguation==1 && n_leptons_tight_predisambiguation==0)
@@ -488,7 +488,7 @@ void produceSkims(
       doRecordTree[kDilepton] &= (outtree[kDilepton] && trigwgt_dilepton!=0.f);
       doRecordTree[kDilepton_Control] &= (outtree[kDilepton_Control] && trigwgt_dilepton!=0.f);
       doRecordTree[kSingleLepton] &= (outtree[kSingleLepton] && trigwgt_singlelepton!=0.f);
-      doRecordTree[kGJets] &= (outtree[kGJets] && trigwgt_gjets!=0.f);
+      doRecordTree[kSinglePhoton] &= (outtree[kSinglePhoton] && trigwgt_gjets!=0.f);
       if (doRecordTree[kDilepton]){
         outtree[kDilepton]->Fill();
         n_acc[kDilepton]++;
@@ -502,9 +502,9 @@ void produceSkims(
         n_acc[kSingleLepton]++;
       }
 
-      if (doRecordTree[kGJets]){
-        outtree[kGJets]->Fill();
-        n_acc[kGJets]++;
+      if (doRecordTree[kSinglePhoton]){
+        outtree[kSinglePhoton]->Fill();
+        n_acc[kSinglePhoton]++;
       }
     }
     MELAout << sample_tree.sampleIdentifier << " total number of accumulated events: "

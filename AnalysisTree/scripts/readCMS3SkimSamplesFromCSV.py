@@ -74,7 +74,7 @@ class BatchManager:
             hasDilepton = (row["doDilepton"] == 'true')
             hasDileptonControl = (row["doDilepton_Control"] == 'true')
             hasSingleLepton = (row["doSingleLepton"] == 'true')
-            hasSinglePhoton = (row["doGJets"] == 'true')
+            hasSinglePhoton = (row["doSinglePhoton"] == 'true')
 
             if (not isMC and not self.opt.data) or (isMC and not self.opt.sim):
                continue
