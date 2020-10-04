@@ -20,6 +20,12 @@ public:
   typedef void(*LooperExtFunction_t)(BaseTreeLooper*, SimpleEntry&);
 
 protected:
+  enum SampleIdStorageType{
+    kNoStorage,
+    kStoreByRunAndEventNumber,
+    kStoreByMH
+  };
+
   // Function to determine if event should be included
   LooperCoreFunction_t looperFunction;
 

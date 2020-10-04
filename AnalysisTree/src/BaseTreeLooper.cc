@@ -12,6 +12,7 @@
 #include "SimEventHandler.h"
 #include "GenInfoHandler.h"
 #include "EventFilterHandler.h"
+#include "RunLumiEventBlock.h"
 
 #include "HelperFunctions.h"
 #include "HostHelpersCore.h"
@@ -232,6 +233,8 @@ void BaseTreeLooper::recordProductsToTree(){
   }
 
   BaseTree::writeSimpleEntries(this->productListRef->cbegin(), this->productListRef->cend(), this->currentProductTree, it_tree->second);
+
+  it_tree->second = false;
   this->clearProducts();
 }
 
@@ -245,6 +248,12 @@ bool BaseTreeLooper::wrapTree(BaseTree* tree){
   this->isQCD_currentTree = !this->isData_currentTree && sid.Contains("QCD") && sid.Contains("HT");
   if (!this->isData_currentTree && (sid.Contains("ZGTo2NuG") || sid.Contains("ZGTo2LG")) && sid.Contains("amcatnloFXFX") && !sid.Contains("PtG-130")) set_pTG_exception_range(-1, 130);
   else set_pTG_exception_range(-1, -1);
+
+  if (this->isData_currentTree){
+#define RUNLUMIEVENT_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<TYPE>(#NAME, DEFVAL); this->addConsumed<TYPE>(#NAME); this->defineConsumedSloppy(#NAME);
+    RUNLUMIEVENT_VARIABLES;
+#undef RUNLUMIEVENT_VARIABLE
+  }
 
   for (auto const& handler:registeredHandlers){
     bool isHandlerForSim = (dynamic_cast<GenInfoHandler*>(handler) != nullptr || dynamic_cast<SimEventHandler*>(handler) != nullptr);
@@ -318,6 +327,27 @@ void BaseTreeLooper::loop(bool keepProducts){
       assert(0);
     }
 
+#define RUNLUMIEVENT_VARIABLE(TYPE, NAME, DEFVAL) TYPE const* NAME = nullptr;
+    RUNLUMIEVENT_VARIABLES;
+#undef RUNLUMIEVENT_VARIABLE
+    float MHval = -1;
+    SampleIdStorageType sampleIdOpt = kNoStorage;
+    if (this->isData_currentTree){
+      sampleIdOpt = kStoreByRunAndEventNumber;
+      bool rlenPresent = true;
+#define RUNLUMIEVENT_VARIABLE(TYPE, NAME, DEFVAL) rlenPresent &= this->getConsumed(#NAME, NAME);
+      RUNLUMIEVENT_VARIABLES;
+#undef RUNLUMIEVENT_VARIABLE
+      if (!rlenPresent){
+        if (this->verbosity>=TVar::ERROR) MELAerr << "BaseTreeLooper::loop: Run number, lumi block, or event number are not consumed properly..." << endl;
+        assert(0);
+      }
+    }
+    else{
+      MHval = SampleHelpers::findPoleMass(tree->sampleIdentifier);
+      if (MHval>0.f) sampleIdOpt = kStoreByMH;
+    }
+
     double globalTreeWeight = 1;
     auto it_globalWgt = globalWeights.find(tree);
     if (it_globalWgt!=globalWeights.cend()) globalTreeWeight = it_globalWgt->second;
@@ -337,6 +367,12 @@ void BaseTreeLooper::loop(bool keepProducts){
         ){
         if (tree->getEvent(ev)){
           SimpleEntry product;
+          if (sampleIdOpt==kStoreByRunAndEventNumber){
+#define RUNLUMIEVENT_VARIABLE(TYPE, NAME, DEFVAL) product.setNamedVal<TYPE>(#NAME, *NAME);
+            RUNLUMIEVENT_VARIABLES;
+#undef RUNLUMIEVENT_VARIABLE
+          }
+          else if (sampleIdOpt==kStoreByMH) product.setNamedVal("SampleMHVal", MHval);
           if (tree->isValidEvent()){
             if (this->looperFunction(this, globalTreeWeight, product)){
               if (keepProducts) this->addProduct(product, &ev_rec);
