@@ -118,7 +118,53 @@ void getDataTrees(std::vector<TString>& list, SystematicsHelpers::SystematicVari
   SampleHelpers::constructSamplesList(Form("Run%s", SampleHelpers::theDataPeriod.Data()), theGlobalSyst, list);
 }
 void getMCTrees(std::vector<TString>& list, SystematicsHelpers::SystematicVariationTypes theGlobalSyst){
-  SampleHelpers::constructSamplesList("GJets_topology", theGlobalSyst, list);
+  switch (SampleHelpers::getDataYear()){
+  case 2016:
+    SampleHelpers::constructSamplesList("WJets_lnu_inclusive_ext", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("GJets_HT", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("QCD_HT", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("TTJets", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("TGJets", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("TTGJets", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("qqWG_lnu", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("WZG", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("ZJets_nunu_HT", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("ZGJets_nunu_nlo", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("ZGJets_ll_nlo", theGlobalSyst, list);
+    break;
+  case 2017:
+    SampleHelpers::constructSamplesList("WJets_lnu_0j", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("WJets_lnu_1j_ext", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("WJets_lnu_2j_ext", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("GJets_HT", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("QCD_HT", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("TTJets", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("TGJets", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("TTGJets", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("qqWG_lnu", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("WZG", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("ZJets_nunu_HT", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("ZGJets_nunu_nlo", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("ZGJets_ll_pTG_40-130", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("ZGJets_ll_nlo_pTG", theGlobalSyst, list);
+    break;
+  case 2018:
+    SampleHelpers::constructSamplesList("WJets_lnu_0j", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("WJets_lnu_1j_ext", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("WJets_lnu_2j_ext", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("GJets_HT", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("QCD_HT", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("TTJets", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("TGJets", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("TTGJets", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("qqWG_lnu", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("WZG", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("ZJets_nunu_HT", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("ZGJets_nunu_nlo", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("ZGJets_ll_pTG_40-130", theGlobalSyst, list);
+    SampleHelpers::constructSamplesList("ZGJets_ll_nlo_pTG", theGlobalSyst, list);
+    break;
+  }
 }
 
 float getWeightThreshold(TTree* tin, std::vector<float const*> weights){
@@ -174,11 +220,12 @@ std::vector<SystematicsHelpers::SystematicVariationTypes> getAllowedSysts(){
 
 Variable getVariable(TString name){
   if (name=="pt_gamma"){
-    ExtendedBinning binning({ 150, 170, 190, 215, 240, 270, 300, 400, 600, 610 });
+    ExtendedBinning binning({ 100, 125, 150, 170, 190, 215, 240, 270, 300, 400, 600, 610 });
     return Variable(name, "p_{T}^{#gamma} (GeV)", binning);
   }
   else if (name=="eta_gamma"){
-    ExtendedBinning binning({ -2.5, -2., -1.566, -1.4442, -1., 0., 1., 1.4442, 1.566, 2., 2.5 });
+    //ExtendedBinning binning({ -2.5, -2., -1.566, -1.4442, -1., 0., 1., 1.4442, 1.566, 2., 2.5 });
+    ExtendedBinning binning({ -1.479, -1., 0., 1., 1.479 });
     return Variable(name, "#eta_{#gamma}", binning);
   }
   else if (name=="Nvtx"){
@@ -195,6 +242,10 @@ Variable getVariable(TString name){
   else if (name=="HT_jets"){
     ExtendedBinning binning({ 30, 50, 75, 100, 150, 300, 600, 1000, 1010 });
     return Variable(name, "H_{T}^{jets} (GeV)", binning);
+  }
+  else if (name=="HT_jets_eta_lt_2p4"){
+    ExtendedBinning binning({ 0, 30, 50, 75, 100, 150, 300, 600, 1000, 1010 });
+    return Variable(name, "H_{T}^{jets} (|#eta_{jet}|<2.4) (GeV)", binning);
   }
   else if (name=="abs_uPerp"){
     ExtendedBinning binning({ 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110 });
@@ -222,7 +273,7 @@ void produceCorrection(
   TString strdate, unsigned int istep,
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal
 ){
-  if (istep==0 || istep>3) return;
+  if (istep==0 || istep>4) return;
   gStyle->SetOptStat(0);
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
@@ -321,7 +372,8 @@ void produceCorrection(
   BRANCH_COMMAND(float, eta_jets) \
   BRANCH_COMMAND(float, phi_jets) \
   BRANCH_COMMAND(float, mass_jets) \
-  BRANCH_COMMAND(float, HT_jets)
+  BRANCH_COMMAND(float, HT_jets) \
+  BRANCH_COMMAND(float, HT_jets_eta_lt_2p4)
 
 #define BRANCH_COMMAND(type, name) type name = 0;
   BRANCH_COMMANDS;
@@ -346,12 +398,14 @@ void produceCorrection(
   Variable var_Nvtx = getVariable("Nvtx"); allvars.push_back(&var_Nvtx);
   Variable var_Njets = getVariable("Njets"); allvars.push_back(&var_Njets);
   Variable var_jetHT = getVariable("HT_jets"); allvars.push_back(&var_jetHT);
+  Variable var_jetHT_eta_lt_2p4 = getVariable("HT_jets_eta_lt_2p4"); allvars.push_back(&var_jetHT_eta_lt_2p4);
   Variable var_abs_uPerp = getVariable("abs_uPerp"); allvars.push_back(&var_abs_uPerp);
   Variable var_uParallel = getVariable("uParallel"); allvars.push_back(&var_uParallel);
 
   std::vector<std::vector<Variable*>> varlists={
     { &var_pTG, &var_etaG, &var_Nvtx },
     { &var_pTG, &var_Njets, &var_jetHT },
+    { &var_pTG, &var_jetHT, &var_jetHT_eta_lt_2p4 },
     { &var_Njets, &var_abs_uPerp, &var_uParallel }
   };
   std::vector<Variable*>& varlist = varlists.at(istep-1);
@@ -398,7 +452,8 @@ void produceCorrection(
 
       if (!is_conversionSafe || !is_beamHaloSafe || !is_spikeSafe || !is_PFID || !is_METSafe) continue;
       if (event_Njets==0) continue;
-      if (pt_gamma<150.f) continue;
+      if (pt_gamma<100.f) continue;
+      if (!isEB) continue;
       
       float wgt = event_wgt*event_wgt_SFs*event_wgt_triggers;
       if (MC_wgt_thr>0.f && std::abs(wgt)>MC_wgt_thr) continue;
@@ -414,6 +469,7 @@ void produceCorrection(
         else if (var->name=="Nvtx") var->setVal(event_n_vtxs_good);
         else if (var->name=="Njets") var->setVal(event_Njets);
         else if (var->name=="HT_jets") var->setVal(HT_jets);
+        else if (var->name=="HT_jets_eta_lt_2p4") var->setVal(HT_jets_eta_lt_2p4);
         else if (var->name=="abs_uPerp") var->setVal(std::abs(uPerp));
         else if (var->name=="uParallel") var->setVal(uParallel);
       }
@@ -493,7 +549,7 @@ void produceCorrections(int year, TString prodVersion, TString strdate){
 
   for (auto const& period:SampleHelpers::getValidDataPeriods()){
     for (auto const& syst:getAllowedSysts()){
-      for (unsigned int istep=0; istep<3; istep++) produceCorrection(period, prodVersion, strdate, istep+1, syst);
+      for (unsigned int istep=0; istep<4; istep++) produceCorrection(period, prodVersion, strdate, istep+1, syst);
     }
   }
 }
@@ -535,6 +591,7 @@ bool printParameterWithAsymErrors(RooRealVar const& par, TString prefix){
 
 void produceFinalFits(
   TString period, TString prodVersion, TString strdate,
+  bool use_jets_eta_lt_2p4,
   TString METtype, TString METCorrectionLevels,
   unsigned int nGaussians = 3,
   float abs_dPhi_gamma_jets_thr = 2.7
@@ -607,7 +664,7 @@ void produceFinalFits(
     }
   }
 
-  TString stroutput = coutput_main + "/" + Form("fitparameters_%s_%s.txt", strMEToutname.Data(), period.Data());
+  TString stroutput = coutput_main + "/" + Form("fitparameters_%s_%s_%s.txt", strMEToutname.Data(), (!use_jets_eta_lt_2p4 ? "abseta_lt_4p7" : "abseta_lt_2p4"), period.Data());
   HostHelpers::ExecuteCommand(Form("rm -f %s", stroutput.Data()));
 
   TDirectory* curdir = gDirectory;
@@ -618,11 +675,13 @@ void produceFinalFits(
   Variable var_Nvtx = getVariable("Nvtx"); allvars.push_back(&var_Nvtx);
   Variable var_Njets = getVariable("Njets"); allvars.push_back(&var_Njets);
   Variable var_jetHT = getVariable("HT_jets"); allvars.push_back(&var_jetHT);
+  Variable var_jetHT_eta_lt_2p4 = getVariable("HT_jets_eta_lt_2p4"); allvars.push_back(&var_jetHT_eta_lt_2p4);
   Variable var_abs_uPerp = getVariable("abs_uPerp"); allvars.push_back(&var_abs_uPerp);
   Variable var_uParallel = getVariable("uParallel"); allvars.push_back(&var_uParallel);
   std::vector<std::vector<Variable*>> varlists={
     { &var_pTG, &var_etaG, &var_Nvtx },
     { &var_pTG, &var_Njets, &var_jetHT },
+    { &var_pTG, &var_jetHT, &var_jetHT_eta_lt_2p4 },
     { &var_Njets, &var_abs_uPerp, &var_uParallel }
   };
 
@@ -652,7 +711,8 @@ void produceFinalFits(
   BRANCH_COMMAND(float, eta_jets) \
   BRANCH_COMMAND(float, phi_jets) \
   BRANCH_COMMAND(float, mass_jets) \
-  BRANCH_COMMAND(float, HT_jets)
+  BRANCH_COMMAND(float, HT_jets) \
+  BRANCH_COMMAND(float, HT_jets_eta_lt_2p4)
 
 #define BRANCH_COMMAND(type, name) type name = 0;
   BRANCH_COMMANDS;
@@ -692,6 +752,8 @@ void produceFinalFits(
   // Get sample specifications
   double sumWgts_data = 0;
   for (unsigned int it=0; it<allowedSysts.size()+1; it++){
+    if (use_jets_eta_lt_2p4 && it>1) break;
+
     std::string strSystName = SystematicsHelpers::getSystName(it==0 ? SystematicsHelpers::sNominal : allowedSysts.at(it-1));
     TString systname = strSystName.data();
     TString systlabel = systname;
@@ -728,7 +790,7 @@ void produceFinalFits(
     std::vector<TFile*> finput_corrs;
     std::vector<TH3F*> hcorrs; hcorrs.reserve(3);
     if (it>0){
-      for (unsigned int istep=0; istep<3; istep++){
+      for (unsigned int istep=0; istep<varlists.size(); istep++){
         TString strcorrfile = Form("Step%u_%s%s", istep+1, strSystName.data(), ".root");
 
         TFile* finput_corr = TFile::Open(cinput_corrections_main + "/" + strcorrfile, "read");
@@ -764,7 +826,9 @@ void produceFinalFits(
 
         if (!is_conversionSafe || !is_beamHaloSafe || !is_spikeSafe || !is_PFID || !is_METSafe) continue;
         if (event_Njets==0) continue;
-        if (pt_gamma<150.f) continue;
+        if (pt_gamma<100.f) continue;
+        if (!isEB) continue;
+        if (use_jets_eta_lt_2p4 && std::abs(HT_jets_eta_lt_2p4-HT_jets)>0.1) continue;
 
         float wgt = event_wgt*event_wgt_SFs*event_wgt_triggers;
         if (MC_wgt_thr>0.f && std::abs(wgt)>MC_wgt_thr) continue;
@@ -786,6 +850,7 @@ void produceFinalFits(
           else if (var->name=="Nvtx") var->setVal(event_n_vtxs_good);
           else if (var->name=="Njets") var->setVal(event_Njets);
           else if (var->name=="HT_jets") var->setVal(HT_jets);
+          else if (var->name=="HT_jets_eta_lt_2p4") var->setVal(HT_jets_eta_lt_2p4);
           else if (var->name=="abs_uPerp") var->setVal(std::abs(uPerp));
           else if (var->name=="uParallel") var->setVal(uParallel);
         }
@@ -1325,100 +1390,102 @@ void produceFinalFits(
   }
 }
 void produceFinalFitSets(int year, TString prodVersion, TString strdate){
-  produceCorrections(year, prodVersion, strdate);
+ // produceCorrections(year, prodVersion, strdate);
 
   SampleHelpers::configure(Form("%i", year), "hadoop_skims:"+prodVersion);
 
   for (auto const& period:SampleHelpers::getValidDataPeriods()){
-    produceFinalFits(
-      period, prodVersion, strdate,
-      "pfmet", "XY:JER:PartMomShifts:p4Preserved"
-    );
-    produceFinalFits(
-      period, prodVersion, strdate,
-      "pfmet", "XY:PartMomShifts:p4Preserved"
-    );
-    produceFinalFits(
-      period, prodVersion, strdate,
-      "pfmet", "JER:PartMomShifts:p4Preserved"
-    );
-    produceFinalFits(
-      period, prodVersion, strdate,
-      "pfmet", "PartMomShifts:p4Preserved"
-    );
-    /*
-    produceFinalFits(
-      period, prodVersion, strdate,
-      "pfmet", "XY:JER:p4Preserved"
-    );
-    produceFinalFits(
-      period, prodVersion, strdate,
-      "pfmet", "XY:p4Preserved"
-    );
-    produceFinalFits(
-      period, prodVersion, strdate,
-      "pfmet", "JER:p4Preserved"
-    );
-    produceFinalFits(
-      period, prodVersion, strdate,
-      "pfmet", "p4Preserved"
-    );
-    */
-    produceFinalFits(
-      period, prodVersion, strdate,
-      "pfmet", "XY:JER:PartMomShifts"
-    );
-    produceFinalFits(
-      period, prodVersion, strdate,
-      "pfmet", "XY:PartMomShifts"
-    );
-    produceFinalFits(
-      period, prodVersion, strdate,
-      "pfmet", "JER:PartMomShifts"
-    );
-    produceFinalFits(
-      period, prodVersion, strdate,
-      "pfmet", "PartMomShifts"
-    );
-    /*
-    produceFinalFits(
-      period, prodVersion, strdate,
-      "pfmet", "XY:JER"
-    );
-    produceFinalFits(
-      period, prodVersion, strdate,
-      "pfmet", "XY"
-    );
-    produceFinalFits(
-      period, prodVersion, strdate,
-      "pfmet", "JER"
-    );
-    produceFinalFits(
-      period, prodVersion, strdate,
-      "pfmet", ""
-    );
-    */
+    for (unsigned short ieta=0; ieta<2; ieta++){
+      produceFinalFits(
+        period, prodVersion, strdate, ieta,
+        "pfmet", "XY:JER:PartMomShifts:p4Preserved"
+      );
+      produceFinalFits(
+        period, prodVersion, strdate, ieta,
+        "pfmet", "XY:PartMomShifts:p4Preserved"
+      );
+      produceFinalFits(
+        period, prodVersion, strdate, ieta,
+        "pfmet", "JER:PartMomShifts:p4Preserved"
+      );
+      produceFinalFits(
+        period, prodVersion, strdate, ieta,
+        "pfmet", "PartMomShifts:p4Preserved"
+      );
+      /*
+      produceFinalFits(
+        period, prodVersion, strdate, ieta,
+        "pfmet", "XY:JER:p4Preserved"
+      );
+      produceFinalFits(
+        period, prodVersion, strdate, ieta,
+        "pfmet", "XY:p4Preserved"
+      );
+      produceFinalFits(
+        period, prodVersion, strdate, ieta,
+        "pfmet", "JER:p4Preserved"
+      );
+      produceFinalFits(
+        period, prodVersion, strdate, ieta,
+        "pfmet", "p4Preserved"
+      );
+      */
+      produceFinalFits(
+        period, prodVersion, strdate, ieta,
+        "pfmet", "XY:JER:PartMomShifts"
+      );
+      produceFinalFits(
+        period, prodVersion, strdate, ieta,
+        "pfmet", "XY:PartMomShifts"
+      );
+      produceFinalFits(
+        period, prodVersion, strdate, ieta,
+        "pfmet", "JER:PartMomShifts"
+      );
+      produceFinalFits(
+        period, prodVersion, strdate, ieta,
+        "pfmet", "PartMomShifts"
+      );
+      /*
+      produceFinalFits(
+        period, prodVersion, strdate, ieta,
+        "pfmet", "XY:JER"
+      );
+      produceFinalFits(
+        period, prodVersion, strdate, ieta,
+        "pfmet", "XY"
+      );
+      produceFinalFits(
+        period, prodVersion, strdate, ieta,
+        "pfmet", "JER"
+      );
+      produceFinalFits(
+        period, prodVersion, strdate, ieta,
+        "pfmet", ""
+      );
+      */
 
-    produceFinalFits(
-      period, prodVersion, strdate,
-      "puppimet", "PartMomShifts:p4Preserved"
-    );
-    /*
-    produceFinalFits(
-      period, prodVersion, strdate,
-      "puppimet", "p4Preserved"
-    );
-    */
-    produceFinalFits(
-      period, prodVersion, strdate,
-      "puppimet", "PartMomShifts"
-    );
-    /*
-    produceFinalFits(
-      period, prodVersion, strdate,
-      "puppimet", ""
-    );
-    */
+      produceFinalFits(
+        period, prodVersion, strdate, ieta,
+        "puppimet", "PartMomShifts:p4Preserved"
+      );
+      /*
+      produceFinalFits(
+        period, prodVersion, strdate, ieta,
+        "puppimet", "p4Preserved"
+      );
+      */
+      produceFinalFits(
+        period, prodVersion, strdate, ieta,
+        "puppimet", "PartMomShifts"
+      );
+      /*
+      produceFinalFits(
+        period, prodVersion, strdate, ieta,
+        "puppimet", ""
+      );
+      */
+    }
   }
 }
 
@@ -1511,11 +1578,13 @@ void getCorrectionValidationHistograms(
   Variable var_Nvtx = getVariable("Nvtx"); allvars.push_back(&var_Nvtx);
   Variable var_Njets = getVariable("Njets"); allvars.push_back(&var_Njets);
   Variable var_jetHT = getVariable("HT_jets"); allvars.push_back(&var_jetHT);
+  Variable var_jetHT_eta_lt_2p4 = getVariable("HT_jets_eta_lt_2p4"); allvars.push_back(&var_jetHT_eta_lt_2p4);
   Variable var_abs_uPerp = getVariable("abs_uPerp"); allvars.push_back(&var_abs_uPerp);
   Variable var_uParallel = getVariable("uParallel"); allvars.push_back(&var_uParallel);
   std::vector<std::vector<Variable*>> varlists={
     { &var_pTG, &var_etaG, &var_Nvtx },
     { &var_pTG, &var_Njets, &var_jetHT },
+    { &var_pTG, &var_jetHT, &var_jetHT_eta_lt_2p4 },
     { &var_Njets, &var_abs_uPerp, &var_uParallel }
   };
 
@@ -1547,7 +1616,8 @@ void getCorrectionValidationHistograms(
   BRANCH_COMMAND(float, eta_jets) \
   BRANCH_COMMAND(float, phi_jets) \
   BRANCH_COMMAND(float, mass_jets) \
-  BRANCH_COMMAND(float, HT_jets)
+  BRANCH_COMMAND(float, HT_jets) \
+  BRANCH_COMMAND(float, HT_jets_eta_lt_2p4)
 
 #define BRANCH_COMMAND(type, name) type name = 0;
   BRANCH_COMMANDS;
@@ -1634,7 +1704,7 @@ void getCorrectionValidationHistograms(
     std::vector<TFile*> finput_corrs;
     std::vector<TH3F*> hcorrs; hcorrs.reserve(3);
     if (it>0){
-      for (unsigned int istep=0; istep<3; istep++){
+      for (unsigned int istep=0; istep<varlists.size(); istep++){
         TString strcorrfile = Form("Step%u_%s%s", istep+1, strSystName.data(), ".root");
 
         TFile* finput_corr = TFile::Open(cinput_corrections_main + "/" + strcorrfile, "read");
@@ -1666,8 +1736,8 @@ void getCorrectionValidationHistograms(
 
         if (!is_conversionSafe || !is_beamHaloSafe || !is_spikeSafe || !is_PFID || !is_METSafe) continue;
         if (event_Njets==0) continue;
-        if (pt_gamma<150.f) continue;
-        //if (!isEB) continue;
+        if (pt_gamma<100.f) continue;
+        if (!isEB) continue;
 
         float wgt = event_wgt*event_wgt_SFs*event_wgt_triggers;
         if (MC_wgt_thr>0.f && std::abs(wgt)>MC_wgt_thr) continue;
@@ -1685,6 +1755,7 @@ void getCorrectionValidationHistograms(
           else if (var->name=="Nvtx") var->setVal(event_n_vtxs_good);
           else if (var->name=="Njets") var->setVal(event_Njets);
           else if (var->name=="HT_jets") var->setVal(HT_jets);
+          else if (var->name=="HT_jets_eta_lt_2p4") var->setVal(HT_jets_eta_lt_2p4);
           else if (var->name=="abs_uPerp") var->setVal(std::abs(uPerp));
           else if (var->name=="uParallel") var->setVal(uParallel);
         }

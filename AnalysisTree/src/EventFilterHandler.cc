@@ -108,7 +108,8 @@ float EventFilterHandler::getTriggerWeight(
   std::vector<AK4JetObject*> const* ak4jets,
   std::vector<AK8JetObject*> const* ak8jets,
   METObject const* pfmet,
-  HLTTriggerPathObject const** firstPassingHLTPath
+  HLTTriggerPathObject const** firstPassingHLTPath,
+  std::vector<ParticleObject const*>* outparticles_TOmatched
 ) const{
   unsigned int isize=0;
   for (auto const& p:hltpathprops_) isize += p->second.size();
@@ -119,7 +120,7 @@ float EventFilterHandler::getTriggerWeight(
   return getTriggerWeight(
     hltpathprops_new,
     muons, electrons, photons, ak4jets, ak8jets, pfmet,
-    firstPassingHLTPath
+    firstPassingHLTPath, outparticles_TOmatched
   );
 }
 float EventFilterHandler::getTriggerWeight(
@@ -130,7 +131,8 @@ float EventFilterHandler::getTriggerWeight(
   std::vector<AK4JetObject*> const* ak4jets,
   std::vector<AK8JetObject*> const* ak8jets,
   METObject const* pfmet,
-  HLTTriggerPathObject const** firstPassingHLTPath
+  HLTTriggerPathObject const** firstPassingHLTPath,
+  std::vector<ParticleObject const*>* outparticles_TOmatched
 ) const{
   if (hltpathprops_.empty()) return 0;
 
@@ -208,7 +210,7 @@ float EventFilterHandler::getTriggerWeight(
 
         if (
           hltprop.testCuts(
-          (!checkTriggerObjectsForHLTPaths ? muons_trigcheck : muons_trigcheck_TOmatched),
+            (!checkTriggerObjectsForHLTPaths ? muons_trigcheck : muons_trigcheck_TOmatched),
             (!checkTriggerObjectsForHLTPaths ? electrons_trigcheck : electrons_trigcheck_TOmatched),
             (!checkTriggerObjectsForHLTPaths ? photons_trigcheck : photons_trigcheck_TOmatched),
             ak4jets_trigcheck,
@@ -225,6 +227,13 @@ float EventFilterHandler::getTriggerWeight(
           if (wgt == 0.f) continue;
           else{
             if (firstPassingHLTPath) *firstPassingHLTPath = prod;
+            if (outparticles_TOmatched && checkTriggerObjectsForHLTPaths){
+              outparticles_TOmatched->clear();
+              outparticles_TOmatched->reserve(muons_trigcheck_TOmatched.size() + electrons_trigcheck_TOmatched.size() + photons_trigcheck_TOmatched.size());
+              for (auto const& part:muons_trigcheck_TOmatched) outparticles_TOmatched->push_back(part);
+              for (auto const& part:electrons_trigcheck_TOmatched) outparticles_TOmatched->push_back(part);
+              for (auto const& part:photons_trigcheck_TOmatched) outparticles_TOmatched->push_back(part);
+            }
             return wgt; // Take the first trigger that passed.
           }
         }

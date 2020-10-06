@@ -9,6 +9,7 @@ CONDOROUTDIR="/hadoop/cms/store/user/<USER>/Offshell_2L2Nu/Worker"
 EXTRATARCMD=""
 QUEUE="vanilla"
 REQMEM="2048M"
+JOBFLAVOR="tomorrow"
 
 let recreate=0
 let checkproxy=1
@@ -45,6 +46,10 @@ for fargo in "$@";do
     fcnargname="$farg"
     fcnargname="${fcnargname#*=}"
     REQMEM="$fcnargname"
+  elif [[ "$fargl" == "job_flavor="* ]];then
+    fcnargname="$farg"
+    fcnargname="${fcnargname#*=}"
+    JOBFLAVOR="$fcnargname"
   elif [[ "$fargl" == "tarinclude="* ]];then
     fcnargname="$farg"
     fcnargname="${fcnargname#*=}"
@@ -71,6 +76,7 @@ if [[ $printhelp -eq 1 ]] || [[ -z "$SCRIPT" ]]; then
   echo " - date: Date of the generation; does not have to be an actual date. Default=[today's date in YYMMDD format]"
   echo " - condoroutdir: Condor output directory to override. Default=/hadoop/cms/store/user/<USER>/Offshell_2L2Nu/Worker"
   echo " - memory: Required RAM for the job. Default='2048M'"
+  echo " - job_flavor: Required time limit flavor for the job. Default='tomorrow'"
   echo " - tarinclude: Include extra files in the tar. Can specify multiple times. Default: None"
   echo " - recreate: Force the recreation of the job directories"
   echo " - no-proxycheck: Do not check the proxy"
@@ -162,7 +168,7 @@ if [[ $recreate -eq 1 ]] || [[ ! -e $theOutdir ]]; then
 
   configureCMS3AnalysisTreeCondorJob.py \
     --tarfile="$TARFILE" --batchqueue="$THEQUEUE" --outdir="$theOutdir" \
-    --script="$SCRIPT" --fcn="$FCN" --fcnargs="${FCNARGS}" --required_memory="${REQMEM}" \
+    --script="$SCRIPT" --fcn="$FCN" --fcnargs="${FCNARGS}" --required_memory="${REQMEM}" --job_flavor="${JOBFLAVOR}" \
     --condorsite="$THECONDORSITE" --condoroutdir="$THECONDOROUTDIR" \
     --outlog="Logs/log_job" --errlog="Logs/err_job" --batchscript="runCMS3AnalysisTree.condor.sh" --dry
 fi

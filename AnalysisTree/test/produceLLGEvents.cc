@@ -95,14 +95,24 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     MELAerr << "LooperFunctionHelpers::looperRule: Defining both simple HLT menus and menus with properties is not allowed. Choose only one!" << endl;
     assert(0);
   }
-  auto it_HLTMenuSimple_OSSF = triggerCheckListMap.find("Dilepton_OSSF");
-  auto it_HLTMenuProps_OSSF = triggerPropsCheckListMap.find("Dilepton_OSSF");
+  auto it_HLTMenuSimple_SingleLepton = triggerCheckListMap.find("SingleLepton");
+  auto it_HLTMenuProps_SingleLepton = triggerPropsCheckListMap.find("SingleLepton");
   if (
-    (hasSimpleHLTMenus && it_HLTMenuSimple_OSSF == triggerCheckListMap.cend())
+    (hasSimpleHLTMenus && it_HLTMenuSimple_SingleLepton == triggerCheckListMap.cend())
     ||
-    (hasHLTMenuProperties && it_HLTMenuProps_OSSF == triggerPropsCheckListMap.cend())
+    (hasHLTMenuProperties && it_HLTMenuProps_SingleLepton == triggerPropsCheckListMap.cend())
     ){
-    MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'Dilepton_OSSF' has to be defined in this looper rule!" << endl;
+    MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'SingleLepton' has to be defined in this looper rule!" << endl;
+    assert(0);
+  }
+  auto it_HLTMenuSimple_Dilepton = triggerCheckListMap.find("Dilepton");
+  auto it_HLTMenuProps_Dilepton = triggerPropsCheckListMap.find("Dilepton");
+  if (
+    (hasSimpleHLTMenus && it_HLTMenuSimple_Dilepton == triggerCheckListMap.cend())
+    ||
+    (hasHLTMenuProperties && it_HLTMenuProps_Dilepton == triggerPropsCheckListMap.cend())
+    ){
+    MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'Dilepton' has to be defined in this looper rule!" << endl;
     assert(0);
   }
   auto it_HLTMenuSimple_SinglePhoton = triggerCheckListMap.find("SinglePhoton");
@@ -155,7 +165,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
 #define BRANCH_SCALAR_COMMANDS \
   BRANCH_COMMAND(float, event_wgt) \
   BRANCH_COMMAND(float, event_wgt_adjustment_NNPDF30) \
-  BRANCH_COMMAND(float, event_wgt_triggers_OSSF) \
+  BRANCH_COMMAND(float, event_wgt_triggers_SingleLepton) \
+  BRANCH_COMMAND(float, event_wgt_triggers_Dilepton) \
   BRANCH_COMMAND(float, event_wgt_triggers_SinglePhoton) \
   BRANCH_COMMAND(float, event_wgt_SFs) \
   BRANCH_COMMAND(float, event_wgt_SFs_muons) \
@@ -210,6 +221,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(float, min_abs_dPhi_pTj_pTmiss)
 #define BRANCH_VECTOR_COMMANDS \
   BRANCH_COMMAND(bool, leptons_is_genMatched_prompt) \
+  BRANCH_COMMAND(bool, leptons_is_TOmatched_SingleLepton) \
   BRANCH_COMMAND(cms3_id_t, leptons_id) \
   BRANCH_COMMAND(float, leptons_pt) \
   BRANCH_COMMAND(float, leptons_eta) \
@@ -410,6 +422,40 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   dilepton_eta = theChosenDilepton->eta();
   dilepton_phi = theChosenDilepton->phi();
   dilepton_mass = theChosenDilepton->m();
+  // Filter out low-mass resonances
+  if (dilepton_mass<12.f) return false;
+
+  jetHandler->constructJetMET(theGlobalSyst, &muons, &electrons, &photons, &pfcandidates);
+  auto const& ak4jets = jetHandler->getAK4Jets();
+  auto const& ak8jets = jetHandler->getAK8Jets();
+
+  std::vector<ParticleObject const*> leptons_TOmatched_SingleLepton;
+  if (hasSimpleHLTMenus){
+    event_wgt_triggers_SingleLepton = eventFilter->getTriggerWeight(it_HLTMenuSimple_SingleLepton->second);
+    event_wgt_triggers_Dilepton = eventFilter->getTriggerWeight(it_HLTMenuSimple_Dilepton->second);
+    event_wgt_triggers_SinglePhoton = eventFilter->getTriggerWeight(it_HLTMenuSimple_SinglePhoton->second);
+  }
+  else if (hasHLTMenuProperties){
+    event_wgt_triggers_SingleLepton = eventFilter->getTriggerWeight(
+      it_HLTMenuProps_SingleLepton->second,
+      &muons, &electrons, nullptr, nullptr, nullptr, nullptr,
+      nullptr, &leptons_TOmatched_SingleLepton
+    );
+    event_wgt_triggers_Dilepton = eventFilter->getTriggerWeight(
+      it_HLTMenuProps_Dilepton->second,
+      &muons, &electrons, nullptr, nullptr, nullptr, nullptr
+    );
+    event_wgt_triggers_SinglePhoton = eventFilter->getTriggerWeight(
+      it_HLTMenuProps_SinglePhoton->second,
+      nullptr, nullptr, &photons, nullptr, nullptr, nullptr
+    );
+  }
+  if ((event_wgt_triggers_SingleLepton + event_wgt_triggers_Dilepton + event_wgt_triggers_SinglePhoton) == 0.f) return false;
+
+  // Test HEM filter
+  if (!eventFilter->test2018HEMFilter(simEventHandler, nullptr, nullptr, &ak4jets, &ak8jets)) return false;
+
+  // Fill leptons after trigger checks
   for (auto const& dau:theChosenDilepton->getDaughters()){
     MuonObject* dau_muon = dynamic_cast<MuonObject*>(dau);
     ElectronObject* dau_electron = dynamic_cast<ElectronObject*>(dau);
@@ -420,6 +466,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     leptons_pt.push_back(dau->pt());
     leptons_eta.push_back(dau->eta());
     leptons_phi.push_back(dau->phi());
+    leptons_is_TOmatched_SingleLepton.push_back(HelperFunctions::checkListVariable(leptons_TOmatched_SingleLepton, (ParticleObject const*) dau));
 
     // Fill efficiency for the lepton
     auto it_eff = lepton_eff_map.find(dau);
@@ -435,29 +482,6 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       electrons_seedTime.push_back(extras.seedTime);
     }
   }
-
-  jetHandler->constructJetMET(theGlobalSyst, &muons, &electrons, &photons, &pfcandidates);
-  auto const& ak4jets = jetHandler->getAK4Jets();
-  auto const& ak8jets = jetHandler->getAK8Jets();
-
-  if (hasSimpleHLTMenus){
-    event_wgt_triggers_OSSF = eventFilter->getTriggerWeight(it_HLTMenuSimple_OSSF->second);
-    event_wgt_triggers_SinglePhoton = eventFilter->getTriggerWeight(it_HLTMenuSimple_SinglePhoton->second);
-  }
-  else if (hasHLTMenuProperties){
-    event_wgt_triggers_OSSF = eventFilter->getTriggerWeight(
-      it_HLTMenuProps_OSSF->second,
-      &muons, &electrons, nullptr, nullptr, nullptr, nullptr
-    );
-    event_wgt_triggers_SinglePhoton = eventFilter->getTriggerWeight(
-      it_HLTMenuProps_SinglePhoton->second,
-      nullptr, nullptr, &photons, nullptr, nullptr, nullptr
-    );
-  }
-  if ((event_wgt_triggers_OSSF + event_wgt_triggers_SinglePhoton) == 0.f) return false;
-
-  // Test HEM filter
-  if (!eventFilter->test2018HEMFilter(simEventHandler, nullptr, nullptr, &ak4jets, &ak8jets)) return false;
 
   ParticleObject::LorentzVector_t sump4_ak4jets(0, 0, 0, 0);
   std::vector<AK4JetObject*> ak4jets_tight; ak4jets_tight.reserve(ak4jets.size());
@@ -687,14 +711,17 @@ void getTrees(
   BtagHelpers::setBtagWPType(BtagHelpers::kDeepFlav_Loose);
   LooperFunctionHelpers::setBtagWPs();
 
-  std::vector<TriggerHelpers::TriggerType> requiredTriggers_OSSF{
-    TriggerHelpers::kDoubleMu,
-    TriggerHelpers::kDoubleEle, TriggerHelpers::kDoubleEle_HighPt,
+  std::vector<TriggerHelpers::TriggerType> requiredTriggers_SingleLepton{
     TriggerHelpers::kSingleMu, TriggerHelpers::kSingleMu_HighPt,
     TriggerHelpers::kSingleEle, TriggerHelpers::kSingleEle_HighPt
   };
+  std::vector<TriggerHelpers::TriggerType> requiredTriggers_Dilepton{
+    TriggerHelpers::kDoubleMu,
+    TriggerHelpers::kDoubleEle, TriggerHelpers::kDoubleEle_HighPt
+  };
   std::vector<TriggerHelpers::TriggerType> requiredTriggers_SinglePhoton{ TriggerHelpers::kSinglePho };
-  auto triggerPropsCheckList_OSSF = TriggerHelpers::getHLTMenuProperties(requiredTriggers_OSSF);
+  auto triggerPropsCheckList_SingleLepton = TriggerHelpers::getHLTMenuProperties(requiredTriggers_SingleLepton);
+  auto triggerPropsCheckList_Dilepton = TriggerHelpers::getHLTMenuProperties(requiredTriggers_Dilepton);
   auto triggerPropsCheckList_SinglePhoton = TriggerHelpers::getHLTMenuProperties(requiredTriggers_SinglePhoton);
 
   // Get sample specifications
@@ -849,7 +876,8 @@ void getTrees(
   // Set output tree
   theLooper.addOutputTree(tout);
   // Register the HLT menus
-  theLooper.addHLTMenu("Dilepton_OSSF", triggerPropsCheckList_OSSF);
+  theLooper.addHLTMenu("SingleLepton", triggerPropsCheckList_SingleLepton);
+  theLooper.addHLTMenu("Dilepton", triggerPropsCheckList_Dilepton);
   theLooper.addHLTMenu("SinglePhoton", triggerPropsCheckList_SinglePhoton);
   // Set the MEs
   if (computeMEs) theLooper.setMatrixElementListFromFile(

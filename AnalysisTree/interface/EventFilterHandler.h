@@ -71,7 +71,8 @@ public:
     std::vector<AK4JetObject*> const* ak4jets,
     std::vector<AK8JetObject*> const* ak8jets,
     METObject const* pfmet,
-    HLTTriggerPathObject const** firstPassingHLTPath = nullptr
+    HLTTriggerPathObject const** firstPassingHLTPath = nullptr,
+    std::vector<ParticleObject const*>* outparticles_TOmatched = nullptr
   ) const;
   float getTriggerWeight(
     std::vector< std::pair<TriggerHelpers::TriggerType, HLTTriggerPathProperties const*> > const& hltpathprops_,
@@ -81,7 +82,8 @@ public:
     std::vector<AK4JetObject*> const* ak4jets,
     std::vector<AK8JetObject*> const* ak8jets,
     METObject const* pfmet,
-    HLTTriggerPathObject const** firstPassingHLTPath = nullptr
+    HLTTriggerPathObject const** firstPassingHLTPath = nullptr,
+    std::vector<ParticleObject const*>* outparticles_TOmatched = nullptr
   ) const;
   bool passMETFilters(EventFilterHandler::METFilterCutType const& cuttype) const;
   // Special event filters for various specific issues

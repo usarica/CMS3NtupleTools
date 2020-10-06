@@ -36,6 +36,7 @@ class BatchManager:
       self.parser.add_option("--fcnargs", type="string", help="Arguments to the function")
 
       self.parser.add_option("--required_memory", type="string", default="2048M", help="Required RAM for the job")
+      self.parser.add_option("--job_flavor", type="string", default="tomorrow", help="Time limit for job (tomorrow = 1 day, workday = 8 hours, see https://batchdocs.web.cern.ch/local/submit.html#job-flavours for more)")
 
       self.parser.add_option("--dry", dest="dryRun", action="store_true", default=False, help="Do not submit jobs, just set up the files")
 
@@ -107,7 +108,8 @@ class BatchManager:
          "SCRIPT" : self.opt.script,
          "FCN" : self.opt.fcn,
          "FCNARGS" : self.opt.fcnargs,
-         "REQMEM" : self.opt.required_memory
+         "REQMEM" : self.opt.required_memory,
+         "JOBFLAVOR" : self.opt.job_flavor
       }
 
       scriptcontents = """
@@ -120,7 +122,7 @@ output                  = {outLog}.$(ClusterId).$(ProcId).txt
 error                   = {errLog}.$(ClusterId).$(ProcId).err
 log                     = $(ClusterId).$(ProcId).log
 request_memory          = {REQMEM}
-+JobFlavour             = "tomorrow"
++JobFlavour             = "{JOBFLAVOR}"
 x509userproxy           = {home}/x509up_u{uid}
 #https://www-auth.cs.wisc.edu/lists/htcondor-users/2010-September/msg00009.shtml
 periodic_remove         = JobStatus == 5
