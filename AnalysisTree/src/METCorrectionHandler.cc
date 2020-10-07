@@ -70,23 +70,38 @@ bool METCorrectionHandler::setup(){
     SystematicsHelpers::ePUDn, SystematicsHelpers::ePUUp
   };
   for (auto const& period:allowedDataPeriods){
+    pfmet_XY_JER_p4Preserved_map[period]=std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>();
+    pfmet_JER_p4Preserved_map[period]=std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>();
+    pfmet_XY_p4Preserved_map[period]=std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>();
+    pfmet_p4Preserved_map[period]=std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>();
+    puppimet_p4Preserved_map[period]=std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>();
     pfmet_XY_JER_map[period]=std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>();
     pfmet_JER_map[period]=std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>();
     pfmet_XY_map[period]=std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>();
     pfmet_map[period]=std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>();
     puppimet_map[period]=std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>();
     for (auto const& syst:allowedSysts){
+      pfmet_XY_JER_p4Preserved_map[period][syst]=METCorrectionParameters();
+      pfmet_JER_p4Preserved_map[period][syst]=METCorrectionParameters();
+      pfmet_XY_p4Preserved_map[period][syst]=METCorrectionParameters();
+      pfmet_p4Preserved_map[period][syst]=METCorrectionParameters();
+      puppimet_p4Preserved_map[period][syst]=METCorrectionParameters();
       pfmet_XY_JER_map[period][syst]=METCorrectionParameters();
       pfmet_JER_map[period][syst]=METCorrectionParameters();
       pfmet_XY_map[period][syst]=METCorrectionParameters();
       pfmet_map[period][syst]=METCorrectionParameters();
       puppimet_map[period][syst]=METCorrectionParameters();
     }
-    readFile(strinputcore + "fitparameters_pfmet_JEC_XY_JER_PartMomShifts_" + period + ".txt", pfmet_XY_JER_map[period]);
-    readFile(strinputcore + "fitparameters_pfmet_JEC_JER_PartMomShifts_" + period + ".txt", pfmet_JER_map[period]);
-    readFile(strinputcore + "fitparameters_pfmet_JEC_XY_PartMomShifts_" + period + ".txt", pfmet_XY_map[period]);
-    readFile(strinputcore + "fitparameters_pfmet_JEC_PartMomShifts_" + period + ".txt", pfmet_map[period]);
-    readFile(strinputcore + "fitparameters_puppimet_JEC_PartMomShifts_" + period + ".txt", puppimet_map[period]);
+    readFile(strinputcore + "fitparameters_pfmet_JEC_XY_JER_PartMomShifts_p4Preserved_abseta_lt_4p7_" + period + ".txt", pfmet_XY_JER_p4Preserved_map[period]);
+    readFile(strinputcore + "fitparameters_pfmet_JEC_JER_PartMomShifts_p4Preserved_abseta_lt_4p7_" + period + ".txt", pfmet_JER_p4Preserved_map[period]);
+    readFile(strinputcore + "fitparameters_pfmet_JEC_XY_PartMomShifts_p4Preserved_abseta_lt_4p7_" + period + ".txt", pfmet_XY_p4Preserved_map[period]);
+    readFile(strinputcore + "fitparameters_pfmet_JEC_PartMomShifts_p4Preserved_abseta_lt_4p7_" + period + ".txt", pfmet_p4Preserved_map[period]);
+    readFile(strinputcore + "fitparameters_puppimet_JEC_PartMomShifts_p4Preserved_abseta_lt_4p7_" + period + ".txt", puppimet_p4Preserved_map[period]);
+    readFile(strinputcore + "fitparameters_pfmet_JEC_XY_JER_PartMomShifts_abseta_lt_4p7_" + period + ".txt", pfmet_XY_JER_map[period]);
+    readFile(strinputcore + "fitparameters_pfmet_JEC_JER_PartMomShifts_abseta_lt_4p7_" + period + ".txt", pfmet_JER_map[period]);
+    readFile(strinputcore + "fitparameters_pfmet_JEC_XY_PartMomShifts_abseta_lt_4p7_" + period + ".txt", pfmet_XY_map[period]);
+    readFile(strinputcore + "fitparameters_pfmet_JEC_PartMomShifts_abseta_lt_4p7_" + period + ".txt", pfmet_map[period]);
+    readFile(strinputcore + "fitparameters_puppimet_JEC_PartMomShifts_abseta_lt_4p7_" + period + ".txt", puppimet_map[period]);
   }
 
   return res;
@@ -139,6 +154,11 @@ void METCorrectionHandler::readFile(TString const& strinput, std::unordered_map<
 }
 
 void METCorrectionHandler::reset(){
+  pfmet_XY_JER_p4Preserved_map.clear();
+  pfmet_JER_p4Preserved_map.clear();
+  pfmet_XY_p4Preserved_map.clear();
+  pfmet_p4Preserved_map.clear();
+  puppimet_p4Preserved_map.clear();
   pfmet_XY_JER_map.clear();
   pfmet_JER_map.clear();
   pfmet_XY_map.clear();
@@ -152,7 +172,6 @@ void METCorrectionHandler::applyCorrections(
   METObject* obj, bool isPFMET,
   double const* inputRndNum
 ) const{
-  constexpr bool iP4Preserve = false; // FIXME
   static const std::vector<SystematicsHelpers::SystematicVariationTypes> allowedSysts{
     SystematicsHelpers::sNominal,
     SystematicsHelpers::eJECDn, SystematicsHelpers::eJECUp,
@@ -174,112 +193,90 @@ void METCorrectionHandler::applyCorrections(
 
   for (unsigned short iXY=0; iXY<2; iXY++){
     for (unsigned short iJER=0; iJER<2; iJER++){
-      std::unordered_map<
-        TString,
-        std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>
-      > const* theMap = nullptr;
-      if (!isPFMET) theMap = &puppimet_map;
-      else{
-        if (iXY==0 && iJER==0) theMap = &pfmet_map;
-        else if (iXY==0 && iJER==1) theMap = &pfmet_JER_map;
-        else if (iXY==1 && iJER==0) theMap = &pfmet_XY_map;
-        else theMap = &pfmet_XY_JER_map;
-      }
-
-      auto it = theMap->find(effDataPeriod);
-      if (it==theMap->cend()){
-        MELAerr << "METCorrectionHandler::applyCorrections: The data period " << effDataPeriod << " for (XY, JER) = (" << iXY << ", " << iJER << ") cannot be found!" << endl;
-        assert(0);
-      }
-      METCorrectionParameters const& pars_data = it->second.find(SystematicsHelpers::nSystematicVariations)->second;
-      METCorrectionParameters const& pars_MC = it->second.find(effSyst)->second;
-
-      unsigned int iGaussian = pars_data.sigmas_nominal.size()-1;
-      for (unsigned int ifrac=0; ifrac<pars_data.fracs.size(); ifrac++){
-        if (frac_x<pars_data.fracs.at(ifrac)){
-          iGaussian = ifrac;
-          break;
+      for (unsigned short iP4Preserve=0; iP4Preserve<2; iP4Preserve++){
+        std::unordered_map<
+          TString,
+          std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>
+        > const* theMap = nullptr;
+        if (!isPFMET) theMap = (iP4Preserve==0 ? &puppimet_map : &puppimet_p4Preserved_map);
+        else{
+          if (iXY==0 && iJER==0) theMap = (iP4Preserve==0 ? &pfmet_map : &pfmet_p4Preserved_map);
+          else if (iXY==0 && iJER==1) theMap = (iP4Preserve==0 ? &pfmet_JER_map : &pfmet_JER_p4Preserved_map);
+          else if (iXY==1 && iJER==0) theMap = (iP4Preserve==0 ? &pfmet_XY_map : &pfmet_XY_p4Preserved_map);
+          else theMap = (iP4Preserve==0 ? &pfmet_XY_JER_map : &pfmet_XY_JER_p4Preserved_map);
         }
-      }
 
-      float const& sigma_nominal_data = pars_data.sigmas_nominal.at(iGaussian);
-      float const& sigma_dn_data = pars_data.sigmas_dn.at(iGaussian);
-      float const& sigma_up_data = pars_data.sigmas_up.at(iGaussian);
+        auto it = theMap->find(effDataPeriod);
+        if (it==theMap->cend()){
+          MELAerr << "METCorrectionHandler::applyCorrections: The data period " << effDataPeriod << " for (XY, JER, p4Preserve) = (" << iXY << ", " << iJER << ", " << iP4Preserve << ") cannot be found!" << endl;
+          assert(0);
+        }
+        METCorrectionParameters const& pars_data = it->second.find(SystematicsHelpers::nSystematicVariations)->second;
+        METCorrectionParameters const& pars_MC = it->second.find(effSyst)->second;
 
-      float const& sigma_nominal_MC = pars_MC.sigmas_nominal.at(iGaussian);
-      float const& sigma_dn_MC = pars_MC.sigmas_dn.at(iGaussian);
-      float const& sigma_up_MC = pars_MC.sigmas_up.at(iGaussian);
+        unsigned int iGaussian = pars_data.sigmas_nominal.size()-1;
+        for (unsigned int ifrac=0; ifrac<pars_data.fracs.size(); ifrac++){
+          if (frac_x<pars_data.fracs.at(ifrac)){
+            iGaussian = ifrac;
+            break;
+          }
+        }
 
-      float const SF_nominal = sigma_nominal_data / sigma_nominal_MC;
-      float SF = SF_nominal;
-      if (syst == SystematicsHelpers::eMETDn) SF = SF_nominal - std::sqrt(std::pow(sigma_dn_data / sigma_nominal_MC - SF_nominal, 2) + std::pow(sigma_nominal_data / sigma_up_MC - SF_nominal, 2));
-      else if (syst == SystematicsHelpers::eMETUp) SF = SF_nominal + std::sqrt(std::pow(sigma_up_data / sigma_nominal_MC - SF_nominal, 2) + std::pow(sigma_nominal_data / sigma_dn_MC - SF_nominal, 2));
+        float const& sigma_nominal_data = pars_data.sigmas_nominal.at(iGaussian);
+        float const& sigma_dn_data = pars_data.sigmas_dn.at(iGaussian);
+        float const& sigma_up_data = pars_data.sigmas_up.at(iGaussian);
 
-      for (unsigned short iPMS=0; iPMS<2; iPMS++){
-        ParticleObject::LorentzVector_t met_p4_diff = obj->p4((bool) iXY, (bool) iJER, (bool) iPMS, (bool) iP4Preserve) - genmet_p4;
-        met_p4_diff *= SF-1.f;
-        obj->setMETCorrection(met_p4_diff, (bool) iXY, (bool) iJER, (bool) iPMS, (bool) iP4Preserve);
+        float const& sigma_nominal_MC = pars_MC.sigmas_nominal.at(iGaussian);
+        float const& sigma_dn_MC = pars_MC.sigmas_dn.at(iGaussian);
+        float const& sigma_up_MC = pars_MC.sigmas_up.at(iGaussian);
+
+        float const SF_nominal = sigma_nominal_data / sigma_nominal_MC;
+        float SF = SF_nominal;
+        if (syst == SystematicsHelpers::eMETDn) SF = SF_nominal - std::sqrt(std::pow(sigma_dn_data / sigma_nominal_MC - SF_nominal, 2) + std::pow(sigma_nominal_data / sigma_up_MC - SF_nominal, 2));
+        else if (syst == SystematicsHelpers::eMETUp) SF = SF_nominal + std::sqrt(std::pow(sigma_up_data / sigma_nominal_MC - SF_nominal, 2) + std::pow(sigma_nominal_data / sigma_dn_MC - SF_nominal, 2));
+
+        for (unsigned short iPMS=0; iPMS<2; iPMS++){
+          ParticleObject::LorentzVector_t met_p4_diff = obj->p4((bool) iXY, (bool) iJER, (bool) iPMS, (bool) iP4Preserve) - genmet_p4;
+          met_p4_diff *= SF-1.f;
+          obj->setMETCorrection(met_p4_diff, (bool) iXY, (bool) iJER, (bool) iPMS, (bool) iP4Preserve);
+        }
       }
     }
   }
 }
 
+void METCorrectionHandler::printParameters(
+  std::unordered_map<
+  TString,
+  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>
+  > const& met_map,
+  TString const& mname
+) const{
+  MELAout << "****************************" << endl;
+  MELAout << "METCorrectionHandler::printParameters: Parameters of " << mname << " corrections:" << endl;
+  for (auto const& it:met_map){
+    for (auto const& it2:it.second){
+      MELAout << "\t- Period " << it.first << ", systematic " << (it2.first!=SystematicsHelpers::nSystematicVariations ? SystematicsHelpers::getSystName(it2.first) : "data") << ": " << endl;
+      MELAout << "\t\t- Fractions: " << it2.second.fracs << endl;
+      MELAout << "\t\t- Nominal sigmas: " << it2.second.sigmas_nominal << endl;
+      MELAout << "\t\t- MET dn sigmas: " << it2.second.sigmas_dn << endl;
+      MELAout << "\t\t- MET up sigmas: " << it2.second.sigmas_up << endl;
+    }
+  }
+  MELAout << "****************************" << endl;
+}
+
+
 void METCorrectionHandler::printParameters() const{
-  MELAout << "****************************" << endl;
-  MELAout << "METCorrectionHandler::printParameters: Parameters of pfmet_XY_JER corrections:" << endl;
-  for (auto it:pfmet_XY_JER_map){
-    for (auto it2:it.second){
-      MELAout << "\t- Period " << it.first << ", systematic " << (it2.first!=SystematicsHelpers::nSystematicVariations ? SystematicsHelpers::getSystName(it2.first) : "data") << ": " << endl;
-      MELAout << "\t\t- Fractions: " << it2.second.fracs << endl;
-      MELAout << "\t\t- Nominal sigmas: " << it2.second.sigmas_nominal << endl;
-      MELAout << "\t\t- MET dn sigmas: " << it2.second.sigmas_dn << endl;
-      MELAout << "\t\t- MET up sigmas: " << it2.second.sigmas_up << endl;
-    }
-  }
-  MELAout << "****************************" << endl;
-  MELAout << "METCorrectionHandler::printParameters: Parameters of pfmet_JER corrections:" << endl;
-  for (auto it:pfmet_JER_map){
-    for (auto it2:it.second){
-      MELAout << "\t- Period " << it.first << ", systematic " << (it2.first!=SystematicsHelpers::nSystematicVariations ? SystematicsHelpers::getSystName(it2.first) : "data") << ": " << endl;
-      MELAout << "\t\t- Fractions: " << it2.second.fracs << endl;
-      MELAout << "\t\t- Nominal sigmas: " << it2.second.sigmas_nominal << endl;
-      MELAout << "\t\t- MET dn sigmas: " << it2.second.sigmas_dn << endl;
-      MELAout << "\t\t- MET up sigmas: " << it2.second.sigmas_up << endl;
-    }
-  }
-  MELAout << "****************************" << endl;
-  MELAout << "METCorrectionHandler::printParameters: Parameters of pfmet_XY corrections:" << endl;
-  for (auto it:pfmet_XY_map){
-    for (auto it2:it.second){
-      MELAout << "\t- Period " << it.first << ", systematic " << (it2.first!=SystematicsHelpers::nSystematicVariations ? SystematicsHelpers::getSystName(it2.first) : "data") << ": " << endl;
-      MELAout << "\t\t- Fractions: " << it2.second.fracs << endl;
-      MELAout << "\t\t- Nominal sigmas: " << it2.second.sigmas_nominal << endl;
-      MELAout << "\t\t- MET dn sigmas: " << it2.second.sigmas_dn << endl;
-      MELAout << "\t\t- MET up sigmas: " << it2.second.sigmas_up << endl;
-    }
-  }
-  MELAout << "****************************" << endl;
-  MELAout << "METCorrectionHandler::printParameters: Parameters of pfmet bare corrections:" << endl;
-  for (auto it:pfmet_map){
-    for (auto it2:it.second){
-      MELAout << "\t- Period " << it.first << ", systematic " << (it2.first!=SystematicsHelpers::nSystematicVariations ? SystematicsHelpers::getSystName(it2.first) : "data") << ": " << endl;
-      MELAout << "\t\t- Fractions: " << it2.second.fracs << endl;
-      MELAout << "\t\t- Nominal sigmas: " << it2.second.sigmas_nominal << endl;
-      MELAout << "\t\t- MET dn sigmas: " << it2.second.sigmas_dn << endl;
-      MELAout << "\t\t- MET up sigmas: " << it2.second.sigmas_up << endl;
-    }
-  }
-  MELAout << "****************************" << endl;
-  MELAout << "METCorrectionHandler::printParameters: Parameters of puppimet corrections:" << endl;
-  for (auto it:puppimet_map){
-    for (auto it2:it.second){
-      MELAout << "\t- Period " << it.first << ", systematic " << (it2.first!=SystematicsHelpers::nSystematicVariations ? SystematicsHelpers::getSystName(it2.first) : "data") << ": " << endl;
-      MELAout << "\t\t- Fractions: " << it2.second.fracs << endl;
-      MELAout << "\t\t- Nominal sigmas: " << it2.second.sigmas_nominal << endl;
-      MELAout << "\t\t- MET dn sigmas: " << it2.second.sigmas_dn << endl;
-      MELAout << "\t\t- MET up sigmas: " << it2.second.sigmas_up << endl;
-    }
-  }
-  MELAout << "****************************" << endl;
+  printParameters(pfmet_XY_JER_p4Preserved_map, "pfmet_XY_JER_p4Preserved");
+  printParameters(pfmet_JER_p4Preserved_map, "pfmet_JER_p4Preserved");
+  printParameters(pfmet_XY_p4Preserved_map, "pfmet_XY_p4Preserved");
+  printParameters(pfmet_p4Preserved_map, "pfmet_p4Preserved");
+  printParameters(puppimet_p4Preserved_map, "puppimet_p4Preserved");
+  printParameters(pfmet_XY_JER_map, "pfmet_XY_JER");
+  printParameters(pfmet_JER_map, "pfmet_JER");
+  printParameters(pfmet_XY_map, "pfmet_XY");
+  printParameters(pfmet_map, "pfmet");
+  printParameters(puppimet_map, "puppimet");
 }
 

@@ -125,6 +125,16 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'Dilepton_SF' has to be defined in this looper rule!" << endl;
     assert(0);
   }
+  auto it_HLTMenuSimple_PFHT_Control = triggerCheckListMap.find("PFHT_Control");
+  auto it_HLTMenuProps_PFHT_Control = triggerPropsCheckListMap.find("PFHT_Control");
+  if (
+    (hasSimpleHLTMenus && it_HLTMenuSimple_PFHT_Control == triggerCheckListMap.cend())
+    ||
+    (hasHLTMenuProperties && it_HLTMenuProps_PFHT_Control == triggerPropsCheckListMap.cend())
+    ){
+    MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'PFHT_Control' has to be defined in this looper rule!" << endl;
+    assert(0);
+  }
 
   // Acquire all handlers
 #define HANDLER_DIRECTIVE(TYPE, NAME) TYPE* NAME = nullptr;
@@ -167,6 +177,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(float, event_wgt_adjustment_NNPDF30) \
   BRANCH_COMMAND(float, event_wgt_triggers_SingleLepton) \
   BRANCH_COMMAND(float, event_wgt_triggers_Dilepton) \
+  BRANCH_COMMAND(float, event_wgt_triggers_PFHT_Control) \
   BRANCH_COMMAND(float, event_wgt_SFs) \
   BRANCH_COMMAND(float, event_wgt_SFs_muons) \
   BRANCH_COMMAND(float, event_wgt_SFs_electrons) \
@@ -387,6 +398,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   if (hasSimpleHLTMenus){
     event_wgt_triggers_SingleLepton = eventFilter->getTriggerWeight(it_HLTMenuSimple_SingleLepton->second);
     event_wgt_triggers_Dilepton = eventFilter->getTriggerWeight((dilepton_is_SF ? it_HLTMenuSimple_Dilepton_SF : it_HLTMenuSimple_Dilepton_DF)->second);
+    event_wgt_triggers_PFHT_Control = eventFilter->getTriggerWeight(it_HLTMenuSimple_PFHT_Control->second);
   }
   else if (hasHLTMenuProperties){
     event_wgt_triggers_SingleLepton = eventFilter->getTriggerWeight(
@@ -397,6 +409,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     event_wgt_triggers_Dilepton = eventFilter->getTriggerWeight(
       (dilepton_is_SF ? it_HLTMenuProps_Dilepton_SF : it_HLTMenuProps_Dilepton_DF)->second,
       &muons, &electrons, nullptr, nullptr, nullptr, nullptr
+    );
+    event_wgt_triggers_PFHT_Control = eventFilter->getTriggerWeight(
+      it_HLTMenuProps_PFHT_Control->second,
+      nullptr, nullptr, nullptr, &ak4jets, nullptr, nullptr
     );
   }
   if ((event_wgt_triggers_SingleLepton + event_wgt_triggers_Dilepton) == 0.f) return false;
@@ -671,9 +687,11 @@ void getTrees(
     TriggerHelpers::kDoubleMu,
     TriggerHelpers::kDoubleEle, TriggerHelpers::kDoubleEle_HighPt
   };
+  std::vector<TriggerHelpers::TriggerType> requiredTriggers_PFHT_Control{ TriggerHelpers::kPFHT_Control };
   auto triggerPropsCheckList_SingleLepton = TriggerHelpers::getHLTMenuProperties(requiredTriggers_SingleLepton);
   auto triggerPropsCheckList_Dilepton_DF = TriggerHelpers::getHLTMenuProperties(requiredTriggers_Dilepton_DF);
   auto triggerPropsCheckList_Dilepton_SF = TriggerHelpers::getHLTMenuProperties(requiredTriggers_Dilepton_SF);
+  auto triggerPropsCheckList_PFHT_Control = TriggerHelpers::getHLTMenuProperties(requiredTriggers_PFHT_Control);
 
   // Get sample specifications
   std::vector<TString> sampledirs;
@@ -830,6 +848,7 @@ void getTrees(
   theLooper.addHLTMenu("SingleLepton", triggerPropsCheckList_SingleLepton);
   theLooper.addHLTMenu("Dilepton_DF", triggerPropsCheckList_Dilepton_DF);
   theLooper.addHLTMenu("Dilepton_SF", triggerPropsCheckList_Dilepton_SF);
+  theLooper.addHLTMenu("PFHT_Control", triggerPropsCheckList_PFHT_Control);
   // Set the MEs
   if (computeMEs) theLooper.setMatrixElementListFromFile(
     "${CMSSW_BASE}/src/CMS3/AnalysisTree/data/RecoProbabilities/RecoProbabilities.me",

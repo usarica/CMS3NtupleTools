@@ -33,6 +33,26 @@ protected:
   std::unordered_map<
     TString,
     std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>
+  > pfmet_XY_JER_p4Preserved_map;
+  std::unordered_map<
+    TString,
+    std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>
+  > pfmet_JER_p4Preserved_map;
+  std::unordered_map<
+    TString,
+    std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>
+  > pfmet_XY_p4Preserved_map;
+  std::unordered_map<
+    TString,
+    std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>
+  > pfmet_p4Preserved_map;
+  std::unordered_map<
+    TString,
+    std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>
+  > puppimet_p4Preserved_map;
+  std::unordered_map<
+    TString,
+    std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>
   > pfmet_XY_JER_map;
   std::unordered_map<
     TString,
@@ -52,6 +72,14 @@ protected:
   > puppimet_map;
 
   void readFile(TString const& strinput, std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>& pars);
+
+  void printParameters(
+    std::unordered_map<
+    TString,
+    std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>
+    > const& met_map,
+    TString const& mname
+  ) const;
 
 public:
   METCorrectionHandler();
