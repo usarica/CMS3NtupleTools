@@ -415,7 +415,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       nullptr, nullptr, nullptr, &ak4jets, nullptr, nullptr
     );
   }
-  if ((event_wgt_triggers_SingleLepton + event_wgt_triggers_Dilepton) == 0.f) return false;
+  if ((event_wgt_triggers_SingleLepton + event_wgt_triggers_Dilepton + event_wgt_triggers_PFHT_Control) == 0.f) return false;
 
   // Test HEM filter
   if (!eventFilter->test2018HEMFilter(simEventHandler, nullptr, nullptr, &ak4jets, &ak8jets)) return false;
