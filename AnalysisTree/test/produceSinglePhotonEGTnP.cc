@@ -56,10 +56,93 @@ bool get_tightCharge(ParticleObject const* part){
 bool get_conversionVeto(ParticleObject const* part){
   ElectronObject const* electron = dynamic_cast<ElectronObject const*>(part);
   PhotonObject const* photon = dynamic_cast<PhotonObject const*>(part);
-  if (electron) return !electron->extras.conv_vtx_flag;
+  if (electron) return electron->testSelection(ElectronSelectionHelpers::kConversionSafe);
   else if (photon) return photon->testSelection(PhotonSelectionHelpers::kConversionSafe);
   else return true;
 }
+
+bool get_is_inTime(ParticleObject const* part){
+  ElectronObject const* electron = dynamic_cast<ElectronObject const*>(part);
+  PhotonObject const* photon = dynamic_cast<PhotonObject const*>(part);
+  if (electron) return electron->testSelection(ElectronSelectionHelpers::kInTimeSeed);
+  else if (photon) return photon->testSelection(PhotonSelectionHelpers::kInTimeSeed);
+  else return true;
+}
+float get_seedTime(ParticleObject const* part){
+  ElectronObject const* electron = dynamic_cast<ElectronObject const*>(part);
+  PhotonObject const* photon = dynamic_cast<PhotonObject const*>(part);
+  if (electron) return electron->extras.seedTime;
+  else if (photon) return photon->extras.seedTime;
+  else return -1;
+}
+
+bool get_is_beamHaloSafe(ParticleObject const* part){
+  ElectronObject const* electron = dynamic_cast<ElectronObject const*>(part);
+  PhotonObject const* photon = dynamic_cast<PhotonObject const*>(part);
+  if (electron) return true;
+  else if (photon) return photon->testSelection(PhotonSelectionHelpers::kBeamHaloSafe);
+  else return true;
+}
+float get_MIPTotalEnergy(ParticleObject const* part){
+  ElectronObject const* electron = dynamic_cast<ElectronObject const*>(part);
+  PhotonObject const* photon = dynamic_cast<PhotonObject const*>(part);
+  if (electron) return 0;
+  else if (photon) return photon->extras.MIPTotalEnergy;
+  else return -1;
+}
+bool get_is_spikeSafe(ParticleObject const* part){
+  ElectronObject const* electron = dynamic_cast<ElectronObject const*>(part);
+  PhotonObject const* photon = dynamic_cast<PhotonObject const*>(part);
+  if (electron) return electron->testSelection(ElectronSelectionHelpers::kSpikeSafe);
+  else if (photon) return photon->testSelection(PhotonSelectionHelpers::kSpikeSafe);
+  else return true;
+}
+float get_full5x5_sigmaIEtaIEta(ParticleObject const* part){
+  ElectronObject const* electron = dynamic_cast<ElectronObject const*>(part);
+  PhotonObject const* photon = dynamic_cast<PhotonObject const*>(part);
+  if (electron) return electron->extras.full5x5_sigmaIEtaIEta;
+  else if (photon) return photon->extras.full5x5_sigmaIEtaIEta;
+  else return -1;
+}
+float get_full5x5_sigmaIPhiIPhi(ParticleObject const* part){
+  ElectronObject const* electron = dynamic_cast<ElectronObject const*>(part);
+  PhotonObject const* photon = dynamic_cast<PhotonObject const*>(part);
+  if (electron) return electron->extras.full5x5_sigmaIPhiIPhi;
+  else if (photon) return photon->extras.full5x5_sigmaIPhiIPhi;
+  else return -1;
+}
+
+float get_full5x5_r9(ParticleObject const* part){
+  ElectronObject const* electron = dynamic_cast<ElectronObject const*>(part);
+  PhotonObject const* photon = dynamic_cast<PhotonObject const*>(part);
+  if (electron) return electron->extras.full5x5_r9;
+  else if (photon) return photon->extras.full5x5_r9;
+  else return -1;
+}
+
+bool get_is_PFID(ParticleObject const* part){
+  ElectronObject const* electron = dynamic_cast<ElectronObject const*>(part);
+  PhotonObject const* photon = dynamic_cast<PhotonObject const*>(part);
+  if (electron) return electron->testSelection(ElectronSelectionHelpers::kPFElectronId);
+  else if (photon) return photon->testSelection(PhotonSelectionHelpers::kPFPhotonId);
+  else return true;
+}
+bool get_is_METSafe(ParticleObject const* part){
+  ElectronObject const* electron = dynamic_cast<ElectronObject const*>(part);
+  PhotonObject const* photon = dynamic_cast<PhotonObject const*>(part);
+  if (electron) return electron->testSelection(ElectronSelectionHelpers::kPFMETSafe);
+  else if (photon) return photon->testSelection(PhotonSelectionHelpers::kPFMETSafe);
+  else return true;
+}
+
+float getIsolationDRmax(ParticleObject const* part){
+  ElectronObject const* electron = dynamic_cast<ElectronObject const*>(part);
+  PhotonObject const* photon = dynamic_cast<PhotonObject const*>(part);
+  if (electron) return ElectronSelectionHelpers::getIsolationDRmax(*electron);
+  else if (photon) return PhotonSelectionHelpers::getIsolationDRmax(*photon);
+  else return -1;
+}
+
 
 using namespace SystematicsHelpers;
 void getTrees(
@@ -67,9 +150,10 @@ void getTrees(
   TString prodVersion, TString strdate,
   int ichunk, int nchunks,
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal,
-  bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false,
   bool hardProcessFallback=false
 ){
+  if (!SampleHelpers::checkRunOnCondor()) std::signal(SIGINT, SampleHelpers::setSignalInterrupt);
+
   if (nchunks==1) nchunks = 0;
   if (nchunks>0 && (ichunk<0 || ichunk==nchunks)) return;
 
@@ -78,15 +162,23 @@ void getTrees(
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
   // Set flags for ak4jet tight id
+  // These could be options passed to the function, but no need for that right now...
+  constexpr bool applyPUIdToAK4Jets = true;
+  constexpr bool applyTightLeptonVetoIdToAK4Jets = false;
   AK4JetSelectionHelpers::setPUIdWP(applyPUIdToAK4Jets ? AK4JetSelectionHelpers::kTightPUJetId : AK4JetSelectionHelpers::nSelectionBits); // Default is 'tight'
   AK4JetSelectionHelpers::setApplyTightLeptonVetoIdToJets(applyTightLeptonVetoIdToAK4Jets); // Default is 'false'
 
+  // Set the flags for MET treatments
+  // These could be options passed to the function, but no need for that right now...
+  constexpr bool use_MET_Puppi = false;
+  constexpr bool use_MET_XYCorr = true;
+  constexpr bool use_MET_JERCorr = true;
+  constexpr bool use_MET_ParticleMomCorr = true;
+  constexpr bool use_MET_p4Preservation = true;
+  constexpr bool use_MET_corrections =true;
+
   TString const coutput_main =
-    "output/SinglePhotonTriggerEfficiencies/SkimTrees/" + strdate
-    + "/"
-    + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
-    + "_"
-    + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
+    "output/SinglePhotonEGTnP/SkimTrees/" + strdate
     + "/" + period;
 
   SampleHelpers::configure(period, "hadoop_skims:"+prodVersion);
@@ -102,54 +194,20 @@ void getTrees(
   const float btag_loose_thr = BtagHelpers::getBtagWP(false);
 
   std::vector<TriggerHelpers::TriggerType> requiredTriggers{
-    TriggerHelpers::kSingleEle
+    TriggerHelpers::kSingleEle, TriggerHelpers::kSingleEle_HighPt
   };
-  std::vector<TriggerHelpers::TriggerType> requiredTriggers_highpt{
-    TriggerHelpers::kSingleEle_HighPt
-  };
+  auto triggerPropsCheckList = TriggerHelpers::getHLTMenuProperties(requiredTriggers);
+
+  TriggerHelpers::dropSelectionCuts(TriggerHelpers::kSinglePho);
   std::vector<TriggerHelpers::TriggerType> requiredTriggers_singlephoton{
     TriggerHelpers::kSinglePho
   };
-  auto triggerPropsCheckList = TriggerHelpers::getHLTMenuProperties(requiredTriggers);
-  auto triggerPropsCheckList_highpt = TriggerHelpers::getHLTMenuProperties(requiredTriggers_highpt);
-
-  TriggerHelpers::dropSelectionCuts(TriggerHelpers::kSinglePho);
   auto triggerPropsCheckList_singlephoton = TriggerHelpers::getHLTMenuProperties(requiredTriggers_singlephoton);
 
   std::unordered_map<TString, std::vector<float>> vars_weight_singlephoton_l2;
   for (auto const& hlt_type_props_pair:triggerPropsCheckList_singlephoton) vars_weight_singlephoton_l2[hlt_type_props_pair.second->getName()] = std::vector<float>();
 
   TString strSystName = SystematicsHelpers::getSystName(theGlobalSyst).data();
-  SystematicsHelpers::SystematicVariationTypes eleSyst = theGlobalSyst;
-  SystematicsHelpers::SystematicVariationTypes muSyst = theGlobalSyst;
-  switch (theGlobalSyst){
-  case SystematicsHelpers::eEleScaleDn:
-  case SystematicsHelpers::eMuScaleDn:
-    eleSyst = SystematicsHelpers::eEleScaleDn;
-    muSyst = SystematicsHelpers::eMuScaleDn;
-    strSystName = "LepScaleDn";
-    break;
-  case SystematicsHelpers::eEleScaleUp:
-  case SystematicsHelpers::eMuScaleUp:
-    eleSyst = SystematicsHelpers::eEleScaleUp;
-    muSyst = SystematicsHelpers::eMuScaleUp;
-    strSystName = "LepScaleUp";
-    break;
-  case SystematicsHelpers::eEleResDn:
-  case SystematicsHelpers::eMuResDn:
-    eleSyst = SystematicsHelpers::eEleResDn;
-    muSyst = SystematicsHelpers::eMuResDn;
-    strSystName = "LepResDn";
-    break;
-  case SystematicsHelpers::eEleResUp:
-  case SystematicsHelpers::eMuResUp:
-    eleSyst = SystematicsHelpers::eEleResUp;
-    muSyst = SystematicsHelpers::eMuResUp;
-    strSystName = "LepResUp";
-    break;
-  default:
-    break;
-  }
 
   // Get sample specifications
   std::vector<TString> sampledirs;
@@ -185,7 +243,10 @@ void getTrees(
   VertexHandler vertexHandler;
   ParticleDisambiguator particleDisambiguator;
 
+  MuonScaleFactorHandler muonSFHandler;
+  ElectronScaleFactorHandler electronSFHandler;
   PhotonScaleFactorHandler photonSFHandler;
+  PUJetIdScaleFactorHandler pujetidSFHandler;
   BtagScaleFactorHandler btagSFHandler;
   METCorrectionHandler metCorrectionHandler;
 
@@ -199,6 +260,8 @@ void getTrees(
 
   bool isFirstInputFile=true;
   for (auto const& sname:sampledirs){
+    if (SampleHelpers::doSignalInterrupt==1) break;
+
     TString coutput = SampleHelpers::getSampleIdentifier(sname);
     HelperFunctions::replaceString(coutput, "_MINIAODSIM", "");
     HelperFunctions::replaceString(coutput, "_MINIAOD", "");
@@ -297,10 +360,8 @@ BRANCH_COMMAND(float, event_wgt) \
 BRANCH_COMMAND(float, event_wgt_SFs) \
 BRANCH_COMMAND(float, genmet_pTmiss) \
 BRANCH_COMMAND(float, genmet_phimiss) \
-BRANCH_COMMAND(float, pfmet_pTmiss) \
-BRANCH_COMMAND(float, pfmet_phimiss) \
-BRANCH_COMMAND(float, puppimet_pTmiss) \
-BRANCH_COMMAND(float, puppimet_phimiss) \
+BRANCH_COMMAND(float, event_pTmiss) \
+BRANCH_COMMAND(float, event_phimiss) \
 BRANCH_COMMAND(unsigned int, event_NGenPromptParticles) \
 BRANCH_COMMAND(unsigned int, event_nvtxs_good) \
 BRANCH_COMMAND(unsigned int, event_Njets) \
@@ -308,47 +369,51 @@ BRANCH_COMMAND(unsigned int, event_Njets20) \
 BRANCH_COMMAND(unsigned int, event_Njets_btagged) \
 BRANCH_COMMAND(unsigned int, event_Njets20_btagged)
 #define BRANCHES_VECTORIZED \
-BRANCH_COMMAND(bool, isNominalTrigger) \
-BRANCH_COMMAND(bool, isHighPtTrigger) \
 BRANCH_COMMAND(float, pt_eg) \
 BRANCH_COMMAND(float, eta_eg) \
 BRANCH_COMMAND(float, phi_eg) \
 BRANCH_COMMAND(float, mass_eg) \
 BRANCH_COMMAND(float, dR_e_g) \
-BRANCH_COMMAND(int, id_e) \
-BRANCH_COMMAND(float, pt_e) \
-BRANCH_COMMAND(float, eta_e) \
-BRANCH_COMMAND(float, phi_e) \
-BRANCH_COMMAND(bool, pass_extraTight_e) \
-BRANCH_COMMAND(bool, pass_conversionVeto_e) \
-BRANCH_COMMAND(float, dxy_e) \
-BRANCH_COMMAND(float, dz_e) \
-BRANCH_COMMAND(bool, hasTightCharge_e) \
-BRANCH_COMMAND(cms3_egamma_fid_type_mask_t, fid_mask_e) \
-BRANCH_COMMAND(float, etaSC_e) \
-BRANCH_COMMAND(float, minDR_photon_e) \
-BRANCH_COMMAND(float, minDR_electron_e) \
-BRANCH_COMMAND(float, minDR_muon_e) \
-BRANCH_COMMAND(bool, isGenMatched_e) \
-BRANCH_COMMAND(int, id_genMatch_e) \
-BRANCH_COMMAND(float, dR_genMatch_e) \
-BRANCH_COMMAND(int, id_g) \
-BRANCH_COMMAND(float, pt_g) \
-BRANCH_COMMAND(float, eta_g) \
-BRANCH_COMMAND(float, phi_g) \
-BRANCH_COMMAND(bool, pass_conversionVeto_g) \
-BRANCH_COMMAND(cms3_egamma_fid_type_mask_t, fid_mask_g) \
-BRANCH_COMMAND(float, etaSC_g) \
-BRANCH_COMMAND(float, full5x5_r9_g) \
-BRANCH_COMMAND(float, pfChargedHadronIso_EAcorr_g) \
-BRANCH_COMMAND(float, pfNeutralHadronIso_EAcorr_g) \
-BRANCH_COMMAND(float, pfEMIso_EAcorr_g) \
-BRANCH_COMMAND(float, minDR_photon_g) \
-BRANCH_COMMAND(float, minDR_electron_g) \
-BRANCH_COMMAND(float, minDR_muon_g) \
-BRANCH_COMMAND(bool, isGenMatched_g) \
-BRANCH_COMMAND(int, id_genMatch_g) \
-BRANCH_COMMAND(float, dR_genMatch_g)
+BRANCH_COMMAND(int, electron_id) \
+BRANCH_COMMAND(float, electron_pt) \
+BRANCH_COMMAND(float, electron_eta) \
+BRANCH_COMMAND(float, electron_phi) \
+BRANCH_COMMAND(bool, electron_is_extraTight) \
+BRANCH_COMMAND(bool, electron_is_conversionSafe) \
+BRANCH_COMMAND(float, electron_dxy) \
+BRANCH_COMMAND(float, electron_dz) \
+BRANCH_COMMAND(bool, electron_hasTightCharge) \
+BRANCH_COMMAND(cms3_egamma_fid_type_mask_t, electron_fid_mask) \
+BRANCH_COMMAND(float, electron_etaSC) \
+BRANCH_COMMAND(float, electron_minDR_photon) \
+BRANCH_COMMAND(float, electron_minDR_electron) \
+BRANCH_COMMAND(float, electron_minDR_muon) \
+BRANCH_COMMAND(bool, electron_is_genMatched_prompt) \
+BRANCH_COMMAND(int, electron_id_genMatch) \
+BRANCH_COMMAND(float, electron_dR_genMatch) \
+BRANCH_COMMAND(int, photon_id) \
+BRANCH_COMMAND(float, photon_pt) \
+BRANCH_COMMAND(float, photon_eta) \
+BRANCH_COMMAND(float, photon_phi) \
+BRANCH_COMMAND(bool, photon_is_conversionSafe) \
+BRANCH_COMMAND(bool, photon_is_inTime) \
+BRANCH_COMMAND(bool, photon_is_beamHaloSafe) \
+BRANCH_COMMAND(bool, photon_is_spikeSafe) \
+BRANCH_COMMAND(bool, photon_is_PFID) \
+BRANCH_COMMAND(bool, photon_is_METSafe) \
+BRANCH_COMMAND(cms3_egamma_fid_type_mask_t, photon_fid_mask) \
+BRANCH_COMMAND(float, photon_etaSC) \
+BRANCH_COMMAND(float, photon_full5x5_sigmaIEtaIEta) \
+BRANCH_COMMAND(float, photon_full5x5_sigmaIPhiIPhi) \
+BRANCH_COMMAND(float, photon_full5x5_r9) \
+BRANCH_COMMAND(float, photon_seedTime) \
+BRANCH_COMMAND(float, photon_MIPTotalEnergy) \
+BRANCH_COMMAND(float, photon_minDR_photon) \
+BRANCH_COMMAND(float, photon_minDR_electron) \
+BRANCH_COMMAND(float, photon_minDR_muon) \
+BRANCH_COMMAND(bool, photon_is_genMatched_prompt) \
+BRANCH_COMMAND(int, photon_id_genMatch) \
+BRANCH_COMMAND(float, photon_dR_genMatch)
 
 #define BRANCH_COMMAND(type, name) type name = 0; tout->Branch(#name, &name);
     BRANCHES_COMMON;
@@ -357,8 +422,8 @@ BRANCH_COMMAND(float, dR_genMatch_g)
     BRANCHES_VECTORIZED;
 #undef BRANCH_COMMAND
     for (auto& it:vars_weight_singlephoton_l2){
-      TString bname = Form("weight_%s_g", it.first.Data());
-      HelperFunctions::replaceString(bname, "_v_g", "_g");
+      TString bname = Form("weight_%s", it.first.Data());
+      HelperFunctions::replaceString(bname, "_v", "");
       tout->Branch(bname, &(it.second));
     }
 
@@ -389,6 +454,8 @@ BRANCH_COMMAND(float, dR_genMatch_g)
     size_t n_evts_duplicate=0;
     bool firstEvent=true;
     for (int ev=ev_start; ev<ev_end; ev++){
+      if (SampleHelpers::doSignalInterrupt==1) break;
+
       HelperFunctions::progressbar(ev, nEntries);
       sample_tree.getEvent(ev);
 
@@ -405,6 +472,8 @@ BRANCH_COMMAND(float, dR_genMatch_g)
         genInfoHandler.constructGenInfo(theGlobalSyst);
         auto const& genInfo = genInfoHandler.getGenInfo();
         event_wgt *= genInfo->getGenWeight(true);
+        genmet_pTmiss = genInfo->extras.genmet_met;
+        genmet_phimiss = genInfo->extras.genmet_metPhi;
         auto const& genparticles = genInfoHandler.getGenParticles();
 
         if (needGenParticleChecks){
@@ -436,9 +505,9 @@ BRANCH_COMMAND(float, dR_genMatch_g)
 
       event_wgt_SFs = 1;
 
-      muonHandler.constructMuons(theGlobalSyst);
-      electronHandler.constructElectrons(theGlobalSyst);
-      photonHandler.constructPhotons(theGlobalSyst);
+      muonHandler.constructMuons(theGlobalSyst, nullptr);
+      electronHandler.constructElectrons(theGlobalSyst, nullptr);
+      photonHandler.constructPhotons(theGlobalSyst, nullptr);
 
       auto const& muons = muonHandler.getProducts();
       auto const& electrons = electronHandler.getProducts();
@@ -449,9 +518,18 @@ BRANCH_COMMAND(float, dR_genMatch_g)
       std::vector<ElectronObject*> electrons_selected; electrons_selected.reserve(electrons.size());
       std::vector<PhotonObject*> photons_selected; photons_selected.reserve(photons.size());
 
+      float SF_electrons = 1;
       for (auto const& part:electrons){
-        if (testTagBaseSelection(part)) electrons_selected.push_back(part);
+        if (testTagBaseSelection(part)){
+          electrons_selected.push_back(part);
+
+          float theSF = 1;
+          if (!isData) electronSFHandler.getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
+          if (theSF == 0.f) continue;
+          SF_electrons *= theSF;
+        }
       }
+      event_wgt_SFs *= SF_electrons;
 
       float SF_photons = 1;
       for (auto const& part:photons){
@@ -479,15 +557,28 @@ BRANCH_COMMAND(float, dR_genMatch_g)
       event_wgt_SFs *= SF_photons;
 
       // Find possible e-gamma pairs
-      std::vector< std::pair<ElectronObject*, PhotonObject*> > egpairs; egpairs.reserve(electrons_selected.size()*photons_selected.size());
+      std::vector< std::pair<ElectronObject*, ParticleObject*> > egpairs; egpairs.reserve(electrons_selected.size()*photons_selected.size());
       for (auto const& electron:electrons_selected){
-        float dR_electron = ElectronSelectionHelpers::getIsolationDRmax(*electron);
+        float dR_electron = getIsolationDRmax(electron);
         for (auto const& photon:photons_selected){
-          float dR_photon = PhotonSelectionHelpers::getIsolationDRmax(*photon);
+          float dR_photon = getIsolationDRmax(photon);
           float dR_max = std::max(0.4f, std::max(dR_electron, dR_photon));
           float dR_mom = electron->deltaR(photon->p4());
           float mass = (electron->p4() + photon->p4()).M();
-          if (dR_mom >= dR_max && std::abs(mass - PDGHelpers::Zmass)<42.) egpairs.emplace_back(electron, photon);
+          if (dR_mom >= dR_max && std::abs(mass - PDGHelpers::Zmass)<42.) egpairs.emplace_back(electron, (ParticleObject*) photon);
+        }
+      }
+      if (egpairs.empty() && electrons_selected.size()>=2){
+        for (auto const& electron:electrons_selected){
+          float dR_electron = getIsolationDRmax(electron);
+          for (auto const& photon:electrons_selected){
+            if (electron == photon) continue;
+            float dR_photon = getIsolationDRmax(photon);
+            float dR_max = std::max(0.4f, std::max(dR_electron, dR_photon));
+            float dR_mom = electron->deltaR(photon->p4());
+            float mass = (electron->p4() + photon->p4()).M();
+            if (dR_mom >= dR_max && std::abs(mass - PDGHelpers::Zmass)<42.) egpairs.emplace_back(electron, (ParticleObject*) photon);
+          }
         }
       }
       if (egpairs.empty()) continue;
@@ -497,48 +588,46 @@ BRANCH_COMMAND(float, dR_genMatch_g)
       else n_pass_hasEGPairs_nc_ge_3++;
 
       // Check overlaps with muons manually
+      float SF_muons = 1;
       for (auto const& part:muons){
-        if (ParticleSelectionHelpers::isTightParticle(part)){
-          float dR_muon = MuonSelectionHelpers::getIsolationDRmax(*part);
+        float dR_muon = MuonSelectionHelpers::getIsolationDRmax(*part);
 
-          bool hasOverlap = false;
-          if (!hasOverlap){
-            for (auto const& part:electrons_selected){
-              float dR_part = ElectronSelectionHelpers::getIsolationDRmax(*part);
-              float dR_max = std::max(0.4f, std::max(dR_muon, dR_part));
-              if (part->deltaR(part->p4()) < dR_max){
-                hasOverlap = true;
-                break;
-              }
+        bool hasOverlap = false;
+        if (!hasOverlap){
+          for (auto const& part:electrons_selected){
+            float dR_part = ElectronSelectionHelpers::getIsolationDRmax(*part);
+            float dR_max = std::max(0.4f, std::max(dR_muon, dR_part));
+            if (part->deltaR(part->p4()) < dR_max){
+              hasOverlap = true;
+              break;
             }
           }
-          if (!hasOverlap){
-            for (auto const& part:photons_selected){
-              float dR_part = PhotonSelectionHelpers::getIsolationDRmax(*part);
-              float dR_max = std::max(0.4f, std::max(dR_muon, dR_part));
-              if (part->deltaR(part->p4()) < dR_max){
-                hasOverlap = true;
-                break;
-              }
-            }
-          }
-          if (hasOverlap) continue;
-
-          muons_selected.push_back(part);
         }
+        if (!hasOverlap){
+          for (auto const& part:photons_selected){
+            float dR_part = PhotonSelectionHelpers::getIsolationDRmax(*part);
+            float dR_max = std::max(0.4f, std::max(dR_muon, dR_part));
+            if (part->deltaR(part->p4()) < dR_max){
+              hasOverlap = true;
+              break;
+            }
+          }
+        }
+        if (hasOverlap) continue;
+
+        float theSF = 1;
+        if (!isData) muonSFHandler.getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
+        if (theSF == 0.f) continue;
+        SF_muons *= theSF;
+
+        if (ParticleSelectionHelpers::isTightParticle(part)) muons_selected.push_back(part);
       }
+      event_wgt_SFs *= SF_muons;
 
       isotrackHandler.constructIsotracks(&muons_selected, &electrons_selected);
       bool hasVetoIsotrack = false;
       for (auto const& isotrack:isotrackHandler.getProducts()){
         if (isotrack->testSelectionBit(IsotrackSelectionHelpers::kPreselectionVeto)){
-          /*
-          float dR_isotrack = IsotrackSelectionHelpers::getIsolationDRmax(*isotrack);
-          float dR_photon = PhotonSelectionHelpers::getIsolationDRmax(*(theChosenEGPair->second));
-          float dR_max = std::max(0.4f, std::max(dR_isotrack, dR_photon));
-          float dR_mom = theChosenEGPair->second->deltaR(isotrack->p4());
-          if (dR_mom < dR_max) continue;
-          */
           hasVetoIsotrack = true;
           break;
         }
@@ -546,37 +635,27 @@ BRANCH_COMMAND(float, dR_genMatch_g)
       if (hasVetoIsotrack) continue;
       n_pass_isotrackVeto++;
 
-      jetHandler.constructJetMET(theGlobalSyst, &muons_selected, &electrons_selected, &photons_selected);
+      jetHandler.constructJetMET(theGlobalSyst, &muons_selected, &electrons_selected, &photons_selected, nullptr);
       auto const& ak4jets = jetHandler.getAK4Jets();
       auto const& ak8jets = jetHandler.getAK8Jets();
-
       auto const& pfmet = jetHandler.getPFMET();
-      if (!isData) metCorrectionHandler.applyCorrections(
-        simEventHandler.getChosenDataPeriod(),
-        genmet_pTmiss, genmet_phimiss,
-        pfmet, true,
-        &(simEventHandler.getRandomNumber(SimEventHandler::kGenMETSmear))
-      );
-      auto pfmet_p4 = pfmet->p4(true, true, true);
-      pfmet_pTmiss = pfmet_p4.Pt();
-      pfmet_phimiss = pfmet_p4.Phi();
-
       auto const& puppimet = jetHandler.getPFPUPPIMET();
+      auto const& eventmet = (!use_MET_Puppi ? pfmet : puppimet);
       if (!isData) metCorrectionHandler.applyCorrections(
         simEventHandler.getChosenDataPeriod(),
         genmet_pTmiss, genmet_phimiss,
-        puppimet, false,
+        eventmet, !use_MET_Puppi,
         &(simEventHandler.getRandomNumber(SimEventHandler::kGenMETSmear))
       );
-      auto puppimet_p4 = puppimet->p4(true, true, true);
-      puppimet_pTmiss = puppimet_p4.Pt();
-      puppimet_phimiss = puppimet_p4.Phi();
+      auto event_met_p4 = eventmet->p4(use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr, use_MET_p4Preservation);
+      event_pTmiss = event_met_p4.Pt();
+      event_phimiss = event_met_p4.Phi();
 
-      eventFilter.constructFilters();
+      eventFilter.constructFilters(&simEventHandler);
       if (isData && !eventFilter.isUniqueDataEvent()) continue;
       n_pass_uniqueEvent++;
 
-      if (!eventFilter.passCommonSkim() || !eventFilter.passMETFilters() || !eventFilter.hasGoodVertex()) continue;
+      if (!eventFilter.passCommonSkim() || !eventFilter.passMETFilters(EventFilterHandler::kMETFilters_Standard)) continue;
       n_pass_commonFilters++;
 
       // Test HEM filter
@@ -593,12 +672,18 @@ BRANCH_COMMAND(float, dR_genMatch_g)
       event_Njets20 = 0;
       event_Njets_btagged = 0;
       event_Njets20_btagged = 0;
+      float SF_PUJetId = 1;
       float SF_btagging = 1;
       ParticleObject::LorentzVector_t ak4jets_sump4(0, 0, 0, 0);
       for (auto* jet:ak4jets){
-        float theSF = 1;
-        if (!isData) btagSFHandler.getSFAndEff(theGlobalSyst, jet, theSF, nullptr);
-        if (theSF != 0.f) SF_btagging *= theSF;
+        float theSF_PUJetId = 1;
+        float theSF_btag = 1;
+        if (!isData){
+          pujetidSFHandler.getSFAndEff(theGlobalSyst, jet, theSF_PUJetId, nullptr);
+          btagSFHandler.getSFAndEff(theGlobalSyst, jet, theSF_btag, nullptr);
+        }
+        if (theSF_PUJetId != 0.f) SF_PUJetId *= theSF_PUJetId;
+        if (theSF_btag != 0.f) SF_btagging *= theSF_btag;
 
         if (ParticleSelectionHelpers::isTightJet(jet)){
           event_Njets++;
@@ -607,7 +692,7 @@ BRANCH_COMMAND(float, dR_genMatch_g)
         if (
           jet->testSelectionBit(AK4JetSelectionHelpers::kTightId)
           &&
-          (!applyPUIdToAK4Jets || jet->testSelectionBit(AK4JetSelectionHelpers::kPUJetId))
+          (!applyPUIdToAK4Jets || jet->testSelectionBit(AK4JetSelectionHelpers::kTightPUJetId))
           &&
           (!applyTightLeptonVetoIdToAK4Jets || jet->testSelectionBit(AK4JetSelectionHelpers::kTightLeptonVetoId))
           &&
@@ -617,7 +702,7 @@ BRANCH_COMMAND(float, dR_genMatch_g)
           if (jet->getBtagValue()>=btag_loose_thr) event_Njets20_btagged++;
         }
       }
-      event_wgt_SFs *= SF_btagging;
+      event_wgt_SFs *= SF_PUJetId*SF_btagging;
 
       event_NGenPromptParticles = 0;
       std::vector<GenParticleObject const*> genpromptparts;
@@ -657,7 +742,7 @@ BRANCH_COMMAND(float, dR_genMatch_g)
       for (auto& it:vars_weight_singlephoton_l2){ it.second.clear(); it.second.reserve(egpairs.size()); }
       // Loop over the pairs
       bool hasFirstPair = false;
-      std::vector<PhotonObject*> photons_collected; photons_collected.reserve(egpairs.size());
+      std::vector<ParticleObject*> photons_collected; photons_collected.reserve(egpairs.size());
       for (auto const& egpair:egpairs){
         if (HelperFunctions::checkListVariable(photons_collected, egpair.second)) continue;
 
@@ -665,20 +750,14 @@ BRANCH_COMMAND(float, dR_genMatch_g)
         BRANCHES_VECTORIZED;
 #undef BRANCH_COMMAND
 
-        std::pair<ElectronObject*, PhotonObject*> const* theChosenEGPair = nullptr;
-
-        isNominalTrigger = isHighPtTrigger = false;
-        float event_wgt_triggers = 0;
+        PhotonObject* thePairedPhoton = dynamic_cast<PhotonObject*>(egpair.second);
+        ElectronObject* thePairedElectron = dynamic_cast<ElectronObject*>(egpair.second);
+        std::pair<ElectronObject*, ParticleObject*> const* theChosenEGPair = nullptr;
 
         std::vector<ElectronObject*> ecoll(1, egpair.first);
-        std::vector<PhotonObject*> phocoll(1, egpair.second);
-
-        event_wgt_triggers = eventFilter.getTriggerWeight(triggerPropsCheckList, nullptr, &ecoll, nullptr, nullptr, nullptr, nullptr, nullptr);
-        if (event_wgt_triggers != 0.f) isNominalTrigger = true;
-        else{
-          event_wgt_triggers = eventFilter.getTriggerWeight(triggerPropsCheckList_highpt, nullptr, &ecoll, nullptr, nullptr, nullptr, nullptr, nullptr);
-          if (event_wgt_triggers != 0.f) isHighPtTrigger = true;
-        }
+        std::vector<PhotonObject*> phocoll; phocoll.reserve(1);
+        if (thePairedPhoton) phocoll.push_back(thePairedPhoton);
+        float event_wgt_triggers = eventFilter.getTriggerWeight(triggerPropsCheckList, nullptr, &ecoll, nullptr, nullptr, nullptr, nullptr, nullptr);
         if (event_wgt_triggers != 1.f) continue;
         n_pass_triggers++;
 
@@ -689,7 +768,7 @@ BRANCH_COMMAND(float, dR_genMatch_g)
           std::vector< std::pair<TriggerHelpers::TriggerType, HLTTriggerPathProperties const*> > hlt_vec_dummy; hlt_vec_dummy.reserve(1);
           hlt_vec_dummy.emplace_back(hlt_type_props_pair.first, hlt_type_props_pair.second);
           vars_weight_singlephoton_l2[hlt_type_props_pair.second->getName()].push_back(
-            eventFilter.getTriggerWeight(hlt_vec_dummy, nullptr, nullptr, &phocoll, nullptr, nullptr, nullptr, nullptr)
+            (!phocoll.empty() ? eventFilter.getTriggerWeight(hlt_vec_dummy, nullptr, nullptr, &phocoll, nullptr, nullptr, nullptr, nullptr) : 0.f)
           );
         }
 
@@ -700,82 +779,107 @@ BRANCH_COMMAND(float, dR_genMatch_g)
         mass_eg = p4_eg.M();
         dR_e_g = theChosenEGPair->first->deltaR(theChosenEGPair->second->p4());
         // Electron leg
-        id_e = theChosenEGPair->first->pdgId();
-        pt_e = theChosenEGPair->first->pt();
-        eta_e = theChosenEGPair->first->eta();
-        phi_e = theChosenEGPair->first->phi();
-        pass_conversionVeto_e = get_conversionVeto(theChosenEGPair->first);
-        pass_extraTight_e = testExtraTightTagSelection(theChosenEGPair->first);
-        dxy_e = get_dxy(theChosenEGPair->first);
-        dz_e = get_dz(theChosenEGPair->first);
-        fid_mask_e = get_fid_mask(theChosenEGPair->first);
-        etaSC_e = get_etaSC(theChosenEGPair->first);
-        hasTightCharge_e = get_tightCharge(theChosenEGPair->first);
-        minDR_photon_e = minDR_electron_e = minDR_muon_e = -1;
+        electron_id = theChosenEGPair->first->pdgId();
+        electron_pt = theChosenEGPair->first->pt();
+        electron_eta = theChosenEGPair->first->eta();
+        electron_phi = theChosenEGPair->first->phi();
+        electron_is_conversionSafe = get_conversionVeto(theChosenEGPair->first);
+        electron_is_extraTight = testExtraTightTagSelection(theChosenEGPair->first);
+        electron_dxy = get_dxy(theChosenEGPair->first);
+        electron_dz = get_dz(theChosenEGPair->first);
+        electron_fid_mask = get_fid_mask(theChosenEGPair->first);
+        electron_etaSC = get_etaSC(theChosenEGPair->first);
+        electron_hasTightCharge = get_tightCharge(theChosenEGPair->first);
+
+        electron_minDR_photon = electron_minDR_electron = electron_minDR_muon = -1;
         bool pass_minDR_cuts = true;
         for (auto const& photon:photons_selected){
           if (photon == theChosenEGPair->second) continue;
           float dR = theChosenEGPair->first->deltaR(photon->p4());
           if (dR<0.2) continue;
-          if (minDR_photon_e<0.f || dR<minDR_photon_e) minDR_photon_e = dR;
+
+          if (electron_minDR_photon<0.f || dR<electron_minDR_photon) electron_minDR_photon = dR;
         }
         for (auto const& electron:electrons_selected){
-          if (electron == theChosenEGPair->first) continue;
+          if (electron == theChosenEGPair->first || electron == theChosenEGPair->second) continue;
           float dR = theChosenEGPair->first->deltaR(electron->p4());
 
-          float dR_part = ElectronSelectionHelpers::getIsolationDRmax(*electron);
-          float dR_e = ElectronSelectionHelpers::getIsolationDRmax(*(theChosenEGPair->first));
+          float dR_part = getIsolationDRmax(electron);
+          float dR_e = getIsolationDRmax(theChosenEGPair->first);
           float dR_max = std::max(0.4f, std::max(dR_e, dR_part));
           if (dR < dR_max) pass_minDR_cuts = false;
 
-          if (minDR_electron_e<0.f || dR<minDR_electron_e) minDR_electron_e = dR;
+          if (electron_minDR_electron<0.f || dR<electron_minDR_electron) electron_minDR_electron = dR;
         }
         if (!pass_minDR_cuts) continue;
         for (auto const& muon:muons_selected){
           float dR = theChosenEGPair->first->deltaR(muon->p4());
-          if (minDR_muon_e<0.f || dR<minDR_muon_e) minDR_muon_e = dR;
+          if (electron_minDR_muon<0.f || dR<electron_minDR_muon) electron_minDR_muon = dR;
         }
+
         // Photon leg
-        id_g = theChosenEGPair->second->pdgId();
-        pt_g = theChosenEGPair->second->pt();
-        eta_g = theChosenEGPair->second->eta();
-        phi_g = theChosenEGPair->second->phi();
-        pass_conversionVeto_g = get_conversionVeto(theChosenEGPair->second);
-        fid_mask_g = get_fid_mask(theChosenEGPair->second);
-        etaSC_g = get_etaSC(theChosenEGPair->second);
-        full5x5_r9_g = theChosenEGPair->second->extras.full5x5_r9;
-        pfChargedHadronIso_EAcorr_g = theChosenEGPair->second->extras.pfChargedHadronIso_EAcorr;
-        pfNeutralHadronIso_EAcorr_g = theChosenEGPair->second->extras.pfNeutralHadronIso_EAcorr;
-        pfEMIso_EAcorr_g = theChosenEGPair->second->extras.pfEMIso_EAcorr;
-        minDR_photon_g = minDR_electron_g = minDR_muon_g = -1;
+        photon_id = theChosenEGPair->second->pdgId();
+        photon_pt = theChosenEGPair->second->pt();
+        photon_eta = theChosenEGPair->second->eta();
+        photon_phi = theChosenEGPair->second->phi();
+        photon_fid_mask = get_fid_mask(theChosenEGPair->second);
+        photon_etaSC = get_etaSC(theChosenEGPair->second);
+        photon_is_conversionSafe = get_conversionVeto(theChosenEGPair->second);
+        photon_is_inTime = get_is_inTime(theChosenEGPair->second);
+        photon_is_beamHaloSafe = get_is_beamHaloSafe(theChosenEGPair->second);
+        photon_is_spikeSafe = get_is_spikeSafe(theChosenEGPair->second);
+        photon_is_PFID = get_is_PFID(theChosenEGPair->second);
+        photon_is_METSafe = get_is_METSafe(theChosenEGPair->second);
+        photon_full5x5_sigmaIEtaIEta = get_full5x5_sigmaIEtaIEta(theChosenEGPair->second);
+        photon_full5x5_sigmaIPhiIPhi = get_full5x5_sigmaIPhiIPhi(theChosenEGPair->second);
+        photon_full5x5_r9 = get_full5x5_r9(theChosenEGPair->second);
+        photon_seedTime = get_seedTime(theChosenEGPair->second);
+        photon_MIPTotalEnergy = get_MIPTotalEnergy(theChosenEGPair->second);
+
+        photon_minDR_photon = photon_minDR_electron = photon_minDR_muon = -1;
         for (auto const& photon:photons_selected){
           if (photon == theChosenEGPair->second) continue;
           float dR = theChosenEGPair->second->deltaR(photon->p4());
 
-          float dR_part = PhotonSelectionHelpers::getIsolationDRmax(*photon);
-          float dR_g = PhotonSelectionHelpers::getIsolationDRmax(*(theChosenEGPair->second));
-          float dR_max = std::max(0.4f, std::max(dR_g, dR_part));
-          if (dR < dR_max) pass_minDR_cuts = false;
+          if (PDGHelpers::isAPhoton(theChosenEGPair->second->pdgId())){
+            float dR_part = getIsolationDRmax(photon);
+            float dR_g = getIsolationDRmax(theChosenEGPair->second);
+            float dR_max = std::max(0.4f, std::max(dR_g, dR_part));
+            if (dR < dR_max) pass_minDR_cuts = false;
+          }
+          else{
+            if (dR<0.2) continue;
+          }
 
-          if (minDR_photon_g<0.f || dR<minDR_photon_g) minDR_photon_g = dR;
+          if (photon_minDR_photon<0.f || dR<photon_minDR_photon) photon_minDR_photon = dR;
+        }
+        for (auto const& electron:electrons_selected){
+          if (electron == theChosenEGPair->first || electron == theChosenEGPair->second) continue;
+          float dR = theChosenEGPair->second->deltaR(electron->p4());
+
+          if (PDGHelpers::isAPhoton(theChosenEGPair->second->pdgId())){
+            if (dR<0.2) continue;
+          }
+          else{
+            float dR_part = getIsolationDRmax(electron);
+            float dR_g = getIsolationDRmax(theChosenEGPair->second);
+            float dR_max = std::max(0.4f, std::max(dR_g, dR_part));
+            if (dR < dR_max) pass_minDR_cuts = false;
+          }
+
+          if (photon_minDR_electron<0.f || dR<photon_minDR_electron) photon_minDR_electron = dR;
         }
         if (!pass_minDR_cuts) continue;
-        for (auto const& electron:electrons_selected){
-          if (electron == theChosenEGPair->first) continue;
-          float dR = theChosenEGPair->second->deltaR(electron->p4());
-          if (dR<0.2) continue;
-          if (minDR_electron_g<0.f || dR<minDR_electron_g) minDR_electron_g = dR;
-        }
         for (auto const& muon:muons_selected){
           float dR = theChosenEGPair->second->deltaR(muon->p4());
-          if (minDR_muon_g<0.f || dR<minDR_muon_g) minDR_muon_g = dR;
+          if (photon_minDR_muon<0.f || dR<photon_minDR_muon) photon_minDR_muon = dR;
         }
 
         n_pass_minDR_veto++;
 
-        isGenMatched_e = isGenMatched_g = false;
-        id_genMatch_e = id_genMatch_g = 0;
-        dR_genMatch_e = dR_genMatch_g = -1;
+        electron_is_genMatched_prompt = photon_is_genMatched_prompt = false;
+        electron_id_genMatch = photon_id_genMatch = 0;
+        electron_dR_genMatch = photon_dR_genMatch = -1;
         if (!isData){
           std::vector<ParticleObject const*> recoparts; recoparts.reserve(2);
           recoparts.push_back(theChosenEGPair->first);
@@ -791,16 +895,16 @@ BRANCH_COMMAND(float, dR_genMatch_g)
 
           auto it_tag = tmp_map.find(recoparts.front());
           if (it_tag!=tmp_map.cend() && it_tag->second){
-            isGenMatched_e = (std::abs(it_tag->first->pdgId()) == std::abs(it_tag->second->pdgId()) || PDGHelpers::isAPhoton(it_tag->second->pdgId()));
-            id_genMatch_e = it_tag->second->pdgId();
-            dR_genMatch_e = it_tag->first->deltaR(it_tag->second->p4());
+            electron_is_genMatched_prompt = true;
+            electron_id_genMatch = it_tag->second->pdgId();
+            electron_dR_genMatch = it_tag->first->deltaR(it_tag->second->p4());
           }
 
           auto it_probe = tmp_map.find(recoparts.back());
           if (it_probe!=tmp_map.cend() && it_probe->second){
-            isGenMatched_g = (std::abs(it_probe->first->pdgId()) == std::abs(it_probe->second->pdgId()) || std::abs(it_probe->second->pdgId()) == 11);
-            id_genMatch_g = it_probe->second->pdgId();
-            dR_genMatch_g = it_probe->first->deltaR(it_probe->second->p4());
+            photon_is_genMatched_prompt = true;
+            photon_id_genMatch = it_probe->second->pdgId();
+            photon_dR_genMatch = it_probe->first->deltaR(it_probe->second->p4());
           }
         }
 
