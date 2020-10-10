@@ -4,6 +4,7 @@
 
 #include "SamplesCore.h"
 #include "HelperFunctions.h"
+#include "ReweightingFunctions.h"
 #include "GenInfoHandler.h"
 #include "MELAStreamHelpers.hh"
 
@@ -376,7 +377,7 @@ bool GenInfoHandler::determineWeightThresholds(){
     return false;
   }
 
-  float const* genHEPMCweight_default = nullptr;
+  float* genHEPMCweight_default = nullptr;
 
   bool allVariablesPresent = this->getConsumed("genHEPMCweight_default", genHEPMCweight_default);
   if (!allVariablesPresent){
@@ -385,44 +386,9 @@ bool GenInfoHandler::determineWeightThresholds(){
   }
   if (this->verbosity>=TVar::DEBUG) MELAout << "GenInfoHandler::determineWeightThresholds: All variables are set up!" << endl;
 
-  int nEntries = currentTree->getNEvents();
-  double thr_Neff = std::min(250000., double(nEntries)/3.*2.);
-  unsigned int npos = 0;
-  double Neff = 0;
-  double sum_wgts[2]={ 0 }; // [0]: w, [1]: w^2
-  std::vector<float> smallest_weights;
-  if (this->verbosity>=TVar::ERROR) MELAout << "GenInfoHandler::determineWeightThresholds: Determining the weight thresholds..." << endl;
-  for (int ev=0; ev<nEntries; ev++){
-    currentTree->getEvent(ev);
-    if (this->verbosity>=TVar::INFO) HelperFunctions::progressbar(ev, nEntries);
-
-    HelperFunctions::addByLowest(smallest_weights, std::abs(*genHEPMCweight_default), false);
-
-    if (ev%100000 == 0 || ev == nEntries-1){
-      sum_wgts[0] = sum_wgts[1] = 0;
-      npos = 0;
-      for (auto const& wgt:smallest_weights){
-        sum_wgts[0] += wgt;
-        sum_wgts[1] += wgt*wgt;
-        Neff = std::pow(sum_wgts[0], 2) / sum_wgts[1];
-        npos++;
-        if (Neff>=thr_Neff) break;
-      }
-      if (this->verbosity>=TVar::ERROR) MELAout << "GenInfoHandler::determineWeightThresholds: Current Neff = " << Neff << " over " << ev+1 << " events..." << endl;
-    }
-    if (Neff>=thr_Neff) break;
-  }
-
-  if (!smallest_weights.empty()){
-    float abs_genWeight_default_thr_val = (sum_wgts[0] + std::sqrt(sum_wgts[1]*Neff)) / (Neff-1.);
-    if (this->verbosity>=TVar::ERROR) MELAout
-      << "GenInfoHandler::determineWeightThresholds: " << abs_genWeight_default_thr_val
-      << " is the default weight threshold calculated from sN=" << sum_wgts[0] << ", vN=" << sum_wgts[1] << ", nN=" << Neff
-      << " (N=" << npos << " / " << smallest_weights.size() << ", wN=" << smallest_weights.at(npos-1) << ", wLast=" << smallest_weights.back() << ")."
-      << endl;
-    abs_genWeight_default_thr_map[currentTree] = abs_genWeight_default_thr_val;
-    abs_genWeight_default_thr = &(abs_genWeight_default_thr_map[currentTree]);
-  }
+  std::vector<float*> tmpvec_wgts{ genHEPMCweight_default };
+  abs_genWeight_default_thr_map[currentTree] = ReweightingFunctions::getAbsWeightThresholdByNeff(currentTree, tmpvec_wgts, ReweightingFunctions::getSimpleWeight, 250000., this->verbosity);
+  abs_genWeight_default_thr = &(abs_genWeight_default_thr_map[currentTree]);
 
   return true;
 }
