@@ -52,7 +52,7 @@ public:
     ReweightingFunctions::ReweightingFunction_t rule_reweightingweights_,
     ReweightingFunctions::ReweightingFunction_t rule_xsecweights_
   );
-  
+
   virtual ~ReweightingBuilder(){}
 
   virtual float eval_nominalweights(BaseTree* theTree) const;

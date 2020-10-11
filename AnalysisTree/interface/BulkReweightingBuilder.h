@@ -6,109 +6,59 @@
 #include "ReweightingFunctions.h"
 
 
-struct ReweightingSpecifications{
-  bool allowNegativeWeights;
-  float weightThresholdReference;
-
-  std::vector<TString> strReweightingWeights;
-  ReweightingFunctions::ReweightingFunction_t rule_reweightingweights;
-  std::unordered_map<BaseTree*, std::vector<float*>> componentRefs_reweightingweights;
-
-  std::unordered_map<BaseTree*, std::vector<float>> weightThresholds;
-  std::unordered_map<BaseTree*, std::vector<float>> sumPostThrWeights;
-  std::unordered_map<BaseTree*, std::vector<float>> sumPostThrSqWeights;
-  std::unordered_map<BaseTree*, std::vector<unsigned int>> sumNonZeroWgtEvents;
-  std::unordered_map<BaseTree*, std::vector<float>> sumNonZeroWgtNominalWeights;
-
-  std::unordered_map<BaseTree*, std::vector<float>> cachedSampleNormalizationsPerBin;
-  std::vector<float> cachedNormComponentsPerBin;
-
-  std::vector<std::vector<SimpleEntry>> indexList;
-
-  ReweightingSpecifications();
-  ReweightingSpecifications(
-    bool allowNegativeWeights_,
-    std::vector<TString> const& strReweightingWeights_,
-    ReweightingFunctions::ReweightingFunction_t rule_reweightingweights_
-  );
-  ReweightingSpecifications(ReweightingSpecifications const& other);
-
-  void swap(ReweightingSpecifications& other);
-  ReweightingSpecifications& operator=(const ReweightingSpecifications& other);
-
-  void initialize(BaseTree* theTree, unsigned int ns, bool doReweighting);
-  void setupThresholds(BaseTree* theTree, float fractionRequirement, unsigned int minimumNevents);
-
-  float eval_reweightingweights(BaseTree* theTree) const;
-
-};
-
-
 class BulkReweightingBuilder{
-public:
-  constexpr static bool useNeffInNormComponent=true;
-
 protected:
-  bool allowNegativeWeights;
+  std::vector<BaseTree*> registeredTrees;
 
-  ExtendedBinning weightBinning;
-  std::unordered_map<BaseTree*, float*> binningVarRefs;
+  ExtendedBinning binning;
+  std::vector<TString> const strBinningVars;
+  ReweightingFunctions::ReweightingVariableBinFunction_t rule_binningVar;
+  std::unordered_map< BaseTree*, std::vector<float*> > binningVarRefs;
 
   std::vector<TString> const strNominalWeights;
   ReweightingFunctions::ReweightingFunction_t rule_nominalweights;
-  std::unordered_map<BaseTree*, std::vector<float*>> componentRefs_nominalweights;
-  std::unordered_map<BaseTree*, float> sumNominalWeights;
+  std::unordered_map< BaseTree*, std::vector<float*> > componentRefs_nominalweights;
 
   std::vector<TString> const strCrossSectionWeights;
   ReweightingFunctions::ReweightingFunction_t rule_xsecweights;
-  std::unordered_map<BaseTree*, std::vector<float*>> componentRefs_xsecweights;
-  std::unordered_map<BaseTree*, float> xsecVals;
+  std::unordered_map< BaseTree*, std::vector<float*> > componentRefs_xsecweights;
 
-  std::unordered_map<TString, ReweightingSpecifications> reweightingSpecs;
-  ReweightingSpecifications* currentReweightingSpecs;
+  std::vector<std::vector<TString>> strReweightingWeightsList;
+  std::vector<ReweightingFunctions::ReweightingFunction_t> rule_reweightingweights_list;
+  std::unordered_map< BaseTree*, std::vector<std::vector<float*> > > componentRefsList_reweightingweights;
 
-  int findBin(BaseTree* theTree) const;
-  bool setCurrentReweightingSpecs(TString strScheme);
-  ReweightingSpecifications* getReweightingSpecs(TString strScheme);
-  ReweightingSpecifications const* getReweightingSpecs(TString strScheme) const;
+  std::unordered_map<BaseTree*, float> normWeights;
+
+  // Derived variables
+  std::unordered_map< BaseTree*, std::vector<double> > NeffThrsPerBin;
+  std::unordered_map< BaseTree*, std::vector< std::vector<float> > > absWeightThresholdsPerBinList;
+  std::unordered_map< BaseTree*, std::vector<double> > sum_normwgts_all;
+  std::unordered_map< BaseTree*, std::vector<double> > sum_normwgts_nonzerorewgt;
+  std::unordered_map< BaseTree*, std::vector< std::vector< std::pair<double, double> > > > sum_wgts_withrewgt;
+  std::unordered_map< BaseTree*, std::vector<double> > NeffsPerBin;
+  std::unordered_map< BaseTree*, std::vector<double> > sampleNormalization;
 
 public:
   BulkReweightingBuilder(
+    ExtendedBinning const& binning_,
+    std::vector<TString> const& strBinningVars_,
     std::vector<TString> const& strNominalWeights_,
     std::vector<TString> const& strCrossSectionWeights_,
+    ReweightingFunctions::ReweightingVariableBinFunction_t rule_binningVar_,
     ReweightingFunctions::ReweightingFunction_t rule_nominalweights_,
     ReweightingFunctions::ReweightingFunction_t rule_xsecweights_
   );
   virtual ~BulkReweightingBuilder(){}
 
   void addReweightingWeights(
-    TString strScheme,
     std::vector<TString> const& strReweightingWeights_,
     ReweightingFunctions::ReweightingFunction_t rule_reweightingweights_
   );
+  void registerTree(BaseTree* tree, float extNorm=1);
 
-  virtual float eval_nominalweights(BaseTree* theTree) const;
-  virtual float eval_reweightingweights(BaseTree* theTree, TString strScheme) const;
-  virtual float eval_xsecweights(BaseTree* theTree) const;
+  void setup(unsigned int ihypo_Neff, std::vector<std::pair<BaseTree*, BaseTree*>> const* tree_normTree_pairs=nullptr);
 
-  std::vector<float> getWeightThresholds(BaseTree* theTree, TString strScheme) const;
-  float getPostThresholdWeight(BaseTree* theTree, TString strScheme) const;
-  float getFinalEventWeight(BaseTree* theTree, TString strScheme) const;
-
-  void rejectNegativeWeights(const bool flag);
-
-  void setWeightBinning(const ExtendedBinning& binning);
-  void setWeightThresholdReference(const float& weightThresholdReference_, TString strScheme);
-
-  void setupWeightVariables(BaseTree* theTree, float fractionRequirement=0.999, unsigned int minimumNevents=0);
-  void setupCaches();
-
-  std::vector<BaseTree*> getRegisteredTrees() const;
-
-  float getNormComponent(BaseTree* theTree, TString strScheme) const; // Tree is passed here to find the bin
-  float getNormComponent(int bin, TString strScheme) const;
-
-  float getBareSumNominalWeights(BaseTree* theTree) const;
+  double getOverallReweightingNormalization(BaseTree* tree) const;
 
 };
 
