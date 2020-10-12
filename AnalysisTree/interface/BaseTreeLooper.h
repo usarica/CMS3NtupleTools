@@ -8,6 +8,7 @@
 #include "IvyBase.h"
 #include "ScaleFactorHandlerBase.h"
 #include "SystematicVariations.h"
+#include "BulkReweightingBuilder.h"
 #include "TriggerHelpersCore.h"
 #include "ParticleDisambiguator.h"
 #include "DileptonHandler.h"
@@ -63,6 +64,9 @@ protected:
   // Registered SF handlers
   std::vector<ScaleFactorHandlerBase*> registeredSFHandlers;
 
+  // Registered reweighting builders
+  std::unordered_map<TString, BulkReweightingBuilder*> registeredRewgtBuilders;
+
   // Registered triggers
   std::unordered_map<TString, std::vector< std::string > > registeredHLTMenus;
   std::unordered_map<TString, std::vector< std::pair<TriggerHelpers::TriggerType, HLTTriggerPathProperties const*> > > registeredHLTMenuProperties;
@@ -107,6 +111,7 @@ public:
   void addExternalFunction(TString fcnname, BaseTreeLooper::LooperExtFunction_t fcn);
   void addObjectHandler(IvyBase* handler);
   void addSFHandler(ScaleFactorHandlerBase* handler);
+  void addReweightingBuilder(TString name, BulkReweightingBuilder* rewgtBuilder);
   void addHLTMenu(TString name, std::vector< std::string > const& hltmenu);
   void addHLTMenu(TString name, std::vector< std::pair<TriggerHelpers::TriggerType, HLTTriggerPathProperties const*> > const& hltmenu);
 
@@ -136,6 +141,7 @@ public:
   SystematicsHelpers::SystematicVariationTypes const& getSystematic() const{ return registeredSyst; }
   std::vector<IvyBase*> const& getObjectHandlers() const{ return registeredHandlers; }
   std::vector<ScaleFactorHandlerBase*> const& getSFHandlers() const{ return registeredSFHandlers; }
+  std::unordered_map<TString, BulkReweightingBuilder*> const& getRegisteredRewgtBuilders() const{ return registeredRewgtBuilders; }
   std::unordered_map<TString, std::vector< std::string > > const& getHLTMenus() const{ return registeredHLTMenus; }
   std::unordered_map<TString, std::vector< std::pair<TriggerHelpers::TriggerType, HLTTriggerPathProperties const*> > > const& getHLTMenuProperties() const{ return registeredHLTMenuProperties; }
   ParticleDisambiguator& getParticleDisambiguator(){ return particleDisambiguator; }

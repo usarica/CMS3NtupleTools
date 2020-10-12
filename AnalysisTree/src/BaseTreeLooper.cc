@@ -103,6 +103,15 @@ void BaseTreeLooper::addSFHandler(ScaleFactorHandlerBase* handler){
   if (handler && !HelperFunctions::checkListVariable(this->registeredSFHandlers, handler)) this->registeredSFHandlers.push_back(handler);
 }
 
+void BaseTreeLooper::addReweightingBuilder(TString name, BulkReweightingBuilder* rewgtBuilder){
+  if (!rewgtBuilder){
+    MELAerr << "BaseTreeLooper::addReweightingBuilder: Reweighting builder " << name << " is null." << endl;
+    return;
+  }
+  if (registeredRewgtBuilders.find(name)!=registeredRewgtBuilders.end()) MELAerr << "BaseTreeLooper::addReweightingBuilder: Reweighting builder " << name << " already exists but will override it regardless." << endl;
+  registeredRewgtBuilders[name] = rewgtBuilder;
+}
+
 void BaseTreeLooper::addHLTMenu(TString name, std::vector< std::string > const& hltmenu){
   if (registeredHLTMenus.find(name)!=registeredHLTMenus.end()) MELAerr << "BaseTreeLooper::addHLTMenu: Simple HLT menu " << name << " already exists but will override it regardless." << endl;
   registeredHLTMenus[name] = hltmenu;

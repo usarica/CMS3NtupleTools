@@ -60,6 +60,8 @@ public:
 
   double getOverallReweightingNormalization(BaseTree* tree) const;
 
+  bool checkWeightsBelowThreshold(BaseTree* tree) const;
+
 };
 
 

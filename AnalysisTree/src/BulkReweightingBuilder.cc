@@ -141,35 +141,58 @@ void BulkReweightingBuilder::setup(unsigned int ihypo_Neff, std::vector<std::pai
       for (auto const& it:NeffsPerBin) sum_Neff_bin += it.second.at(ibin);
       if (sum_Neff_bin>0.) sampleNormalization_bin = NeffsPerBin[tree].at(ibin) / sum_Neff_bin;
     }
-    if (tree_normTree_pairs){
-      for (auto const& tree_normTree_pair:(*tree_normTree_pairs)){
-        if (tree_normTree_pair.first == tree){
-          auto const& normTree = tree_normTree_pair.second;
-          auto const& sum_wgts_withrewgt_basetree = sum_wgts_withrewgt[tree].at(ihypo_Neff);
-          auto const& sum_wgts_withrewgt_normtree = sum_wgts_withrewgt[normTree].at(ihypo_Neff);
+    MELAout << "\t- Sample normalizations before extra normalization for tree " << tree->sampleIdentifier << ": " << sampleNormalization[tree] << endl;
+  }
+  if (tree_normTree_pairs){
+    std::unordered_map<BaseTree*, double> extraNormFactors;
+    // Determine the pairwise normalizations first
+    for (auto const& tree_normTree_pair:(*tree_normTree_pairs)){
+      auto const& tree = tree_normTree_pair.first;
+      auto const& normTree = tree_normTree_pair.second;
+      auto const& sum_wgts_withrewgt_basetree = sum_wgts_withrewgt[tree].at(ihypo_Neff);
+      auto const& sum_wgts_withrewgt_normtree = sum_wgts_withrewgt[normTree].at(ihypo_Neff);
 
-          double sum_wgts_common_basetree = 0;
-          double sum_wgts_common_normtree = 0;
-          for (unsigned int ibin=0; ibin<nbins; ibin++){
-            double const& sum_wgts_common_basetree_bin = sum_wgts_withrewgt_basetree.at(ibin).first;
-            double const& sum_wgts_common_normtree_bin = sum_wgts_withrewgt_normtree.at(ibin).first;
-            if (sum_wgts_common_basetree_bin!=0. && sum_wgts_common_normtree_bin!=0.){
-              sum_wgts_common_basetree += sum_wgts_common_basetree_bin;
-              sum_wgts_common_normtree += sum_wgts_common_normtree_bin;
-            }
+      double sum_wgts_common_basetree = 0;
+      double sum_wgts_common_normtree = 0;
+      for (unsigned int ibin=0; ibin<nbins; ibin++){
+        double const& sum_wgts_common_basetree_bin = sum_wgts_withrewgt_basetree.at(ibin).first;
+        double const& sum_wgts_common_normtree_bin = sum_wgts_withrewgt_normtree.at(ibin).first;
+        if (sum_wgts_common_basetree_bin!=0. && sum_wgts_common_normtree_bin!=0.){
+          sum_wgts_common_basetree += sum_wgts_common_basetree_bin;
+          sum_wgts_common_normtree += sum_wgts_common_normtree_bin;
+        }
+      }
+      if (sum_wgts_common_basetree==0.) MELAerr << "BulkReweightingBuilder::setup: Base tree " << tree->sampleIdentifier << " has no overlap with its norm tree " << normTree->sampleIdentifier << endl;
+      if (sum_wgts_common_normtree==0.) MELAerr << "BulkReweightingBuilder::setup: Norm tree " << tree->sampleIdentifier << " has no overlap with its base tree " << normTree->sampleIdentifier << endl;
+
+      double extra_norm = 1;
+      if (sum_wgts_common_basetree!=0.) extra_norm = sum_wgts_common_normtree / sum_wgts_common_basetree;
+      MELAout << "\t- Base tree " << tree->sampleIdentifier << " has an extra normalization of " << extra_norm << endl;
+      extraNormFactors[tree] = extra_norm;
+    }
+    // Multiply all relevant ones
+    for (auto const& tree_normTree_pair:(*tree_normTree_pairs)){
+      BaseTree* tree = tree_normTree_pair.first;
+      BaseTree* baseTree = tree;
+      BaseTree* normTree = tree_normTree_pair.second;
+      while (normTree!=nullptr){
+        MELAout << "\t- Normalizing " << tree->sampleIdentifier << " by the normalization factor (=" << extraNormFactors[baseTree] << ") of " << baseTree->sampleIdentifier << endl;
+        for (auto& v:sampleNormalization[tree]) v *= extraNormFactors[baseTree];
+        baseTree = normTree; normTree = nullptr;
+        for (auto const& pp:(*tree_normTree_pairs)){
+          if (pp.first == baseTree){
+            normTree = pp.second;
+            break;
           }
-          if (sum_wgts_common_basetree==0.) MELAerr << "BulkReweightingBuilder::setup: Base tree " << tree->sampleIdentifier << " has no overlap with its norm tree " << normTree->sampleIdentifier << endl;
-          if (sum_wgts_common_normtree==0.) MELAerr << "BulkReweightingBuilder::setup: Norm tree " << tree->sampleIdentifier << " has no overlap with its base tree " << normTree->sampleIdentifier << endl;
-
-          double extra_norm = 1;
-          if (sum_wgts_common_basetree!=0.) extra_norm = sum_wgts_common_normtree / sum_wgts_common_basetree;
-          MELAout << "\t- Base tree " << tree->sampleIdentifier << " has an extra normalization of " << extra_norm << endl;
-          for (unsigned int ibin=0; ibin<nbins; ibin++) sampleNormalization[tree].at(ibin) *= extra_norm;
         }
       }
     }
+    for (auto const& tree:registeredTrees){
+      MELAout << "\t- Sample normalizations after extra normalization for tree " << tree->sampleIdentifier << ": " << sampleNormalization[tree] << endl;
+    }
   }
 }
+
 double BulkReweightingBuilder::getOverallReweightingNormalization(BaseTree* tree) const{
   auto it_binningVarRefs = binningVarRefs.find(tree);
   if (it_binningVarRefs == binningVarRefs.cend()){
@@ -188,5 +211,32 @@ double BulkReweightingBuilder::getOverallReweightingNormalization(BaseTree* tree
     MELAerr << "BulkReweightingBuilder::getOverallReweightingNormalization: No normalization factor is found for tree " << tree->sampleIdentifier << "." << endl;
     return 1;
   }
+}
+bool BulkReweightingBuilder::checkWeightsBelowThreshold(BaseTree* tree) const{
+  auto it_binningVarRefs = binningVarRefs.find(tree);
+  if (it_binningVarRefs == binningVarRefs.cend()){
+    MELAerr << "BulkReweightingBuilder::checkWeightsBelowThreshold: Tree " << tree->sampleIdentifier << " is not registered properly." << endl;
+    return false;
+  }
+
+  unsigned int const nbins = (binning.isValid() ? binning.getNbins() : static_cast<unsigned int>(1));
+  int ibin = rule_binningVar(tree, binning, it_binningVarRefs->second);
+  if (ibin<0) ibin=0;
+  else if (ibin>=(int) nbins) ibin = nbins-1;
+
+  bool res = true;
+  auto const& absWeightThresholdsPerBin = absWeightThresholdsPerBinList.find(tree)->second;
+  auto const& componentRefs_reweightingweights = componentRefsList_reweightingweights.find(tree)->second;
+  unsigned int const nhypos = strReweightingWeightsList.size();
+  for (unsigned int ihypo=0; ihypo<nhypos; ihypo++){
+    float const& wgt_thr = absWeightThresholdsPerBin.at(ihypo).at(ibin);
+    float wgt_rewgt = rule_reweightingweights_list.at(ihypo)(tree, componentRefs_reweightingweights.at(ihypo));
+    if (wgt_thr>0.f && std::abs(wgt_rewgt)>wgt_thr){
+      res = false;
+      break;
+    }
+  }
+
+  return res;
 }
 
