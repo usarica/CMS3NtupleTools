@@ -116,8 +116,6 @@ TString DiscriminantClasses::getKDLabel(DiscriminantClasses::Type type){
   case kDggint:
   case kCggint:
     return "D^{gg, dec}_{bsi}";
-  //case kCggint:
-  //  return "cos (#phi^{gg}_{int})";
 
   case kDjVBF:
     return "D^{VBF}_{1jet}";
@@ -158,10 +156,6 @@ TString DiscriminantClasses::getKDLabel(DiscriminantClasses::Type type){
   case kCjjVBFint:
   case kCjjVHint:
     return "D^{[category]+dec}_{bsi}";
-  //case kCjjVBFint:
-  //  return "cos (#phi^{VBF}_{int})";
-  //case kCjjVHint:
-  //  return "cos (#phi^{VH}_{int})";
 
   case kDL1dec:
     return "D^{dec}_{#Lambda1}";
