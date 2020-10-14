@@ -46,6 +46,7 @@ void produceSkims(
   std::vector<TriggerHelpers::TriggerType> requiredTriggers_OrtogonalControl{
     TriggerHelpers::kAK8PFJet_Control,
     TriggerHelpers::kPFHT_Control,
+    TriggerHelpers::kPFMET_Control,
     TriggerHelpers::kPFMET_MHT_Control
   };
   std::vector<std::string> triggerCheckList_Dilepton = TriggerHelpers::getHLTMenus(requiredTriggers_Dilepton);

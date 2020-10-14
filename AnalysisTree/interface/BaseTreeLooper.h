@@ -55,6 +55,9 @@ protected:
   std::vector<std::string> recoMElist;
   CMS3MELAHelpers::GMECBlock MEblock;
 
+  // Selection counts
+  std::vector<std::pair<TString, unsigned int>> selection_string_count_pairs;
+
   // Input trees
   std::vector<BaseTree*> treeList;
 
@@ -96,6 +99,8 @@ protected:
   bool wrapTree(BaseTree* tree);
 
   void sigint_callback_handler(int snum);
+
+  void resetSelectionCounts(){ selection_string_count_pairs.clear(); }
 
 public:
   // Constructors
@@ -157,6 +162,9 @@ public:
   bool hasLinkedOutputTrees() const{ return !productTreeList.empty(); }
   bool hasGenMEs() const{ return !lheMElist.empty(); }
   bool hasRecoMEs() const{ return !recoMElist.empty(); }
+
+  // Function to add and increment a selection type to count
+  void incrementSelection(TString const& strsel, unsigned int inc=1);
 
   // Function to loop over the tree list
   virtual void loop(bool keepProducts);

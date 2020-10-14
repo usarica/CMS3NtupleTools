@@ -241,8 +241,10 @@ void TriggerHelpers::configureHLTmap(){
       { "HLT_PFHT200_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 440.f } } } } }, // Prescaled
       { "HLT_PFHT125_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 350.f } } } } } // Prescaled
     };
+    HLT_type_proplist_map[kPFMET_Control] = std::vector<HLTTriggerPathProperties>{
+      { "HLT_PFMET170_HBHECleaned_v*", { { HLTObjectProperties::kMET, { { HLTObjectProperties::kPt, 170.f } } } } }
+    };
     HLT_type_proplist_map[kPFMET_MHT_Control] = std::vector<HLTTriggerPathProperties>{
-      { "HLT_PFMET170_HBHECleaned_v*", { { HLTObjectProperties::kMET, { { HLTObjectProperties::kPt, 170.f } } } } },
       { "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v*", { { HLTObjectProperties::kMET_NoMu, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT_NoMu, { { HLTObjectProperties::kMass, 120.f } } } } },
       { "HLT_PFMET120_PFMHT120_IDTight_v*", { { HLTObjectProperties::kMET, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT, { { HLTObjectProperties::kMass, 120.f } } } } }
     };
@@ -450,6 +452,7 @@ void TriggerHelpers::configureHLTmap(){
       { "HLT_PFHT250_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 550.f } } } } }, // Prescaled
       { "HLT_PFHT180_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 500.f } } } } } // Prescaled
     };
+    HLT_type_proplist_map[kPFMET_Control] = std::vector<HLTTriggerPathProperties>();
     HLT_type_proplist_map[kPFMET_MHT_Control] = std::vector<HLTTriggerPathProperties>{
       { "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60_v*", { { HLTObjectProperties::kMET_NoMu, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT_NoMu, { { HLTObjectProperties::kMass, 120.f } } }, { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 60.f } } } } },
       { "HLT_PFMET120_PFMHT120_IDTight_PFHT60_v*", { { HLTObjectProperties::kMET, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT, { { HLTObjectProperties::kMass, 120.f }, { HLTObjectProperties::kPt, 60.f } } } } }/*,
@@ -590,6 +593,7 @@ void TriggerHelpers::configureHLTmap(){
       { "HLT_PFHT250_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 550.f } } } } }, // Prescaled
       { "HLT_PFHT180_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 500.f } } } } } // Prescaled
     };
+    HLT_type_proplist_map[kPFMET_Control] = std::vector<HLTTriggerPathProperties>();
     HLT_type_proplist_map[kPFMET_MHT_Control] = std::vector<HLTTriggerPathProperties>{
       { "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60_v*", { { HLTObjectProperties::kMET_NoMu, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT_NoMu, { { HLTObjectProperties::kMass, 120.f } } }, { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 60.f } } } } },
       { "HLT_PFMET120_PFMHT120_IDTight_PFHT60_v*", { { HLTObjectProperties::kMET, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT, { { HLTObjectProperties::kMass, 120.f }, { HLTObjectProperties::kPt, 60.f } } } } },

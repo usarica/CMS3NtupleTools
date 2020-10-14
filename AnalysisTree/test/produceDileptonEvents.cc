@@ -115,6 +115,16 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'Dilepton_DF' has to be defined in this looper rule!" << endl;
     assert(0);
   }
+  auto it_HLTMenuSimple_Dilepton_DF_Extra = triggerCheckListMap.find("Dilepton_DF_Extra");
+  auto it_HLTMenuProps_Dilepton_DF_Extra = triggerPropsCheckListMap.find("Dilepton_DF_Extra");
+  if (
+    (hasSimpleHLTMenus && it_HLTMenuSimple_Dilepton_DF_Extra == triggerCheckListMap.cend())
+    ||
+    (hasHLTMenuProperties && it_HLTMenuProps_Dilepton_DF_Extra == triggerPropsCheckListMap.cend())
+    ){
+    MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'Dilepton_DF_Extra' has to be defined in this looper rule!" << endl;
+    assert(0);
+  }
   auto it_HLTMenuSimple_Dilepton_SF = triggerCheckListMap.find("Dilepton_SF");
   auto it_HLTMenuProps_Dilepton_SF = triggerPropsCheckListMap.find("Dilepton_SF");
   if (
@@ -133,6 +143,16 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     (hasHLTMenuProperties && it_HLTMenuProps_PFHT_Control == triggerPropsCheckListMap.cend())
     ){
     MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'PFHT_Control' has to be defined in this looper rule!" << endl;
+    assert(0);
+  }
+  auto it_HLTMenuSimple_PFMET_MHT_Control = triggerCheckListMap.find("PFMET_MHT_Control");
+  auto it_HLTMenuProps_PFMET_MHT_Control = triggerPropsCheckListMap.find("PFMET_MHT_Control");
+  if (
+    (hasSimpleHLTMenus && it_HLTMenuSimple_PFMET_MHT_Control == triggerCheckListMap.cend())
+    ||
+    (hasHLTMenuProperties && it_HLTMenuProps_PFMET_MHT_Control == triggerPropsCheckListMap.cend())
+    ){
+    MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'PFMET_MHT_Control' has to be defined in this looper rule!" << endl;
     assert(0);
   }
 
@@ -177,7 +197,9 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(float, event_wgt_adjustment_NNPDF30) \
   BRANCH_COMMAND(float, event_wgt_triggers_SingleLepton) \
   BRANCH_COMMAND(float, event_wgt_triggers_Dilepton) \
+  BRANCH_COMMAND(float, event_wgt_triggers_Dilepton_DF_Extra) \
   BRANCH_COMMAND(float, event_wgt_triggers_PFHT_Control) \
+  BRANCH_COMMAND(float, event_wgt_triggers_PFMET_MHT_Control) \
   BRANCH_COMMAND(float, event_wgt_SFs) \
   BRANCH_COMMAND(float, event_wgt_SFs_muons) \
   BRANCH_COMMAND(float, event_wgt_SFs_electrons) \
@@ -199,6 +221,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt20_btagged_loose) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt20_btagged_medium) \
   BRANCH_COMMAND(float, ak4jets_HT) \
+  BRANCH_COMMAND(float, ak4jets_MHT) \
   BRANCH_COMMAND(cms3_id_t, dilepton_id) \
   BRANCH_COMMAND(float, dilepton_pt) \
   BRANCH_COMMAND(float, dilepton_eta) \
@@ -290,15 +313,19 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     for (auto const& it:genInfo->extras.LHE_ME_weights) commonEntry.setNamedVal(it.first, it.second);
     for (auto const& it:genInfo->extras.Kfactors) commonEntry.setNamedVal(it.first, it.second);
   }
+  theLooper->incrementSelection("Valid gen. weights");
 
   vertexHandler->constructVertices();
   if (!vertexHandler->hasGoodPrimaryVertex()) return false;
   event_n_vtxs_good = vertexHandler->getNGoodVertices();
+  theLooper->incrementSelection("Good vertices");
 
   eventFilter->constructFilters(simEventHandler);
   if (isData && !eventFilter->isUniqueDataEvent()) return false;
+  theLooper->incrementSelection("Unique data");
 
   if (!eventFilter->passCommonSkim() || !eventFilter->passMETFilters(EventFilterHandler::kMETFilters_Standard)) return false;
+  theLooper->incrementSelection("MET filters");
   event_pass_tightMETFilters = eventFilter->passMETFilters(EventFilterHandler::kMETFilters_Tight);
 
   pfcandidateHandler->constructPFCandidates(theGlobalSyst);
@@ -358,6 +385,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   }
   event_wgt_SFs_photons = SF_photons;
   if (n_photons_veto!=0) return false;
+  theLooper->incrementSelection("Photon veto");
 
   isotrackHandler->constructIsotracks(&muons, &electrons);
   bool hasVetoIsotrack = false;
@@ -368,6 +396,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     }
   }
   if (hasVetoIsotrack) return false;
+  theLooper->incrementSelection("Isotrack veto");
 
   dileptonHandler.constructDileptons(&muons, &electrons);
   auto const& dileptons = dileptonHandler.getProducts();
@@ -380,6 +409,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     }
   }
   if (!theChosenDilepton || nTightDilep>1) return false;
+  theLooper->incrementSelection("Tight, dilepton pair selection");
 
   bool const dilepton_is_SF = theChosenDilepton->isSF();
   dilepton_id = theChosenDilepton->getDaughter(0)->pdgId()*theChosenDilepton->getDaughter(1)->pdgId();
@@ -389,16 +419,29 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   dilepton_mass = theChosenDilepton->m();
   // Filter out low-mass resonances
   if (dilepton_mass<12.f) return false;
+  theLooper->incrementSelection("Low mass resonance veto");
 
   jetHandler->constructJetMET(theGlobalSyst, &muons, &electrons, &photons, &pfcandidates);
   auto const& ak4jets = jetHandler->getAK4Jets();
   auto const& ak8jets = jetHandler->getAK8Jets();
+  auto const& eventmet = (use_MET_Puppi ? jetHandler->getPFPUPPIMET() : jetHandler->getPFMET());
+  if (!isData && use_MET_corrections) metCorrectionHandler->applyCorrections(
+    simEventHandler->getChosenDataPeriod(),
+    genmet_pTmiss, genmet_phimiss,
+    eventmet, !use_MET_Puppi,
+    &(simEventHandler->getRandomNumber(SimEventHandler::kGenMETSmear))
+  );
+  auto event_met_p4 = eventmet->p4(use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr, use_MET_p4Preservation);
+  event_pTmiss = event_met_p4.Pt();
+  event_phimiss = event_met_p4.Phi();
 
   std::vector<ParticleObject const*> leptons_TOmatched_SingleLepton;
   if (hasSimpleHLTMenus){
     event_wgt_triggers_SingleLepton = eventFilter->getTriggerWeight(it_HLTMenuSimple_SingleLepton->second);
     event_wgt_triggers_Dilepton = eventFilter->getTriggerWeight((dilepton_is_SF ? it_HLTMenuSimple_Dilepton_SF : it_HLTMenuSimple_Dilepton_DF)->second);
+    if (!dilepton_is_SF) event_wgt_triggers_Dilepton_DF_Extra = eventFilter->getTriggerWeight(it_HLTMenuSimple_Dilepton_DF_Extra->second);
     event_wgt_triggers_PFHT_Control = eventFilter->getTriggerWeight(it_HLTMenuSimple_PFHT_Control->second);
+    event_wgt_triggers_PFMET_MHT_Control = eventFilter->getTriggerWeight(it_HLTMenuSimple_PFMET_MHT_Control->second);
   }
   else if (hasHLTMenuProperties){
     event_wgt_triggers_SingleLepton = eventFilter->getTriggerWeight(
@@ -410,15 +453,25 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       (dilepton_is_SF ? it_HLTMenuProps_Dilepton_SF : it_HLTMenuProps_Dilepton_DF)->second,
       &muons, &electrons, nullptr, nullptr, nullptr, nullptr
     );
+    if (!dilepton_is_SF) event_wgt_triggers_Dilepton_DF_Extra = eventFilter->getTriggerWeight(
+      it_HLTMenuProps_Dilepton_DF_Extra->second,
+      &muons, &electrons, nullptr, nullptr, nullptr, nullptr
+    );
     event_wgt_triggers_PFHT_Control = eventFilter->getTriggerWeight(
       it_HLTMenuProps_PFHT_Control->second,
       nullptr, nullptr, nullptr, &ak4jets, nullptr, nullptr
     );
+    event_wgt_triggers_PFMET_MHT_Control = eventFilter->getTriggerWeight(
+      it_HLTMenuProps_PFMET_MHT_Control->second,
+      nullptr, nullptr, nullptr, &ak4jets, nullptr, eventmet
+    );
   }
-  if ((event_wgt_triggers_SingleLepton + event_wgt_triggers_Dilepton + event_wgt_triggers_PFHT_Control) == 0.f) return false;
+  if ((event_wgt_triggers_SingleLepton + event_wgt_triggers_Dilepton + event_wgt_triggers_Dilepton_DF_Extra + event_wgt_triggers_PFHT_Control + event_wgt_triggers_PFMET_MHT_Control) == 0.f) return false;
+  theLooper->incrementSelection("Trigger");
 
   // Test HEM filter
   if (!eventFilter->test2018HEMFilter(simEventHandler, nullptr, nullptr, &ak4jets, &ak8jets)) return false;
+  theLooper->incrementSelection("HEM15/16 veto");
 
   // Fill leptons after trigger checks
   for (auto const& dau:theChosenDilepton->getDaughters()){
@@ -495,6 +548,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       if (jet->getBtagValue()>=btag_thr_medium) event_n_ak4jets_pt20_btagged_medium++;
     }
   }
+  ak4jets_MHT = sump4_ak4jets.Pt();
   event_wgt_SFs_PUJetId = SF_PUJetId;
   event_wgt_SFs_btagging = SF_btagging;
   event_n_ak4jets_pt30 = ak4jets_tight.size();
@@ -509,17 +563,6 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     ak8jets_phi.push_back(jet->phi());
     ak8jets_mass.push_back(jet->mass());
   }
-
-  auto const& eventmet = (use_MET_Puppi ? jetHandler->getPFPUPPIMET() : jetHandler->getPFMET());
-  if (!isData && use_MET_corrections) metCorrectionHandler->applyCorrections(
-    simEventHandler->getChosenDataPeriod(),
-    genmet_pTmiss, genmet_phimiss,
-    eventmet, !use_MET_Puppi,
-    &(simEventHandler->getRandomNumber(SimEventHandler::kGenMETSmear))
-  );
-  auto event_met_p4 = eventmet->p4(use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr, use_MET_p4Preservation);
-  event_pTmiss = event_met_p4.Pt();
-  event_phimiss = event_met_p4.Phi();
 
   min_abs_dPhi_pTj_pTmiss = TMath::Pi();
   for (auto const& jet:ak4jets_tight){
@@ -683,15 +726,21 @@ void getTrees(
   std::vector<TriggerHelpers::TriggerType> requiredTriggers_Dilepton_DF{
     TriggerHelpers::kMuEle
   };
+  std::vector<TriggerHelpers::TriggerType> requiredTriggers_Dilepton_DF_Extra{
+    TriggerHelpers::kMuEle_Extra
+  };
   std::vector<TriggerHelpers::TriggerType> requiredTriggers_Dilepton_SF{
     TriggerHelpers::kDoubleMu,
     TriggerHelpers::kDoubleEle, TriggerHelpers::kDoubleEle_HighPt
   };
   std::vector<TriggerHelpers::TriggerType> requiredTriggers_PFHT_Control{ TriggerHelpers::kPFHT_Control };
+  std::vector<TriggerHelpers::TriggerType> requiredTriggers_PFMET_MHT_Control{ TriggerHelpers::kPFMET_MHT_Control };
   auto triggerPropsCheckList_SingleLepton = TriggerHelpers::getHLTMenuProperties(requiredTriggers_SingleLepton);
   auto triggerPropsCheckList_Dilepton_DF = TriggerHelpers::getHLTMenuProperties(requiredTriggers_Dilepton_DF);
+  auto triggerPropsCheckList_Dilepton_DF_Extra = TriggerHelpers::getHLTMenuProperties(requiredTriggers_Dilepton_DF_Extra);
   auto triggerPropsCheckList_Dilepton_SF = TriggerHelpers::getHLTMenuProperties(requiredTriggers_Dilepton_SF);
   auto triggerPropsCheckList_PFHT_Control = TriggerHelpers::getHLTMenuProperties(requiredTriggers_PFHT_Control);
+  auto triggerPropsCheckList_PFMET_MHT_Control = TriggerHelpers::getHLTMenuProperties(requiredTriggers_PFMET_MHT_Control);
 
   // Get sample specifications
   std::vector<TString> sampledirs;
@@ -847,8 +896,10 @@ void getTrees(
   // Register the HLT menus
   theLooper.addHLTMenu("SingleLepton", triggerPropsCheckList_SingleLepton);
   theLooper.addHLTMenu("Dilepton_DF", triggerPropsCheckList_Dilepton_DF);
+  theLooper.addHLTMenu("Dilepton_DF_Extra", triggerPropsCheckList_Dilepton_DF_Extra);
   theLooper.addHLTMenu("Dilepton_SF", triggerPropsCheckList_Dilepton_SF);
   theLooper.addHLTMenu("PFHT_Control", triggerPropsCheckList_PFHT_Control);
+  theLooper.addHLTMenu("PFMET_MHT_Control", triggerPropsCheckList_PFMET_MHT_Control);
   // Set the MEs
   if (computeMEs) theLooper.setMatrixElementListFromFile(
     "${CMSSW_BASE}/src/CMS3/AnalysisTree/data/RecoProbabilities/RecoProbabilities.me",

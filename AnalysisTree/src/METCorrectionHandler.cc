@@ -133,6 +133,10 @@ void METCorrectionHandler::readFile(TString const& strinput, std::unordered_map<
           MELAerr << "METCorrectionHandler::readFile: Cannot determine the systematic for line " << str_in << endl;
           assert(0);
         }
+        pars[currentSyst].sigmas_nominal.clear();
+        pars[currentSyst].sigmas_dn.clear();
+        pars[currentSyst].sigmas_up.clear();
+        pars[currentSyst].fracs.clear();
       }
       else if (str_in.find("Sigma")!=std::string::npos || str_in.find("Frac")!=std::string::npos){
         std::string dummy;

@@ -39,6 +39,7 @@ namespace TriggerHelpers{
 
     kAK8PFJet_Control,
     kPFHT_Control,
+    kPFMET_Control,
     kPFMET_MHT_Control,
 
     nTriggerTypes

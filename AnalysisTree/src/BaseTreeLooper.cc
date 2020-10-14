@@ -278,6 +278,16 @@ bool BaseTreeLooper::wrapTree(BaseTree* tree){
   return res;
 }
 
+void BaseTreeLooper::incrementSelection(TString const& strsel, unsigned int inc){
+  bool isFound = false;
+  for (auto& pp:selection_string_count_pairs){
+    if (pp.first == strsel){
+      pp.second += inc;
+      isFound = true;
+    }
+  }
+  if (!isFound) selection_string_count_pairs.emplace_back(strsel, inc);
+}
 
 void BaseTreeLooper::loop(bool keepProducts){
   if (!looperFunction){
@@ -393,6 +403,12 @@ void BaseTreeLooper::loop(bool keepProducts){
       HelperFunctions::progressbar(ev, nevents);
       ev_traversed++;
     }
+
+    if (!selection_string_count_pairs.empty()){
+      MELAout << "BaseTreeLooper::loop: Number of events passing each selection type:" << endl;
+      for (auto& pp:selection_string_count_pairs) MELAout << "\t- " << pp.first << ": " << pp.second << endl;
+    }
+    resetSelectionCounts();
   } // End loop over the trees
   MELAout << "BaseTreeLooper::loop: Total number of products: " << ev_rec << " / " << ev_acc << " / " << ev_traversed << endl;
 }

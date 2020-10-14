@@ -79,7 +79,7 @@ template<typename T> void TriggerObject::getMatchedPhysicsObjects(
     objlist.cbegin(), objlist.cend(),
     TO_physobj_map
   );
-  for (auto it:TO_physobj_map){ if (it.second) res.push_back(it.second); }
+  for (auto const& it:TO_physobj_map){ if (it.second) res.push_back(it.second); }
 
   ParticleObjectHelpers::sortByGreaterPt(res);
 }
