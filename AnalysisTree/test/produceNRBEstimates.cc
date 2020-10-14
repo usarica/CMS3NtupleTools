@@ -1,5 +1,5 @@
 #include "common_includes.h"
-#include "offshell_cutflow.h"
+#include "OffshellCutflow.h"
 #include "TStyle.h"
 #include "TCanvas.h"
 #include "TText.h"
@@ -398,621 +398,525 @@ void makePlot(
 );
 
 
-using namespace SystematicsHelpers;
-void getTrees(
-  TString period, TString prodVersion,
-  int procsel, int ichunk, int nchunks, TString strdate,
-  bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false,
-  SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal
-){
-  if (procsel<0) return;
-  if (nchunks==1) nchunks = 0;
-  if (nchunks>0 && (ichunk<0 || ichunk==nchunks)) return;
+float getAbsWeightThresholdByNeff(TTree* tree, std::vector<float*> const& vals, double thr_Neff, TVar::VerbosityLevel verbosity=TVar::ERROR){
+  float res = -1;
 
-  gStyle->SetOptStat(0);
+  int nEntries = tree->GetEntries();
+  thr_Neff = std::min(thr_Neff, double(nEntries)/3.*2.);
+  unsigned int npos = 0;
+  double Neff = 0;
+  double sum_wgts[2]={ 0 }; // [0]: w, [1]: w^2
+  std::vector<float> smallest_weights;
+  if (verbosity>=TVar::ERROR) MELAout << "getAbsWeightThresholdByNeff: Determining the weight thresholds (Neff threshold = " << thr_Neff << ", number of events = " << nEntries << ")..." << endl;
+  for (int ev=0; ev<nEntries; ev++){
+    tree->GetEntry(ev);
+    HelperFunctions::progressbar(ev, nEntries);
+
+    float wgt_combined = 1;
+    for (auto const& val:vals) wgt_combined *= std::abs(*val);
+
+    HelperFunctions::addByLowest(smallest_weights, wgt_combined, false);
+    if (ev%100000 == 0 || ev == nEntries-1){
+      sum_wgts[0] = sum_wgts[1] = 0;
+      npos = 0;
+      for (auto const& wgt:smallest_weights){
+        sum_wgts[0] += wgt;
+        sum_wgts[1] += wgt*wgt;
+        Neff = std::pow(sum_wgts[0], 2) / sum_wgts[1];
+        npos++;
+        if (Neff>=thr_Neff) break;
+      }
+      if (verbosity>=TVar::ERROR) MELAout << "\t- Current Neff = " << Neff << " over " << ev+1 << " events..." << endl;
+    }
+    if (Neff>=thr_Neff) break;
+  }
+
+  if (!smallest_weights.empty()){
+    res = (sum_wgts[0] + std::sqrt(sum_wgts[1]*Neff)) / (Neff-1.);
+    if (verbosity>=TVar::ERROR){
+      unsigned int nVeto = 0;
+      for (auto const& wgt:smallest_weights){
+        if (wgt<res) continue;
+        nVeto++;
+      }
+
+      MELAout
+        << "\t- " << res
+        << " is the default weight threshold calculated from sN=" << sum_wgts[0] << ", vN=" << sum_wgts[1] << ", nN=" << Neff
+        << " (N=" << npos << " / " << smallest_weights.size() << ", wN=" << smallest_weights.at(npos-1) << ", wLast=" << smallest_weights.back()
+        << "). Expected fraction of vetos: " << ((double) nVeto) / ((double) smallest_weights.size())
+        << endl;
+    }
+  }
+  else{
+    if (verbosity>=TVar::INFO) MELAout << "\t- No weight threshold is found." << endl;
+  }
+
+  return res;
+}
+
+
+void getDataSampleDirs(std::vector<TString>& strsamples){
+  SystematicsHelpers::SystematicVariationTypes const syst = SystematicsHelpers::sNominal;
+  TString strSyst = SystematicsHelpers::getSystName(syst).data();
+
+  std::vector<TString> const validDataPeriods = SampleHelpers::getValidDataPeriods();
+  bool isDataLikePeriod = SampleHelpers::testDataPeriodIsLikeData();
+
+  for (auto const& period:validDataPeriods){
+    if (isDataLikePeriod && period!=SampleHelpers::getDataPeriod()) continue;
+    strsamples.push_back(Form("%s/Run%s_%s%s", period.Data(), period.Data(), strSyst.Data(), ".root"));
+  }
+}
+void getMCSampleDirs(std::vector< std::pair<TString, std::vector<std::pair<TString, TString>>> >& strsamples, SystematicsHelpers::SystematicVariationTypes const& theGlobalSyst){
+  TString strSyst = SystematicsHelpers::getSystName(theGlobalSyst).data();
+  TString strPeriod = SampleHelpers::getDataPeriod();
+
+  std::vector< std::pair< TString, std::vector<TString> > > sampleSpecs;
+  switch (SampleHelpers::getDataYear()){
+  case 2016:
+    sampleSpecs = std::vector< std::pair< TString, std::vector<TString> > >{
+      {
+        "DY_2l",{ "DY_2l_M_10to50" }
+      },
+      {
+        "DY_2l",{ "DY_2l_M_50"}
+      },
+      {
+        "qqZZ_2l2nu",{ "qqZZ_2l2nu", "qqZZ_2l2nu_ext" }
+      },
+      {
+        "qqWZ_3lnu",{ "qqWZ_3lnu_POWHEG" }
+      },
+      {
+        "TT_2l2nu",{ "TT_2l2nu" }
+      },
+      {
+        "qqWW_2l2nu",{ "qqWW_2l2nu" }
+      },
+      {
+        "WJets_lnu",{ "WJets_lnu_inclusive", "WJets_lnu_inclusive_ext" }
+      }
+    };
+    break;
+  case 2017:
+    sampleSpecs = std::vector< std::pair< TString, std::vector<TString> > >{
+      {
+        "DY_2l",{ "DY_2l_M_10to50", "DY_2l_M_10to50_ext" }
+      },
+      {
+        "DY_2l",{ "DY_2l_M_50", "DY_2l_M_50_ext", "DY_2l_M_50_ext2" }
+      },
+      {
+        "qqZZ_2l2nu",{ "qqZZ_2l2nu" }
+      },
+      {
+        "qqWZ_3lnu",{ "qqWZ_3lnu_POWHEG" }
+      },
+      {
+        "TT_2l2nu",{ "TT_2l2nu" }
+      },
+      {
+        "qqWW_2l2nu",{ "qqWW_2l2nu" }
+      },
+      {
+        "WJets_lnu",{ "WJets_lnu_0j" }
+      },
+      {
+        "WJets_lnu",{ "WJets_lnu_1j", "WJets_lnu_1j_ext" }
+      },
+      {
+        "WJets_lnu",{ "WJets_lnu_2j", "WJets_lnu_2j_ext" }
+      }
+    };
+    break;
+  case 2018:
+    sampleSpecs = std::vector< std::pair< TString, std::vector<TString> > >{
+      {
+        "DY_2l", { "DY_2l_M_10to50", "DY_2l_M_10to50_ext" }
+      },
+      {
+        "DY_2l", { "DY_2l_M_50", "DY_2l_M_50_ext" }
+      },
+      {
+        "TT_2l2nu", { "TT_2l2nu" }
+      },
+      {
+        "qqZZ_2l2nu",{ "qqZZ_2l2nu", "qqZZ_2l2nu_ext" }
+      },
+      {
+        "qqWW_2l2nu",{ "qqWW_2l2nu" }
+      },
+      {
+        "qqWZ_3lnu",{ "qqWZ_3lnu_POWHEG" }
+      },
+      {
+        "WJets_lnu",{ "WJets_lnu_0j" }
+      },
+      {
+        "WJets_lnu",{ "WJets_lnu_1j" }
+      },
+      {
+        "WJets_lnu",{ "WJets_lnu_2j" }
+      }
+    };
+    break;
+  }
+  for (auto const& s:sampleSpecs){
+    std::vector<TString> sdirs;
+    std::vector<std::pair<TString, TString>> sname_dir_pairs;
+    for (auto const& strSampleSet:s.second) SampleHelpers::constructSamplesList(strSampleSet, theGlobalSyst, sdirs);
+    sname_dir_pairs.reserve(sdirs.size());
+    for (auto const& sname:sdirs){
+      TString cinput = SampleHelpers::getSampleIdentifier(sname);
+      HelperFunctions::replaceString(cinput, "_MINIAODSIM", "");
+      HelperFunctions::replaceString(cinput, "_MINIAOD", "");
+      cinput = cinput + "_*" + strSyst + ".root";
+      cinput = strPeriod + "/" + cinput;
+      sname_dir_pairs.emplace_back(sname, cinput);
+    }
+    strsamples.emplace_back(s.first, sname_dir_pairs);
+  }
+}
+
+using namespace SystematicsHelpers;
+void getDistributions(
+  TString period, TString prodVersion, TString strdate,
+  SystematicsHelpers::SystematicVariationTypes theGlobalSyst
+){
+  constexpr bool useJetOverlapStripping=false;
+  constexpr bool applyPUIdToAK4Jets=true;
+  constexpr bool applyTightLeptonVetoIdToAK4Jets=false;
+  // MET options
+  constexpr bool use_MET_Puppi=false;
+  constexpr bool use_MET_XYCorr=true;
+  constexpr bool use_MET_JERCorr=true;
+  constexpr bool use_MET_ParticleMomCorr=true;
+  constexpr bool use_MET_p4Preservation=true;
+  constexpr bool use_MET_corrections=true;
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
-  // Set flags for ak4jet tight id
-  AK4JetSelectionHelpers::setPUIdWP(applyPUIdToAK4Jets ? AK4JetSelectionHelpers::kTightPUJetId : AK4JetSelectionHelpers::nSelectionBits); // Default is 'tight'
-  AK4JetSelectionHelpers::setApplyTightLeptonVetoIdToJets(applyTightLeptonVetoIdToAK4Jets); // Default is 'false'
+  SampleHelpers::configure(period, Form("%s:%s", "hadoop_skims", prodVersion.Data()));
 
-  TString const coutput_main =
-    "output/TTBarClosure/SkimTrees/" + strdate
-    + "/" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
-    + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId");
-  gSystem->mkdir(coutput_main, true);
-
-  SampleHelpers::configure(period, "hadoop:"+prodVersion);
-
+  TString strSyst = SystematicsHelpers::getSystName(theGlobalSyst).data();
+  const float lumi = SampleHelpers::getIntegratedLuminosity(SampleHelpers::getDataPeriod());
   std::vector<TString> const validDataPeriods = SampleHelpers::getValidDataPeriods();
   size_t const nValidDataPeriods = validDataPeriods.size();
 
-  BtagHelpers::setBtagWPType(BtagHelpers::kDeepFlav_Medium);
-  const float btag_medium_thr = BtagHelpers::getBtagWP(false);
-  BtagHelpers::setBtagWPType(BtagHelpers::kDeepFlav_Loose);
-  const float btag_loose_thr = BtagHelpers::getBtagWP(false);
+  TString const coutput_main = "output/NRBEstimates/" + strdate + "/Histograms/" + period;
+  TDirectory* curdir = gDirectory;
+  gSystem->mkdir(coutput_main, true);
 
-  const float lumi = SampleHelpers::getIntegratedLuminosity(SampleHelpers::theDataPeriod);
+  TString stroutput = coutput_main + Form("/histograms_%s.root", strSyst.Data());
+  TFile* foutput = TFile::Open(stroutput, "recreate");
+  foutput->cd();
 
-  auto triggerPropsCheckList_OSDF = TriggerHelpers::getHLTMenuProperties(
-    {
-      TriggerHelpers::kMuEle,
-      TriggerHelpers::kSingleEle, TriggerHelpers::kSingleMu
+  TString const cinput_main_MC =
+    "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/DileptonEvents/SkimTrees/" + strdate
+    + "/AK4Jets"
+    + "_" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
+    + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
+    + "_" + (useJetOverlapStripping ? "ParticleStripped" : "ParticleCleaned")
+    + "/" + (use_MET_Puppi ? "PUPPIMET" : "PFMET")
+    + "_" + (use_MET_XYCorr ? "WithXY" : "NoXY")
+    + "_" + (use_MET_JERCorr ? "WithJER" : "NoJER")
+    + "_" + (use_MET_ParticleMomCorr ? "WithPartMomCorr" : "NoPartMomCorr")
+    + "_" + (use_MET_p4Preservation ? "P4Preserved" : "P4Default")
+    + "_" + (use_MET_corrections ? "ResolutionCorrected" : "ResolutionUncorrected");
+  std::unordered_map<TChain*, double> norm_map;
+  std::vector< std::pair<TString, std::vector<std::pair<TString, TString>>> > sgroup_sname_sfname_pairs_MC;
+  getMCSampleDirs(sgroup_sname_sfname_pairs_MC, theGlobalSyst);
+  std::vector<std::pair<TString, TChain*>> samples_all;
+  std::vector<TString> sgroups;
+  for (auto const& sgroup_sname_sfname_pair:sgroup_sname_sfname_pairs_MC){
+    auto const& sgroup = sgroup_sname_sfname_pair.first;
+    auto const& sname_sfname_pairs = sgroup_sname_sfname_pair.second;
+    if (!HelperFunctions::checkListVariable(sgroups, sgroup)) sgroups.push_back(sgroup);
+    std::vector<TChain*> tins_collected;
+    for (auto const& sname_sfname_pair:sname_sfname_pairs){
+      auto const& sname = sname_sfname_pair.first;
+      auto const& sfname = sname_sfname_pair.second;
+      TString cinput = cinput_main_MC + "/" + sfname;
+      foutput->cd();
+      TChain* tin = new TChain("SkimTree");
+      int nfiles = tin->Add(cinput);
+      MELAout << "\t- Successfully added " << nfiles << " files for " << sname << " from " << cinput << "..." << endl;
+      samples_all.emplace_back(sgroup, tin);
+      tins_collected.push_back(tin);
+      norm_map[tin] = 1;
+      if (sname_sfname_pairs.size()>1){
+        norm_map[tin] = 0;
+        std::vector<TString> inputfilenames = SampleHelpers::getDatasetFileNames(sname);
+        double sum_wgts = 0;
+        bool hasCounters = true;
+        {
+          int bin_syst = 1 + 1*(theGlobalSyst==SystematicsHelpers::ePUDn) + 2*(theGlobalSyst==SystematicsHelpers::ePUUp);
+          int bin_period = 1;
+          for (unsigned int iperiod=0; iperiod<nValidDataPeriods; iperiod++){
+            if (validDataPeriods.at(iperiod)==SampleHelpers::getDataPeriod()){ bin_period += iperiod+1; break; }
+          }
+          for (auto const& fname:inputfilenames){
+            TFile* ftmp = TFile::Open(fname, "read");
+            TH2D* hCounters = (TH2D*) ftmp->Get("cms3ntuple/Counters");
+            if (!hCounters){
+              hasCounters = false;
+              sum_wgts = 0;
+              break;
+            }
+            sum_wgts += hCounters->GetBinContent(bin_syst, bin_period);
+            ftmp->Close();
+            foutput->cd();
+          }
+          if (hasCounters) MELAout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
+        }
+        norm_map[tin] += sum_wgts;
+      }
+      foutput->cd();
     }
-  );
-  auto triggerPropsCheckList_OSSF = TriggerHelpers::getHLTMenuProperties(
     {
-      TriggerHelpers::kDoubleEle, TriggerHelpers::kSingleEle,
-      TriggerHelpers::kDoubleMu, TriggerHelpers::kSingleMu
+      double sum_wgts_MC = 0;
+      for (auto const& tin:tins_collected) sum_wgts_MC += norm_map[tin];
+      for (auto const& tin:tins_collected) norm_map[tin] /= sum_wgts_MC;
     }
-  );
-
-  std::vector<SampleSpecs> sampleList;
-  sampleList.emplace_back("qqWZ_3lnu_MG", "WZ#rightarrow3l1#nu", "qqWZ_3lnu_MG", -1, HistogramProperties((int) kYellow-3, 1, 2)); // 0
-  sampleList.emplace_back("qqWZ_lnu2q", "WZ#rightarrowl#nuq", "qqWZ_lnu2q", -1, HistogramProperties((int) kYellow-3, 1, 2));
-  sampleList.emplace_back("qqZZ_2l2nu", "ZZ#rightarrow2l2#nu", "qqZZ_2l2nu", -1, HistogramProperties((int) kYellow-3, 1, 2));
-  sampleList.emplace_back("TT_2l2nu", "t#bar{t}#rightarrow2l2#nu", "TT_2l2nu", -1, HistogramProperties((int) kYellow-3, 1, 2));
-  sampleList.emplace_back("qqWW_2l2nu", "WW#rightarrow2l2#nu", "qqWW_2l2nu", -1, HistogramProperties((int) kTeal-1, 1, 2));
-  sampleList.emplace_back("DY_2l_M_50_HT_70-100", "DY ll (H_{T}-binned)", "DY_2l_M_50_HT_70-100", -1, HistogramProperties((int) kCyan, 1, 2)); // 5
-  sampleList.emplace_back("DY_2l_M_50_HT_100-200", "DY ll (H_{T}-binned)", "DY_2l_M_50_HT_100-200", -1, HistogramProperties((int) kCyan, 1, 2));
-  sampleList.emplace_back("DY_2l_M_50_HT_200-400", "DY ll (H_{T}-binned)", "DY_2l_M_50_HT_200-400", -1, HistogramProperties((int) kCyan, 1, 2));
-  sampleList.emplace_back("DY_2l_M_50_HT_400-600", "DY ll (H_{T}-binned)", "DY_2l_M_50_HT_400-600", -1, HistogramProperties((int) kCyan, 1, 2));
-  sampleList.emplace_back("DY_2l_M_50_HT_600-800", "DY ll (H_{T}-binned)", "DY_2l_M_50_HT_600-800", -1, HistogramProperties((int) kCyan, 1, 2));
-  sampleList.emplace_back("DY_2l_M_50_HT_800-1200", "DY ll (H_{T}-binned)", "DY_2l_M_50_HT_800-1200", -1, HistogramProperties((int) kCyan, 1, 2));
-  sampleList.emplace_back("DY_2l_M_50_HT_1200-2500", "DY ll (H_{T}-binned)", "DY_2l_M_50_HT_1200-2500", -1, HistogramProperties((int) kCyan, 1, 2));
-  sampleList.emplace_back("DY_2l_M_50_HT_2500-inf", "DY ll (H_{T}-binned)", "DY_2l_M_50_HT_2500-inf", -1, HistogramProperties((int) kCyan, 1, 2));
-  sampleList.emplace_back("DY_2l_M_10to50_ext", "DY ll (m_{ll}: [10, 50] GeV)", "DY_2l_M_10to50_ext", -1, HistogramProperties((int) kCyan, 1, 2)); // 13
-  sampleList.emplace_back("DY_2l_M_50_ext", "DY ll (m_{ll}>50 GeV)", "DY_2l_M_50_ext", -1, HistogramProperties((int) kCyan, 1, 2));
-  sampleList.emplace_back("2018A", "Observed (2018A)", "Run2018A", -1, HistogramProperties((int) kCyan, 1, 2)); // 15
-  sampleList.emplace_back("2018B", "Observed (2018B)", "Run2018B", -1, HistogramProperties((int) kCyan, 1, 2));
-  sampleList.emplace_back("2018C", "Observed (2018C)", "Run2018C", -1, HistogramProperties((int) kCyan, 1, 2));
-  sampleList.emplace_back("2018D", "Observed (2018D)", "Run2018D", -1, HistogramProperties((int) kCyan, 1, 2));
-  sampleList.emplace_back("ggZZ_2l2nu_Sig", "gg#rightarrowZZ sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "GGH_ZZ2L2Nu_M1000_POWHEG", -1, HistogramProperties((int) kYellow-3, 1, 2)); // 19
-  sampleList.emplace_back("ggZZ_2l2nu_BSI", "gg#rightarrowZZ total (#Gamma_{H}=#Gamma_{H}^{SM})", "GGH_ZZ2L2Nu_M1000_POWHEG", -1, HistogramProperties((int) kYellow-3, 1, 2));
-  sampleList.emplace_back("ggZZ_2l2nu_Sig_g4", "gg#rightarrowZZ sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "GGH_ZZ2L2Nu_M1000_POWHEG", -1, HistogramProperties((int) kYellow-3, 1, 2));
-  sampleList.emplace_back("ggZZ_2l2nu_BSI_g4", "gg#rightarrowZZ total (#Gamma_{H}=#Gamma_{H}^{SM})", "GGH_ZZ2L2Nu_M1000_POWHEG", -1, HistogramProperties((int) kYellow-3, 1, 2));
-  sampleList.emplace_back("ggWW_2l2nu_Sig", "gg#rightarrowWW sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "GGH_WW2L2Nu_M1000_POWHEG", -1, HistogramProperties((int) kYellow-3, 1, 2)); // 23
-  sampleList.emplace_back("ggWW_2l2nu_BSI", "gg#rightarrowWW total (#Gamma_{H}=#Gamma_{H}^{SM})", "GGH_WW2L2Nu_M1000_POWHEG", -1, HistogramProperties((int) kYellow-3, 1, 2));
-  sampleList.emplace_back("ggWW_2l2nu_Sig_g4", "gg#rightarrowWW sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "GGH_WW2L2Nu_M1000_POWHEG", -1, HistogramProperties((int) kYellow-3, 1, 2));
-  sampleList.emplace_back("ggWW_2l2nu_BSI_g4", "gg#rightarrowWW total (#Gamma_{H}=#Gamma_{H}^{SM})", "GGH_WW2L2Nu_M1000_POWHEG", -1, HistogramProperties((int) kYellow-3, 1, 2));
-  sampleList.emplace_back("ggWW_2l2nu_Sig_Onshell", "gg#rightarrowWW sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "GGH_WW2L2Nu_M125_POWHEG", -1, HistogramProperties((int) kYellow-3, 1, 2)); // 27
-  sampleList.emplace_back("ggWW_2l2nu_Sig_Onshell_g4", "gg#rightarrowWW sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "GGH_WW2L2Nu_M125_POWHEG", -1, HistogramProperties((int) kYellow-3, 1, 2));
-  sampleList.emplace_back("VBFZZ_2l2nu_Sig", "EW ZZ+jj sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "VBF_ZZ2L2Nu_M1500_POWHEG", -1, HistogramProperties((int) kYellow-3, 1, 2)); // 29
-  sampleList.emplace_back("VBFZZ_2l2nu_BSI", "EW ZZ+jj total (#Gamma_{H}=#Gamma_{H}^{SM})", "VBF_ZZ2L2Nu_M1500_POWHEG", -1, HistogramProperties((int) kYellow-3, 1, 2));
-  sampleList.emplace_back("VBFZZ_2l2nu_Sig_g4", "EW ZZ+jj sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "VBF_ZZ2L2Nu_M1500_POWHEG", -1, HistogramProperties((int) kYellow-3, 1, 2));
-  sampleList.emplace_back("VBFZZ_2l2nu_BSI_g4", "EW ZZ+jj total (#Gamma_{H}=#Gamma_{H}^{SM})", "VBF_ZZ2L2Nu_M1500_POWHEG", -1, HistogramProperties((int) kYellow-3, 1, 2));
-  sampleList.emplace_back("VBFWW_2l2nu_Sig", "EW WW+jj sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "VBF_WW2L2Nu_M1000_POWHEG", -1, HistogramProperties((int) kYellow-3, 1, 2)); // 31
-  sampleList.emplace_back("VBFWW_2l2nu_BSI", "EW WW+jj total (#Gamma_{H}=#Gamma_{H}^{SM})", "VBF_WW2L2Nu_M1000_POWHEG", -1, HistogramProperties((int) kYellow-3, 1, 2));
-  sampleList.emplace_back("VBFWW_2l2nu_Sig_g4", "EW WW+jj sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "VBF_WW2L2Nu_M1000_POWHEG", -1, HistogramProperties((int) kYellow-3, 1, 2));
-  sampleList.emplace_back("VBFWW_2l2nu_BSI_g4", "EW WW+jj total (#Gamma_{H}=#Gamma_{H}^{SM})", "VBF_WW2L2Nu_M1000_POWHEG", -1, HistogramProperties((int) kYellow-3, 1, 2));
-  sampleList.emplace_back("VBFWW_2l2nu_Sig_Onshell", "EW WW+jj sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "VBF_WW2L2Nu_M125_POWHEG", -1, HistogramProperties((int) kYellow-3, 1, 2)); // 35
-  sampleList.emplace_back("VBFWW_2l2nu_Sig_Onshell_g4", "EW WW+jj sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "VBF_WW2L2Nu_M125_POWHEG", -1, HistogramProperties((int) kYellow-3, 1, 2));
-
-  if ((unsigned int) procsel>=sampleList.size()) return;
-  auto const& sample = sampleList.at(procsel);
-  TString const& strSampleSet = sample.path;
-  if (
-    sample.name.find("Sig")!=std::string::npos
-    ||
-    sample.name.find("Bkg")!=std::string::npos
-    ||
-    sample.name.find("BSI")!=std::string::npos
-    ) SampleHelpers::configure(period, "hadoop:"+prodVersion);
-  else{
-    SampleHelpers::setInputDirectory("/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Skims");
+  }
+  for (auto const& sgroup_tin_pair:samples_all){
+    MELAout << "Relative normalization for sample in group " << sgroup_tin_pair.first << " = " << norm_map[sgroup_tin_pair.second] << endl;
   }
 
-  // Get sample specifications
-  bool const isData = SampleHelpers::checkSampleIsData(strSampleSet);
-  if (isData && theGlobalSyst!=sNominal) return;
-  if (isData && nchunks>0) return;
+  TString const cinput_main_data =
+    "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/DileptonEvents/SkimTrees/" + strdate
+    + "/AK4Jets"
+    + "_" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
+    + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
+    + "_" + (useJetOverlapStripping ? "ParticleStripped" : "ParticleCleaned")
+    + "/" + (use_MET_Puppi ? "PUPPIMET" : "PFMET")
+    + "_" + (use_MET_XYCorr ? "WithXY" : "NoXY")
+    + "_" + (use_MET_ParticleMomCorr ? "WithPartMomCorr" : "NoPartMomCorr")
+    + "_" + (use_MET_p4Preservation ? "P4Preserved" : "P4Default");
+  std::vector<TString> sfnames_data;
+  getDataSampleDirs(sfnames_data);
+  sgroups.push_back("Data");
+  for (auto const& sfname:sfnames_data){
+    TString cinput = cinput_main_data + "/" + sfname;
+    foutput->cd();
+    TChain* tin = new TChain("SkimTree");
+    int nfiles = tin->Add(cinput);
+    MELAout << "\t- Successfully added " << nfiles << " files for data from " << cinput << "..." << endl;
+    samples_all.emplace_back("Data", tin);
+    norm_map[tin] = 1;
+    foutput->cd();
+  }
 
-  std::vector<TString> sampledirs;
-  SampleHelpers::constructSamplesList(strSampleSet, theGlobalSyst, sampledirs);
 
-  // Get handlers
-  SimEventHandler simEventHandler;
-  GenInfoHandler genInfoHandler;
-  EventFilterHandler eventFilter;
-  MuonHandler muonHandler;
-  ElectronHandler electronHandler;
-  PhotonHandler photonHandler;
-  JetMETHandler jetHandler;
-  IsotrackHandler isotrackHandler;
-  VertexHandler vertexHandler;
-  ParticleDisambiguator particleDisambiguator;
-  DileptonHandler dileptonHandler;
+  // Recorded variables
+#define BRANCH_SCALAR_COMMANDS \
+  BRANCH_COMMAND(float, event_wgt) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_NNPDF30) \
+  BRANCH_COMMAND(float, event_wgt_triggers_SingleLepton) \
+  BRANCH_COMMAND(float, event_wgt_triggers_Dilepton) \
+  BRANCH_COMMAND(float, event_wgt_SFs) \
+  BRANCH_COMMAND(float, event_wgt_SFs_muons) \
+  BRANCH_COMMAND(float, event_wgt_SFs_electrons) \
+  BRANCH_COMMAND(float, event_wgt_SFs_photons) \
+  BRANCH_COMMAND(float, event_wgt_SFs_PUJetId) \
+  BRANCH_COMMAND(float, event_wgt_SFs_btagging) \
+  BRANCH_COMMAND(float, event_pTmiss) \
+  BRANCH_COMMAND(float, event_phimiss) \
+  BRANCH_COMMAND(float, event_mTZZ) \
+  BRANCH_COMMAND(float, event_mZZ) \
+  BRANCH_COMMAND(bool, event_pass_tightMETFilters) \
+  BRANCH_COMMAND(float, genmet_pTmiss) \
+  BRANCH_COMMAND(float, genmet_phimiss) \
+  BRANCH_COMMAND(unsigned int, event_n_vtxs_good) \
+  BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt30) \
+  BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt30_btagged_loose) \
+  BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt30_btagged_medium) \
+  BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt20) \
+  BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt20_btagged_loose) \
+  BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt20_btagged_medium) \
+  BRANCH_COMMAND(cms3_id_t, dilepton_id) \
+  BRANCH_COMMAND(float, dilepton_pt) \
+  BRANCH_COMMAND(float, dilepton_eta) \
+  BRANCH_COMMAND(float, dilepton_phi) \
+  BRANCH_COMMAND(float, dilepton_mass) \
+  BRANCH_COMMAND(float, dPhi_pTboson_pTmiss) \
+  BRANCH_COMMAND(float, dPhi_pTbosonjets_pTmiss) \
+  BRANCH_COMMAND(float, min_abs_dPhi_pTj_pTmiss)
+#define BRANCH_VECTOR_COMMANDS \
+  BRANCH_COMMAND(bool, leptons_is_genMatched_prompt) \
+  BRANCH_COMMAND(bool, leptons_is_TOmatched_SingleLepton) \
+  BRANCH_COMMAND(cms3_id_t, leptons_id) \
+  BRANCH_COMMAND(float, leptons_pt) \
+  BRANCH_COMMAND(float, leptons_eta) \
+  BRANCH_COMMAND(float, leptons_phi) \
+  BRANCH_COMMAND(float, leptons_mass) \
+  BRANCH_COMMAND(float, leptons_eff) \
+  BRANCH_COMMAND(float, leptons_eff_DF) \
+  BRANCH_COMMAND(bool, ak4jets_is_genMatched) \
+  BRANCH_COMMAND(bool, ak4jets_is_genMatched_fullCone) \
+  BRANCH_COMMAND(float, ak4jets_pt) \
+  BRANCH_COMMAND(float, ak4jets_eta) \
+  BRANCH_COMMAND(float, ak4jets_phi) \
+  BRANCH_COMMAND(float, ak4jets_mass) \
+  BRANCH_COMMAND(float, ak8jets_pt) \
+  BRANCH_COMMAND(float, ak8jets_eta) \
+  BRANCH_COMMAND(float, ak8jets_phi) \
+  BRANCH_COMMAND(float, ak8jets_mass)
+#define BRANCH_COMMANDS \
+  BRANCH_SCALAR_COMMANDS \
+  BRANCH_VECTOR_COMMANDS
 
-  PhotonScaleFactorHandler photonSFHandler;
-  BtagScaleFactorHandler btagSFHandler;
-
-  genInfoHandler.setAcquireLHEMEWeights(true);
-  genInfoHandler.setAcquireLHEParticles(false);
-  genInfoHandler.setAcquireGenParticles(false);
-
-  TString stroutput = Form("%s/%s", coutput_main.Data(), sample.name.data());
-  if (nchunks>0) stroutput = stroutput + Form("_%i_of_%i", ichunk, nchunks);
-  stroutput += Form("_%s", SystematicsHelpers::getSystName(theGlobalSyst).data());
-  stroutput += ".root";
-  TFile* foutput = TFile::Open(stroutput, "recreate");
-
-  TTree* tout = new TTree("SkimTree", "");
-#define BRANCH_COMMAND(type, name) type name = 0; tout->Branch(#name, &name);
-  // Event variables
-  BRANCH_COMMAND(float, event_wgt);
-  BRANCH_COMMAND(float, event_wgt_SFs);
-  BRANCH_COMMAND(float, pTmiss);
-  BRANCH_COMMAND(float, phimiss);
-  BRANCH_COMMAND(float, mTZZ);
-  BRANCH_COMMAND(float, mZZ);
-  BRANCH_COMMAND(float, mjj);
-  BRANCH_COMMAND(unsigned int, event_nvtxs_good);
-  BRANCH_COMMAND(unsigned int, event_Nphotons);
-  BRANCH_COMMAND(unsigned int, event_Njets);
-  BRANCH_COMMAND(unsigned int, event_Njets_btagged_loose);
-  BRANCH_COMMAND(unsigned int, event_Njets_btagged_medium);
-  BRANCH_COMMAND(unsigned int, event_Njets20);
-  BRANCH_COMMAND(unsigned int, event_Njets20_btagged_loose);
-  BRANCH_COMMAND(unsigned int, event_Njets20_btagged_medium);
-  BRANCH_COMMAND(float, event_wgt_OSSF_triggers);
-  BRANCH_COMMAND(float, event_wgt_OSDF_triggers);
-  BRANCH_COMMAND(bool, is_ee);
-  BRANCH_COMMAND(bool, is_mumu);
-  BRANCH_COMMAND(bool, is_emu);
-  BRANCH_COMMAND(bool, has_electrons_inHEM1516);
-  BRANCH_COMMAND(bool, has_photons_inHEM1516);
-  BRANCH_COMMAND(bool, has_ak4jets_inHEM1516);
-  BRANCH_COMMAND(bool, has_ak8jets_inHEM1516);
-  // LL
-  BRANCH_COMMAND(float, pt_ll);
-  BRANCH_COMMAND(float, eta_ll);
-  BRANCH_COMMAND(float, phi_ll);
-  BRANCH_COMMAND(float, mass_ll);
-  // L1, L2
-  BRANCH_COMMAND(int, id_l1);
-  BRANCH_COMMAND(float, pt_l1);
-  BRANCH_COMMAND(float, eta_l1);
-  BRANCH_COMMAND(float, phi_l1);
-  BRANCH_COMMAND(int, id_l2);
-  BRANCH_COMMAND(float, pt_l2);
-  BRANCH_COMMAND(float, eta_l2);
-  BRANCH_COMMAND(float, phi_l2);
-  // J1
-  BRANCH_COMMAND(float, pt_j1);
-  BRANCH_COMMAND(float, eta_j1);
-  BRANCH_COMMAND(float, phi_j1);
-  BRANCH_COMMAND(float, mass_j1);
-  // J2
-  BRANCH_COMMAND(float, pt_j2);
-  BRANCH_COMMAND(float, eta_j2);
-  BRANCH_COMMAND(float, phi_j2);
-  BRANCH_COMMAND(float, mass_j2);
+#define BRANCH_COMMAND(TYPE, NAME) TYPE NAME = 0;
+  BRANCH_SCALAR_COMMANDS;
+#undef BRANCH_COMMAND
+#define BRANCH_COMMAND(TYPE, NAME) std::vector<TYPE>* NAME = nullptr;
+  BRANCH_VECTOR_COMMANDS;
 #undef BRANCH_COMMAND
 
-  bool isFirstInputFile=true;
-  for (auto const& sname:sampledirs){
-    BaseTree sample_tree(SampleHelpers::getDatasetFileName(sname), "cms3ntuple/Dilepton", "", "");
-    sample_tree.sampleIdentifier = SampleHelpers::getSampleIdentifier(sname);
+  std::unordered_map<TChain*, float> event_wgt_SFs_thrs;
+  for (auto& pp:samples_all){
+    auto const& tin = pp.second;
+    tin->SetBranchStatus("*", 0);
+#define BRANCH_COMMAND(TYPE, NAME) tin->SetBranchStatus(#NAME, 1); tin->SetBranchAddress(#NAME, &NAME);
+    BRANCH_COMMANDS;
+#undef BRANCH_COMMAND
+    event_wgt_SFs_thrs[tin] = 3./*getAbsWeightThresholdByNeff(tin, { &event_wgt_SFs }, std::min(300000., tin->GetEntries()/3.*2.))*/;
+  }
 
-    // Set data tracking options
-    eventFilter.setTrackDataEvents(isData);
-    eventFilter.setCheckUniqueDataEvent(isData && !isFirstInputFile);
+  std::vector<TString> strChannelNames{ "mumu", "ee", "mue", "mue_rewgt_mumu", "mue_rewgt_ee" };
+  std::vector<TString> strChannelTitles{ "#mu#mu", "ee", "#mue (un-rewgt.)", "#mue (rewgt. #mu#mu)", "#mue (rewgt. ee)" };
+  const unsigned int nchannels = strChannelNames.size();
 
-    const int nEntries = sample_tree.getSelectedNEvents();
+  std::vector<TString> strNjetsNames{ "Nj_eq_0", "Nj_eq_1", "Nj_geq_2", "Nj_geq_0" };
+  std::vector<TString> strNjetsTitles{ "N_{j}=0", "N_{j}=1", "N_{j}#geq2", "N_{j}#geq0" };
+  const unsigned int nbins_njets = strNjetsNames.size();
 
-    double sum_wgts = (isData ? 1.f : 0.f);
-    float xsec = 1;
-    if (!isData){
-      sample_tree.bookBranch<float>("xsec", 0.f);
+  std::vector<TString> strBtaggingRegionNames{ "Nbloose_eq_0", "Nbmed_geq_1" };
+  std::vector<TString> strBtaggingRegionTitles{ "N_{b}^{loose}=0", "N_{b}^{medium}#geq1" };
+  const unsigned int nbins_nbtagged = strBtaggingRegionNames.size();
 
-      simEventHandler.bookBranches(&sample_tree);
-      simEventHandler.wrapTree(&sample_tree);
+  foutput->cd();
 
-      genInfoHandler.bookBranches(&sample_tree);
-      genInfoHandler.wrapTree(&sample_tree);
+  std::vector<TH1F*> hlist;
+  for (auto const& sgroup:sgroups){
+    int scolor = (int) kBlack;
+    if (sgroup == "Data") scolor = (int) (kBlack);
+    else if (sgroup == "DY_2l") scolor = (int) (kCyan);
+    else if (sgroup == "TT_2l2nu") scolor = (int) (kOrange-3);
+    else if (sgroup == "qqWW_2l2nu") scolor = (int) (kTeal-1);
+    else if (sgroup == "qqZZ_2l2nu") scolor = (int) (kYellow-3);
+    else if (sgroup == "qqWZ_3lnu") scolor = (int) (kBlue);
+    else if (sgroup == "WJets_lnu") scolor = (int) (kRed);
+    else MELAerr << "Sample type " << sgroup << " is not recognized!" << endl;
 
-      std::vector<TString> inputfilenames = SampleHelpers::getDatasetFileNames(sname);
-      bool hasCounters = true;
-      {
-        int bin_syst = 1 + 1*(theGlobalSyst==SystematicsHelpers::ePUDn) + 2*(theGlobalSyst==SystematicsHelpers::ePUUp);
-        int bin_period = 1;
-        for (unsigned int iperiod=0; iperiod<nValidDataPeriods; iperiod++){
-          if (validDataPeriods.at(iperiod)==SampleHelpers::theDataPeriod){ bin_period += iperiod+1; break; }
-        }
-        MELAout << "Checking counters histogram bin (" << bin_syst << ", " << bin_period << ") to obtain the sum of weights if the counters histogram exists..." << endl;
-        for (auto const& fname:inputfilenames){
-          TFile* ftmp = TFile::Open(fname, "read");
-          TH2D* hCounters = (TH2D*) ftmp->Get("cms3ntuple/Counters");
-          if (!hCounters){
-            hasCounters = false;
-            sum_wgts = 0;
-            break;
-          }
-          MELAout << "\t- Successfully found the counters histogram in " << fname << endl;
-          sum_wgts += hCounters->GetBinContent(bin_syst, bin_period);
-          ftmp->Close();
-        }
-        if (hasCounters) MELAout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
-      }
-      if (!hasCounters){
-        MELAout << "Initial MC loop over " << nEntries << " events in " << sample_tree.sampleIdentifier << " to determine sample normalization:" << endl;
-        for (int ev=0; ev<nEntries; ev++){
-          HelperFunctions::progressbar(ev, nEntries);
-          sample_tree.getSelectedEvent(ev);
+    for (unsigned int ic=0; ic<nchannels; ic++){
+      auto const& strChannelName = strChannelNames.at(ic);
+      auto const& strChannelTitle = strChannelTitles.at(ic);
+      for (unsigned int ij=0; ij<nbins_njets; ij++){
+        auto const& strNjetsName = strNjetsNames.at(ij);
+        auto const& strNjetsTitle = strNjetsTitles.at(ij);
+        for (unsigned int ibt=0; ibt<nbins_nbtagged; ibt++){
+          auto const& strBtaggingRegionName = strBtaggingRegionNames.at(ibt);
+          auto const& strBtaggingRegionTitle = strBtaggingRegionTitles.at(ibt);
 
-          genInfoHandler.constructGenInfo(SystematicsHelpers::sNominal); // Use sNominal here in order to get the weight that corresponds to xsec
-          auto const& genInfo = genInfoHandler.getGenInfo();
-          double genwgt = genInfo->getGenWeight(true);
+          TString strCutName = strChannelName + "_" + strNjetsName + "_" + strBtaggingRegionName;
+          TString strCutTitle = strChannelTitle + "|" + strNjetsTitle + ", " + strBtaggingRegionTitle;
 
-          simEventHandler.constructSimEvent(theGlobalSyst);
-          double puwgt = simEventHandler.getPileUpWeight();
-          sum_wgts += genwgt * puwgt;
+          TH1F* htmp = nullptr;
+#define HISTOGRAM_COMMAND(NAME, BINNING) \
+          htmp = new TH1F(Form("h_%s_%s_%s", #NAME, strCutName.Data(), sgroup.Data()), strCutTitle, BINNING.getNbins(), BINNING.getBinning()); htmp->Sumw2(); \
+          htmp->GetXaxis()->SetTitle(BINNING.getLabel()); htmp->GetYaxis()->SetTitle("Events / bin"); \
+          htmp->SetLineColor(scolor); htmp->SetMarkerColor(scolor); htmp->SetLineWidth(2); \
+          if (!strChannelName.Contains("rewgt") && sgroup!="Data") htmp->SetFillColor(scolor); \
+          else htmp->SetLineStyle(2); \
+          hlist.push_back(htmp);
+
+          ExtendedBinning binning_mTZZ(27, 150, 1500, "m_{T}^{ZZ} (GeV)");
+          HISTOGRAM_COMMAND(mTZZ, binning_mTZZ);
+
+
+#undef HISTOGRAM_COMMAND
         }
       }
     }
-    MELAout << "Sample " << sample_tree.sampleIdentifier << " has a gen. weight sum of " << sum_wgts << "." << endl;
+  }
 
-    // Configure handlers
-    muonHandler.bookBranches(&sample_tree);
-    muonHandler.wrapTree(&sample_tree);
+  using namespace OffshellCutflow;
 
-    electronHandler.bookBranches(&sample_tree);
-    electronHandler.wrapTree(&sample_tree);
-
-    photonHandler.bookBranches(&sample_tree);
-    photonHandler.wrapTree(&sample_tree);
-
-    jetHandler.bookBranches(&sample_tree);
-    jetHandler.wrapTree(&sample_tree);
-
-    isotrackHandler.bookBranches(&sample_tree);
-    isotrackHandler.wrapTree(&sample_tree);
-
-    vertexHandler.bookBranches(&sample_tree);
-    vertexHandler.wrapTree(&sample_tree);
-
-    eventFilter.bookBranches(&sample_tree);
-    eventFilter.wrapTree(&sample_tree);
-
-    MELAout << "Completed getting the handles..." << endl;
-    sample_tree.silenceUnused();
-
-    foutput->cd();
-
-    int ev_start = 0;
-    int ev_end = nEntries;
-    if (nchunks>0){
-      int ev_inc = static_cast<int>(float(ev_end - ev_start)/float(nchunks));
-      ev_start = ev_inc*ichunk;
-      ev_end = std::min(nEntries, (ichunk == nchunks-1 ? nEntries : ev_start+ev_inc));
-    }
-    MELAout << "Looping over " << nEntries << " events from " << sample_tree.sampleIdentifier << ", starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
-
-    size_t n_evts_acc=0;
-    size_t n_pass_genWeights=0;
-    size_t n_pass_isotrackVeto=0;
-    size_t n_pass_uniqueEvent=0;
-    size_t n_pass_commonFilters=0;
-    size_t n_pass_goodPVFilter=0;
-    size_t n_pass_triggers=0;
-    size_t n_pass_dPhi_j_met=0;
-    size_t n_pass_dilepton_OS=0;
-    size_t n_pass_dPhi_ll_met=0;
-    size_t n_pass_dPhi_lljets_met=0;
-    bool firstEvent=true;
-    for (int ev=ev_start; ev<ev_end; ev++){
+  OffshellCutflow::setActiveFinalState(OffshellCutflow::fs_ZZ_2l2nu);
+  for (auto const& spair:samples_all){
+    auto const& sgroup = spair.first;
+    auto const& tin = spair.second;
+    int nEntries = tin->GetEntries();
+    for (int ev=0; ev<nEntries; ev++){
+      tin->GetEntry(ev);
       HelperFunctions::progressbar(ev, nEntries);
-      sample_tree.getSelectedEvent(ev);
-      //if (ev>100) break;
 
-      if (!isData && firstEvent){
-        sample_tree.getVal("xsec", xsec);
-        sample_tree.releaseBranch("xsec");
-        xsec *= 1000.;
-      }
-      if (firstEvent) firstEvent=false;
+      if (event_wgt_triggers_SingleLepton!=1.f && event_wgt_triggers_Dilepton!=1.f) continue;
 
-      event_wgt = xsec * (isData ? 1.f : lumi) / sum_wgts;
+      if (!check_pTmiss(event_pTmiss)) continue;
+      if (!check_dPhi_pTll_pTmiss(dPhi_pTboson_pTmiss)) continue;
+      if (!check_dPhi_pTlljets_pTmiss(dPhi_pTbosonjets_pTmiss)) continue;
+      if (!check_min_abs_dPhi_pTj_pTmiss(min_abs_dPhi_pTj_pTmiss)) continue;
+      if (!check_pTl1(dilepton_pt)) continue;
 
-      if (!isData){
-        genInfoHandler.constructGenInfo(theGlobalSyst);
-        auto const& genInfo = genInfoHandler.getGenInfo();
-        event_wgt *= genInfo->getGenWeight(true);
+      float pTl1 = std::max(leptons_pt->front(), leptons_pt->back());
+      float pTl2 = std::min(leptons_pt->front(), leptons_pt->back());
+      if (!check_pTl1(pTl1)) continue;
+      if (!check_pTl2(pTl2)) continue;
 
-        if (event_wgt==0.f) continue;
+      bool is_emu = (dilepton_id==-143);
+      bool is_mumu = (dilepton_id==-169);
+      bool is_ee = (dilepton_id==-121);
+      if (!check_mll(dilepton_mass, is_ee || is_mumu)) continue;
 
-        if (
-          sample.name == "ggZZ_2l2nu_BSI"
-          ||
-          sample.name == "ggWW_2l2nu_BSI"
-          ){ event_wgt *= genInfo->extras.LHE_ME_weights["p_Gen_GG_BSI_kappaTopBot_1_ghz1_1_MCFM"]*genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"]*genInfo->extras.Kfactors["KFactor_QCD_NNLO_ggZZ_Sig_Nominal"]; }
-        else if (
-          sample.name == "ggZZ_2l2nu_Sig"
-          ||
-          sample.name == "ggWW_2l2nu_Sig"
-          ||
-          sample.name == "ggZZ_2l2nu_Sig_Onshell"
-          ||
-          sample.name == "ggWW_2l2nu_Sig_Onshell"
-          ){ event_wgt *= genInfo->extras.LHE_ME_weights["p_Gen_GG_SIG_kappaTopBot_1_ghz1_1_MCFM"]*genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"]*genInfo->extras.Kfactors["KFactor_QCD_NNLO_ggZZ_Sig_Nominal"]; }
-        else if (
-          sample.name == "ggZZ_2l2nu_BSI_g4"
-          ||
-          sample.name == "ggWW_2l2nu_BSI_g4"
-          ){ event_wgt *= (genInfo->extras.LHE_ME_weights["p_Gen_GG_BSI_kappaTopBot_1_ghz4_1_MCFM"]*2.5502 + genInfo->extras.LHE_ME_weights["p_Gen_GG_SIG_kappaTopBot_1_ghz4_1_MCFM"]*(-2.55052+std::pow(2.55052, 2)) + genInfo->extras.LHE_ME_weights["p_Gen_GG_BKG_MCFM"]*(-2.5502+1.))*genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"]*genInfo->extras.Kfactors["KFactor_QCD_NNLO_ggZZ_Sig_Nominal"]; }
-        else if (
-          sample.name == "ggZZ_2l2nu_Sig_g4"
-          ||
-          sample.name == "ggWW_2l2nu_Sig_g4"
-          ||
-          sample.name == "ggZZ_2l2nu_Sig_Onshell_g4"
-          ||
-          sample.name == "ggWW_2l2nu_Sig_Onshell_g4"
-          ){ event_wgt *= genInfo->extras.LHE_ME_weights["p_Gen_GG_SIG_kappaTopBot_1_ghz4_1_MCFM"]*std::pow(2.55052, 2)*genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"]*genInfo->extras.Kfactors["KFactor_QCD_NNLO_ggZZ_Sig_Nominal"]; }
-        else if (
-          sample.name == "VBFZZ_2l2nu_BSI"
-          ||
-          sample.name == "VBFWW_2l2nu_BSI"
-          ){ event_wgt *= genInfo->extras.LHE_ME_weights["p_Gen_JJEW_BSI_ghv1_1_MCFM"]*genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"]; }
-        else if (
-          sample.name == "VBFZZ_2l2nu_Sig"
-          ||
-          sample.name == "VBFWW_2l2nu_Sig"
-          ||
-          sample.name == "VBFZZ_2l2nu_Sig_Onshell"
-          ||
-          sample.name == "VBFWW_2l2nu_Sig_Onshell"
-          ){ event_wgt *= genInfo->extras.LHE_ME_weights["p_Gen_JJEW_SIG_ghv1_1_MCFM"]*genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"]; }
-        else if (
-          sample.name == "VBFZZ_2l2nu_BSI_g4"
-          ||
-          sample.name == "VBFWW_2l2nu_BSI_g4"
-          ){
-          event_wgt *= (
-            genInfo->extras.LHE_ME_weights["p_Gen_JJEW_BSI_ghv1_1_MCFM"]*std::pow(2.55052, 2)
-            + genInfo->extras.LHE_ME_weights["p_Gen_JJEW_SIG_ghv4_1_MCFM"]*(-std::pow(2.55052, 2)+std::pow(2.55052, 4))
-            + genInfo->extras.LHE_ME_weights["p_Gen_JJEW_BKG_MCFM"]*(-std::pow(2.55052, 2)+1.)
-            )*genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"];
-        }
-        else if (
-          sample.name == "VBFZZ_2l2nu_Sig_g4"
-          ||
-          sample.name == "VBFWW_2l2nu_Sig_g4"
-          ||
-          sample.name == "VBFZZ_2l2nu_Sig_Onshell_g4"
-          ||
-          sample.name == "VBFWW_2l2nu_Sig_Onshell_g4"
-          ){ event_wgt *= genInfo->extras.LHE_ME_weights["p_Gen_JJEW_SIG_ghv4_1_MCFM"]*std::pow(2.55052, 4)*genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"]; }
-
-        if (event_wgt==0.f) continue;
-
-        simEventHandler.constructSimEvent(theGlobalSyst);
-        event_wgt *= simEventHandler.getPileUpWeight()*simEventHandler.getL1PrefiringWeight();
-
-        if (event_wgt==0.f) continue;
-      }
-      n_pass_genWeights++;
-      //MELAout << "Pass line " << __LINE__ << endl;
-
-      muonHandler.constructMuons(theGlobalSyst);
-      electronHandler.constructElectrons(theGlobalSyst);
-      photonHandler.constructPhotons(theGlobalSyst);
-      particleDisambiguator.disambiguateParticles(&muonHandler, &electronHandler, &photonHandler);
-
-      float SF_muons = 1;
-      float SF_electrons = 1;
-      float SF_photons = 1;
-      auto const& muons = muonHandler.getProducts();
-      auto const& electrons = electronHandler.getProducts();
-      auto const& photons = photonHandler.getProducts();
-      event_Nphotons = 0;
-      for (auto const& part:photons){
-        float SF_photon = 1;
-        if (!isData) photonSFHandler.getIdIsoSFAndEff(theGlobalSyst, part, SF_photon, nullptr);
-        if (SF_photon == 0.f) continue;
-        SF_photons *= SF_photon;
-
-        if (ParticleSelectionHelpers::isTightParticle(part)) event_Nphotons++;
-      }
-      event_wgt_SFs = SF_muons*SF_electrons*SF_photons;
-
-      isotrackHandler.constructIsotracks(&muons, &electrons);
-      bool hasVetoIsotrack = false;
-      for (auto const& isotrack:isotrackHandler.getProducts()){
-        if (isotrack->testSelectionBit(IsotrackSelectionHelpers::kPreselectionVeto)){
-          hasVetoIsotrack = true;
-          break;
-        }
-      }
-      if (hasVetoIsotrack) continue;
-      n_pass_isotrackVeto++;
-
-      jetHandler.constructJetMET(theGlobalSyst, &muons, &electrons, &photons);
-      auto const& ak4jets = jetHandler.getAK4Jets();
-      auto const& ak8jets = jetHandler.getAK8Jets();
-      auto const& pfmet = jetHandler.getPFMET();
-      //auto pfmet_p4 = pfmet->p4(false, false, false);
-      auto pfmet_p4 = pfmet->p4(true, true, true);
-      pTmiss = pfmet_p4.Pt();
-      phimiss = pfmet_p4.Phi();
-
-      eventFilter.constructFilters();
-      if (isData && !eventFilter.isUniqueDataEvent()) continue;
-      n_pass_uniqueEvent++;
-      if (!eventFilter.passCommonSkim() || !eventFilter.passMETFilters() || !eventFilter.hasGoodVertex()) continue;
-      n_pass_commonFilters++;
-
-      vertexHandler.constructVertices();
-      if (!vertexHandler.hasGoodPrimaryVertex()) continue;
-      n_pass_goodPVFilter++;
-
-      event_wgt_OSSF_triggers = eventFilter.getTriggerWeight(triggerPropsCheckList_OSSF, &muons, &electrons, nullptr, nullptr, nullptr, nullptr);
-      event_wgt_OSDF_triggers = eventFilter.getTriggerWeight(triggerPropsCheckList_OSDF, &muons, &electrons, nullptr, nullptr, nullptr, nullptr);
-      if ((event_wgt_OSSF_triggers + event_wgt_OSDF_triggers) == 0.f) continue;
-      n_pass_triggers++;
-
-      has_electrons_inHEM1516 = !eventFilter.test2018HEMFilter(&simEventHandler, &electrons, nullptr, nullptr, nullptr);
-      has_photons_inHEM1516 = !eventFilter.test2018HEMFilter(&simEventHandler, nullptr, &photons, nullptr, nullptr);
-      has_ak4jets_inHEM1516 = !eventFilter.test2018HEMFilter(&simEventHandler, nullptr, nullptr, &ak4jets, nullptr);
-      has_ak8jets_inHEM1516 = !eventFilter.test2018HEMFilter(&simEventHandler, nullptr, nullptr, nullptr, &ak8jets);
-
-      mjj = -1;
-      pt_j1 = -1;
-      eta_j1 = 0;
-      phi_j1 = 0;
-      mass_j1 = 0;
-      pt_j2 = -1;
-      eta_j2 = 0;
-      phi_j2 = 0;
-      mass_j2 = 0;
-      event_Njets_btagged_loose = event_Njets_btagged_medium = event_Njets20_btagged_loose = event_Njets20_btagged_medium = event_Njets = event_Njets20 = 0;
-      ParticleObject::LorentzVector_t ak4jets_sump4(0, 0, 0, 0);
-      std::vector<AK4JetObject*> ak4jets_tight; ak4jets_tight.reserve(ak4jets.size());
-      float SF_btagging = 1;
-      for (auto* jet:ak4jets){
-        float theSF = 1;
-        if (!isData) btagSFHandler.getSFAndEff(theGlobalSyst, jet, theSF, nullptr);
-        if (theSF != 0.f) SF_btagging *= theSF;
-
-        if (ParticleSelectionHelpers::isTightJet(jet)){
-          ak4jets_tight.push_back(jet);
-          if (jet->getBtagValue()>=btag_loose_thr) event_Njets_btagged_loose++;
-          if (jet->getBtagValue()>=btag_medium_thr) event_Njets_btagged_medium++;
-          ak4jets_sump4 += jet->p4();
-        }
-        if (
-          jet->testSelectionBit(AK4JetSelectionHelpers::kTightId)
-          &&
-          (!applyPUIdToAK4Jets || jet->testSelectionBit(AK4JetSelectionHelpers::kPUJetId))
-          &&
-          (!applyTightLeptonVetoIdToAK4Jets || jet->testSelectionBit(AK4JetSelectionHelpers::kTightLeptonVetoId))
-          &&
-          jet->pt()>=20.f && fabs(jet->eta())<AK4JetSelectionHelpers::etaThr_skim_tight
-          ){
-          event_Njets20++;
-          if (jet->getBtagValue()>=btag_loose_thr) event_Njets20_btagged_loose++;
-          if (jet->getBtagValue()>=btag_medium_thr) event_Njets20_btagged_medium++;
-        }
-      }
-      event_wgt_SFs *= SF_btagging;
-      event_Njets = ak4jets_tight.size();
-      if (event_Njets>0){
-        auto const& jet1 = ak4jets_tight.front();
-        pt_j1 = jet1->pt();
-        eta_j1 = jet1->eta();
-        phi_j1 = jet1->phi();
-        mass_j1 = jet1->m();
-        if (event_Njets>1){
-          auto const& jet2 = ak4jets_tight.at(1);
-          pt_j2 = jet2->pt();
-          eta_j2 = jet2->eta();
-          phi_j2 = jet2->phi();
-          mass_j2 = jet2->m();
-
-          mjj = (jet1->p4() + jet2->p4()).M();
-        }
+      event_wgt_SFs = std::min(event_wgt_SFs, event_wgt_SFs_thrs[tin]);
+      float wgt = event_wgt * event_wgt_SFs * norm_map[tin];
+      float wgt_emu_rewgt_ee = 1;
+      float wgt_emu_rewgt_mumu = 1;
+      if (is_emu){
+        if (std::abs(leptons_id->front())==13) wgt_emu_rewgt_ee *= leptons_eff_DF->front() / leptons_eff->front();
+        else wgt_emu_rewgt_mumu *= leptons_eff_DF->front() / leptons_eff->front();
+        if (std::abs(leptons_id->back())==13) wgt_emu_rewgt_ee *= leptons_eff_DF->back() / leptons_eff->back();
+        else wgt_emu_rewgt_mumu *= leptons_eff_DF->back() / leptons_eff->back();
       }
 
-      bool pass_dPhi_jet_met = true;
-      for (auto const& jet:ak4jets_tight){
-        float dphi_tmp;
-        HelperFunctions::deltaPhi(float(jet->phi()), phimiss, dphi_tmp); dphi_tmp = std::abs(dphi_tmp);
-        if (dphi_tmp<=0.25){ pass_dPhi_jet_met=false; break; }
+      for (auto& hh:hlist){
+        TString hname = hh->GetName();
+        if (!hname.Contains(sgroup)) continue;
+        // Decay channels
+        if (hname.Contains("mue") && !is_emu) continue;
+        if (hname.Contains("mumu") && !hname.Contains("rewgt") && !is_mumu) continue;
+        if (hname.Contains("ee") && !hname.Contains("rewgt") && !is_ee) continue;
+        // b-taging veto
+        if (hname.Contains(strBtaggingRegionNames.front()) && event_n_ak4jets_pt30_btagged_loose!=0) continue;
+        if (hname.Contains(strBtaggingRegionNames.back()) && !(event_n_ak4jets_pt30_btagged_medium!=0 || (event_n_ak4jets_pt30==0 && event_n_ak4jets_pt20_btagged_medium!=0))) continue;
+        // Jet bins
+        if (hname.Contains(strNjetsNames.at(0)) && event_n_ak4jets_pt30!=0) continue;
+        if (hname.Contains(strNjetsNames.at(1)) && event_n_ak4jets_pt30!=1) continue;
+        if (hname.Contains(strNjetsNames.at(2)) && event_n_ak4jets_pt30<2) continue;
+
+        float hwgt = wgt;
+        if (hname.Contains("mue_rewgt_ee")) hwgt *= wgt_emu_rewgt_ee/2.;
+        if (hname.Contains("mue_rewgt_mumu")) hwgt *= wgt_emu_rewgt_mumu/2.;
+
+        if (hname.Contains("mTZZ")) hh->Fill(event_mTZZ, hwgt);
       }
-      if (!pass_dPhi_jet_met) continue;
-      n_pass_dPhi_j_met++;
+    }
+  }
 
-      dileptonHandler.constructDileptons(&muons, &electrons);
-      auto const& dileptons = dileptonHandler.getProducts();
-      DileptonObject* theChosenDilepton = nullptr;
-      size_t nTightDilep = 0;
-      for (auto const& dilepton:dileptons){
-        if (dilepton->isValid() && dilepton->isOS() && dilepton->nTightDaughters()==2){
-          if (!theChosenDilepton) theChosenDilepton = dilepton;
-          nTightDilep++;
-        }
-      }
-      if (!theChosenDilepton || nTightDilep>1) continue;
-      n_pass_dilepton_OS++;
+  for (auto& hh:hlist){
+    foutput->WriteTObject(hh);
+    delete hh;
+  }
+  for (auto& pp:samples_all) delete pp.second;
 
-      bool pass_dPhi_ll_met = true;
-      {
-        float abs_dPhi_ll_pfmet = theChosenDilepton->deltaPhi(phimiss); abs_dPhi_ll_pfmet = std::abs(abs_dPhi_ll_pfmet);
-        pass_dPhi_ll_met = abs_dPhi_ll_pfmet>1.0;
-      }
-      if (!pass_dPhi_ll_met) continue;
-      n_pass_dPhi_ll_met++;
-
-      bool pass_dPhi_lljets_met = true;
-      {
-        float abs_dPhi_lljets_pfmet;
-        HelperFunctions::deltaPhi(float((theChosenDilepton->p4()+ak4jets_sump4).Phi()), phimiss, abs_dPhi_lljets_pfmet);
-        abs_dPhi_lljets_pfmet = std::abs(abs_dPhi_lljets_pfmet);
-        pass_dPhi_lljets_met = abs_dPhi_lljets_pfmet>2.5;
-      }
-      if (!pass_dPhi_lljets_met) continue;
-      n_pass_dPhi_lljets_met++;
-
-      std::vector<ParticleObject*> dileptonDaughters = theChosenDilepton->getDaughters();
-      ParticleObjectHelpers::sortByGreaterPt(dileptonDaughters);
-      ParticleObject* leadingLepton = dileptonDaughters.front();
-      ParticleObject* subleadingLepton = dileptonDaughters.back();
-
-      is_ee = is_mumu = is_emu=false;
-      if (leadingLepton->pdgId() * subleadingLepton->pdgId() == -121) is_ee=true;
-      else if (leadingLepton->pdgId() * subleadingLepton->pdgId() == -143) is_emu=true;
-      else if (leadingLepton->pdgId() * subleadingLepton->pdgId() == -169) is_mumu=true;
-
-      sample_tree.getVal("vtxs_nvtxs_good", event_nvtxs_good);
-
-      mass_ll = theChosenDilepton->m();
-      pt_ll = theChosenDilepton->pt();
-      eta_ll = theChosenDilepton->eta();
-      phi_ll = theChosenDilepton->phi();
-
-      mTZZ = sqrt(pow(sqrt(pow(pt_ll, 2) + pow(mass_ll, 2)) + sqrt(pow(pTmiss, 2) + pow(PDGHelpers::Zmass, 2)), 2) - pow((theChosenDilepton->p4() + pfmet_p4).Pt(), 2));
-
-      float etamiss_approx = theChosenDilepton->eta();
-      ParticleObject::LorentzVector_t pfmet_p4_approx; pfmet_p4_approx = ParticleObject::PolarLorentzVector_t(pTmiss, etamiss_approx, phimiss, PDGHelpers::Zmass);
-      ParticleObject::LorentzVector_t pfmet_ZZ_p4_approx = pfmet_p4_approx + theChosenDilepton->p4();
-      mZZ = pfmet_ZZ_p4_approx.M();
-
-      id_l1 = leadingLepton->pdgId();
-      pt_l1 = leadingLepton->pt();
-      eta_l1 = leadingLepton->eta();
-      phi_l1 = leadingLepton->phi();
-      id_l2 = subleadingLepton->pdgId();
-      pt_l2 = subleadingLepton->pt();
-      eta_l2 = subleadingLepton->eta();
-      phi_l2 = subleadingLepton->phi();
-
-      tout->Fill();
-      n_evts_acc++;
-    } // End loop over events
-
-    MELAout << "Number of events accepted from " << sample_tree.sampleIdentifier << ": " << n_evts_acc << " / " << (ev_end - ev_start) << endl;
-    MELAout << "\t- Number of events passing each cut:\n"
-      << "\t\t- Gen. weights!=0: " << n_pass_genWeights << '\n'
-      << "\t\t- Isotrack veto: " <<  n_pass_isotrackVeto << '\n'
-      << "\t\t- Unique event: " <<  n_pass_uniqueEvent << '\n'
-      << "\t\t- Common filters: " <<  n_pass_commonFilters << '\n'
-      << "\t\t- Good PV filter: " << n_pass_goodPVFilter << '\n'
-      << "\t\t- Trigger: " <<  n_pass_triggers << '\n'
-      << "\t\t- dPhi(j, MET): " <<  n_pass_dPhi_j_met << '\n'
-      << "\t\t- Dilepton sel.: " <<  n_pass_dilepton_OS << '\n'
-      << "\t\t- dPhi(ll, MET): " <<  n_pass_dPhi_ll_met << '\n'
-      << "\t\t- dPhi(ll+jets, MET): " <<  n_pass_dPhi_lljets_met << endl;
-
-    // Set this flag for data so that subsequent files ensure checking for unique events
-    isFirstInputFile=false;
-  } // End loop over samples list
-
-  // Write output
-  foutput->WriteTObject(tout);
   foutput->Close();
 
-  SampleHelpers::addToCondorTransferList(stroutput);
+#undef BRANCH_COMMANDS
+#undef BRANCH_VECTOR_COMMANDS
+#undef BRANCH_SCALAR_COMMANDS
 }
 
 void count(
