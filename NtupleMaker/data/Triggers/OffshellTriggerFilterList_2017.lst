@@ -2,6 +2,7 @@ customPrunedTriggerCollection = [
    "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v*", # HLT prescaled
    "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8_v*",
    "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8_v*",
+   "HLT_Mu37_TkMu27_v*",
 
    "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v*",
    "HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v*",
@@ -66,4 +67,11 @@ customPrunedTriggerCollection = [
    "HLT_PFMET120_PFMHT120_IDTight_PFHT60_v*", # Backup trigger, unprescaled
    "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v*", # Unprescaled
    "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60_v*", # Backup trigger, unprescaled
+   "HLT_PFHT*_PFMET*_PFMHT*_IDTight_v*", # In HTMHT data set
+   "HLT_DiJet110_35_Mjj650_PFMET110_v*", # In MET data set
+   "HLT_DiJet110_35_Mjj650_PFMET120_v*", # In MET data set
+   "HLT_DiJet110_35_Mjj650_PFMET130_v*", # In MET data set
+   "HLT_PFMET200_HBHE_BeamHaloCleaned_v*", # In MET data set
+   "HLT_PFMET250_HBHECleaned_v*", # In MET data set
+   "HLT_PFMET300_HBHECleaned_v*", # In MET data set
    ]

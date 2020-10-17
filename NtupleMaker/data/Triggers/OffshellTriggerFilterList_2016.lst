@@ -3,6 +3,8 @@ customPrunedTriggerCollection = [
    "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v*",
    "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v*", # HLT prescaled
    "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v*",
+   "HLT_Mu30_TkMu11_v*",
+   "HLT_Mu40_TkMu11_v*",
 
    "HLT_Mu8_DiEle12_CaloIdL_TrackIdL_v*",
    "HLT_DiMu9_Ele9_CaloIdL_TrackIdL_v*",
@@ -73,9 +75,19 @@ customPrunedTriggerCollection = [
    "HLT_PFHT475_v*", # Has HLT prescales
    "HLT_PFHT600_v*", # Has HLT prescales
    "HLT_PFHT650_v*", # Has HLT prescales
-   "HLT_PFHT800_v*", # Unprescaled, does not exist? Not so according to AN-17-277, but it looks like it doesn't from the final trigger menu spreadsheets. N.B.: It does exist, but it is partially unprescaled (according to Bennett M.).
+   "HLT_PFHT800_v*", # Unprescaled, but it does not exist in 2016H.
    "HLT_PFHT900_v*", # Unprescaled
    "HLT_PFMET120_PFMHT120_IDTight_v*",
    "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v*",
    "HLT_PFMET170_HBHECleaned_v*",
+   "HLT_PFHT300_PFMET110_v*", # In HTMHT dataset
+   "HLT_DiPFJet40_DEta3p5_MJJ600_PFMETNoMu140_v*", # In HTMHT data set
+   "HLT_MET200_v*", # In MET data set
+   "HLT_MET250_v*", # In MET data set
+   "HLT_MET300_v*", # In MET data set
+   "HLT_MET600_v*", # In MET data set
+   "HLT_PFMET300_v*", # In MET data set
+   "HLT_PFMET400_v*", # In MET data set
+   "HLT_PFMET500_v*", # In MET data set
+   "HLT_PFMET600_v*", # In MET data set
    ]
