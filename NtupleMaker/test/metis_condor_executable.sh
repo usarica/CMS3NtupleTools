@@ -179,68 +179,12 @@ if [[ $CMSRUN_STATUS != 0 ]]; then
     exit 1
 fi
 
-
-if [ -z "$(getjobad metis_dontchecktree)" ]; then
-
-    # Add some metadata
-    # Right now, total/negative event counts, but obviously extensible
-    python << EOL
-import ROOT as r
-fin = r.TFile("${OUTPUTNAME}.root","update")
-t = fin.Get("Events")
-t.GetUserInfo().Clear()
-nevts = t.GetEntries()
-nevts_neg = nevts - t.GetEntries("genps_weight > 0")
-evts = r.TParameter(int)("nevts", nevts)
-evts_neg = r.TParameter(int)("nevts_neg", nevts_neg)
-print "Writing metadata. Nevents = {0} ({1} negative)".format(nevts, nevts_neg)
-t.GetUserInfo().Add(evts)
-t.GetUserInfo().Add(evts_neg)
-t.Write("",r.TObject.kOverwrite)
-t.GetUserInfo().Print()
-EOL
-
-    # Rigorous sweeproot which checks ALL branches for ALL events.
-    # If GetEntry() returns -1, then there was an I/O problem, so we will delete it
-    # Special consideration to ignore stupid CMSSW errors and old root versions
-    python << EOL
-import ROOT as r
-import os
-import traceback
-foundBad = False
-try:
-    f1 = r.TFile("${OUTPUTNAME}.root")
-    t = f1.Get("Events")
-    nevts = t.GetEntries()
-    expectednevts = ${EXPECTEDNEVTS}
-    print "[RSR] ntuple has %i events and expected %i" % (t.GetEntries(), expectednevts)
-    if int(expectednevts) > 0 and int(t.GetEntries()) != int(expectednevts):
-        print "[RSR] nevents mismatch"
-        foundBad = True
-    if not "root/5.3" in r.__file__:
-        for i in range(0,t.GetEntries(),1):
-            if t.GetEntry(i) < 0:
-                foundBad = True
-                print "[RSR] found bad event %i" % i
-                break
-except Exception as ex:
-    msg = traceback.format_exc()
-    if "EDProductGetter" not in msg:
-        foundBad = True
-if foundBad:
-    print "[RSR] removing output file because it does not deserve to live"
-    os.system("rm ${OUTPUTNAME}.root")
-else: print "[RSR] passed the rigorous sweeproot"
-EOL
-
-    if [ "$?" != "0" ]; then
-        echo "Removing output file because sweeproot crashed with exit code $?"
-        rm ${OUTPUTNAME}.root
-        exit 1
-    fi
-
-else
-    echo "Not checking tree or adding metadata";
+CheckFileIntegrity ${OUTPUTNAME}.root
+INTEGRITY_STATUS=$?
+if [[ $INTEGRITY_STATUS != 0 ]]; then
+    echo "Removing output file because integrity check failed with exit code $?"
+    rm ${OUTPUTNAME}.root
+    exit 1
 fi
 
 echo -e "\n--- end running ---\n" #                             <----- section division
