@@ -64,12 +64,11 @@ customPrunedTriggerCollection = [
    "HLT_PFMET120_PFMHT120_IDTight_PFHT60_v*",
    "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v*",
    "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60_v*",
-   "HLT_PFHT*_PFMET*_PFMHT*_IDTight_v*", # In HTMHT data set
+   "HLT_PFHT*_PFMET*_PFMHT*_IDTight_v*", # In JetHT data set
    "HLT_DiJet110_35_Mjj650_PFMET110_v*", # In MET data set
    "HLT_DiJet110_35_Mjj650_PFMET120_v*", # In MET data set
    "HLT_DiJet110_35_Mjj650_PFMET130_v*", # In MET data set
    "HLT_PFMET200_HBHE_BeamHaloCleaned_v*", # In MET data set
    "HLT_PFMET250_HBHECleaned_v*", # In MET data set
    "HLT_PFMET300_HBHECleaned_v*", # In MET data set
-
    ]
