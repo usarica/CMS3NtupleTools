@@ -406,7 +406,9 @@ void BaseTreeLooper::loop(bool keepProducts){
 
     if (!selection_string_count_pairs.empty()){
       MELAout << "BaseTreeLooper::loop: Number of events passing each selection type:" << endl;
-      for (auto& pp:selection_string_count_pairs) MELAout << "\t- " << pp.first << ": " << pp.second << endl;
+      for (auto& pp:selection_string_count_pairs){
+        MELAout << (pp.first.BeginsWith("\t") ? "\t" : "\t- ") << pp.first << ": " << pp.second << endl;
+      }
     }
     resetSelectionCounts();
   } // End loop over the trees
