@@ -46,6 +46,8 @@ public:
   std::vector<TriggerObject const*>& getFailedTriggerObjects(){ return this->failedTriggerObjects; }
   std::vector<TriggerObject const*> const& getFailedTriggerObjects() const{ return this->failedTriggerObjects; }
 
+  std::vector<TriggerObject const*> getAssociatedTriggerObjects() const;
+
 };
 
 

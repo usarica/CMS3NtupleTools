@@ -115,7 +115,7 @@ namespace OffshellCutflow{
       thr[1]=MZ_VAL_CUTS+15.f;
       break;
     case fs_WW_2l2nu:
-      thr[0]=(isSF ? MZ_VAL_CUTS+15.f : 70.f);
+      thr[0]=MZ_VAL_CUTS+15.f;
       break;
     default:
       MELAerr << "OffshellCutflow::check_mll: The active final state " << activeFinalState << " is not specified." << endl;

@@ -10,6 +10,7 @@ namespace TriggerHelpers{
     kTripleLep=0,
 
     kDoubleMu,
+    kDoubleMu_Extra,
     kDoubleMu_Prescaled,
 
     kDoubleEle,
@@ -38,9 +39,13 @@ namespace TriggerHelpers{
     kSinglePho,
 
     kAK8PFJet_Control,
+    kVBFJets_Control,
     kPFHT_Control,
+    kMET_Control,
     kPFMET_Control,
+    kPFHT_PFMET_Control,
     kPFMET_MHT_Control,
+    kPFHT_PFMET_MHT_Control,
 
     nTriggerTypes
   };

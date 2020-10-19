@@ -14,6 +14,7 @@ public:
     kPt,
     kPtHigh,
     kEta,
+    kEtaLow,
     kMass,
     nCutTypes
   };
@@ -22,6 +23,7 @@ public:
     kElectron,
     kPhoton,
     kAK4Jet,
+    kAK4DiJetSumWithDEtaDPhi,
     kAK8Jet,
     kHT,
     kHT_NoMu,
@@ -36,11 +38,13 @@ protected:
   float pt_cut;
   float pt_high_cut;
   float eta_cut;
+  float eta_low_cut;
   float mass_cut;
 
   bool has_pt_cut;
   bool has_pt_high_cut;
   bool has_eta_cut;
+  bool has_eta_low_cut;
   bool has_mass_cut;
 
 public:
@@ -54,7 +58,9 @@ public:
   void setPtCut(float const& val){ pt_cut=val; has_pt_cut=(pt_cut>0.f); }
   void setPtLowCut(float const& val){ setPtCut(val); }
   void setPtHighCut(float const& val){ pt_high_cut=val; has_pt_high_cut=(pt_high_cut>0.f); }
-  void setEtaCut(float const& val){ eta_cut=val; has_eta_cut=(eta_cut<9.f); }
+  void setEtaCut(float const& val){ eta_cut=val; has_eta_cut=(eta_cut>0.f); }
+  void setEtaLowCut(float const& val){ eta_low_cut=val; has_eta_low_cut=(eta_low_cut>0.f); }
+  void setEtaHighCut(float const& val){ setEtaCut(val); }
   void setMassCut(float const& val){ mass_cut=val; has_mass_cut=(mass_cut>0.f); }
 
   TriggerObjectType const& getType() const{ return type; }

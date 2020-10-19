@@ -1,6 +1,8 @@
 #ifndef TRIGGEROBJECT_H
 #define TRIGGEROBJECT_H
 
+#include <vector>
+#include <utility>
 #include <DataFormats/HLTReco/interface/TriggerTypeDefs.h>
 #include <CMS3/Dictionaries/interface/EgammaFiduciality.h>
 #include "ParticleObject.h"
@@ -54,16 +56,19 @@ public:
 
   template<typename T> static void getMatchedPhysicsObjects(
     std::vector<TriggerObject const*> const& allPassedTOs, std::vector<trigger::TriggerObjectType> const& TOreqs, double const& dRmatch,
-    std::vector<T*> const& objlist, std::vector<T*>& res
+    std::vector<T*> const& objlist, std::vector<T*>& res,
+    std::vector< std::pair<T*, TriggerObject const*> >* matchingLegs=nullptr
   );
 
 };
 
 template<typename T> void TriggerObject::getMatchedPhysicsObjects(
   std::vector<TriggerObject const*> const& allPassedTOs, std::vector<trigger::TriggerObjectType> const& TOreqs, double const& dRmatch,
-  std::vector<T*> const& objlist, std::vector<T*>& res
+  std::vector<T*> const& objlist, std::vector<T*>& res,
+  std::vector< std::pair<T*, TriggerObject const*> >* matchingLegs
 ){
   res.reserve(objlist.size());
+  if (matchingLegs) matchingLegs->reserve(objlist.size());
 
   std::vector<TriggerObject const*> hltFlaggedObjs;
   for (auto const& to_obj:allPassedTOs){
@@ -79,7 +84,12 @@ template<typename T> void TriggerObject::getMatchedPhysicsObjects(
     objlist.cbegin(), objlist.cend(),
     TO_physobj_map
   );
-  for (auto const& it:TO_physobj_map){ if (it.second) res.push_back(it.second); }
+  for (auto const& it:TO_physobj_map){
+    if (it.second){
+      res.push_back(it.second);
+      if (matchingLegs) matchingLegs->emplace_back(it.second, it.first);
+    }
+  }
 
   ParticleObjectHelpers::sortByGreaterPt(res);
 }

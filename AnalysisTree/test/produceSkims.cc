@@ -32,7 +32,7 @@ void produceSkims(
 
   std::vector<TriggerHelpers::TriggerType> requiredTriggers_Dilepton{
     TriggerHelpers::kTripleLep,
-    TriggerHelpers::kDoubleMu, TriggerHelpers::kDoubleMu_Prescaled,
+    TriggerHelpers::kDoubleMu, TriggerHelpers::kDoubleMu_Extra, TriggerHelpers::kDoubleMu_Prescaled,
     TriggerHelpers::kDoubleEle, TriggerHelpers::kDoubleEle_HighPt, TriggerHelpers::kSingleEle_L1EG,
     TriggerHelpers::kMuEle, TriggerHelpers::kMuEle_Extra
   };
@@ -45,9 +45,12 @@ void produceSkims(
   };
   std::vector<TriggerHelpers::TriggerType> requiredTriggers_OrtogonalControl{
     TriggerHelpers::kAK8PFJet_Control,
+    TriggerHelpers::kVBFJets_Control,
     TriggerHelpers::kPFHT_Control,
-    TriggerHelpers::kPFMET_Control,
-    TriggerHelpers::kPFMET_MHT_Control
+    TriggerHelpers::kMET_Control, TriggerHelpers::kPFMET_Control,
+    TriggerHelpers::kPFHT_PFMET_Control,
+    TriggerHelpers::kPFMET_MHT_Control,
+    TriggerHelpers::kPFHT_PFMET_MHT_Control
   };
   std::vector<std::string> triggerCheckList_Dilepton = TriggerHelpers::getHLTMenus(requiredTriggers_Dilepton);
   std::vector<std::string> triggerCheckList_SingleLepton = TriggerHelpers::getHLTMenus(requiredTriggers_SingleLepton);

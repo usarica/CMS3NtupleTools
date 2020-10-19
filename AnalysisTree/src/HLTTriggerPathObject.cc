@@ -44,3 +44,10 @@ void HLTTriggerPathObject::setTriggerObjects(std::vector<TriggerObject*> const& 
     else if (HelperFunctions::checkListVariable(triggerObject->extras.associatedTriggers, this->uniqueIdentifier)) this->failedTriggerObjects.push_back(triggerObject);
   }
 }
+
+std::vector<TriggerObject const*> HLTTriggerPathObject::getAssociatedTriggerObjects() const{
+  std::vector<TriggerObject const*> res;
+  HelperFunctions::appendVector(res, this->passedTriggerObjects);
+  HelperFunctions::appendVector(res, this->failedTriggerObjects);
+  return res;
+}
