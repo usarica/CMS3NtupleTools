@@ -184,12 +184,22 @@ void getTrees(
   std::vector<TString> const validDataPeriods = SampleHelpers::getValidDataPeriods();
   size_t const nValidDataPeriods = validDataPeriods.size();
 
+  bool isGG = strSampleSet.Contains("GluGluH") || strSampleSet.Contains("GGH");
+  bool isVBF = strSampleSet.Contains("VBF");
+
   // Get sample specifications
   std::vector<TString> sampledirs;
-  SampleHelpers::constructSamplesList(strSampleSet, theGlobalSyst, sampledirs);
-  //SampleHelpers::constructSamplesList("GGH_ZZ2L2Nu_M200_POWHEG", theGlobalSyst, sampledirs);
-  //SampleHelpers::constructSamplesList("GGH_ZZ2L2Nu_M300_POWHEG", theGlobalSyst, sampledirs);
-  //SampleHelpers::constructSamplesList("GGH_ZZ2L2Nu_M500_POWHEG", theGlobalSyst, sampledirs);
+  //SampleHelpers::constructSamplesList(strSampleSet, theGlobalSyst, sampledirs);
+  if (isGG){
+    SampleHelpers::constructSamplesList("GGH_ZZ2L2Nu_M200_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("GGH_ZZ2L2Nu_M300_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("GGH_ZZ2L2Nu_M500_POWHEG", theGlobalSyst, sampledirs);
+  }
+  if (isVBF){
+    SampleHelpers::constructSamplesList("VBF_ZZ2L2Nu_M200_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("VBF_ZZ2L2Nu_M300_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("VBF_ZZ2L2Nu_M500_POWHEG", theGlobalSyst, sampledirs);
+  }
   if (sampledirs.empty()) return;
   bool isData = SampleHelpers::checkSampleIsData(sampledirs.front());
   if (isData) return;
@@ -260,18 +270,34 @@ void getTrees(
     ReweightingFunctions::getSimpleWeight
   );
   theLooper.addReweightingBuilder("MERewgt", &rewgtBuilder);
-  rewgtBuilder.addReweightingWeights(
-    { "p_Gen_GG_SIG_kappaTopBot_1_ghz1_1_MCFM", "p_Gen_CPStoBWPropRewgt" },
-    ReweightingFunctions::getSimpleWeight
-  );
-  rewgtBuilder.addReweightingWeights(
-    { "p_Gen_GG_BSI_kappaTopBot_1_ghz1_1_MCFM", "p_Gen_CPStoBWPropRewgt" },
-    ReweightingFunctions::getSimpleWeight
-  );
-  rewgtBuilder.addReweightingWeights(
-    { "p_Gen_GG_BKG_MCFM", "p_Gen_CPStoBWPropRewgt" },
-    ReweightingFunctions::getSimpleWeight
-  );
+  if (isGG){
+    rewgtBuilder.addReweightingWeights(
+      { "p_Gen_GG_SIG_kappaTopBot_1_ghz1_1_MCFM", "p_Gen_CPStoBWPropRewgt" },
+      ReweightingFunctions::getSimpleWeight
+    );
+    rewgtBuilder.addReweightingWeights(
+      { "p_Gen_GG_BSI_kappaTopBot_1_ghz1_1_MCFM", "p_Gen_CPStoBWPropRewgt" },
+      ReweightingFunctions::getSimpleWeight
+    );
+    rewgtBuilder.addReweightingWeights(
+      { "p_Gen_GG_BKG_MCFM", "p_Gen_CPStoBWPropRewgt" },
+      ReweightingFunctions::getSimpleWeight
+    );
+  }
+  if (isVBF){
+    rewgtBuilder.addReweightingWeights(
+      { "p_Gen_JJEW_SIG_ghv1_1_MCFM", "p_Gen_CPStoBWPropRewgt" },
+      ReweightingFunctions::getSimpleWeight
+    );
+    rewgtBuilder.addReweightingWeights(
+      { "p_Gen_JJEW_BSI_ghv1_1_MCFM", "p_Gen_CPStoBWPropRewgt" },
+      ReweightingFunctions::getSimpleWeight
+    );
+    rewgtBuilder.addReweightingWeights(
+      { "p_Gen_JJEW_BKG_MCFM", "p_Gen_CPStoBWPropRewgt" },
+      ReweightingFunctions::getSimpleWeight
+    );
+  }
 
   curdir->cd();
 

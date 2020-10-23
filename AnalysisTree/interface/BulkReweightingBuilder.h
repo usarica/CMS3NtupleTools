@@ -30,7 +30,6 @@ protected:
   std::unordered_map<BaseTree*, float> normWeights;
 
   // Derived variables
-  std::unordered_map< BaseTree*, std::vector<double> > NeffThrsPerBin;
   std::unordered_map< BaseTree*, std::vector< std::vector<float> > > absWeightThresholdsPerBinList;
   std::unordered_map< BaseTree*, std::vector<double> > sum_normwgts_all;
   std::unordered_map< BaseTree*, std::vector<double> > sum_normwgts_nonzerorewgt;
