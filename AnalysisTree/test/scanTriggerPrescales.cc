@@ -71,8 +71,9 @@ void scanTriggerPrescales(TString period, TString prodVersion){
   for (auto const& strSample:sampleList){
     bool const isData = SampleHelpers::checkSampleIsData(strSample);
 
-    TString const cinputcore = SampleHelpers::getDatasetDirectoryName(strSample);
-    TString const cinput = SampleHelpers::getDatasetFileName(strSample);
+    TString const cinputcore = SampleHelpers::getDatasetDirectoryName(strSample, true);
+    TString const cinput = SampleHelpers::getDatasetFileName(strSample, true);
+    if (cinput=="") continue;
     MELAout << "Extracting input " << cinput << endl;
 
     BaseTree sample_tree(cinput, EVENTS_TREE_NAME, "", "");
