@@ -14,17 +14,17 @@ namespace SampleHelpers{
   void configure(TString period, TString stag); // Run this before doing anything else!
 
   std::string getDatasetDirectoryCoreName(std::string sname);
-  TString getDatasetDirectoryName(std::string sname);
-  TString getDatasetDirectoryName(TString sname);
+  TString getDatasetDirectoryName(std::string sname, bool ignoreDNE=false);
+  TString getDatasetDirectoryName(TString snam, bool ignoreDNE=false);
 
-  TString getDatasetFileName(std::string sname);
-  TString getDatasetFileName(TString sname);
+  TString getDatasetFileName(std::string sname, bool ignoreDNE=false);
+  TString getDatasetFileName(TString sname, bool ignoreDNE=false);
 
-  std::vector<TString> getDatasetFileNames(std::string sname);
-  std::vector<TString> getDatasetFileNames(TString sname);
+  std::vector<TString> getDatasetFileNames(std::string sname, bool ignoreDNE=false);
+  std::vector<TString> getDatasetFileNames(TString sname, bool ignoreDNE=false);
 
-  TString getDatasetFirstFileName(std::string sname);
-  TString getDatasetFirstFileName(TString sname);
+  TString getDatasetFirstFileName(std::string sname, bool ignoreDNE=false);
+  TString getDatasetFirstFileName(TString sname, bool ignoreDNE=false);
 
 }
 // Here begins the more specialized functions for off-shell analysis

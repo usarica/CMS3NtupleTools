@@ -30,66 +30,23 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
 
   if (theDataYear == 2018){
     // Data
-    if (sname == "SingleMuon"){
-      constructSamplesList("SingleMuon_2018A", syst, samples);
-      constructSamplesList("SingleMuon_2018B", syst, samples);
-      constructSamplesList("SingleMuon_2018C", syst, samples);
-      constructSamplesList("SingleMuon_2018D", syst, samples);
+    if (
+      sname == "SingleMuon" || sname == "DoubleMuon" || sname == "MuonEG"
+      ||
+      sname == "EGamma"
+      ||
+      sname == "JetHT" || sname == "MET"
+      ||
+      sname == "JetMET" // Composite names
+      ){
+      for (auto const& dp:SampleHelpers::getValidDataPeriods()) constructSamplesList(sname+"_"+dp, syst, samples);
     }
-    if (sname == "SingleMuon_2018A") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2018A-17Sep2018-v2/MINIAOD" });
-    if (sname == "SingleMuon_2018B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2018B-17Sep2018-v1/MINIAOD" });
-    if (sname == "SingleMuon_2018C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2018C-17Sep2018-v1/MINIAOD" });
-    if (sname == "SingleMuon_2018D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2018D-22Jan2019-v2/MINIAOD" });
-    if (sname == "DoubleMuon"){
-      constructSamplesList("DoubleMuon_2018A", syst, samples);
-      constructSamplesList("DoubleMuon_2018B", syst, samples);
-      constructSamplesList("DoubleMuon_2018C", syst, samples);
-      constructSamplesList("DoubleMuon_2018D", syst, samples);
+    for (auto const& dp:SampleHelpers::getValidDataPeriods()){
+      if (sname == Form("JetMET_%s", dp.Data())){
+        constructSamplesList(Form("JetHT_%s", dp.Data()), syst, samples);
+        constructSamplesList(Form("MET_%s", dp.Data()), syst, samples);
+      }
     }
-    if (sname == "DoubleMuon_2018A") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleMuon/Run2018A-17Sep2018-v2/MINIAOD" });
-    if (sname == "DoubleMuon_2018B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleMuon/Run2018B-17Sep2018-v1/MINIAOD" });
-    if (sname == "DoubleMuon_2018C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleMuon/Run2018C-17Sep2018-v1/MINIAOD" });
-    if (sname == "DoubleMuon_2018D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleMuon/Run2018D-PromptReco-v2/MINIAOD" });
-    if (sname == "MuonEG"){
-      constructSamplesList("MuonEG_2018A", syst, samples);
-      constructSamplesList("MuonEG_2018B", syst, samples);
-      constructSamplesList("MuonEG_2018C", syst, samples);
-      constructSamplesList("MuonEG_2018D", syst, samples);
-    }
-    if (sname == "MuonEG_2018A") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MuonEG/Run2018A-17Sep2018-v1/MINIAOD" });
-    if (sname == "MuonEG_2018B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MuonEG/Run2018B-17Sep2018-v1/MINIAOD" });
-    if (sname == "MuonEG_2018C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MuonEG/Run2018C-17Sep2018-v1/MINIAOD" });
-    if (sname == "MuonEG_2018D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MuonEG/Run2018D-PromptReco-v2/MINIAOD" });
-    if (sname == "EGamma"){
-      constructSamplesList("EGamma_2018A", syst, samples);
-      constructSamplesList("EGamma_2018B", syst, samples);
-      constructSamplesList("EGamma_2018C", syst, samples);
-      constructSamplesList("EGamma_2018D", syst, samples);
-    }
-    if (sname == "EGamma_2018A") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/EGamma/Run2018A-17Sep2018-v2/MINIAOD" });
-    if (sname == "EGamma_2018B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/EGamma/Run2018B-17Sep2018-v1/MINIAOD" });
-    if (sname == "EGamma_2018C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/EGamma/Run2018C-17Sep2018-v1/MINIAOD" });
-    if (sname == "EGamma_2018D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/EGamma/Run2018D-22Jan2019-v2/MINIAOD" });
-    if (sname == "MET"){
-      constructSamplesList("MET_2018A", syst, samples);
-      constructSamplesList("MET_2018B", syst, samples);
-      constructSamplesList("MET_2018C", syst, samples);
-      constructSamplesList("MET_2018D", syst, samples);
-    }
-    if (sname == "MET_2018A") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2018A-17Sep2018-v1/MINIAOD" });
-    if (sname == "MET_2018B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2018B-17Sep2018-v1/MINIAOD" });
-    if (sname == "MET_2018C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2018C-17Sep2018-v1/MINIAOD" });
-    if (sname == "MET_2018D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2018D-PromptReco-v2/MINIAOD" });
-    if (sname == "JetHT"){
-      constructSamplesList("JetHT_2018A", syst, samples);
-      constructSamplesList("JetHT_2018B", syst, samples);
-      constructSamplesList("JetHT_2018C", syst, samples);
-      constructSamplesList("JetHT_2018D", syst, samples);
-    }
-    if (sname == "JetHT_2018A") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/JetHT/Run2018A-17Sep2018-v1/MINIAOD" });
-    if (sname == "JetHT_2018B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/JetHT/Run2018B-17Sep2018-v1/MINIAOD" });
-    if (sname == "JetHT_2018C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/JetHT/Run2018C-17Sep2018-v1/MINIAOD" });
-    if (sname == "JetHT_2018D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/JetHT/Run2018D-PromptReco-v2/MINIAOD" });
     // Group by runs
     if (sname == "Run2018A"){
       constructSamplesList("EGamma_2018A", syst, samples);
@@ -123,6 +80,30 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
       constructSamplesList("MET_2018D", syst, samples);
       constructSamplesList("JetHT_2018D", syst, samples);
     }
+    if (sname == "SingleMuon_2018A") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2018A-17Sep2018-v2/MINIAOD" });
+    if (sname == "SingleMuon_2018B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2018B-17Sep2018-v1/MINIAOD" });
+    if (sname == "SingleMuon_2018C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2018C-17Sep2018-v1/MINIAOD" });
+    if (sname == "SingleMuon_2018D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2018D-22Jan2019-v2/MINIAOD" });
+    if (sname == "DoubleMuon_2018A") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleMuon/Run2018A-17Sep2018-v2/MINIAOD" });
+    if (sname == "DoubleMuon_2018B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleMuon/Run2018B-17Sep2018-v1/MINIAOD" });
+    if (sname == "DoubleMuon_2018C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleMuon/Run2018C-17Sep2018-v1/MINIAOD" });
+    if (sname == "DoubleMuon_2018D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleMuon/Run2018D-PromptReco-v2/MINIAOD" });
+    if (sname == "MuonEG_2018A") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MuonEG/Run2018A-17Sep2018-v1/MINIAOD" });
+    if (sname == "MuonEG_2018B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MuonEG/Run2018B-17Sep2018-v1/MINIAOD" });
+    if (sname == "MuonEG_2018C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MuonEG/Run2018C-17Sep2018-v1/MINIAOD" });
+    if (sname == "MuonEG_2018D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MuonEG/Run2018D-PromptReco-v2/MINIAOD" });
+    if (sname == "EGamma_2018A") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/EGamma/Run2018A-17Sep2018-v2/MINIAOD" });
+    if (sname == "EGamma_2018B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/EGamma/Run2018B-17Sep2018-v1/MINIAOD" });
+    if (sname == "EGamma_2018C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/EGamma/Run2018C-17Sep2018-v1/MINIAOD" });
+    if (sname == "EGamma_2018D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/EGamma/Run2018D-22Jan2019-v2/MINIAOD" });
+    if (sname == "MET_2018A") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2018A-17Sep2018-v1/MINIAOD" });
+    if (sname == "MET_2018B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2018B-17Sep2018-v1/MINIAOD" });
+    if (sname == "MET_2018C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2018C-17Sep2018-v1/MINIAOD" });
+    if (sname == "MET_2018D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2018D-PromptReco-v2/MINIAOD" });
+    if (sname == "JetHT_2018A") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/JetHT/Run2018A-17Sep2018-v1/MINIAOD" });
+    if (sname == "JetHT_2018B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/JetHT/Run2018B-17Sep2018-v1/MINIAOD" });
+    if (sname == "JetHT_2018C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/JetHT/Run2018C-17Sep2018-v1/MINIAOD" });
+    if (sname == "JetHT_2018D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/JetHT/Run2018D-PromptReco-v2/MINIAOD" });
 
     // Simulation for the main signals
     // GGH ZZ 2l2nu POWHEG
@@ -296,7 +277,7 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
       ||
       sname == "JetHT" || sname == "HTMHT" || sname == "MET"
       ||
-      sname == "EGamma"
+      sname == "EGamma" || sname == "JetMET" // Composite names
       ){
       for (auto const& dp:SampleHelpers::getValidDataPeriods()) constructSamplesList(sname+"_"+dp, syst, samples);
     }
@@ -305,6 +286,11 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
         constructSamplesList(Form("DoubleEG_%s", dp.Data()), syst, samples);
         constructSamplesList(Form("SingleElectron_%s", dp.Data()), syst, samples);
         constructSamplesList(Form("SinglePhoton_%s", dp.Data()), syst, samples);
+      }
+      if (sname == Form("JetMET_%s", dp.Data())){
+        constructSamplesList(Form("JetHT_%s", dp.Data()), syst, samples);
+        constructSamplesList(Form("HTMHT_%s", dp.Data()), syst, samples);
+        constructSamplesList(Form("MET_%s", dp.Data()), syst, samples);
       }
     }
     // Group by runs
@@ -529,7 +515,7 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
       ||
       sname == "JetHT" || sname == "HTMHT" || sname == "MET"
       ||
-      sname == "EGamma"
+      sname == "EGamma" || sname == "JetMET" // Composite names
       ){
       for (auto const& dp:SampleHelpers::getValidDataPeriods()) constructSamplesList(sname+"_"+dp, syst, samples);
     }
@@ -538,6 +524,11 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
         constructSamplesList(Form("DoubleEG_%s", dp.Data()), syst, samples);
         constructSamplesList(Form("SingleElectron_%s", dp.Data()), syst, samples);
         constructSamplesList(Form("SinglePhoton_%s", dp.Data()), syst, samples);
+      }
+      if (sname == Form("JetMET_%s", dp.Data())){
+        constructSamplesList(Form("JetHT_%s", dp.Data()), syst, samples);
+        constructSamplesList(Form("HTMHT_%s", dp.Data()), syst, samples);
+        constructSamplesList(Form("MET_%s", dp.Data()), syst, samples);
       }
     }
     // Group by runs

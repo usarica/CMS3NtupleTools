@@ -14,10 +14,17 @@
 
 
 class HLTTriggerPathProperties{
+public:
+  enum TriggerObjectExceptionType{
+    toRecoverObjectsFromFailing,
+    nTriggerObjectExceptionTypes
+  };
+
 protected:
   std::string name;
   std::unordered_map< HLTObjectProperties::TriggerObjectType, std::vector<HLTObjectProperties> > triggerObjectProperties;
   bool hasCompositeFilters;
+  TriggerObjectExceptionType TOexception;
 
   std::vector< std::pair<unsigned int, unsigned int> > excluded_runRange_list;
 
@@ -55,6 +62,9 @@ public:
 
   std::string const& getName() const{ return name; }
   std::unordered_map< HLTObjectProperties::TriggerObjectType, std::vector<HLTObjectProperties> > const& getObjectProperties() const{ return triggerObjectProperties; }
+
+  TriggerObjectExceptionType const& getTOException() const{ return TOexception; }
+  void setTOException(TriggerObjectExceptionType const& flag){ TOexception = flag; }
 
 };
 

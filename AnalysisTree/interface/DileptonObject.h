@@ -44,6 +44,8 @@ public:
   bool isOS() const{ return extras.isOS; }
   bool isSF() const{ return extras.isSF; }
   unsigned char nTightDaughters() const{ return extras.nTightDaughters; }
+  ParticleObject* getDaughter_leadingPt() const;
+  ParticleObject* getDaughter_subleadingPt() const;
 
 };
 

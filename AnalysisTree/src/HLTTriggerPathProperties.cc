@@ -12,14 +12,16 @@ using namespace MELAStreamHelpers;
 HLTTriggerPathProperties::HLTTriggerPathProperties(){}
 HLTTriggerPathProperties::HLTTriggerPathProperties(std::string const& name_) :
   name(name_),
-  hasCompositeFilters(false)
+  hasCompositeFilters(false),
+  TOexception(nTriggerObjectExceptionTypes)
 {
   setupName();
   setup();
 }
 HLTTriggerPathProperties::HLTTriggerPathProperties(std::string const& name_, std::vector<HLTObjectProperties> const& triggerObjectProperties_) :
   name(name_),
-  hasCompositeFilters(false)
+  hasCompositeFilters(false),
+  TOexception(nTriggerObjectExceptionTypes)
 {
   setupName();
   for (auto const& props:triggerObjectProperties_) addObjectProperties(props);
@@ -29,6 +31,7 @@ HLTTriggerPathProperties::HLTTriggerPathProperties(HLTTriggerPathProperties cons
   name(other.name),
   triggerObjectProperties(other.triggerObjectProperties),
   hasCompositeFilters(other.hasCompositeFilters),
+  TOexception(other.TOexception),
   excluded_runRange_list(other.excluded_runRange_list)
 {}
 

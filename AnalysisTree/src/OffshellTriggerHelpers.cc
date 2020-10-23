@@ -10,6 +10,7 @@ namespace TriggerHelpers{
   std::vector<HLTTriggerPathProperties const*> runRangeExcluded_HLTprop_list; // This list is only for ease
 
   void assignRunRangeExclusions(std::string const& name, std::vector< std::pair<int, int> > const& rangelist);
+  void assignTriggerObjectCheckException(std::string const& name, HLTTriggerPathProperties::TriggerObjectExceptionType const& flag);
 }
 
 
@@ -100,6 +101,20 @@ bool TriggerHelpers::hasRunRangeExclusions(std::string const& name, HLTTriggerPa
     return true;
   }
   return false;
+}
+
+void TriggerHelpers::assignTriggerObjectCheckException(std::string const& name, HLTTriggerPathProperties::TriggerObjectExceptionType const& flag){
+  for (int itt=0; itt!=(int) nTriggerTypes; itt++){
+    // No need to check the iterator since it was already checked.
+    auto it = HLT_type_proplist_map.find((TriggerType) itt);
+    for (auto& hltprop:it->second){
+      if (!hltprop.isSameTrigger(name)) continue;
+
+      MELAout << "TriggerHelpers::assignTriggerObjectCheckException: Adding TO exception of type " << flag << " to " << name << "." << endl;
+
+      hltprop.setTOException(flag);
+    }
+  }
 }
 
 void TriggerHelpers::configureHLTmap(){
@@ -272,6 +287,15 @@ void TriggerHelpers::configureHLTmap(){
       { "HLT_PFMET120_PFMHT120_IDTight_v*", { { HLTObjectProperties::kMET, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT, { { HLTObjectProperties::kMass, 120.f } } } } }
     };
     HLT_type_proplist_map[kPFHT_PFMET_MHT_Control] = std::vector<HLTTriggerPathProperties>();
+
+    // Assign TO check exceptions to recover passing legs from the failed ones
+    assignTriggerObjectCheckException("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v*", HLTTriggerPathProperties::toRecoverObjectsFromFailing);
+    assignTriggerObjectCheckException("HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_v*", HLTTriggerPathProperties::toRecoverObjectsFromFailing);
+    assignTriggerObjectCheckException("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*", HLTTriggerPathProperties::toRecoverObjectsFromFailing);
+    assignTriggerObjectCheckException("HLT_Ele17_CaloIdM_TrackIdM_PFJet30_v*", HLTTriggerPathProperties::toRecoverObjectsFromFailing);
+    assignTriggerObjectCheckException("HLT_Ele17_CaloIdL_TrackIdL_IsoVL_PFJet30_v*", HLTTriggerPathProperties::toRecoverObjectsFromFailing);
+    assignTriggerObjectCheckException("HLT_Ele8_CaloIdM_TrackIdM_PFJet30_v*", HLTTriggerPathProperties::toRecoverObjectsFromFailing);
+    assignTriggerObjectCheckException("HLT_Ele8_CaloIdL_TrackIdL_IsoVL_PFJet30_v*", HLTTriggerPathProperties::toRecoverObjectsFromFailing);
 
     // Assign run range exclusions
     assignRunRangeExclusions(
@@ -473,7 +497,7 @@ void TriggerHelpers::configureHLTmap(){
     };
     HLT_type_proplist_map[kPFHT_Control] = std::vector<HLTTriggerPathProperties>{
       { "HLT_PFHT1050_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 1150.f } } } } },
-      { "HLT_PFHT890_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 1000.f }, { HLTObjectProperties::kPtHigh, 1150.f } } } } }, // Prescaled, 
+      { "HLT_PFHT890_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 1000.f }, { HLTObjectProperties::kPtHigh, 1150.f } } } } },
       { "HLT_PFHT780_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 900.f }, { HLTObjectProperties::kPtHigh, 1000.f } } } } }, // Prescaled
       { "HLT_PFHT680_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 800.f }, { HLTObjectProperties::kPtHigh, 900.f } } } } }, // Prescaled
       { "HLT_PFHT590_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 750.f }, { HLTObjectProperties::kPtHigh, 800.f } } } } }, // Prescaled
@@ -493,9 +517,9 @@ void TriggerHelpers::configureHLTmap(){
     HLT_type_proplist_map[kPFHT_PFMET_Control] = std::vector<HLTTriggerPathProperties>();
     HLT_type_proplist_map[kPFMET_MHT_Control] = std::vector<HLTTriggerPathProperties>{
       { "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60_v*", { { HLTObjectProperties::kMET_NoMu, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT_NoMu, { { HLTObjectProperties::kMass, 120.f } } }, { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 60.f } } } } },
-      { "HLT_PFMET120_PFMHT120_IDTight_PFHT60_v*", { { HLTObjectProperties::kMET, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT, { { HLTObjectProperties::kMass, 120.f }, { HLTObjectProperties::kPt, 60.f } } } } }/*,
+      { "HLT_PFMET120_PFMHT120_IDTight_PFHT60_v*", { { HLTObjectProperties::kMET, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT, { { HLTObjectProperties::kMass, 120.f }, { HLTObjectProperties::kPt, 60.f } } } } },
       { "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v*", { { HLTObjectProperties::kMET_NoMu, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT_NoMu, { { HLTObjectProperties::kMass, 120.f } } } } },
-      { "HLT_PFMET120_PFMHT120_IDTight_v*", { { HLTObjectProperties::kMET, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT, { { HLTObjectProperties::kMass, 120.f } } } } }*/
+      { "HLT_PFMET120_PFMHT120_IDTight_v*", { { HLTObjectProperties::kMET, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT, { { HLTObjectProperties::kMass, 120.f } } } } }
     };
     HLT_type_proplist_map[kPFHT_PFMET_MHT_Control] = std::vector<HLTTriggerPathProperties>{
       { "HLT_PFHT500_PFMET100_PFMHT100_IDTight_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 500.f }, { HLTObjectProperties::kMass, 100.f } } }, { HLTObjectProperties::kMET, { { HLTObjectProperties::kPt, 100.f } } } } },
@@ -506,6 +530,18 @@ void TriggerHelpers::configureHLTmap(){
       { "HLT_PFHT800_PFMET85_PFMHT85_IDTight_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 800.f }, { HLTObjectProperties::kMass, 85.f } } }, { HLTObjectProperties::kMET, { { HLTObjectProperties::kPt, 85.f } } } } }
     };
 
+    assignTriggerObjectCheckException("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*", HLTTriggerPathProperties::toRecoverObjectsFromFailing);
+    assignTriggerObjectCheckException("HLT_Ele17_CaloIdM_TrackIdM_PFJet30_v*", HLTTriggerPathProperties::toRecoverObjectsFromFailing);
+    assignTriggerObjectCheckException("HLT_Ele12_CaloIdL_TrackIdL_IsoVL_PFJet30_v*", HLTTriggerPathProperties::toRecoverObjectsFromFailing);
+    assignTriggerObjectCheckException("HLT_Ele8_CaloIdM_TrackIdM_PFJet30_v*", HLTTriggerPathProperties::toRecoverObjectsFromFailing);
+    assignTriggerObjectCheckException("HLT_Ele8_CaloIdL_TrackIdL_IsoVL_PFJet30_v*", HLTTriggerPathProperties::toRecoverObjectsFromFailing);
+
+    assignRunRangeExclusions(
+      "HLT_Ele16_Ele12_Ele8_CaloIdL_TrackIdL_v*", {
+        { 303824/*303832*/, -1/*306462*//*306456*/ } // The actual boundary read off is 303832-306456, which is a large subset of 2017E+F. We exclude entire 2017E+F.
+      }
+    );
+    // These triggers are replaced by the HT60 versions after 2017B.
     assignRunRangeExclusions(
       "HLT_PFMET120_PFMHT120_IDTight_v*", {
         { 305586, -1 }
@@ -516,8 +552,43 @@ void TriggerHelpers::configureHLTmap(){
         { 305586, -1 }
       }
     );
-    // These triggers need to exclude 2017B because prescale=0
-    // Mu50 is unprescaled for the entire run.
+    // These triggers need to exclude 2017B because prescale=0.
+    assignRunRangeExclusions(
+      "HLT_PFMET250_HBHECleaned_v*", {
+        { -1, 299329 }
+      }
+    );
+    assignRunRangeExclusions(
+      "HLT_PFMET300_HBHECleaned_v*", {
+        { -1, 299329 }
+      }
+    );
+    assignRunRangeExclusions(
+      "HLT_PFMET120_PFMHT120_IDTight_PFHT60_v*", {
+        { -1, 299329 }
+      }
+    );
+    assignRunRangeExclusions(
+      "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60_v*", {
+        { -1, 299329 }
+      }
+    );
+    assignRunRangeExclusions(
+      "HLT_DiJet110_35_Mjj650_PFMET110_v*", {
+        { -1, 299329 }
+      }
+    );
+    assignRunRangeExclusions(
+      "HLT_DiJet110_35_Mjj650_PFMET120_v*", {
+        { -1, 299329 }
+      }
+    );
+    assignRunRangeExclusions(
+      "HLT_DiJet110_35_Mjj650_PFMET130_v*", {
+        { -1, 299329 }
+      }
+    );
+    // Mu50 is unprescaled for the entire run, but TkMu100 is not.
     assignRunRangeExclusions(
       "HLT_TkMu100_v*", {
         { -1, 299329 }
@@ -528,6 +599,14 @@ void TriggerHelpers::configureHLTmap(){
         { -1, 299329 }
       }
     );
+    // HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v* is unprescaled in 2017B.
+    // We don't need to use it explicitly as a replacement for HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8_v*
+    // because we also have HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8_v*, which is fully unprescaled.
+    //assignRunRangeExclusions(
+    //  "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v*", {
+    //    { 299368, -1 }
+    //  }
+    //);
     assignRunRangeExclusions(
       "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8_v*", {
         { -1, 299329 }
@@ -536,6 +615,16 @@ void TriggerHelpers::configureHLTmap(){
     assignRunRangeExclusions(
       "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*", {
         { -1, 299329 }
+      }
+    );
+    assignRunRangeExclusions(
+      "HLT_Mu37_TkMu27_v*", {
+        { -1, 302029/*302019*/ } // No prescale=0 in the last few valid runs of 2017C, but we will ignore that and exclude all of 2017B+C.
+      }
+    );
+    assignRunRangeExclusions(
+      "HLT_PFMET200_HBHE_BeamHaloCleaned_v*", {
+        { -1, 304797 }
       }
     );
     break;
@@ -636,7 +725,7 @@ void TriggerHelpers::configureHLTmap(){
     };
     HLT_type_proplist_map[kPFHT_Control] = std::vector<HLTTriggerPathProperties>{
       { "HLT_PFHT1050_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 1150.f } } } } },
-      { "HLT_PFHT890_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 1000.f }, { HLTObjectProperties::kPtHigh, 1150.f } } } } }, // Prescaled, 
+      { "HLT_PFHT890_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 1000.f }, { HLTObjectProperties::kPtHigh, 1150.f } } } } }, 
       { "HLT_PFHT780_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 900.f }, { HLTObjectProperties::kPtHigh, 1000.f } } } } }, // Prescaled
       { "HLT_PFHT680_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 800.f }, { HLTObjectProperties::kPtHigh, 900.f } } } } }, // Prescaled
       { "HLT_PFHT590_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 750.f }, { HLTObjectProperties::kPtHigh, 800.f } } } } }, // Prescaled
@@ -668,6 +757,29 @@ void TriggerHelpers::configureHLTmap(){
       { "HLT_PFHT800_PFMET75_PFMHT75_IDTight_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 800.f }, { HLTObjectProperties::kMass, 75.f } } }, { HLTObjectProperties::kMET, { { HLTObjectProperties::kPt, 75.f } } } } },
       { "HLT_PFHT800_PFMET85_PFMHT85_IDTight_v*", { { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 800.f }, { HLTObjectProperties::kMass, 85.f } } }, { HLTObjectProperties::kMET, { { HLTObjectProperties::kPt, 85.f } } } } }
     };
+
+    assignTriggerObjectCheckException("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*", HLTTriggerPathProperties::toRecoverObjectsFromFailing);
+    assignTriggerObjectCheckException("HLT_Ele17_CaloIdM_TrackIdM_PFJet30_v*", HLTTriggerPathProperties::toRecoverObjectsFromFailing);
+    assignTriggerObjectCheckException("HLT_Ele12_CaloIdL_TrackIdL_IsoVL_PFJet30_v*", HLTTriggerPathProperties::toRecoverObjectsFromFailing);
+    assignTriggerObjectCheckException("HLT_Ele8_CaloIdM_TrackIdM_PFJet30_v*", HLTTriggerPathProperties::toRecoverObjectsFromFailing);
+    assignTriggerObjectCheckException("HLT_Ele8_CaloIdL_TrackIdL_IsoVL_PFJet30_v*", HLTTriggerPathProperties::toRecoverObjectsFromFailing);
+
+    // Prescale=0 for a small portion of 2018A
+    assignRunRangeExclusions(
+      "HLT_DiJet110_35_Mjj650_PFMET110_v*", {
+        { 316153, 316239 }
+      }
+    );
+    assignRunRangeExclusions(
+      "HLT_DiJet110_35_Mjj650_PFMET120_v*", {
+        { 316153, 316239 }
+      }
+    );
+    assignRunRangeExclusions(
+      "HLT_DiJet110_35_Mjj650_PFMET130_v*", {
+        { 316153, 316239 }
+      }
+    );
     break;
   default:
     break;

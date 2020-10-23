@@ -41,10 +41,8 @@ void SampleHelpers::configure(TString period, TString stag){
   TriggerHelpers::configureHLTmap();
 }
 
-std::string SampleHelpers::getDatasetDirectoryCoreName(std::string sname){
-  return getDatasetCoreName(sname);
-}
-TString SampleHelpers::getDatasetDirectoryName(std::string sname){
+std::string SampleHelpers::getDatasetDirectoryCoreName(std::string sname){ return SampleHelpers::getDatasetCoreName(sname); }
+TString SampleHelpers::getDatasetDirectoryName(std::string sname, bool ignoreDNE){
   assert(theSamplesTag!="");
   assert(theInputDirectory!="");
   assert(HostHelpers::DirectoryExists(theInputDirectory.Data()));
@@ -52,14 +50,14 @@ TString SampleHelpers::getDatasetDirectoryName(std::string sname){
   sname = SampleHelpers::getDatasetDirectoryCoreName(sname);
   TString res = Form("%s/%s/%s", theInputDirectory.Data(), theSamplesTag.Data(), sname.data());
   if (!HostHelpers::DirectoryExists(res.Data())) MELAerr << "SampleHelpers::getDatasetDirectoryName: Cannot find directory " << res << endl;
-  assert(HostHelpers::DirectoryExists(res.Data()));
+  assert(ignoreDNE || HostHelpers::DirectoryExists(res.Data()));
   return res;
 }
-TString SampleHelpers::getDatasetDirectoryName(TString sname){ return SampleHelpers::getDatasetDirectoryName(std::string(sname.Data())); }
+TString SampleHelpers::getDatasetDirectoryName(TString sname, bool ignoreDNE){ return SampleHelpers::getDatasetDirectoryName(std::string(sname.Data()), ignoreDNE); }
 
 
-TString SampleHelpers::getDatasetFileName(std::string sname){
-  TString dsetdir = getDatasetDirectoryName(sname);
+TString SampleHelpers::getDatasetFileName(std::string sname, bool ignoreDNE){
+  TString dsetdir = getDatasetDirectoryName(sname, ignoreDNE);
   auto dfiles = SampleHelpers::lsdir(dsetdir.Data());
   size_t nfiles = 0;
   TString firstFile = "";
@@ -69,12 +67,13 @@ TString SampleHelpers::getDatasetFileName(std::string sname){
       nfiles++;
     }
   }
-  return (dsetdir + "/" + (nfiles==1 ? firstFile : "*.root"));
+  if (nfiles==0) return "";
+  else return (dsetdir + "/" + (nfiles==1 ? firstFile : "*.root"));
 }
-TString SampleHelpers::getDatasetFileName(TString sname){ return SampleHelpers::getDatasetFileName(std::string(sname.Data())); }
+TString SampleHelpers::getDatasetFileName(TString sname, bool ignoreDNE){ return SampleHelpers::getDatasetFileName(std::string(sname.Data()), ignoreDNE); }
 
-std::vector<TString> SampleHelpers::getDatasetFileNames(std::string sname){
-  TString dsetdir = getDatasetDirectoryName(sname);
+std::vector<TString> SampleHelpers::getDatasetFileNames(std::string sname, bool ignoreDNE){
+  TString dsetdir = getDatasetDirectoryName(sname, ignoreDNE);
   auto dfiles = SampleHelpers::lsdir(dsetdir.Data());
   std::vector<TString> res; res.reserve(dfiles.size());
   for (auto const& fname:dfiles){
@@ -83,18 +82,18 @@ std::vector<TString> SampleHelpers::getDatasetFileNames(std::string sname){
   size_t const nfiles = res.size();
   if (nfiles==0){
     MELAerr << "SampleHelpers::getDatasetFileNames: Directory " << dsetdir << " contains no ROOT files." << endl;
-    assert(nfiles>0);
+    assert(ignoreDNE || nfiles>0);
   }
   return res;
 }
-std::vector<TString> SampleHelpers::getDatasetFileNames(TString sname){ return SampleHelpers::getDatasetFileNames(std::string(sname.Data())); }
+std::vector<TString> SampleHelpers::getDatasetFileNames(TString sname, bool ignoreDNE){ return SampleHelpers::getDatasetFileNames(std::string(sname.Data()), ignoreDNE); }
 
-TString SampleHelpers::getDatasetFirstFileName(std::string sname){
-  std::vector<TString> fileList = SampleHelpers::getDatasetFileNames(sname);
+TString SampleHelpers::getDatasetFirstFileName(std::string sname, bool ignoreDNE){
+  std::vector<TString> fileList = SampleHelpers::getDatasetFileNames(sname, ignoreDNE);
   if (fileList.empty()){
     MELAerr << "SampleHelpers::getDatasetFirstFileName: Sample " << sname << " has no ROOT files." << endl;
-    assert(false);
+    assert(ignoreDNE);
   }
   return (!fileList.empty() ? fileList.front() : TString(""));
 }
-TString SampleHelpers::getDatasetFirstFileName(TString sname){ return SampleHelpers::getDatasetFirstFileName(std::string(sname.Data())); }
+TString SampleHelpers::getDatasetFirstFileName(TString sname, bool ignoreDNE){ return SampleHelpers::getDatasetFirstFileName(std::string(sname.Data()), ignoreDNE); }

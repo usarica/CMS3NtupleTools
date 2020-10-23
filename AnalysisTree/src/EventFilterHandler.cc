@@ -174,14 +174,108 @@ float EventFilterHandler::getTriggerWeight(
         std::vector<PhotonObject const*> photons_trigcheck_TOmatched;
 
         if (checkTriggerObjectsForHLTPaths){
+          HLTTriggerPathProperties::TriggerObjectExceptionType const& TOexception = hltprop.getTOException();
           auto const& passedTriggerObjects = prod->getPassedTriggerObjects();
+
+          bool hasTORecovery = false;
+          std::vector<TriggerObject const*> passedTriggerObjectsWithRecovery;
+          if (TOexception == HLTTriggerPathProperties::toRecoverObjectsFromFailing){
+            // Determine what to recover
+            unsigned short n_TOmuons = 0;
+            unsigned short n_TOelectrons = 0;
+            unsigned short n_TOphotons = 0;
+            for (auto const& TOobj:passedTriggerObjects){
+              if (TOobj->isTriggerObjectType(trigger::TriggerMuon)) n_TOmuons++;
+              else if (TOobj->isTriggerObjectType(trigger::TriggerElectron)) n_TOelectrons++;
+              else if (TOobj->isTriggerObjectType(trigger::TriggerPhoton) || TOobj->isTriggerObjectType(trigger::TriggerCluster)){
+                n_TOelectrons++;
+                n_TOphotons++;
+              }
+            }
+            auto const& props_map = hltprop.getObjectProperties();
+            unsigned short n_TOmuons_req = (props_map.find(HLTObjectProperties::kMuon)!=props_map.end() ? props_map.find(HLTObjectProperties::kMuon)->second.size() : 0);
+            unsigned short n_TOelectrons_req = (props_map.find(HLTObjectProperties::kElectron)!=props_map.end() ? props_map.find(HLTObjectProperties::kElectron)->second.size() : 0);
+            unsigned short n_TOphotons_req = (props_map.find(HLTObjectProperties::kPhoton)!=props_map.end() ? props_map.find(HLTObjectProperties::kPhoton)->second.size() : 0);
+            bool needMuonRecovery = (n_TOmuons<n_TOmuons_req);
+            bool needElectronRecovery = (n_TOelectrons<n_TOelectrons_req);
+            bool needPhotonRecovery = (n_TOphotons<n_TOphotons_req);
+            // Add existing passing objects
+            for (auto const& TOobj:passedTriggerObjects) passedTriggerObjectsWithRecovery.push_back(TOobj);
+            // Add from failing objects
+            for (auto const& TOobj:prod->getFailedTriggerObjects()){
+              if (
+                (needMuonRecovery && TOobj->isTriggerObjectType(trigger::TriggerMuon))
+                ||
+                (needElectronRecovery && (TOobj->isTriggerObjectType(trigger::TriggerElectron) || TOobj->isTriggerObjectType(trigger::TriggerPhoton) || TOobj->isTriggerObjectType(trigger::TriggerCluster)))
+                ||
+                (needPhotonRecovery && (TOobj->isTriggerObjectType(trigger::TriggerPhoton) || TOobj->isTriggerObjectType(trigger::TriggerCluster)))
+                ) passedTriggerObjectsWithRecovery.push_back(TOobj);
+            }
+            hasTORecovery = true;
+          }
+
+          std::vector<TriggerObject const*> const& passedTriggerObjects_final = (!hasTORecovery ? passedTriggerObjects : passedTriggerObjectsWithRecovery);
+
+          /*
+          // Consistency check
+          unsigned short n_TOmuons = 0;
+          unsigned short n_TOelectrons = 0;
+          unsigned short n_TOphotons = 0;
+          for (auto const& TOobj:passedTriggerObjects_final){
+            if (TOobj->isTriggerObjectType(trigger::TriggerMuon)) n_TOmuons++;
+            else if (TOobj->isTriggerObjectType(trigger::TriggerElectron)) n_TOelectrons++;
+            else if (TOobj->isTriggerObjectType(trigger::TriggerPhoton) || TOobj->isTriggerObjectType(trigger::TriggerCluster)){
+              n_TOelectrons++;
+              n_TOphotons++;
+            }
+          }
+          auto const& props_map = hltprop.getObjectProperties();
+          unsigned short n_TOmuons_req = (props_map.find(HLTObjectProperties::kMuon)!=props_map.end() ? props_map.find(HLTObjectProperties::kMuon)->second.size() : 0);
+          unsigned short n_TOelectrons_req = (props_map.find(HLTObjectProperties::kElectron)!=props_map.end() ? props_map.find(HLTObjectProperties::kElectron)->second.size() : 0);
+          unsigned short n_TOphotons_req = (props_map.find(HLTObjectProperties::kPhoton)!=props_map.end() ? props_map.find(HLTObjectProperties::kPhoton)->second.size() : 0);
+          if (this->verbosity>=TVar::ERROR){
+            bool hasError = false;
+            if (n_TOmuons<n_TOmuons_req){
+              MELAerr << "EventFilterHandler::getTriggerWeight[" << prod->name << "]: Number of muons " << n_TOmuons << " < number of req. muons " << n_TOmuons_req << endl;
+              hasError = true;
+            }
+            if (n_TOelectrons<n_TOelectrons_req){
+              MELAerr << "EventFilterHandler::getTriggerWeight[" << prod->name << "]: Number of electrons " << n_TOelectrons << " < number of req. electrons " << n_TOelectrons_req << endl;
+              hasError = true;
+            }
+            if (n_TOphotons<n_TOphotons_req){
+              MELAerr << "EventFilterHandler::getTriggerWeight[" << prod->name << "]: Number of photons " << n_TOphotons << " < number of req. photons " << n_TOphotons_req << endl;
+              hasError = true;
+            }
+            if (hasError){
+              MELAout << "\t\t- Passing trigger objects: ";
+              for (auto const& TOobj:passedTriggerObjects){
+                MELAout << "[" << TOobj->getTriggerObjectType() << "] ( " << TOobj->pt() << ", " << TOobj->eta() << ", " << TOobj->phi() << endl;
+              }
+              MELAout << "\t\t- Failing trigger objects: ";
+              for (auto const& TOobj:prod->getFailedTriggerObjects()){
+                MELAout << "[" << TOobj->getTriggerObjectType() << "] ( " << TOobj->pt() << ", " << TOobj->eta() << ", " << TOobj->phi() << endl;
+              }
+              MELAout << "\t\t- Leptons: ";
+              for (auto const& part:muons_trigcheck){
+                MELAout << "[" << part->pdgId() << "] ( " << part->pt() << ", " << part->eta() << ", " << part->phi() << endl;
+              }
+              for (auto const& part:electrons_trigcheck){
+                MELAout << "[" << part->pdgId() << "] ( " << part->pt() << ", " << part->eta() << ", " << part->phi() << endl;
+              }
+              for (auto const& part:photons_trigcheck){
+                MELAout << "[" << part->pdgId() << "] ( " << part->pt() << ", " << part->eta() << ", " << part->phi() << endl;
+              }
+            }
+          }
+          */
 
           if (this->verbosity>=TVar::DEBUG){
             MELAout << "EventFilterHandler::getTriggerWeight: Checking " << prod->name << " trigger objects:" << endl;
-            MELAout << "\t- Number of passed trigger objects: " << passedTriggerObjects.size() << endl;
+            MELAout << "\t- Number of passed trigger objects: " << passedTriggerObjects_final.size() << endl;
             MELAout << "\t\t- Trigger object types: ";
             std::vector<trigger::TriggerObjectType> TOtypes;
-            for (auto const& TOobj:passedTriggerObjects) TOtypes.push_back(TOobj->getTriggerObjectType());
+            for (auto const& TOobj:passedTriggerObjects_final) TOtypes.push_back(TOobj->getTriggerObjectType());
             MELAout << TOtypes << endl;
             MELAout << "\t- Number of muons: " << muons_trigcheck.size() << endl;
             MELAout << "\t- Number of electrons: " << electrons_trigcheck.size() << endl;
@@ -189,15 +283,15 @@ float EventFilterHandler::getTriggerWeight(
           }
 
           TriggerObject::getMatchedPhysicsObjects(
-            passedTriggerObjects, { trigger::TriggerMuon }, 0.2,
+            passedTriggerObjects_final, { trigger::TriggerMuon }, 0.2,
             muons_trigcheck, muons_trigcheck_TOmatched
           );
           TriggerObject::getMatchedPhysicsObjects(
-            passedTriggerObjects, { trigger::TriggerElectron, trigger::TriggerPhoton, trigger::TriggerCluster }, 0.2,
+            passedTriggerObjects_final, { trigger::TriggerElectron, trigger::TriggerPhoton, trigger::TriggerCluster }, 0.2,
             electrons_trigcheck, electrons_trigcheck_TOmatched
           );
           TriggerObject::getMatchedPhysicsObjects(
-            passedTriggerObjects, { trigger::TriggerPhoton, trigger::TriggerCluster }, 0.2,
+            passedTriggerObjects_final, { trigger::TriggerPhoton, trigger::TriggerCluster }, 0.2,
             photons_trigcheck, photons_trigcheck_TOmatched
           );
 
