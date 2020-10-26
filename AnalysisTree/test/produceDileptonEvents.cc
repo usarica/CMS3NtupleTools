@@ -484,6 +484,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     leptons_pt.push_back(dau->pt());
     leptons_eta.push_back(dau->eta());
     leptons_phi.push_back(dau->phi());
+    leptons_mass.push_back(dau->m());
     leptons_is_TOmatched_SingleLepton.push_back(HelperFunctions::checkListVariable(leptons_TOmatched_SingleLepton, (ParticleObject const*) dau));
 
     // Fill efficiency for the lepton
