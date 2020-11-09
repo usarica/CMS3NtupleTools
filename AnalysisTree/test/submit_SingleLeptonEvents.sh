@@ -25,7 +25,7 @@ declare -a MCDataPeriods=( $period )
 declare -a MCSysts=( sNominal )
 declare -i dataYear
 
-DataSampleList=( Run )
+DataSampleList=( SingleLepton )
 
 if [[ "$period" == "2018"* ]]; then
   dataYear=2018
@@ -106,7 +106,10 @@ done
 for spl in "${DataSampleList[@]}"; do
   for dataperiod in "${dataPeriods[@]}"; do
     for fakeid in false true; do
-      sample="${spl}${dataperiod}"
+      sample="${spl}_${dataperiod}"
+      if [[ ${fakeid} == "false" ]]; then
+        sample="EGamma_${dataperiod}"
+      fi
 
       strargs="${arguments}"
       strargs="${strargs/<strSampleSet>/${sample}}"

@@ -85,9 +85,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   // Acquire sample flags
   bool const& isData = theLooper->getCurrentTreeFlag_IsData();
   bool const& isQCD = theLooper->getCurrentTreeFlag_QCDException();
+  bool const& isGJets_HT = theLooper->getCurrentTreeFlag_GJetsHTException();
   float pTG_true_exception_range[2]={ -1, -1 };
   bool hasPTGExceptionRange = theLooper->getPTGExceptionRange(pTG_true_exception_range[0], pTG_true_exception_range[1]);
-  bool needGenParticleChecks = isQCD || hasPTGExceptionRange;
+  bool needGenParticleChecks = isQCD || isGJets_HT || hasPTGExceptionRange;
 
   // Acquire triggers
   auto const& triggerCheckListMap = theLooper->getHLTMenus();
@@ -146,14 +147,33 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   // Recorded variables
 #define BRANCH_SCALAR_COMMANDS \
   BRANCH_COMMAND(float, event_wgt) \
+  BRANCH_COMMAND(float, event_wgt_L1PrefiringDn) \
+  BRANCH_COMMAND(float, event_wgt_L1PrefiringUp) \
   BRANCH_COMMAND(float, event_wgt_adjustment_NNPDF30) \
   BRANCH_COMMAND(float, event_wgt_triggers) \
-  BRANCH_COMMAND(float, event_wgt_SFs) \
   BRANCH_COMMAND(float, event_wgt_SFs_muons) \
+  BRANCH_COMMAND(float, event_wgt_SFs_muons_StatDn) \
+  BRANCH_COMMAND(float, event_wgt_SFs_muons_StatUp) \
+  BRANCH_COMMAND(float, event_wgt_SFs_muons_SystDn) \
+  BRANCH_COMMAND(float, event_wgt_SFs_muons_SystUp) \
+  BRANCH_COMMAND(float, event_wgt_SFs_muons_AltMCDn) \
+  BRANCH_COMMAND(float, event_wgt_SFs_muons_AltMCUp) \
   BRANCH_COMMAND(float, event_wgt_SFs_electrons) \
+  BRANCH_COMMAND(float, event_wgt_SFs_electrons_StatDn) \
+  BRANCH_COMMAND(float, event_wgt_SFs_electrons_StatUp) \
+  BRANCH_COMMAND(float, event_wgt_SFs_electrons_SystDn) \
+  BRANCH_COMMAND(float, event_wgt_SFs_electrons_SystUp) \
+  BRANCH_COMMAND(float, event_wgt_SFs_electrons_AltMCDn) \
+  BRANCH_COMMAND(float, event_wgt_SFs_electrons_AltMCUp) \
   BRANCH_COMMAND(float, event_wgt_SFs_photons) \
+  BRANCH_COMMAND(float, event_wgt_SFs_photons_EffDn) \
+  BRANCH_COMMAND(float, event_wgt_SFs_photons_EffUp) \
   BRANCH_COMMAND(float, event_wgt_SFs_PUJetId) \
+  BRANCH_COMMAND(float, event_wgt_SFs_PUJetId_EffDn) \
+  BRANCH_COMMAND(float, event_wgt_SFs_PUJetId_EffUp) \
   BRANCH_COMMAND(float, event_wgt_SFs_btagging) \
+  BRANCH_COMMAND(float, event_wgt_SFs_btagging_EffDn) \
+  BRANCH_COMMAND(float, event_wgt_SFs_btagging_EffUp) \
   BRANCH_COMMAND(float, event_pTmiss) \
   BRANCH_COMMAND(float, event_phimiss) \
   BRANCH_COMMAND(float, event_mTZZ) \
@@ -169,11 +189,13 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt20_btagged_loose) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt20_btagged_medium) \
   BRANCH_COMMAND(float, ak4jets_HT) \
+  BRANCH_COMMAND(float, ak4jets_MHT) \
   BRANCH_COMMAND(cms3_id_t, lepton_id) \
   BRANCH_COMMAND(float, lepton_pt) \
   BRANCH_COMMAND(float, lepton_eta) \
   BRANCH_COMMAND(float, lepton_phi) \
   BRANCH_COMMAND(float, lepton_mass) \
+  BRANCH_COMMAND(float, lepton_relIso) \
   BRANCH_COMMAND(bool, lepton_is_genMatched_prompt) \
   BRANCH_COMMAND(float, electron_full5x5_sigmaIEtaIEta) \
   BRANCH_COMMAND(float, electron_full5x5_sigmaIPhiIPhi) \
@@ -206,10 +228,15 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
 #define BRANCH_COMMAND(TYPE, NAME) std::vector<TYPE> NAME;
   BRANCH_VECTOR_COMMANDS;
 #undef BRANCH_COMMAND
+  std::vector<TString> bnames_exclude;
+#define BRANCH_COMMAND(TYPE, NAME) if (theGlobalSyst!=SystematicsHelpers::sNominal){ TString strtmp = #NAME; if (strtmp.EndsWith("Up") || strtmp.EndsWith("Dn")) bnames_exclude.emplace_back(strtmp); }
+  BRANCH_SCALAR_COMMANDS;
+  BRANCH_VECTOR_COMMANDS;
+#undef BRANCH_COMMAND
 
 
   // Always assign the external weight first
-  event_wgt = extWgt;
+  event_wgt = event_wgt_L1PrefiringDn = event_wgt_L1PrefiringUp = extWgt;
   // Set NNPDF 3.0 adjustment to 1
   event_wgt_adjustment_NNPDF30 = 1;
 
@@ -233,6 +260,14 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
           }
         }
       }
+      if (isGJets_HT){
+        for (auto const& part:genparticles){
+          if (PDGHelpers::isAPhoton(part->pdgId()) && part->extras.isPromptFinalState){
+            event_wgt *= std::max(1., 1.71691-0.001221*part->pt());
+            break;
+          }
+        }
+      }
       if (hasPTGExceptionRange){
         for (auto const& part:genparticles){
           if (PDGHelpers::isAPhoton(part->pdgId()) && part->extras.isHardProcess){
@@ -242,11 +277,20 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
         }
       }
     }
+    event_wgt_L1PrefiringDn = event_wgt_L1PrefiringUp = event_wgt;
 
-    simEventHandler->constructSimEvent(theGlobalSyst);
-    event_wgt *= simEventHandler->getPileUpWeight()*simEventHandler->getL1PrefiringWeight();
+    simEventHandler->constructSimEvent();
+    event_wgt *= simEventHandler->getPileUpWeight(theGlobalSyst)*simEventHandler->getL1PrefiringWeight(theGlobalSyst);
+    event_wgt_L1PrefiringDn *= simEventHandler->getPileUpWeight(theGlobalSyst)*simEventHandler->getL1PrefiringWeight(SystematicsHelpers::eL1PrefiringDn);
+    event_wgt_L1PrefiringUp *= simEventHandler->getPileUpWeight(theGlobalSyst)*simEventHandler->getL1PrefiringWeight(SystematicsHelpers::eL1PrefiringUp);
 
-    if (event_wgt==0.f) return false;
+    if (
+      event_wgt==0.f
+      &&
+      event_wgt_L1PrefiringDn==0.f
+      &&
+      event_wgt_L1PrefiringUp==0.f
+      ) return false;
 
     // Record LHE MEs and K factors
     for (auto const& it:genInfo->extras.LHE_ME_weights) commonEntry.setNamedVal(it.first, it.second);
@@ -277,12 +321,22 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   unsigned short n_leptons_tight = 0;
   unsigned short n_leptons_veto = 0;
   float SF_muons = 1;
+  float SF_muons_StatDn = 1;
+  float SF_muons_StatUp = 1;
+  float SF_muons_SystDn = 1;
+  float SF_muons_SystUp = 1;
+  float SF_muons_AltMCDn = 1;
+  float SF_muons_AltMCUp = 1;
   for (auto const& part:muons){
     float theSF = 1;
     if (!isData){
-      muonSFHandler->getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
-      if (theSF == 0.f) continue;
-      SF_muons *= theSF;
+      theSF = 1; muonSFHandler->getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_muons *= theSF;
+      theSF = 1; muonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eMuEffStatDn, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_muons_StatDn *= theSF;
+      theSF = 1; muonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eMuEffStatUp, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_muons_StatUp *= theSF;
+      theSF = 1; muonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eMuEffSystDn, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_muons_SystDn *= theSF;
+      theSF = 1; muonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eMuEffSystUp, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_muons_SystUp *= theSF;
+      theSF = 1; muonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eMuEffAltMCDn, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_muons_AltMCDn *= theSF;
+      theSF = 1; muonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eMuEffAltMCUp, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_muons_AltMCUp *= theSF;
     }
 
     if ((!applyFakeables && ParticleSelectionHelpers::isTightParticle(part)) || (applyFakeables && ParticleSelectionHelpers::isLooseParticle(part))){
@@ -292,15 +346,31 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     else if (ParticleSelectionHelpers::isVetoParticle(part)) n_leptons_veto++;
   }
   event_wgt_SFs_muons = SF_muons;
+  event_wgt_SFs_muons_StatDn = SF_muons_StatDn;
+  event_wgt_SFs_muons_StatUp = SF_muons_StatUp;
+  event_wgt_SFs_muons_SystDn = SF_muons_SystDn;
+  event_wgt_SFs_muons_SystUp = SF_muons_SystUp;
+  event_wgt_SFs_muons_AltMCDn = SF_muons_AltMCDn;
+  event_wgt_SFs_muons_AltMCUp = SF_muons_AltMCUp;
 
   auto const& electrons = electronHandler->getProducts();
   float SF_electrons = 1;
+  float SF_electrons_StatDn = 1;
+  float SF_electrons_StatUp = 1;
+  float SF_electrons_SystDn = 1;
+  float SF_electrons_SystUp = 1;
+  float SF_electrons_AltMCDn = 1;
+  float SF_electrons_AltMCUp = 1;
   for (auto const& part:electrons){
     float theSF = 1;
     if (!isData){
-      electronSFHandler->getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
-      if (theSF == 0.f) continue;
-      SF_electrons *= theSF;
+      theSF = 1; electronSFHandler->getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_electrons *= theSF;
+      theSF = 1; electronSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eEleEffStatDn, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_electrons_StatDn *= theSF;
+      theSF = 1; electronSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eEleEffStatUp, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_electrons_StatUp *= theSF;
+      theSF = 1; electronSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eEleEffSystDn, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_electrons_SystDn *= theSF;
+      theSF = 1; electronSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eEleEffSystUp, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_electrons_SystUp *= theSF;
+      theSF = 1; electronSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eEleEffAltMCDn, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_electrons_AltMCDn *= theSF;
+      theSF = 1; electronSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eEleEffAltMCUp, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_electrons_AltMCUp *= theSF;
     }
 
     if ((!applyFakeables && ParticleSelectionHelpers::isTightParticle(part)) || (applyFakeables && ParticleSelectionHelpers::isLooseParticle(part))){
@@ -310,21 +380,33 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     else if (ParticleSelectionHelpers::isVetoParticle(part)) n_leptons_veto++;
   }
   event_wgt_SFs_electrons = SF_electrons;
+  event_wgt_SFs_electrons_StatDn = SF_electrons_StatDn;
+  event_wgt_SFs_electrons_StatUp = SF_electrons_StatUp;
+  event_wgt_SFs_electrons_SystDn = SF_electrons_SystDn;
+  event_wgt_SFs_electrons_SystUp = SF_electrons_SystUp;
+  event_wgt_SFs_electrons_AltMCDn = SF_electrons_AltMCDn;
+  event_wgt_SFs_electrons_AltMCUp = SF_electrons_AltMCUp;
 
   if (!(n_leptons_tight==1 && n_leptons_veto==0)) return false;
 
   auto const& photons = photonHandler->getProducts();
   unsigned int n_photons_veto = 0;
   float SF_photons = 1;
+  float SF_photons_EffDn = 1;
+  float SF_photons_EffUp = 1;
   for (auto const& part:photons){
-    float theSF = 1;
-    if (!isData) photonSFHandler->getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr);
-    if (theSF == 0.f) continue;
-    SF_photons *= theSF;
+    if (!isData){
+      float theSF = 1;
+      photonSFHandler->getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_photons *= theSF;
+      theSF = 1; photonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::ePhoEffDn, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_photons_EffDn *= theSF;
+      theSF = 1; photonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::ePhoEffUp, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_photons_EffUp *= theSF;
+    }
 
     if (ParticleSelectionHelpers::isVetoParticle(part)) n_photons_veto++;
   }
   event_wgt_SFs_photons = SF_photons;
+  event_wgt_SFs_photons_EffDn = SF_photons_EffDn;
+  event_wgt_SFs_photons_EffUp = SF_photons_EffUp;
   if (n_photons_veto!=0) return false;
 
   isotrackHandler->constructIsotracks(&muons, &electrons);
@@ -351,6 +433,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     electron_full5x5_sigmaIPhiIPhi = theElectron->extras.full5x5_sigmaIPhiIPhi;
     electron_full5x5_r9 = theElectron->extras.full5x5_r9;
     electron_seedTime = theElectron->extras.seedTime;
+    lepton_relIso = ElectronSelectionHelpers::computeIso(*theElectron);
+  }
+  else{
+    lepton_relIso = MuonSelectionHelpers::computeIso(*theMuon);
   }
 
   jetHandler->constructJetMET(theGlobalSyst, &muons, &electrons, &photons, &pfcandidates);
@@ -371,15 +457,27 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   std::vector<AK4JetObject*> ak4jets_tight; ak4jets_tight.reserve(ak4jets.size());
   unsigned int n_ak4jets_tight_pt30_btagged_loose = 0;
   float SF_PUJetId = 1;
+  float SF_PUJetId_EffDn = 1;
+  float SF_PUJetId_EffUp = 1;
   float SF_btagging = 1;
+  float SF_btagging_EffDn = 1;
+  float SF_btagging_EffUp = 1;
   for (auto const& jet:ak4jets){
     if (!isData){
       float theSF_PUJetId = 1;
       float theSF_btag = 1;
-      pujetidSFHandler->getSFAndEff(theGlobalSyst, jet, theSF_PUJetId, nullptr);
-      btagSFHandler->getSFAndEff(theGlobalSyst, jet, theSF_btag, nullptr);
-      if (theSF_PUJetId != 0.f) SF_PUJetId *= theSF_PUJetId;
-      if (theSF_btag != 0.f) SF_btagging *= theSF_btag;
+      pujetidSFHandler->getSFAndEff(theGlobalSyst, jet, theSF_PUJetId, nullptr); theSF_PUJetId = std::max(theSF_PUJetId, 1e-5f); SF_PUJetId *= theSF_PUJetId;
+      btagSFHandler->getSFAndEff(theGlobalSyst, jet, theSF_btag, nullptr); theSF_btag = std::max(theSF_btag, 1e-5f); SF_btagging *= theSF_btag;
+
+      theSF_PUJetId = 1;
+      theSF_btag = 1;
+      pujetidSFHandler->getSFAndEff(SystematicsHelpers::ePUJetIdEffDn, jet, theSF_PUJetId, nullptr); theSF_PUJetId = std::max(theSF_PUJetId, 1e-5f); SF_PUJetId_EffDn *= theSF_PUJetId;
+      btagSFHandler->getSFAndEff(SystematicsHelpers::eBTagSFDn, jet, theSF_btag, nullptr); theSF_btag = std::max(theSF_btag, 1e-5f); SF_btagging_EffDn *= theSF_btag;
+
+      theSF_PUJetId = 1;
+      theSF_btag = 1;
+      pujetidSFHandler->getSFAndEff(SystematicsHelpers::ePUJetIdEffUp, jet, theSF_PUJetId, nullptr); theSF_PUJetId = std::max(theSF_PUJetId, 1e-5f); SF_PUJetId_EffUp *= theSF_PUJetId;
+      btagSFHandler->getSFAndEff(SystematicsHelpers::eBTagSFUp, jet, theSF_btag, nullptr); theSF_btag = std::max(theSF_btag, 1e-5f); SF_btagging_EffUp *= theSF_btag;
     }
 
     if (ParticleSelectionHelpers::isTightJet(jet)){
@@ -406,9 +504,14 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       if (jet->getBtagValue()>=btag_thr_medium) event_n_ak4jets_pt20_btagged_medium++;
     }
   }
-  event_wgt_SFs_PUJetId = SF_PUJetId;
+  event_wgt_SFs_PUJetId = std::min(SF_PUJetId, 3.f);
+  event_wgt_SFs_PUJetId_EffDn = std::min(SF_PUJetId_EffDn, 3.f);
+  event_wgt_SFs_PUJetId_EffUp = std::min(SF_PUJetId_EffUp, 3.f);
   event_wgt_SFs_btagging = SF_btagging;
+  event_wgt_SFs_btagging_EffDn = SF_btagging_EffDn;
+  event_wgt_SFs_btagging_EffUp = SF_btagging_EffUp;
   event_n_ak4jets_pt30 = ak4jets_tight.size();
+  ak4jets_MHT = sump4_ak4jets.Pt();
 
   // Accumulate ak8 jets as well
   for (auto const& jet:ak8jets){
@@ -479,8 +582,32 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   );
   event_mZZ = p4_ZZ_approx.M();
 
+  // Apply veto from SR-like selection
+  OffshellCutflow::setActiveFinalState(OffshellCutflow::fs_ZZ_2l2nu);
+  std::vector<bool> const v_passZZ2l2nuSRlikeSelection={
+    OffshellCutflow::check_pTll(lepton_pt),
+    OffshellCutflow::check_pTmiss(event_pTmiss),
+    OffshellCutflow::check_dPhi_pTll_pTmiss(dPhi_pTboson_pTmiss),
+    OffshellCutflow::check_dPhi_pTlljets_pTmiss(dPhi_pTbosonjets_pTmiss),
+    OffshellCutflow::check_Nb_veto(event_n_ak4jets_pt30_btagged_loose)
+  };
+  OffshellCutflow::setActiveFinalState(OffshellCutflow::fs_WW_2l2nu);
+  std::vector<bool> const v_passWW2l2nuSRlikeSelection={
+    OffshellCutflow::check_pTll(lepton_pt),
+    OffshellCutflow::check_pTmiss(event_pTmiss),
+    OffshellCutflow::check_dPhi_pTll_pTmiss(dPhi_pTboson_pTmiss),
+    OffshellCutflow::check_dPhi_pTlljets_pTmiss(dPhi_pTbosonjets_pTmiss),
+    OffshellCutflow::check_Nb_veto(event_n_ak4jets_pt30_btagged_loose)
+  };
+  unsigned short n_passZZ2l2nuSRlikeSelection = 0;
+  unsigned short n_passWW2l2nuSRlikeSelection = 0;
+  for (auto const& selreq:v_passZZ2l2nuSRlikeSelection){ if (selreq) n_passZZ2l2nuSRlikeSelection++; }
+  for (auto const& selreq:v_passWW2l2nuSRlikeSelection){ if (selreq) n_passWW2l2nuSRlikeSelection++; }
+  bool const pass_SRSel_Nminus1 = (n_passZZ2l2nuSRlikeSelection >= v_passZZ2l2nuSRlikeSelection.size()-1) || (n_passWW2l2nuSRlikeSelection >= v_passWW2l2nuSRlikeSelection.size()-1);
+
   // Compute MEs
-  if (theLooper->hasRecoMEs()){
+  bool computeMEs = theLooper->hasRecoMEs() && pass_SRSel_Nminus1;
+  if (computeMEs){
     SimpleParticleCollection_t daughters;
     daughters.push_back(SimpleParticle_t(25, ParticleObjectHelpers::convertCMSLorentzVectorToTLorentzVector(p4_ZZ_approx)));
 
@@ -492,13 +619,18 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     MEblock.computeMELABranches();
     MEblock.pushMELABranches();
 
+    CMS3MELAHelpers::melaHandle->resetInputEvent();
+  }
+  else{
+    MEblock.computeMELABranches();
+    MEblock.pushMELABranches();
+  }
+  // Insert the ME values into commonEntry only when the productTreeList collection is empty.
+  // Otherwise, the branches are already made.
+  if (!theLooper->hasLinkedOutputTrees()){
     std::unordered_map<std::string, float> ME_values;
     MEblock.getBranchValues(ME_values);
-    CMS3MELAHelpers::melaHandle->resetInputEvent();
-
-    // Insert the ME values into commonEntry only when the productTreeList collection is empty.
-    // Otherwise, the branches are already made.
-    if (!theLooper->hasLinkedOutputTrees()){ for (auto const& it:ME_values) commonEntry.setNamedVal(it.first, it.second); }
+    for (auto const& it:ME_values) commonEntry.setNamedVal(it.first, it.second);
   }
 
   // For the case of fakeable ids, add extra bracnhes for fakeable flavor
@@ -581,8 +713,6 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     commonEntry.setNamedVal("lepton_pass_fakeable_ids", lepton_pass_fakeable_ids);
   }
 
-  // Set the collection of SFs at the last step
-  event_wgt_SFs = SF_muons*SF_electrons*SF_photons*SF_PUJetId*SF_btagging;
 
   /*********************/
   /* RECORD THE OUTPUT */
@@ -648,7 +778,7 @@ void getTrees(
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
-  bool useSkims = !(
+  bool const useSkims = !(
     strSampleSet.Contains("GluGluH") || strSampleSet.Contains("GGH")
     ||
     strSampleSet.Contains("VBF")
@@ -946,10 +1076,10 @@ void getTrees(
             continue;
           }
 
-          simEventHandler.constructSimEvent(SystematicsHelpers::sNominal);
+          simEventHandler.constructSimEvent();
 
           sum_wgts_raw_withveto += genwgt;
-          sum_wgts += genwgt * simEventHandler.getPileUpWeight();
+          sum_wgts += genwgt * simEventHandler.getPileUpWeight(theGlobalSyst);
         }
         if (nEntries>0) frac_zero_genwgts = double(n_zero_genwgts)/double(nEntries);
         sum_wgts_raw_noveto = sum_wgts_raw_withveto / (1. - frac_zero_genwgts);

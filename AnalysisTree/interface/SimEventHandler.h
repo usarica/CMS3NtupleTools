@@ -34,15 +34,15 @@ protected:
   // These are in fact the random numbers:
   std::unordered_map<EventRandomNumberType, double> product_rndnums;
   bool hasHEM2018Issue;
-  float pileupWeight;
-  float const* l1prefiringWeight;
+  std::vector<float> pileupWeights; // sNominal, ePUDn, ePUUp
+  std::vector<float const*> l1prefiringWeights; // sNominal, eL1PrefiringDn, eL1PrefiringUp
 
   void setupPUHistograms();
   void clearPUHistograms();
 
   bool constructRandomNumbers();
-  bool constructPUWeight(SystematicsHelpers::SystematicVariationTypes const& syst);
-  bool constructL1PrefiringWeight(SystematicsHelpers::SystematicVariationTypes const& syst);
+  bool constructPUWeight();
+  bool constructL1PrefiringWeight();
 
   void clear();
 
@@ -50,7 +50,7 @@ public:
   SimEventHandler();
   ~SimEventHandler();
 
-  bool constructSimEvent(SystematicsHelpers::SystematicVariationTypes const& syst);
+  bool constructSimEvent();
 
   bool wrapTree(BaseTree* tree);
 
@@ -59,8 +59,9 @@ public:
   TString const& getChosenDataPeriod() const;
   int getChosenRunNumber() const;
   bool const& getHasHEM2018Issue() const{ return hasHEM2018Issue; }
-  float const& getPileUpWeight() const{ return pileupWeight; }
-  float getL1PrefiringWeight() const{ return (l1prefiringWeight ? *l1prefiringWeight : 1.); }
+
+  float const& getPileUpWeight(SystematicsHelpers::SystematicVariationTypes const& syst) const;
+  float getL1PrefiringWeight(SystematicsHelpers::SystematicVariationTypes const& syst) const;
 
   unsigned long long const& getRandomNumberSeed(SimEventHandler::EventRandomNumberType type) const;
   double const& getRandomNumber(SimEventHandler::EventRandomNumberType type) const;

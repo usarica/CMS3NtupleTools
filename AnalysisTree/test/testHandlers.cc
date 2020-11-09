@@ -208,7 +208,7 @@ void testHandlers(
       }
 
       genInfoHandler.constructGenInfo(theGlobalSyst);
-      simEventHandler.constructSimEvent(theGlobalSyst);
+      simEventHandler.constructSimEvent();
     }
 
     eventFilter.constructFilters(&simEventHandler);
@@ -240,8 +240,8 @@ void testHandlers(
         << simEventHandler.getRandomNumber(SimEventHandler::kDataPeriod_local)
         << "." << endl;
       MELAout << "\t- Gen. MET random number: " << simEventHandler.getRandomNumber(SimEventHandler::kGenMETSmear) << endl;
-      MELAout << "\t- PU weight: " << simEventHandler.getPileUpWeight() << endl;
-      MELAout << "\t- L1 prefiring weight: " << simEventHandler.getL1PrefiringWeight() << endl;
+      MELAout << "\t- PU weight: " << simEventHandler.getPileUpWeight(theGlobalSyst) << endl;
+      MELAout << "\t- L1 prefiring weight: " << simEventHandler.getL1PrefiringWeight(theGlobalSyst) << endl;
 
       auto const& genInfo = genInfoHandler.getGenInfo();
       float wgt = genInfo->getGenWeight(true);

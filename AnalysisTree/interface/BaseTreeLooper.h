@@ -44,6 +44,7 @@ protected:
   // Variables set per tree
   bool isData_currentTree;
   bool isQCD_currentTree;
+  bool isGJets_HT_currentTree;
   float pTG_true_exception_range[2];
 
   // Some ready-made stuff
@@ -142,6 +143,7 @@ public:
   int const& getMaximumEvents() const{ return maxNEvents; }
   bool const& getCurrentTreeFlag_IsData() const{ return isData_currentTree; }
   bool const& getCurrentTreeFlag_QCDException() const{ return isQCD_currentTree; }
+  bool const& getCurrentTreeFlag_GJetsHTException() const{ return isGJets_HT_currentTree; }
   bool getPTGExceptionRange(float& vlow, float& vhigh) const{ vlow = pTG_true_exception_range[0]; vhigh = pTG_true_exception_range[1]; return (vlow!=vhigh); }
   SystematicsHelpers::SystematicVariationTypes const& getSystematic() const{ return registeredSyst; }
   std::vector<IvyBase*> const& getObjectHandlers() const{ return registeredHandlers; }

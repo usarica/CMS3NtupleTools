@@ -37,7 +37,7 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
       ||
       sname == "JetHT" || sname == "MET"
       ||
-      sname == "JetMET" // Composite names
+      sname == "JetMET" || sname == "SingleLepton" // Composite names
       ){
       for (auto const& dp:SampleHelpers::getValidDataPeriods()) constructSamplesList(sname+"_"+dp, syst, samples);
     }
@@ -45,6 +45,10 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
       if (sname == Form("JetMET_%s", dp.Data())){
         constructSamplesList(Form("JetHT_%s", dp.Data()), syst, samples);
         constructSamplesList(Form("MET_%s", dp.Data()), syst, samples);
+      }
+      else if (sname == Form("SingleLepton_%s", dp.Data())){
+        constructSamplesList(Form("SingleMuon_%s", dp.Data()), syst, samples);
+        constructSamplesList(Form("EGamma_%s", dp.Data()), syst, samples);
       }
     }
     // Group by runs
@@ -277,7 +281,7 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
       ||
       sname == "JetHT" || sname == "HTMHT" || sname == "MET"
       ||
-      sname == "EGamma" || sname == "JetMET" // Composite names
+      sname == "EGamma" || sname == "JetMET" || sname == "SingleLepton" // Composite names
       ){
       for (auto const& dp:SampleHelpers::getValidDataPeriods()) constructSamplesList(sname+"_"+dp, syst, samples);
     }
@@ -287,10 +291,15 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
         constructSamplesList(Form("SingleElectron_%s", dp.Data()), syst, samples);
         constructSamplesList(Form("SinglePhoton_%s", dp.Data()), syst, samples);
       }
-      if (sname == Form("JetMET_%s", dp.Data())){
+      else if (sname == Form("JetMET_%s", dp.Data())){
         constructSamplesList(Form("JetHT_%s", dp.Data()), syst, samples);
         constructSamplesList(Form("HTMHT_%s", dp.Data()), syst, samples);
         constructSamplesList(Form("MET_%s", dp.Data()), syst, samples);
+      }
+      else if (sname == Form("SingleLepton_%s", dp.Data())){
+        constructSamplesList(Form("SingleMuon_%s", dp.Data()), syst, samples);
+        constructSamplesList(Form("SingleElectron_%s", dp.Data()), syst, samples);
+        constructSamplesList(Form("SinglePhoton_%s", dp.Data()), syst, samples);
       }
     }
     // Group by runs
@@ -515,7 +524,7 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
       ||
       sname == "JetHT" || sname == "HTMHT" || sname == "MET"
       ||
-      sname == "EGamma" || sname == "JetMET" // Composite names
+      sname == "EGamma" || sname == "JetMET" || sname == "SingleLepton" // Composite names
       ){
       for (auto const& dp:SampleHelpers::getValidDataPeriods()) constructSamplesList(sname+"_"+dp, syst, samples);
     }
@@ -525,10 +534,15 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
         constructSamplesList(Form("SingleElectron_%s", dp.Data()), syst, samples);
         constructSamplesList(Form("SinglePhoton_%s", dp.Data()), syst, samples);
       }
-      if (sname == Form("JetMET_%s", dp.Data())){
+      else if (sname == Form("JetMET_%s", dp.Data())){
         constructSamplesList(Form("JetHT_%s", dp.Data()), syst, samples);
         constructSamplesList(Form("HTMHT_%s", dp.Data()), syst, samples);
         constructSamplesList(Form("MET_%s", dp.Data()), syst, samples);
+      }
+      else if (sname == Form("SingleLepton_%s", dp.Data())){
+        constructSamplesList(Form("SingleMuon_%s", dp.Data()), syst, samples);
+        constructSamplesList(Form("SingleElectron_%s", dp.Data()), syst, samples);
+        constructSamplesList(Form("SinglePhoton_%s", dp.Data()), syst, samples);
       }
     }
     // Group by runs

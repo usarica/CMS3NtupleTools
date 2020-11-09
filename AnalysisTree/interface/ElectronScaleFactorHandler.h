@@ -20,10 +20,11 @@ public:
   };
 
 protected:
-  std::vector<ExtendedHistogram_2D> eff_mc_reco_hists;
-  std::vector<ExtendedHistogram_2D> eff_mc_id_hists;
-  std::vector<ExtendedHistogram_2D> eff_mc_iso_loose_hists;
-  std::vector<ExtendedHistogram_2D> eff_mc_iso_tight_hists;
+  // The map values are vectors for nongap, gap, nongap_gap (combined) histograms separated and in this order.
+  std::unordered_map< SystematicsHelpers::SystematicVariationTypes, std::vector<ExtendedHistogram_2D> > syst_eff_mc_reco_map;
+  std::unordered_map< SystematicsHelpers::SystematicVariationTypes, std::vector<ExtendedHistogram_2D> > syst_eff_mc_id_map;
+  std::unordered_map< SystematicsHelpers::SystematicVariationTypes, std::vector<ExtendedHistogram_2D> > syst_eff_mc_iso_loose_map;
+  std::unordered_map< SystematicsHelpers::SystematicVariationTypes, std::vector<ExtendedHistogram_2D> > syst_eff_mc_iso_tight_map;
 
   std::unordered_map< SystematicsHelpers::SystematicVariationTypes, std::vector<ExtendedHistogram_2D> > syst_SF_reco_map;
   std::unordered_map< SystematicsHelpers::SystematicVariationTypes, std::vector<ExtendedHistogram_2D> > syst_SF_id_map;

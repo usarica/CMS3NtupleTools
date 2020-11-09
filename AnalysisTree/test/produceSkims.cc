@@ -198,16 +198,12 @@ void produceSkims(
           else SampleHelpers::setDataPeriod(validDataPeriods.at(idp-1));
 
           double puwgt;
-          simEventHandler.constructSimEvent(SystematicsHelpers::sNominal);
-          puwgt = simEventHandler.getPileUpWeight();
+          simEventHandler.constructSimEvent();
+          puwgt = simEventHandler.getPileUpWeight(SystematicsHelpers::sNominal);
           sum_wgts.at(idp) += genwgt * puwgt;
-          simEventHandler.resetCache();
-          simEventHandler.constructSimEvent(SystematicsHelpers::ePUDn);
-          puwgt = simEventHandler.getPileUpWeight();
+          puwgt = simEventHandler.getPileUpWeight(SystematicsHelpers::ePUDn);
           sum_wgts_PUDn.at(idp) += genwgt * puwgt;
-          simEventHandler.resetCache();
-          simEventHandler.constructSimEvent(SystematicsHelpers::ePUUp);
-          puwgt = simEventHandler.getPileUpWeight();
+          puwgt = simEventHandler.getPileUpWeight(SystematicsHelpers::ePUUp);
           sum_wgts_PUUp.at(idp) += genwgt * puwgt;
           simEventHandler.resetCache();
         }

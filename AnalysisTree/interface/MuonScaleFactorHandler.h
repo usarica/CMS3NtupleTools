@@ -9,9 +9,9 @@
 
 class MuonScaleFactorHandler : public ScaleFactorHandlerBase{
 protected:
-  ExtendedHistogram_2D eff_mc_id_hists;
-  ExtendedHistogram_2D eff_mc_iso_loose_hists;
-  ExtendedHistogram_2D eff_mc_iso_tight_hists;
+  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D> syst_eff_mc_id_map;
+  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D> syst_eff_mc_iso_loose_map;
+  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D> syst_eff_mc_iso_tight_map;
 
   std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D> syst_SF_id_map;
   std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D> syst_SF_iso_loose_map;

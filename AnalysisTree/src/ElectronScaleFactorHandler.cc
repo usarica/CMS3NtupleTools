@@ -42,15 +42,21 @@ bool ElectronScaleFactorHandler::setup(){
     eEleEffAltMCDn, eEleEffAltMCUp,
     ePUDn, ePUUp
   };
+  std::vector<SystematicVariationTypes> const allowedSysts_eff={
+    sNominal,
+    eEleEffAltMCDn, eEleEffAltMCUp,
+    ePUDn, ePUUp
+  };
+
   constexpr unsigned int n_non_gap_gap = 3;
   for (auto const& syst:allowedSysts){
     std::vector<ExtendedHistogram_2D> tmpvec(n_non_gap_gap, ExtendedHistogram_2D());
 
-    if (syst == sNominal){
-      eff_mc_reco_hists = tmpvec;
-      eff_mc_id_hists = tmpvec;
-      eff_mc_iso_loose_hists = tmpvec;
-      eff_mc_iso_tight_hists = tmpvec;
+    if (HelperFunctions::checkListVariable(allowedSysts_eff, syst)){
+      syst_eff_mc_reco_map[syst] = tmpvec;
+      syst_eff_mc_id_map[syst] = tmpvec;
+      syst_eff_mc_iso_loose_map[syst] = tmpvec;
+      syst_eff_mc_iso_tight_map[syst] = tmpvec;
     }
 
     syst_SF_reco_map[syst] = tmpvec;
@@ -59,6 +65,13 @@ bool ElectronScaleFactorHandler::setup(){
     syst_SF_iso_tight_map[syst] = tmpvec;
   }
 
+  // Acquire the tracking efficiency/SF histograms
+  /*
+  Note for the future:
+  These histograms are provided by the POG in a format that does not use asymmetric uncertainties.
+  The bin error of the histograms is the error that is prescribed to be used.
+  When these histograms are remade (if time remains), this implementation should be revised accordingly.
+  */
   {
     TString cinput = cinput_main + "Efficiencies_ee_nongap_gap_tracking.root";
     if (!HostHelpers::FileReadable(cinput.Data())){
@@ -68,11 +81,12 @@ bool ElectronScaleFactorHandler::setup(){
     TFile* finput = TFile::Open(cinput, "read"); uppermostdir->cd();
     for (unsigned int igap=0; igap<n_non_gap_gap; igap++){
       res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_SF_reco_map[sNominal].at(igap), finput, "EGamma_SF2D");
-      res &= getHistogram<TH2F, ExtendedHistogram_2D>(eff_mc_reco_hists.at(igap), finput, "EGamma_EffMC2D");
+      res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_eff_mc_reco_map[sNominal].at(igap), finput, "EGamma_EffMC2D");
     }
     ScaleFactorHandlerBase::closeFile(finput); curdir->cd();
   }
 
+  // Acquire the rest of the ID/iso efficiency/SF histograms
   for (unsigned int igap=0; igap<n_non_gap_gap; igap++){
     TString cinput = cinput_main + Form("Efficiencies_ee_%s_id_looseIso_tightIso.root", (igap==0 ? "nongap" : (igap==1 ? "gap" : "nongap_gap")));
     if (!HostHelpers::FileReadable(cinput.Data())){
@@ -120,13 +134,13 @@ bool ElectronScaleFactorHandler::setup(){
       res &= getHistogram<TH2D, ExtendedHistogram_2D>(syst_SF_iso_loose_map[syst].at(igap), finput, str_SF_iso_loose);
       res &= getHistogram<TH2D, ExtendedHistogram_2D>(syst_SF_iso_tight_map[syst].at(igap), finput, str_SF_iso_tight);
 
-      if (syst == sNominal){
+      if (HelperFunctions::checkListVariable(allowedSysts_eff, syst)){
         TString str_eff_mc_id = Form("eff_MC_%s_passId", systname.Data());
         TString str_eff_mc_iso_loose = Form("eff_MC_%s_passId_passLooseIso", systname.Data());
         TString str_eff_mc_iso_tight = Form("eff_MC_%s_passId_passTightIso", systname.Data());
-        res &= getHistogram<TH2D, ExtendedHistogram_2D>(eff_mc_id_hists.at(igap), finput, str_eff_mc_id);
-        res &= getHistogram<TH2D, ExtendedHistogram_2D>(eff_mc_iso_loose_hists.at(igap), finput, str_eff_mc_iso_loose);
-        res &= getHistogram<TH2D, ExtendedHistogram_2D>(eff_mc_iso_tight_hists.at(igap), finput, str_eff_mc_iso_tight);
+        res &= getHistogram<TH2D, ExtendedHistogram_2D>(syst_eff_mc_id_map[syst].at(igap), finput, str_eff_mc_id);
+        res &= getHistogram<TH2D, ExtendedHistogram_2D>(syst_eff_mc_iso_loose_map[syst].at(igap), finput, str_eff_mc_iso_loose);
+        res &= getHistogram<TH2D, ExtendedHistogram_2D>(syst_eff_mc_iso_tight_map[syst].at(igap), finput, str_eff_mc_iso_tight);
       }
     }
     ScaleFactorHandlerBase::closeFile(finput); curdir->cd();
@@ -135,10 +149,10 @@ bool ElectronScaleFactorHandler::setup(){
   return res;
 }
 void ElectronScaleFactorHandler::reset(){
-  eff_mc_reco_hists.clear();
-  eff_mc_id_hists.clear();
-  eff_mc_iso_loose_hists.clear();
-  eff_mc_iso_tight_hists.clear();
+  syst_eff_mc_reco_map.clear();
+  syst_eff_mc_id_map.clear();
+  syst_eff_mc_iso_loose_map.clear();
+  syst_eff_mc_iso_tight_map.clear();
 
   syst_SF_reco_map.clear();
   syst_SF_id_map.clear();
@@ -205,6 +219,14 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
     eEleEffAltMCDn, eEleEffAltMCUp,
     ePUDn, ePUUp
   };
+  std::vector<SystematicVariationTypes> const allowedSysts_eff={
+    sNominal,
+    eEleEffAltMCDn, eEleEffAltMCUp,
+    ePUDn, ePUUp
+  };
+
+  SystematicVariationTypes activeSyst_eff_nominal = sNominal;
+  if (HelperFunctions::checkListVariable(allowedSysts_eff, syst)) activeSyst_eff_nominal = syst;
 
   std::vector<SystematicVariationTypes> activeSysts={ sNominal };
   if (syst == eEleEffDn) activeSysts = std::vector<SystematicVariationTypes>{ eEleEffStatDn, eEleEffSystDn, eEleEffAltMCDn };
@@ -215,12 +237,16 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
   std::vector<ExtendedHistogram_2D const*> hlist_eff_mc; hlist_eff_mc.reserve(kAllEffs);
   std::vector<ExtendedHistogram_2D const*> hlist_SF_nominal; hlist_SF_nominal.reserve(kAllEffs);
   {
-    auto it_syst_SF_reco_map = syst_SF_reco_map.find(sNominal);
-    auto it_syst_SF_id_map = syst_SF_id_map.find(sNominal);
-    auto it_syst_SF_iso_loose_map = syst_SF_iso_loose_map.find(sNominal);
-    auto it_syst_SF_iso_tight_map = syst_SF_iso_tight_map.find(sNominal);
+    auto it_syst_eff_mc_reco_map = syst_eff_mc_reco_map.find(sNominal); // FIXME: NEEDS TO BE REVISED IF TRACKING eff_mc IMPLEMENTATION CHANGES.
+    auto it_syst_eff_mc_id_map = syst_eff_mc_id_map.find(activeSyst_eff_nominal);
+    auto it_syst_eff_mc_iso_loose_map = syst_eff_mc_iso_loose_map.find(activeSyst_eff_nominal);
+    auto it_syst_eff_mc_iso_tight_map = syst_eff_mc_iso_tight_map.find(activeSyst_eff_nominal);
+    auto it_syst_SF_reco_map = syst_SF_reco_map.find(sNominal); // FIXME: NEEDS TO BE REVISED IF TRACKING SF IMPLEMENTATION CHANGES.
+    auto it_syst_SF_id_map = syst_SF_id_map.find(activeSyst_eff_nominal);
+    auto it_syst_SF_iso_loose_map = syst_SF_iso_loose_map.find(activeSyst_eff_nominal);
+    auto it_syst_SF_iso_tight_map = syst_SF_iso_tight_map.find(activeSyst_eff_nominal);
     if (it_syst_SF_reco_map!=syst_SF_reco_map.cend()){
-      hlist_eff_mc.push_back(&(eff_mc_reco_hists.at(idx_gap)));
+      hlist_eff_mc.push_back(&(it_syst_eff_mc_reco_map->second.at(idx_gap)));
       hlist_SF_nominal.push_back(&(it_syst_SF_reco_map->second.at(idx_gap)));
     }
     else{
@@ -228,7 +254,7 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
       hlist_SF_nominal.push_back(nullptr);
     }
     if (it_syst_SF_id_map!=syst_SF_id_map.cend()){
-      hlist_eff_mc.push_back(&eff_mc_id_hists.at(idx_gap));
+      hlist_eff_mc.push_back(&it_syst_eff_mc_id_map->second.at(idx_gap));
       hlist_SF_nominal.push_back(&(it_syst_SF_id_map->second.at(idx_gap)));
     }
     else{
@@ -236,7 +262,7 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
       hlist_SF_nominal.push_back(nullptr);
     }
     if (it_syst_SF_iso_loose_map!=syst_SF_iso_loose_map.cend()){
-      hlist_eff_mc.push_back(&eff_mc_iso_loose_hists.at(idx_gap));
+      hlist_eff_mc.push_back(&it_syst_eff_mc_iso_loose_map->second.at(idx_gap));
       hlist_SF_nominal.push_back(&(it_syst_SF_iso_loose_map->second.at(idx_gap)));
     }
     else{
@@ -244,7 +270,7 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
       hlist_SF_nominal.push_back(nullptr);
     }
     if (it_syst_SF_iso_tight_map!=syst_SF_iso_tight_map.cend()){
-      hlist_eff_mc.push_back(&eff_mc_iso_tight_hists.at(idx_gap));
+      hlist_eff_mc.push_back(&it_syst_eff_mc_iso_tight_map->second.at(idx_gap));
       hlist_SF_nominal.push_back(&(it_syst_SF_iso_tight_map->second.at(idx_gap)));
     }
     else{
@@ -283,7 +309,6 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
   float SF_err_val = 0;
   float SF_nominal_val = 1;
   float eff_nominal_unscaled_val = 1;
-  float eff_nominal_scaled_val = 1;
   for (unsigned int isel=0; isel<n_ID_iso_types+1; isel++){
     if (!passId && isel>1) continue;
     if (!passLooseIso && isel>2) continue;
@@ -312,7 +337,7 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
 
     if (tmp_eff_unscaled<=0.f || tmp_eff_scaled<0.f){
       if (verbosity>=TVar::ERROR) MELAerr
-        << "ElectronScaleFactorHandler::getIdIsoSFAndEff: Nominal unscaled, scaled eff = "
+        << "ElectronScaleFactorHandler::getIdIsoSFAndEff: " << SystematicsHelpers::getSystName(activeSyst_eff_nominal) << " unscaled, scaled eff = "
         << tmp_eff_unscaled << ", " << tmp_eff_scaled << " at selection WP " << isel
         << " for pT=" << pt
         << ", etaSC=" << etaSC
@@ -323,14 +348,12 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
         << endl;
       SF_nominal_val = 0;
       eff_nominal_unscaled_val = 0;
-      eff_nominal_scaled_val = 0;
       hasErrors_Nominal = true;
       break;
     }
 
     SF_nominal_val *= tmp_eff_scaled / tmp_eff_unscaled;
     eff_nominal_unscaled_val *= tmp_eff_unscaled;
-    eff_nominal_scaled_val *= tmp_eff_scaled;
   }
 
   if (hasErrors_Nominal){
@@ -339,7 +362,7 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
     return;
   }
 
-  if (!(activeSysts.size() == 1 && activeSysts.front() == sNominal)){
+  if (!(activeSysts.size() == 1 && activeSysts.front() == activeSyst_eff_nominal)){
     std::vector< std::vector<float> > eff_syst_scaled_lists(activeSysts.size(), std::vector<float>(n_ID_iso_types+1, 1));
     std::vector< std::vector<float> > eff_syst_scaled_complement_lists(activeSysts.size(), std::vector<float>(n_ID_iso_types+1, 1));
     {
@@ -504,6 +527,9 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
   if (!obj) return;
   if (!obj->extras.is_genMatched_prompt) return;
   if (verbosity>=TVar::DEBUG) MELAout << "ElectronScaleFactorHandler::getIdIsoSFAndEff: Electron gen matching flags: " << obj->extras.is_genMatched << ", " << obj->extras.is_genMatched_prompt << endl;
+
+  bool passKin = obj->testSelectionBit(ElectronSelectionHelpers::bit_preselectionTight_kin);
+  if (!passKin) return;
 
   bool passId = obj->testSelectionBit(ElectronSelectionHelpers::bit_preselectionTight_id);
   bool passLooseIso = passId && obj->testSelectionBit(ElectronSelectionHelpers::kFakeableBaseIso);

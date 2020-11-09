@@ -43,6 +43,11 @@ bool MuonScaleFactorHandler::setup(){
     eMuEffAltMCDn, eMuEffAltMCUp,
     ePUDn, ePUUp
   };
+  std::vector<SystematicVariationTypes> const allowedSysts_eff={
+    sNominal,
+    eMuEffAltMCDn, eMuEffAltMCUp,
+    ePUDn, ePUUp
+  };
 
   for (auto const& syst:allowedSysts){
     ExtendedHistogram_2D tmphist;
@@ -50,6 +55,12 @@ bool MuonScaleFactorHandler::setup(){
     syst_SF_id_map[syst] = tmphist;
     syst_SF_iso_loose_map[syst] = tmphist;
     syst_SF_iso_tight_map[syst] = tmphist;
+
+    if (HelperFunctions::checkListVariable(allowedSysts_eff, syst)){
+      syst_eff_mc_id_map[syst] = tmphist;
+      syst_eff_mc_iso_loose_map[syst] = tmphist;
+      syst_eff_mc_iso_tight_map[syst] = tmphist;
+    }
   }
 
   {
@@ -99,13 +110,13 @@ bool MuonScaleFactorHandler::setup(){
       res &= getHistogram<TH2D, ExtendedHistogram_2D>(syst_SF_iso_loose_map[syst], finput, str_SF_iso_loose);
       res &= getHistogram<TH2D, ExtendedHistogram_2D>(syst_SF_iso_tight_map[syst], finput, str_SF_iso_tight);
 
-      if (syst == sNominal){
+      if (HelperFunctions::checkListVariable(allowedSysts_eff, syst)){
         TString str_eff_mc_id = Form("eff_MC_%s_passId", systname.Data());
         TString str_eff_mc_iso_loose = Form("eff_MC_%s_passId_passLooseIso", systname.Data());
         TString str_eff_mc_iso_tight = Form("eff_MC_%s_passId_passTightIso", systname.Data());
-        res &= getHistogram<TH2D, ExtendedHistogram_2D>(eff_mc_id_hists, finput, str_eff_mc_id);
-        res &= getHistogram<TH2D, ExtendedHistogram_2D>(eff_mc_iso_loose_hists, finput, str_eff_mc_iso_loose);
-        res &= getHistogram<TH2D, ExtendedHistogram_2D>(eff_mc_iso_tight_hists, finput, str_eff_mc_iso_tight);
+        res &= getHistogram<TH2D, ExtendedHistogram_2D>(syst_eff_mc_id_map[syst], finput, str_eff_mc_id);
+        res &= getHistogram<TH2D, ExtendedHistogram_2D>(syst_eff_mc_iso_loose_map[syst], finput, str_eff_mc_iso_loose);
+        res &= getHistogram<TH2D, ExtendedHistogram_2D>(syst_eff_mc_iso_tight_map[syst], finput, str_eff_mc_iso_tight);
       }
     }
     ScaleFactorHandlerBase::closeFile(finput); curdir->cd();
@@ -114,9 +125,9 @@ bool MuonScaleFactorHandler::setup(){
   return res;
 }
 void MuonScaleFactorHandler::reset(){
-  eff_mc_id_hists.reset();
-  eff_mc_iso_loose_hists.reset();
-  eff_mc_iso_tight_hists.reset();
+  syst_eff_mc_id_map.clear();
+  syst_eff_mc_iso_loose_map.clear();
+  syst_eff_mc_iso_tight_map.clear();
 
   syst_SF_id_map.clear();
   syst_SF_iso_loose_map.clear();
@@ -181,10 +192,18 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
     eMuEffAltMCDn, eMuEffAltMCUp,
     ePUDn, ePUUp
   };
+  std::vector<SystematicVariationTypes> const allowedSysts_eff={
+    sNominal,
+    eMuEffAltMCDn, eMuEffAltMCUp,
+    ePUDn, ePUUp
+  };
+
+  SystematicVariationTypes activeSyst_eff_nominal = sNominal;
+  if (HelperFunctions::checkListVariable(allowedSysts_eff, syst)) activeSyst_eff_nominal = syst;
 
   std::vector<SystematicVariationTypes> activeSysts={ sNominal };
-  if (syst == eMuEffDn) activeSysts = std::vector<SystematicVariationTypes>{ eMuEffStatDn, eMuEffSystDn, eMuEffAltMCDn };
-  else if (syst == eMuEffUp) activeSysts = std::vector<SystematicVariationTypes>{ eMuEffStatUp, eMuEffSystUp, eMuEffAltMCUp };
+  if (syst == eMuEffDn) activeSysts = std::vector<SystematicVariationTypes>{ eMuEffStatDn, eMuEffSystDn };
+  else if (syst == eMuEffUp) activeSysts = std::vector<SystematicVariationTypes>{ eMuEffStatUp, eMuEffSystUp };
   else if (HelperFunctions::checkListVariable(allowedSysts, syst)) activeSysts = std::vector<SystematicVariationTypes>{ syst };
   if (verbosity>=TVar::DEBUG) MELAout << "\t- Active systematics: " << activeSysts << endl;
 
@@ -192,11 +211,14 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
   std::vector<ExtendedHistogram_2D const*> hlist_eff_mc; hlist_eff_mc.reserve(n_ID_iso_types);
   std::vector<ExtendedHistogram_2D const*> hlist_SF_nominal; hlist_SF_nominal.reserve(n_ID_iso_types);
   {
-    auto it_syst_SF_id_map = syst_SF_id_map.find(sNominal);
-    auto it_syst_SF_iso_loose_map = syst_SF_iso_loose_map.find(sNominal);
-    auto it_syst_SF_iso_tight_map = syst_SF_iso_tight_map.find(sNominal);
+    auto it_syst_eff_mc_id_map = syst_eff_mc_id_map.find(activeSyst_eff_nominal);
+    auto it_syst_eff_mc_iso_loose_map = syst_eff_mc_iso_loose_map.find(activeSyst_eff_nominal);
+    auto it_syst_eff_mc_iso_tight_map = syst_eff_mc_iso_tight_map.find(activeSyst_eff_nominal);
+    auto it_syst_SF_id_map = syst_SF_id_map.find(activeSyst_eff_nominal);
+    auto it_syst_SF_iso_loose_map = syst_SF_iso_loose_map.find(activeSyst_eff_nominal);
+    auto it_syst_SF_iso_tight_map = syst_SF_iso_tight_map.find(activeSyst_eff_nominal);
     if (it_syst_SF_id_map!=syst_SF_id_map.cend()){
-      hlist_eff_mc.push_back(&eff_mc_id_hists);
+      hlist_eff_mc.push_back(&(it_syst_eff_mc_id_map->second));
       hlist_SF_nominal.push_back(&(it_syst_SF_id_map->second));
     }
     else{
@@ -204,7 +226,7 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
       hlist_SF_nominal.push_back(nullptr);
     }
     if (it_syst_SF_iso_loose_map!=syst_SF_iso_loose_map.cend()){
-      hlist_eff_mc.push_back(&eff_mc_iso_loose_hists);
+      hlist_eff_mc.push_back(&(it_syst_eff_mc_iso_loose_map->second));
       hlist_SF_nominal.push_back(&(it_syst_SF_iso_loose_map->second));
     }
     else{
@@ -212,7 +234,7 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
       hlist_SF_nominal.push_back(nullptr);
     }
     if (it_syst_SF_iso_tight_map!=syst_SF_iso_tight_map.cend()){
-      hlist_eff_mc.push_back(&eff_mc_iso_tight_hists);
+      hlist_eff_mc.push_back(&(it_syst_eff_mc_iso_tight_map->second));
       hlist_SF_nominal.push_back(&(it_syst_SF_iso_tight_map->second));
     }
     else{
@@ -251,7 +273,6 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
   float SF_err_val = 0;
   float SF_nominal_val = 1;
   float eff_nominal_unscaled_val = 1;
-  float eff_nominal_scaled_val = 1;
   for (unsigned int isel=0; isel<n_ID_iso_types; isel++){
     if (!passId && isel>0) continue;
     if (!passLooseIso && isel>1) continue;
@@ -288,14 +309,12 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
         << endl;
       SF_nominal_val = 0;
       eff_nominal_unscaled_val = 0;
-      eff_nominal_scaled_val = 0;
       hasErrors_Nominal = true;
       break;
     }
 
     SF_nominal_val *= tmp_eff_scaled / tmp_eff_unscaled;
     eff_nominal_unscaled_val *= tmp_eff_unscaled;
-    eff_nominal_scaled_val *= tmp_eff_scaled;
   }
 
   if (hasErrors_Nominal){
@@ -304,7 +323,7 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
     return;
   }
 
-  if (!(activeSysts.size() == 1 && activeSysts.front() == sNominal)){
+  if (!(activeSysts.size() == 1 && activeSysts.front() == activeSyst_eff_nominal)){
     std::vector< std::vector<float> > eff_syst_scaled_lists(activeSysts.size(), std::vector<float>(n_ID_iso_types, 1));
     std::vector< std::vector<float> > eff_syst_scaled_complement_lists(activeSysts.size(), std::vector<float>(n_ID_iso_types, 1));
     {
@@ -449,6 +468,9 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
   if (!obj) return;
   if (!obj->extras.is_genMatched_prompt) return;
   if (verbosity>=TVar::DEBUG) MELAout << "MuonScaleFactorHandler::getIdIsoSFAndEff: Electron gen matching flags: " << obj->extras.is_genMatched << ", " << obj->extras.is_genMatched_prompt << endl;
+
+  bool passKin = obj->testSelectionBit(MuonSelectionHelpers::bit_preselectionTight_kin);
+  if (!passKin) return;
 
   bool passId = obj->testSelectionBit(MuonSelectionHelpers::bit_preselectionTight_id); // More id stuff => more flags
   bool passLooseIso = passId && obj->testSelectionBit(MuonSelectionHelpers::kFakeableBaseIso);

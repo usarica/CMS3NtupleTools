@@ -215,6 +215,7 @@ void getTrees(
   if (sampledirs.empty()) return;
   bool isData = false;
   bool isQCD = false;
+  bool isGJets_HT = false;
   float pTG_true_range[2]={ -1, -1 }; bool haspTGRange = false;
   for (auto const& sname:sampledirs){
     isData = SampleHelpers::checkSampleIsData(sname);
@@ -222,6 +223,7 @@ void getTrees(
     if (isData && nchunks>0) return;
 
     isQCD = sname.Contains("QCD") && sname.Contains("HT");
+    isGJets_HT = sname.Contains("GJets_HT");
     if ((sname.Contains("ZGTo2NuG") || sname.Contains("ZGTo2LG")) && sname.Contains("amcatnloFXFX") && !sname.Contains("PtG-130")) pTG_true_range[1]=130;
 
     break;
@@ -478,10 +480,17 @@ BRANCH_COMMAND(float, photon_dR_genMatch)
 
         if (needGenParticleChecks){
           if (isQCD){
-            auto const& genparticles = genInfoHandler.getGenParticles();
             for (auto const& part:genparticles){
               if (PDGHelpers::isAPhoton(part->pdgId()) && part->extras.isPromptFinalState && part->pt()>=25.f){
                 event_wgt = 0;
+                break;
+              }
+            }
+          }
+          if (isGJets_HT){
+            for (auto const& part:genparticles){
+              if (PDGHelpers::isAPhoton(part->pdgId()) && part->extras.isPromptFinalState){
+                event_wgt *= std::max(1., 1.71691-0.001221*part->pt());
                 break;
               }
             }
@@ -496,8 +505,8 @@ BRANCH_COMMAND(float, photon_dR_genMatch)
           }
         }
 
-        simEventHandler.constructSimEvent(theGlobalSyst);
-        event_wgt *= simEventHandler.getPileUpWeight()*simEventHandler.getL1PrefiringWeight();
+        simEventHandler.constructSimEvent();
+        event_wgt *= simEventHandler.getPileUpWeight(theGlobalSyst)*simEventHandler.getL1PrefiringWeight(theGlobalSyst);
 
         if (event_wgt==0.f) continue;
       }

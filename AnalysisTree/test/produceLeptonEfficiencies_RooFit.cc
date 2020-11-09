@@ -3093,7 +3093,7 @@ void combineEfficiencies(
   };
   std::vector<double> minPt_tags;
   if (is_ee){
-    switch (SampleHelpers::theDataYear){
+    switch (SampleHelpers::getDataYear()){
     case 2016:
       minPt_tags = std::vector<double>{ 28, 30 };
       break;
@@ -3104,12 +3104,12 @@ void combineEfficiencies(
       minPt_tags = std::vector<double>{ 35, 37 };
       break;
     default:
-      MELAerr << "Min. tag pT list for dielectrons is not implemented for year " << SampleHelpers::theDataYear << endl;
+      MELAerr << "Min. tag pT list for dielectrons is not implemented for year " << SampleHelpers::getDataYear() << endl;
       assert(0);
     }
   }
   else{
-    switch (SampleHelpers::theDataYear){
+    switch (SampleHelpers::getDataYear()){
     case 2016:
       minPt_tags = std::vector<double>{ 27, 29 };
       break;
@@ -3120,7 +3120,7 @@ void combineEfficiencies(
       minPt_tags = std::vector<double>{ 27, 29 };
       break;
     default:
-      MELAerr << "Min. tag pT list for dimuons is not implemented for year " << SampleHelpers::theDataYear << endl;
+      MELAerr << "Min. tag pT list for dimuons is not implemented for year " << SampleHelpers::getDataYear() << endl;
       assert(0);
     }
   }

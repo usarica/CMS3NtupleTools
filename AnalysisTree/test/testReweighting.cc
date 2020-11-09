@@ -39,9 +39,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   // Acquire sample flags
   bool const& isData = theLooper->getCurrentTreeFlag_IsData();
   bool const& isQCD = theLooper->getCurrentTreeFlag_QCDException();
+  bool const& isGJets_HT = theLooper->getCurrentTreeFlag_GJetsHTException();
   float pTG_true_exception_range[2]={ -1, -1 };
   bool hasPTGExceptionRange = theLooper->getPTGExceptionRange(pTG_true_exception_range[0], pTG_true_exception_range[1]);
-  bool needGenParticleChecks = isQCD || hasPTGExceptionRange;
+  bool needGenParticleChecks = isQCD || isGJets_HT || hasPTGExceptionRange;
 
   // Acquire all handlers
 #define HANDLER_DIRECTIVE(TYPE, NAME) TYPE* NAME = nullptr;
@@ -121,6 +122,14 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
           }
         }
       }
+      if (isGJets_HT){
+        for (auto const& part:genparticles){
+          if (PDGHelpers::isAPhoton(part->pdgId()) && part->extras.isPromptFinalState){
+            event_wgt *= std::max(1., 1.71691-0.001221*part->pt());
+            break;
+          }
+        }
+      }
       if (hasPTGExceptionRange){
         for (auto const& part:genparticles){
           if (PDGHelpers::isAPhoton(part->pdgId()) && part->extras.isHardProcess){
@@ -131,8 +140,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       }
     }
 
-    simEventHandler->constructSimEvent(theGlobalSyst);
-    event_wgt *= simEventHandler->getPileUpWeight()*simEventHandler->getL1PrefiringWeight();
+    simEventHandler->constructSimEvent();
+    event_wgt *= simEventHandler->getPileUpWeight(theGlobalSyst)*simEventHandler->getL1PrefiringWeight(theGlobalSyst);
 
     if (event_wgt==0.f) return false;
 

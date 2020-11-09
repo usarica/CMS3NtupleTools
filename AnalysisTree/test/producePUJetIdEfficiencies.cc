@@ -162,8 +162,8 @@ void producePUJetIdEfficiencies(
           auto const& genInfo = genInfoHandler.getGenInfo();
           double genwgt = genInfo->getGenWeight(true);
 
-          simEventHandler.constructSimEvent(theGlobalSyst);
-          double puwgt = simEventHandler.getPileUpWeight();
+          simEventHandler.constructSimEvent();
+          double puwgt = simEventHandler.getPileUpWeight(theGlobalSyst);
           sum_wgts += genwgt * puwgt;
         }
       }
@@ -249,11 +249,11 @@ void producePUJetIdEfficiencies(
       float genwgt = genInfo->getGenWeight(true);
       if (genwgt==0.f) continue;
 
-      simEventHandler.constructSimEvent(theGlobalSyst);
-      float puwgt = simEventHandler.getPileUpWeight();
-      if (puwgt==0.f) continue;
+      simEventHandler.constructSimEvent();
+      float pul1wgt = simEventHandler.getPileUpWeight(theGlobalSyst)*simEventHandler.getL1PrefiringWeight(theGlobalSyst);
+      if (pul1wgt==0.f) continue;
 
-      double wgt = genwgt * puwgt;
+      double wgt = genwgt * pul1wgt;
 
       eventFilter.constructFilters(&simEventHandler);
       if (isData && !eventFilter.isUniqueDataEvent()) continue;

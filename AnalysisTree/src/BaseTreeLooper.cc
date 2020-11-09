@@ -35,8 +35,8 @@ BaseTreeLooper::BaseTreeLooper() :
   useChunkIndices(false),
 
   isData_currentTree(false),
-  isQCD_currentTree(false)
-
+  isQCD_currentTree(false),
+  isGJets_HT_currentTree(false)
 {
   set_pTG_exception_range(-1, -1);
   setExternalProductList();
@@ -54,8 +54,8 @@ BaseTreeLooper::BaseTreeLooper(BaseTree* inTree, double wgt) :
   useChunkIndices(false),
 
   isData_currentTree(false),
-  isQCD_currentTree(false)
-
+  isQCD_currentTree(false),
+  isGJets_HT_currentTree(false)
 {
   this->addTree(inTree, wgt);
   set_pTG_exception_range(-1, -1);
@@ -75,6 +75,7 @@ BaseTreeLooper::BaseTreeLooper(std::vector<BaseTree*> const& inTreeList) :
 
   isData_currentTree(false),
   isQCD_currentTree(false),
+  isGJets_HT_currentTree(false),
 
   treeList(inTreeList)
 {
@@ -255,6 +256,7 @@ bool BaseTreeLooper::wrapTree(BaseTree* tree){
   TString const& sid = tree->sampleIdentifier;
   this->isData_currentTree = SampleHelpers::checkSampleIsData(sid);
   this->isQCD_currentTree = !this->isData_currentTree && sid.Contains("QCD") && sid.Contains("HT");
+  this->isGJets_HT_currentTree = !this->isData_currentTree && sid.Contains("GJets_HT");
   if (!this->isData_currentTree && (sid.Contains("ZGTo2NuG") || sid.Contains("ZGTo2LG")) && sid.Contains("amcatnloFXFX") && !sid.Contains("PtG-130")) set_pTG_exception_range(-1, 130);
   else set_pTG_exception_range(-1, -1);
 

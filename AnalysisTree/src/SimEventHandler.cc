@@ -39,8 +39,7 @@ SimEventHandler::SimEventHandler() :
   IvyBase(),
   hasPUException(false),
   hasHEM2018Issue(false),
-  pileupWeight(-1),
-  l1prefiringWeight(nullptr)
+  pileupWeights(3, -1)
 {
 #define SIMEVENT_RNDVARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<TYPE>(#NAME); this->defineConsumedSloppy(#NAME);
 #define SIMEVENT_PUVARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<TYPE>(#NAME); this->defineConsumedSloppy(#NAME);
@@ -64,8 +63,8 @@ void SimEventHandler::clear(){
   product_rndnums.clear();
   theChosenDataPeriod = "";
   hasHEM2018Issue = false;
-  pileupWeight = -1;
-  l1prefiringWeight = nullptr;
+  for(auto& v:pileupWeights) v = -1;
+  l1prefiringWeights.clear();
 }
 
 /*
@@ -222,14 +221,14 @@ void SimEventHandler::clearPUHistograms(){
   map_exceptionalPUHistList.clear();
 }
 
-bool SimEventHandler::constructSimEvent(SystematicsHelpers::SystematicVariationTypes const& syst){
+bool SimEventHandler::constructSimEvent(){
   if (this->isAlreadyCached()) return true;
 
   clear();
   if (!currentTree) return false;
   if (SampleHelpers::checkSampleIsData(currentTree->sampleIdentifier)) return true;
 
-  bool res = this->constructRandomNumbers() && this->constructPUWeight(syst) && this->constructL1PrefiringWeight(syst);
+  bool res = this->constructRandomNumbers() && this->constructPUWeight() && this->constructL1PrefiringWeight();
 
   if (res) this->cacheEvent();
   return res;
@@ -317,7 +316,7 @@ bool SimEventHandler::constructRandomNumbers(){
 
   return true;
 }
-bool SimEventHandler::constructPUWeight(SystematicsHelpers::SystematicVariationTypes const& syst){
+bool SimEventHandler::constructPUWeight(){
 #define SIMEVENT_PUVARIABLE(TYPE, NAME, DEFVAL) TYPE const* NAME = nullptr;
   SIMEVENT_PUVARIABLES;
 #undef SIMEVENT_PUVARIABLE
@@ -336,32 +335,11 @@ bool SimEventHandler::constructPUWeight(SystematicsHelpers::SystematicVariationT
 
   if (!HelperFunctions::checkVarNanInf(*n_true_int) || *n_true_int<0){
     if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::constructPUWeight: Number of true interactions (" << *n_true_int << ") is invalid." << endl;
-    pileupWeight = 0.f;
+    for (auto& pileupWeight:pileupWeights) pileupWeight = 0.f;
     return true;
   }
 
-  const unsigned int isyst = (syst == SystematicsHelpers::ePUDn)*1 + (syst == SystematicsHelpers::ePUUp)*2;
-  if (this->verbosity>=TVar::DEBUG) MELAout << "SimEventHandler::constructPUWeight: Systematics index = " << isyst << endl;
-
-  auto it = map_DataPeriod_PUHistList.find(theChosenDataPeriod);
-  if (it == map_DataPeriod_PUHistList.cend()){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::constructPUWeight: Histogram map for period \'" << theChosenDataPeriod << "\' is not found!" << endl;
-    assert(0);
-    return false;
-  }
-  auto const& hlist = it->second;
-  if (isyst>=hlist.size()){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::constructPUWeight: PU histogram list has size " << hlist.size() << ", but the expected size is 3." << endl;
-    assert(0);
-  }
-
-  TH1F* const& hpu_data_MC = hlist.at(isyst);
-  pileupWeight = hpu_data_MC->GetBinContent(hpu_data_MC->FindBin(*n_true_int));
-  if (this->verbosity>=TVar::DEBUG) MELAout
-    << "SimEventHandler::constructPUWeight: Extracted PU ratio " << pileupWeight
-    << " from " << hpu_data_MC->GetName()
-    << " evaluated at N_true^int = " << *n_true_int
-    << endl;
+  float puwgt_mult = 1;
   if (this->hasPUException){
     auto itpu = map_exceptionalPUHistList.find(currentTree->sampleIdentifier);
     if (itpu == map_exceptionalPUHistList.cend()){
@@ -371,8 +349,8 @@ bool SimEventHandler::constructPUWeight(SystematicsHelpers::SystematicVariationT
     else{
       TH1F* const& hpurewgt = itpu->second;
       float wgt_den = hpurewgt->GetBinContent(hpurewgt->FindBin(*n_true_int));
-      if (wgt_den != 0.f) pileupWeight /= wgt_den;
-      else pileupWeight = 0;
+      if (wgt_den != 0.f) puwgt_mult /= wgt_den;
+      else puwgt_mult = 0;
 
       if (this->verbosity>=TVar::DEBUG) MELAout
         << "SimEventHandler::constructPUWeight: PU exception correction = 1/" << wgt_den
@@ -381,17 +359,41 @@ bool SimEventHandler::constructPUWeight(SystematicsHelpers::SystematicVariationT
     }
   }
 
-  if (pileupWeight == 0.f){
-    if (this->verbosity>=TVar::ERROR) MELAerr
-      << "SimEventHandler::constructPUWeight: PU weight = 0 for n_true_int = " << *n_true_int
-      << ", isyst = " << isyst
-      << ", chosen data period = " << theChosenDataPeriod
-      << "!" << endl;
+  auto it = map_DataPeriod_PUHistList.find(theChosenDataPeriod);
+  if (it == map_DataPeriod_PUHistList.cend()){
+    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::constructPUWeight: Histogram map for period \'" << theChosenDataPeriod << "\' is not found!" << endl;
+    assert(0);
+    return false;
+  }
+  auto const& hlist = it->second;
+  if (hlist.size()!=3){
+    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::constructPUWeight: PU histogram list has size " << hlist.size() << ", but the expected size is 3." << endl;
+    assert(0);
+  }
+
+  unsigned short isyst = 0;
+  for (auto const& hpu_data_MC:hlist){
+    if (this->verbosity>=TVar::DEBUG) MELAout << "SimEventHandler::constructPUWeight: Systematics index = " << isyst << endl;
+    float pileupWeight = hpu_data_MC->GetBinContent(hpu_data_MC->FindBin(*n_true_int))*puwgt_mult;
+    if (this->verbosity>=TVar::DEBUG) MELAout
+      << "SimEventHandler::constructPUWeight: Extracted PU ratio " << pileupWeight
+      << " from " << hpu_data_MC->GetName()
+      << " evaluated at N_true^int = " << *n_true_int
+      << endl;
+    if (pileupWeight == 0.f){
+      if (this->verbosity>=TVar::ERROR) MELAerr
+        << "SimEventHandler::constructPUWeight: PU weight = 0 for n_true_int = " << *n_true_int
+        << ", isyst = " << isyst
+        << ", chosen data period = " << theChosenDataPeriod
+        << "!" << endl;
+    }
+    pileupWeights.at(isyst) = pileupWeight;
+    isyst++;
   }
 
   return true;
 }
-bool SimEventHandler::constructL1PrefiringWeight(SystematicsHelpers::SystematicVariationTypes const& syst){
+bool SimEventHandler::constructL1PrefiringWeight(){
   if (!(SampleHelpers::getDataYear() == 2016 || SampleHelpers::getDataYear() == 2017)) return true;
 
 #define SIMEVENT_L1PREFIRINGVARIABLE(TYPE, NAME, DEFVAL) TYPE const* NAME = nullptr;
@@ -410,16 +412,11 @@ bool SimEventHandler::constructL1PrefiringWeight(SystematicsHelpers::SystematicV
   }
   if (this->verbosity>=TVar::DEBUG) MELAout << "SimEventHandler::constructL1PrefiringWeight: All variables are set up!" << endl;
 
-  switch (syst){
-  case SystematicsHelpers::eL1PrefiringDn:
-    this->l1prefiringWeight = prefiringWeight_Dn;
-    break;
-  case SystematicsHelpers::eL1PrefiringUp:
-    this->l1prefiringWeight = prefiringWeight_Up;
-    break;
-  default:
-    this->l1prefiringWeight = prefiringWeight_Nominal;
-  }
+  l1prefiringWeights = std::vector<float const*>{
+    prefiringWeight_Nominal,
+    prefiringWeight_Dn,
+    prefiringWeight_Up
+  };
 
   return true;
 }
@@ -477,6 +474,16 @@ double const& SimEventHandler::getRandomNumber(SimEventHandler::EventRandomNumbe
     assert(0);
   }
   return it->second;
+}
+
+float const& SimEventHandler::getPileUpWeight(SystematicsHelpers::SystematicVariationTypes const& syst) const{
+  unsigned short const isyst = (syst == SystematicsHelpers::ePUDn)*1 + (syst == SystematicsHelpers::ePUUp)*2;
+  return pileupWeights.at(isyst);
+}
+float SimEventHandler::getL1PrefiringWeight(SystematicsHelpers::SystematicVariationTypes const& syst) const{
+  if (l1prefiringWeights.empty()) return 1;
+  unsigned short const isyst = (syst == SystematicsHelpers::eL1PrefiringDn)*1 + (syst == SystematicsHelpers::eL1PrefiringUp)*2;
+  return *(l1prefiringWeights.at(isyst));
 }
 
 
