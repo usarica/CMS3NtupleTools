@@ -107,7 +107,7 @@ bool IsotrackSelectionHelpers::testPreselectionVeto(IsotrackObject const& part){
     );
 }
 void IsotrackSelectionHelpers::setSelectionBits(IsotrackObject& part){
-  static_assert(std::numeric_limits<unsigned long long>::digits >= nSelectionBits);
+  static_assert(std::numeric_limits<ParticleObject::SelectionBitsType_t>::digits >= nSelectionBits);
 
   part.setSelectionBit(kVetoId, testVetoId(part));
   part.setSelectionBit(kVetoIso, testVetoIso(part));

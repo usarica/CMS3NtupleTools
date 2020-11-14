@@ -111,7 +111,10 @@ template<> bool ParticleSelectionHelpers::isJetForPUJetIdSF<AK4JetObject>(AK4Jet
     &&
     (!AK4JetSelectionHelpers::getApplyTightLeptonVetoIdToJetsFlag() || jet->testSelectionBit(AK4JetSelectionHelpers::kTightLeptonVetoId))
     &&
-    jet->testSelectionBit(AK4JetSelectionHelpers::kLooseKin) && jet->pt()<AK4JetSelectionHelpers::ptThr_PUId
+    //jet->testSelectionBit(AK4JetSelectionHelpers::kLooseKin)
+    jet->testSelectionBit(AK4JetSelectionHelpers::kTightKin)
+    &&
+    jet->pt()<AK4JetSelectionHelpers::ptThr_PUId
     );
 }
 

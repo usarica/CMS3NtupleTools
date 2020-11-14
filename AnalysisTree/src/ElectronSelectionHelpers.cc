@@ -443,7 +443,7 @@ bool ElectronSelectionHelpers::testPreselectionTight(ElectronObject const& part)
     );
 }
 void ElectronSelectionHelpers::setSelectionBits(ElectronObject& part){
-  static_assert(std::numeric_limits<unsigned long long>::digits >= nSelectionBits);
+  static_assert(std::numeric_limits<ParticleObject::SelectionBitsType_t>::digits >= nSelectionBits);
 
   part.setSelectionBit(kGenPtEta, testPtEtaGen(part));
 

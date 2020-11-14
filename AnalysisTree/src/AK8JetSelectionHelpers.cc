@@ -51,7 +51,7 @@ bool AK8JetSelectionHelpers::testPreselectionTight(AK8JetObject const& part){
     );
 }
 void AK8JetSelectionHelpers::setSelectionBits(AK8JetObject& part, bool resetIDs, bool resetKinematics){
-  static_assert(std::numeric_limits<unsigned long long>::digits >= nSelectionBits);
+  static_assert(std::numeric_limits<ParticleObject::SelectionBitsType_t>::digits >= nSelectionBits);
 
   if (resetKinematics) part.setSelectionBit(kGenPtEta, testPtEtaGen(part));
 

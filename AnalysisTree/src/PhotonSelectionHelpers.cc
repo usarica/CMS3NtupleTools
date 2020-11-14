@@ -314,7 +314,7 @@ bool PhotonSelectionHelpers::testSFTampon(PhotonObject const& part){
     );
 }
 void PhotonSelectionHelpers::setSelectionBits(PhotonObject& part){
-  static_assert(std::numeric_limits<unsigned long long>::digits >= nSelectionBits);
+  static_assert(std::numeric_limits<ParticleObject::SelectionBitsType_t>::digits >= nSelectionBits);
 
   part.setSelectionBit(kGenPtEta, testPtEtaGen(part));
 

@@ -19,11 +19,12 @@ public:
   typedef math::XYZVectorD Vector3D_t;
   typedef ROOT::Math::DisplacementVector2D< ROOT::Math::Cartesian2D<double> > Vector2D_t;
   typedef cms3_listIndex_short_t UniqueId_t;
+  typedef unsigned long long SelectionBitsType_t;
 
 protected:
   cms3_id_t id;
   UniqueId_t uniqueIdentifier;
-  unsigned long long selectionBits;
+  SelectionBitsType_t selectionBits;
   LorentzVector_t momentum;
 
   std::vector<ParticleObject*> mothers;
@@ -59,8 +60,8 @@ public:
   UniqueId_t const& getUniqueIdentifier() const{ return uniqueIdentifier; }
   UniqueId_t& getUniqueIdentifier(){ return uniqueIdentifier; }
 
-  unsigned long long const& getSelectionBits() const{ return selectionBits; }
-  unsigned long long& getSelectionBits(){ return selectionBits; }
+  SelectionBitsType_t const& getSelectionBits() const{ return selectionBits; }
+  SelectionBitsType_t& getSelectionBits(){ return selectionBits; }
 
   float charge() const;
   LorentzVector_t::Scalar m() const{ return momentum.M(); }

@@ -130,7 +130,7 @@ void AK4JetSelectionHelpers::setPUIdWP(SelectionBits flag){
 void AK4JetSelectionHelpers::setApplyTightLeptonVetoIdToJets(bool flag){ applyTightLeptonVetoIdToJets = flag; }
 
 void AK4JetSelectionHelpers::setSelectionBits(AK4JetObject& part, bool resetIDs, bool resetKinematics){
-  static_assert(std::numeric_limits<unsigned long long>::digits >= nSelectionBits);
+  static_assert(std::numeric_limits<ParticleObject::SelectionBitsType_t>::digits >= nSelectionBits);
 
   if (resetKinematics) part.setSelectionBit(kGenPtEta, testPtEtaGen(part));
 
