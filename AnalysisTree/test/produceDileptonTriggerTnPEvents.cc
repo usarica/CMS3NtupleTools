@@ -1252,10 +1252,10 @@ void getTrees(
             continue;
           }
 
-          simEventHandler.constructSimEvent(SystematicsHelpers::sNominal);
+          simEventHandler.constructSimEvent();
 
           sum_wgts_raw_withveto += genwgt;
-          sum_wgts += genwgt * simEventHandler.getPileUpWeight();
+          sum_wgts += genwgt * simEventHandler.getPileUpWeight(theGlobalSyst);
         }
         if (nEntries>0) frac_zero_genwgts = double(n_zero_genwgts)/double(nEntries);
         sum_wgts_raw_noveto = sum_wgts_raw_withveto / (1. - frac_zero_genwgts);
