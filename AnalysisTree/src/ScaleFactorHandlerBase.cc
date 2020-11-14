@@ -18,12 +18,15 @@ void ScaleFactorHandlerBase::closeFile(TFile*& f){
 
 void ScaleFactorHandlerBase::getAxisBinning(TAxis const* ax, ExtendedBinning& res){ res = HelperFunctions::getExtendedBinning(ax); }
 
-template<> bool ScaleFactorHandlerBase::getHistogram<TH1F, ExtendedHistogram_1D>(ExtendedHistogram_1D& h, TFile*& f, TString s){
+template<> bool ScaleFactorHandlerBase::getHistogram<TH1F, ExtendedHistogram_1D>(ExtendedHistogram_1D& h, TDirectory* f, TString s){
   TDirectory* curdir = gDirectory;
   if (s=="") return false;
   if (!f) return false;
-  if (!f->IsOpen()) return false;
-  if (f->IsZombie()) return false;
+  TFile* ff = dynamic_cast<TFile*>(f);
+  if (ff){
+    if (!ff->IsOpen()) return false;
+    if (ff->IsZombie()) return false;
+  }
 
   f->cd();
   TH1F* hh = (TH1F*) f->Get(s);
@@ -49,12 +52,15 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH1F, ExtendedHistogram_1D>
 
   return (hh!=nullptr);
 }
-template<> bool ScaleFactorHandlerBase::getHistogram<TH1D, ExtendedHistogram_1D>(ExtendedHistogram_1D& h, TFile*& f, TString s){
+template<> bool ScaleFactorHandlerBase::getHistogram<TH1D, ExtendedHistogram_1D>(ExtendedHistogram_1D& h, TDirectory* f, TString s){
   TDirectory* curdir = gDirectory;
   if (s=="") return false;
   if (!f) return false;
-  if (!f->IsOpen()) return false;
-  if (f->IsZombie()) return false;
+  TFile* ff = dynamic_cast<TFile*>(f);
+  if (ff){
+    if (!ff->IsOpen()) return false;
+    if (ff->IsZombie()) return false;
+  }
 
   f->cd();
   TH1D* hh = (TH1D*) f->Get(s);
@@ -80,12 +86,15 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH1D, ExtendedHistogram_1D>
 
   return (hh!=nullptr);
 }
-template<> bool ScaleFactorHandlerBase::getHistogram<TH2F, ExtendedHistogram_2D>(ExtendedHistogram_2D& h, TFile*& f, TString s){
+template<> bool ScaleFactorHandlerBase::getHistogram<TH2F, ExtendedHistogram_2D>(ExtendedHistogram_2D& h, TDirectory* f, TString s){
   TDirectory* curdir = gDirectory;
   if (s=="") return false;
   if (!f) return false;
-  if (!f->IsOpen()) return false;
-  if (f->IsZombie()) return false;
+  TFile* ff = dynamic_cast<TFile*>(f);
+  if (ff){
+    if (!ff->IsOpen()) return false;
+    if (ff->IsZombie()) return false;
+  }
 
   f->cd();
   TH2F* hh = (TH2F*) f->Get(s);
@@ -117,12 +126,15 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH2F, ExtendedHistogram_2D>
 
   return (hh!=nullptr);
 }
-template<> bool ScaleFactorHandlerBase::getHistogram<TH2D, ExtendedHistogram_2D>(ExtendedHistogram_2D& h, TFile*& f, TString s){
+template<> bool ScaleFactorHandlerBase::getHistogram<TH2D, ExtendedHistogram_2D>(ExtendedHistogram_2D& h, TDirectory* f, TString s){
   TDirectory* curdir = gDirectory;
   if (s=="") return false;
   if (!f) return false;
-  if (!f->IsOpen()) return false;
-  if (f->IsZombie()) return false;
+  TFile* ff = dynamic_cast<TFile*>(f);
+  if (ff){
+    if (!ff->IsOpen()) return false;
+    if (ff->IsZombie()) return false;
+  }
 
   f->cd();
   TH2D* hh = (TH2D*) f->Get(s);
@@ -155,12 +167,15 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH2D, ExtendedHistogram_2D>
   return (hh!=nullptr);
 }
 
-template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH1F, ExtendedHistogram_1D>(ExtendedHistogram_1D& h, TFile*& f, TString s, TString su){
+template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH1F, ExtendedHistogram_1D>(ExtendedHistogram_1D& h, TDirectory* f, TString s, TString su){
   TDirectory* curdir = gDirectory;
   if (s=="") return false;
   if (!f) return false;
-  if (!f->IsOpen()) return false;
-  if (f->IsZombie()) return false;
+  TFile* ff = dynamic_cast<TFile*>(f);
+  if (ff){
+    if (!ff->IsOpen()) return false;
+    if (ff->IsZombie()) return false;
+  }
 
   f->cd();
   TH1F* hh = (TH1F*) f->Get(s);
@@ -191,12 +206,15 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH1F, Extende
 
   return (hh!=nullptr);
 }
-template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH1D, ExtendedHistogram_1D>(ExtendedHistogram_1D& h, TFile*& f, TString s, TString su){
+template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH1D, ExtendedHistogram_1D>(ExtendedHistogram_1D& h, TDirectory* f, TString s, TString su){
   TDirectory* curdir = gDirectory;
   if (s=="") return false;
   if (!f) return false;
-  if (!f->IsOpen()) return false;
-  if (f->IsZombie()) return false;
+  TFile* ff = dynamic_cast<TFile*>(f);
+  if (ff){
+    if (!ff->IsOpen()) return false;
+    if (ff->IsZombie()) return false;
+  }
 
   f->cd();
   TH1D* hh = (TH1D*) f->Get(s);
@@ -227,12 +245,15 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH1D, Extende
 
   return (hh!=nullptr);
 }
-template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH2F, ExtendedHistogram_2D>(ExtendedHistogram_2D& h, TFile*& f, TString s, TString su){
+template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH2F, ExtendedHistogram_2D>(ExtendedHistogram_2D& h, TDirectory* f, TString s, TString su){
   TDirectory* curdir = gDirectory;
   if (s=="") return false;
   if (!f) return false;
-  if (!f->IsOpen()) return false;
-  if (f->IsZombie()) return false;
+  TFile* ff = dynamic_cast<TFile*>(f);
+  if (ff){
+    if (!ff->IsOpen()) return false;
+    if (ff->IsZombie()) return false;
+  }
 
   f->cd();
   TH2F* hh = (TH2F*) f->Get(s);
@@ -269,12 +290,15 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH2F, Extende
 
   return (hh!=nullptr);
 }
-template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH2D, ExtendedHistogram_2D>(ExtendedHistogram_2D& h, TFile*& f, TString s, TString su){
+template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH2D, ExtendedHistogram_2D>(ExtendedHistogram_2D& h, TDirectory* f, TString s, TString su){
   TDirectory* curdir = gDirectory;
   if (s=="") return false;
   if (!f) return false;
-  if (!f->IsOpen()) return false;
-  if (f->IsZombie()) return false;
+  TFile* ff = dynamic_cast<TFile*>(f);
+  if (ff){
+    if (!ff->IsOpen()) return false;
+    if (ff->IsZombie()) return false;
+  }
 
   f->cd();
   TH2D* hh = (TH2D*) f->Get(s);

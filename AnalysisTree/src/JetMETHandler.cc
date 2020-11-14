@@ -313,29 +313,52 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
   std::vector<AK4JetObject*> ak4jets_new; ak4jets_new.reserve(ak4jets.size()); ak4jets_masked.reserve(ak4jets.size());
   std::vector<AK8JetObject*> ak8jets_new; ak8jets_new.reserve(ak8jets.size()); ak8jets_masked.reserve(ak8jets.size());
 
+  std::vector<MuonObject*> muons_jetcleaning;
+  std::vector<ElectronObject*> electrons_jetcleaning;
+  std::vector<PhotonObject*> photons_jetcleaning;
+  if (muons){
+    for (auto const& part:(*muons)){
+      if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
+      muons_jetcleaning.push_back(part);
+    }
+  }
+  if (electrons){
+    for (auto const& part:(*electrons)){
+      if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
+      electrons_jetcleaning.push_back(part);
+    }
+  }
+  if (photons){
+    for (auto const& part:(*photons)){
+      if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
+      photons_jetcleaning.push_back(part);
+    }
+  }
+
   if (!usePFCandidates){
     constexpr bool undoT1METCorrFromCleaned = true; // Gives slightly better performance, also more consistent with particle momentum corrections
     // In this scenario, a simple delta-R cleaning is done.
     for (auto*& jet:ak4jets){
       bool doSkip=false;
-      if (muons){
-        for (auto const* part:(*muons)){
+      if (!doSkip){
+        for (auto const& part:muons_jetcleaning){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
           if (jet->deltaR(part)<jet->ConeRadiusConstant){ doSkip=true; break; }
         }
       }
-      if (electrons){
-        for (auto const* part:(*electrons)){
+      if (!doSkip){
+        for (auto const& part:electrons_jetcleaning){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
           if (jet->deltaR(part)<jet->ConeRadiusConstant){ doSkip=true; break; }
         }
       }
-      if (photons){
-        for (auto const* part:(*photons)){
+      if (!doSkip){
+        for (auto const& part:photons_jetcleaning){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
           if (jet->deltaR(part)<jet->ConeRadiusConstant){ doSkip=true; break; }
         }
       }
+
       if (!doSkip) ak4jets_new.push_back(jet);
       else ak4jets_masked.push_back(jet);
     }
@@ -371,20 +394,20 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
 
     for (auto*& jet:ak8jets){
       bool doSkip=false;
-      if (muons){
-        for (auto const* part:(*muons)){
+      if (!doSkip){
+        for (auto const& part:muons_jetcleaning){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
           if (jet->deltaR(part)<jet->ConeRadiusConstant){ doSkip=true; break; }
         }
       }
-      if (electrons){
-        for (auto const* part:(*electrons)){
+      if (!doSkip){
+        for (auto const& part:electrons_jetcleaning){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
           if (jet->deltaR(part)<jet->ConeRadiusConstant){ doSkip=true; break; }
         }
       }
-      if (photons){
-        for (auto const* part:(*photons)){
+      if (!doSkip){
+        for (auto const& part:photons_jetcleaning){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
           if (jet->deltaR(part)<jet->ConeRadiusConstant){ doSkip=true; break; }
         }
@@ -410,8 +433,8 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
       bool hasCorrections = false;
       AK4JetObject* oldjet = nullptr;
 
-      if (muons){
-        for (auto const& part:(*muons)){
+      {
+        for (auto const& part:muons_jetcleaning){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
           if (applyConeVetoToStripping && jet->deltaR(part)>=jet->ConeRadiusConstant) continue;
           MuonObject* thePart = nullptr;
@@ -471,8 +494,8 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
           }
         }
       }
-      if (electrons){
-        for (auto const& part:(*electrons)){
+      {
+        for (auto const& part:electrons_jetcleaning){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
           if (applyConeVetoToStripping && jet->deltaR(part)>=jet->ConeRadiusConstant) continue;
           ElectronObject* thePart = nullptr;
@@ -532,8 +555,8 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
           }
         }
       }
-      if (photons){
-        for (auto const& part:(*photons)){
+      {
+        for (auto const& part:photons_jetcleaning){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
           if (applyConeVetoToStripping && jet->deltaR(part)>=jet->ConeRadiusConstant) continue;
           auto overlapElement = overlapMap_photons_ak4jets->getMatchingOverlapMap(part, jet);
@@ -651,8 +674,8 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
       bool hasCorrections = false;
       AK8JetObject* oldjet = nullptr;
 
-      if (muons){
-        for (auto const& part:(*muons)){
+      {
+        for (auto const& part:muons_jetcleaning){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
           if (applyConeVetoToStripping && jet->deltaR(part)>=jet->ConeRadiusConstant) continue;
           MuonObject* thePart = nullptr;
@@ -697,8 +720,8 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
           }
         }
       }
-      if (electrons){
-        for (auto const& part:(*electrons)){
+      {
+        for (auto const& part:electrons_jetcleaning){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
           if (applyConeVetoToStripping && jet->deltaR(part)>=jet->ConeRadiusConstant) continue;
           ElectronObject* thePart = nullptr;
@@ -743,8 +766,8 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
           }
         }
       }
-      if (photons){
-        for (auto const& part:(*photons)){
+      {
+        for (auto const& part:photons_jetcleaning){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
           if (applyConeVetoToStripping && jet->deltaR(part)>=jet->ConeRadiusConstant) continue;
           auto overlapElement = overlapMap_photons_ak8jets->getMatchingOverlapMap(part, jet);
@@ -835,6 +858,11 @@ bool JetMETHandler::constructMET(SystematicsHelpers::SystematicVariationTypes co
   MET_CORE_VARIABLES;
   if (!isData){
     MET_GENINFO_VARIABLES;
+  }
+  else{
+    // Apply fix to JECNominal_JERNominal variables
+    pfmet->extras.metShift_p4Preserved_px_JECNominal_JERNominal = pfmet->extras.metShift_p4Preserved_px_JECNominal;
+    pfmet->extras.metShift_p4Preserved_py_JECNominal_JERNominal = pfmet->extras.metShift_p4Preserved_py_JECNominal;
   }
 #undef MET_VARIABLE
 

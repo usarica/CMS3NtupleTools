@@ -641,7 +641,6 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
 
   ParticleObject::LorentzVector_t sump4_ak4jets(0, 0, 0, 0);
   std::vector<AK4JetObject*> ak4jets_tight; ak4jets_tight.reserve(ak4jets.size());
-  unsigned int n_ak4jets_tight_pt30_btagged_loose = 0;
   float SF_PUJetId = 1;
   float SF_PUJetId_EffDn = 1;
   float SF_PUJetId_EffUp = 1;
@@ -1118,8 +1117,11 @@ void getTrees(
 
   std::vector<BaseTree*> sample_trees; sample_trees.reserve(sampledirs.size());
   for (auto const& sname:sampledirs){
-    BaseTree* sample_tree = new BaseTree(SampleHelpers::getDatasetFileName(sname), (useSkims ? "cms3ntuple/Dilepton" : "cms3ntuple/Events"), "", ""); sample_trees.push_back(sample_tree);
+    TString strdsetfname = SampleHelpers::getDatasetFileName(sname);
+    MELAout << "=> Accessing the input trees from " << strdsetfname << "..." << endl;
+    BaseTree* sample_tree = new BaseTree(strdsetfname, (useSkims ? "cms3ntuple/Dilepton" : "cms3ntuple/Events"), "", ""); sample_trees.push_back(sample_tree);
     sample_tree->sampleIdentifier = SampleHelpers::getSampleIdentifier(sname);
+    MELAout << "\t- Sample identifier (is data ? " << isData << "): " << sample_tree->sampleIdentifier << endl;
 
     std::vector<TString> allbranchnames; sample_tree->getValidBranchNamesWithoutAlias(allbranchnames, false);
 

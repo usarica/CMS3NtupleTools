@@ -125,6 +125,9 @@ public:
 
   void setJetOverlapCorrection(ParticleObject::LorentzVector_t const& corr, bool hasJERShifts, bool preserveP4);
 
+  ParticleObject::LorentzVector_t const& getMETShift(bool addJERShifts, bool preserveP4) const;
+  ParticleObject::LorentzVector_t getJetOverlapCorrection(bool addJERShifts, bool preserveP4) const;
+
   void getPtPhi(float& pt, float& phi, bool addXYShifts, bool addJERShifts, bool addParticleShifts, bool preserveP4) const;
   ParticleObject::LorentzVector_t::Scalar met(bool addXYShifts, bool addJERShifts, bool addParticleShifts, bool preserveP4) const;
   ParticleObject::LorentzVector_t::Scalar phi(bool addXYShifts, bool addJERShifts, bool addParticleShifts, bool preserveP4) const;

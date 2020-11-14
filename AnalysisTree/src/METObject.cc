@@ -2,6 +2,10 @@
 #include <utility>
 #include <cmath>
 #include "METObject.h"
+#include "MELAStreamHelpers.hh"
+
+using namespace std;
+using namespace MELAStreamHelpers;
 
 
 METVariables::METVariables(){
@@ -122,6 +126,18 @@ void METObject::setJetOverlapCorrection(ParticleObject::LorentzVector_t const& c
   currentJetOverlapCorrections.at(2*preserveP4 + 1*hasJERShifts) = corr;
 }
 
+ParticleObject::LorentzVector_t const& METObject::getMETShift(bool addJERShifts, bool preserveP4) const{
+  if (addJERShifts && preserveP4) return this->currentMETShift_p4Preserved;
+  else if (!addJERShifts && preserveP4) return this->currentMETShift_p4Preserved_noJER;
+  else if (addJERShifts && !preserveP4) return this->currentMETShift;
+  else return this->currentMETShift_noJER;
+}
+ParticleObject::LorentzVector_t METObject::getJetOverlapCorrection(bool addJERShifts, bool preserveP4) const{
+  ParticleObject::LorentzVector_t res;
+  if (!currentJetOverlapCorrections.empty()) res = this->currentJetOverlapCorrections.at(2*preserveP4 + 1*addJERShifts);
+  return res;
+}
+
 void METObject::getPtPhi(float& pt, float& phi, bool addXYShifts, bool addJERShifts, bool addParticleShifts, bool preserveP4) const{
   using namespace SystematicsHelpers;
 
@@ -131,11 +147,7 @@ void METObject::getPtPhi(float& pt, float& phi, bool addXYShifts, bool addJERShi
     float const& phi_ref = extras.metPhi_Nominal;
     tmp_p4 = ParticleObject::LorentzVector_t(pt_ref*std::cos(phi_ref), pt_ref*std::sin(phi_ref), 0., 0.);
 
-    if (addJERShifts && preserveP4) tmp_p4 += currentMETShift_p4Preserved;
-    else if (!addJERShifts && preserveP4) tmp_p4 += currentMETShift_p4Preserved_noJER;
-    else if (addJERShifts && !preserveP4) tmp_p4 += currentMETShift;
-    else tmp_p4 += currentMETShift_noJER;
-
+    tmp_p4 += getMETShift(addJERShifts, preserveP4);
     if (addXYShifts) tmp_p4 += currentXYshift;
     if (addParticleShifts) tmp_p4 += particleMomentumCorrections;
 

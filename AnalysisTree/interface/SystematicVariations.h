@@ -43,6 +43,8 @@ namespace SystematicsHelpers{
 
     eL1PrefiringDn, eL1PrefiringUp,
 
+    eTriggerEffDn, eTriggerEffUp,
+
     nSystematicVariations,
 
     sUncorrected // For checks

@@ -211,12 +211,12 @@ bool AK4JetObject::getT1METShift(SystematicsHelpers::SystematicVariationTypes co
       switch (syst){
       case eJECDn:
         iJECshift = -1;
-        relJECUnc = extras.relJECUnc_nomus_JERNominal;
+        relJECUnc = (!useP4Preserved ? extras.relJECUnc_nomus_JERNominal : extras.relJECUnc);
         JERval = extras.JERNominal;
         break;
       case eJECUp:
         iJECshift = +1;
-        relJECUnc = extras.relJECUnc_nomus_JERNominal;
+        relJECUnc = (!useP4Preserved ? extras.relJECUnc_nomus_JERNominal : extras.relJECUnc);
         JERval = extras.JERNominal;
         break;
       case eJERDn:
@@ -234,11 +234,11 @@ bool AK4JetObject::getT1METShift(SystematicsHelpers::SystematicVariationTypes co
       switch (syst){
       case eJECDn:
         iJECshift = -1;
-        relJECUnc = extras.relJECUnc_nomus;
+        relJECUnc = (!useP4Preserved ? extras.relJECUnc_nomus : extras.relJECUnc);
         break;
       case eJECUp:
         iJECshift = +1;
-        relJECUnc = extras.relJECUnc_nomus;
+        relJECUnc = (!useP4Preserved ? extras.relJECUnc_nomus : extras.relJECUnc);
         break;
       default:
         break;

@@ -102,6 +102,10 @@ std::string SystematicsHelpers::getSystCoreName(SystematicsHelpers::SystematicVa
   case eL1PrefiringUp:
     return "L1Prefiring";
 
+  case eTriggerEffDn:
+  case eTriggerEffUp:
+    return "TriggerEff";
+
   case sUncorrected:
     return "Uncorrected";
 

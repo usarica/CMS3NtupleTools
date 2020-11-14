@@ -977,9 +977,11 @@ void getTrees(
 
   std::vector<BaseTree*> sample_trees; sample_trees.reserve(sampledirs.size());
   for (auto const& sname:sampledirs){
+    TString strdsetfname = SampleHelpers::getDatasetFileName(sname);
+    MELAout << "=> Accessing the input trees from " << strdsetfname << "..." << endl;
     BaseTree* sample_tree;
     if (useSkims) sample_tree = new BaseTree(
-      SampleHelpers::getDatasetFileName(sname),
+      strdsetfname,
       {
         "cms3ntuple/SingleLepton", // Includes base fakeable objects, so no need to add an exception for useFakeables=true
         "cms3ntuple/Dilepton_Control", // The other two trees are included in cases systematic variations move a few percent of events around
@@ -987,9 +989,10 @@ void getTrees(
       },
       ""
     );
-    else sample_tree = new BaseTree(SampleHelpers::getDatasetFileName(sname), "cms3ntuple/Events", "", "");
+    else sample_tree = new BaseTree(strdsetfname, "cms3ntuple/Events", "", "");
     sample_trees.push_back(sample_tree);
     sample_tree->sampleIdentifier = SampleHelpers::getSampleIdentifier(sname);
+    MELAout << "\t- Sample identifier (is data ? " << isData << "): " << sample_tree->sampleIdentifier << endl;
 
     std::vector<TString> allbranchnames; sample_tree->getValidBranchNamesWithoutAlias(allbranchnames, false);
 

@@ -63,16 +63,16 @@ void MuonObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes 
 
   float scale=1;
   switch (syst){
-  case eEleScaleDn:
+  case eMuScaleDn:
     scale = extras.scale_smear_pt_corr_scale_totalDn;
     break;
-  case eEleScaleUp:
+  case eMuScaleUp:
     scale = extras.scale_smear_pt_corr_scale_totalUp;
     break;
-  case eEleResDn:
+  case eMuResDn:
     scale = extras.scale_smear_pt_corr_smear_totalDn;
     break;
-  case eEleResUp:
+  case eMuResUp:
     scale = extras.scale_smear_pt_corr_smear_totalUp;
     break;
   case sUncorrected:
