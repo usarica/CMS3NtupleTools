@@ -150,6 +150,64 @@ void getMCSampleDirs(std::vector< std::pair<TString, std::vector<std::pair<TStri
   }
 }
 
+void getValidBranchNamesWithoutAlias(TTree* t, std::vector<TString>& res){
+  using namespace HelperFunctions;
+
+  if (!t) return;
+
+  const TList* alist = (const TList*) t->GetListOfAliases();
+  const TList* llist = (const TList*) t->GetListOfLeaves();
+  const TList* blist = (const TList*) t->GetListOfBranches();
+  // First check all aliases and record the proper names
+  if (alist){
+    for (int ib=0; ib<alist->GetSize(); ib++){
+      auto const& bmem = alist->At(ib);
+      if (!bmem) continue;
+      TString bname = bmem->GetName();
+      TString bnameproper = t->GetAlias(bname);
+      TString bnamegen="";
+      if (bnameproper.Contains(".")){
+        std::vector<TString> tmplist;
+        splitOptionRecursive(bnameproper, tmplist, '.');
+        if (!tmplist.empty()) bnamegen = tmplist.front() + "*";
+      }
+      if (bnamegen!="" && !checkListVariable(res, bnamegen)) res.push_back(bnamegen);
+      else if (!checkListVariable(res, bnameproper)) res.push_back(bnameproper);
+    }
+  }
+  // Then check all leaves
+  if (llist){
+    for (int ib=0; ib<llist->GetSize(); ib++){
+      auto const& bmem = llist->At(ib);
+      if (!bmem) continue;
+      TString bname = bmem->GetName();
+      TString bnamegen="";
+      if (bname.Contains(".")){
+        std::vector<TString> tmplist;
+        splitOptionRecursive(bname, tmplist, '.');
+        if (!tmplist.empty()) bnamegen = tmplist.front() + "*";
+      }
+      if (bnamegen!="" && !checkListVariable(res, bnamegen)) res.push_back(bnamegen);
+      else if (!checkListVariable(res, bname)) res.push_back(bname);
+    }
+  }
+  // Then check all branches
+  if (blist){
+    for (int ib=0; ib<blist->GetSize(); ib++){
+      auto const& bmem = blist->At(ib);
+      if (!bmem) continue;
+      TString bname = bmem->GetName();
+      TString bnamegen="";
+      if (bname.Contains(".")){
+        std::vector<TString> tmplist;
+        splitOptionRecursive(bname, tmplist, '.');
+        if (!tmplist.empty()) bnamegen = tmplist.front() + "*";
+      }
+      if (bnamegen!="" && !checkListVariable(res, bnamegen)) res.push_back(bnamegen);
+      else if (!checkListVariable(res, bname)) res.push_back(bname);
+    }
+  }
+}
 
 bool checkOrthogonalTrigger(TriggerHelpers::TriggerType const& type, float const& event_pTmiss, float const& ak4jets_HT, float const& ak4jets_MHT){
   bool res = true;
@@ -410,6 +468,9 @@ void getEfficiencyHistograms(
   for (auto& pp:samples_all){
     auto const& tin = pp.second;
 
+    std::vector<TString> allbranchnames;
+    getValidBranchNamesWithoutAlias(tin, allbranchnames);
+
     tin->SetBranchStatus("*", 0);
 #define BRANCH_COMMAND(TYPE, NAME) tin->SetBranchStatus(#NAME, 1); tin->SetBranchAddress(#NAME, &NAME);
     BRANCH_COMMANDS;
@@ -418,7 +479,7 @@ void getEfficiencyHistograms(
     CONTROL_TRIGGER_COMMANDS;
 #undef CONTROL_TRIGGER_COMMAND
 
-#define MENU_COMMAND(PREFIX, NAME, VAR) tin->SetBranchStatus(Form("%s_%s", #PREFIX, NAME), 1); tin->SetBranchAddress(Form("%s_%s", #PREFIX, NAME), &VAR);
+#define MENU_COMMAND(PREFIX, NAME, VAR) if (HelperFunctions::checkListVariable(allbranchnames, TString(Form("%s_%s", #PREFIX, NAME)))){ tin->SetBranchStatus(Form("%s_%s", #PREFIX, NAME), 1); tin->SetBranchAddress(Form("%s_%s", #PREFIX, NAME), &VAR); }
     for (auto const& strmenu:interestingHLTMenus_Dileptons){
       MENU_COMMAND(is_valid_trigger, strmenu.data(), trigger_validity_map[strmenu]);
       MENU_COMMAND(dileptons_wgt_triggers, strmenu.data(), dileptons_wgt_triggers_map[strmenu]);
@@ -839,6 +900,9 @@ void getEfficiencyHistograms(
         bool const isBarrel_l1 = abs_eta_trig_l1<(is_mue || is_mumu ? 1.2 : 1.479);
         bool const isBarrel_l2 = abs_eta_trig_l2<(is_mumu ? 1.2 : 1.479);
 
+        float dR_l1l2 = -1;
+        HelperFunctions::deltaR(leptons_eta->at(daughter_indices.front()), leptons_phi->at(daughter_indices.front()), leptons_eta->at(daughter_indices.back()), leptons_phi->at(daughter_indices.back()), dR_l1l2);
+
         // Check if a tag is present
         float wgt_triggers_tag = -1;
         for (auto const& tag_idx:tag_indices){
@@ -876,7 +940,9 @@ void getEfficiencyHistograms(
 
           bool passDileptonTriggers = false;
           for (auto const& hltname:interestingHLTMenus_Dileptons){
-            passDileptonTriggers |= (dileptons_wgt_triggers_map.find(hltname)->second->at(idilep) != 0.f);
+            auto it_dileptons_wgt_triggers = dileptons_wgt_triggers_map.find(hltname);
+            if (it_dileptons_wgt_triggers==dileptons_wgt_triggers_map.end() || !it_dileptons_wgt_triggers->second) continue;
+            passDileptonTriggers |= (it_dileptons_wgt_triggers->second->at(idilep) != 0.f);
             if (passDileptonTriggers) break;
           }
 
@@ -925,6 +991,8 @@ void getEfficiencyHistograms(
           event_pass_isotrackVeto && event_pass_ZWVeto && event_n_leptons_tight==2
           &&
           (is_ee || is_mumu)
+          &&
+          dR_l1l2>0.4f
           &&
           dilepton_mass>binning_mll_tnp_SingleLepton.getMin() && dilepton_mass<binning_mll_tnp_SingleLepton.getMax()
           ){
@@ -1629,7 +1697,12 @@ void plotEffSF(TString const& coutput_main, TString cname_app, TString ptitle, T
     ptLabel.SetTextAlign(12);
     ptLabel.SetTextFont(42);
     ptLabel.SetTextSize(0.045);
-    text = ptLabel.AddText(0.025, 0.45, plabels.at(il));
+    TString strptlabelapp;
+    if (il==0 && !isSF){
+      if (isData) strptlabelapp = " (obs.)";
+      else strptlabelapp = " (sim.)";
+    }
+    text = ptLabel.AddText(0.025, 0.45, plabels.at(il)+strptlabelapp);
     text->SetTextSize(0.0315);
     ptLabel.Draw();
   }
@@ -1788,6 +1861,7 @@ void collectEfficiencies(
 
   std::vector<TH2F*> heffs_combined[2];
   std::vector<TH2F*> hSFs_combined[3];
+  std::vector<TH2F*> hSFs_pt25avg_combined[3];
   {
     subdir_Dileptons_wcuts_Effs->cd();
     std::vector<TH2F*> tmplist;
@@ -1887,7 +1961,14 @@ void collectEfficiencies(
     hSFs_combined[1].push_back(hSF_dn);
     hSFs_combined[2].push_back(hSF_up);
 
-    // Print averaging info
+    // Get averaged SFs
+    hname = hSF_nominal->GetName(); HelperFunctions::replaceString(hname, "_SF_", "_SF_pt25avg_");
+    TH2F* hSF_pt25avg_nominal = (TH2F*) hSF_nominal->Clone(hname);
+    hname = hSF_dn->GetName(); HelperFunctions::replaceString(hname, "_SF_", "_SF_pt25avg_");
+    TH2F* hSF_pt25avg_dn = (TH2F*) hSF_dn->Clone(hname);
+    hname = hSF_up->GetName(); HelperFunctions::replaceString(hname, "_SF_", "_SF_pt25avg_");
+    TH2F* hSF_pt25avg_up = (TH2F*) hSF_up->Clone(hname);
+
     int i25 = hSF_nominal->GetXaxis()->FindBin(25);
     int j25 = hSF_nominal->GetYaxis()->FindBin(25);
     double sum_SF_nominal_times_wgt = 0;
@@ -1914,6 +1995,26 @@ void collectEfficiencies(
       << "SF on " << hMC_nominal->GetName() << " might be averaged as " << sum_SF_nominal_times_wgt << " [" << sum_SF_dn_times_wgt << ", " << sum_SF_up_times_wgt << "] | "
       << (sum_SF_dn_times_wgt/sum_SF_nominal_times_wgt-1.)*100. << ", " << (sum_SF_up_times_wgt/sum_SF_nominal_times_wgt-1.)*100.
       << endl;
+    // Set the avg. values
+    for (int ix=i25; ix<=hSF_nominal->GetNbinsX(); ix++){
+      for (int iy=j25; iy<=hSF_nominal->GetNbinsY(); iy++){
+        double SF_nominal = hSF_nominal->GetBinContent(ix, iy);
+        double SF_dn = hSF_dn->GetBinContent(ix, iy);
+        double SF_up = hSF_up->GetBinContent(ix, iy);
+        if (SF_dn == SF_up && SF_nominal==0.) continue;
+        hSF_pt25avg_nominal->SetBinContent(ix, iy, sum_SF_nominal_times_wgt);
+        hSF_pt25avg_dn->SetBinContent(ix, iy, sum_SF_dn_times_wgt);
+        hSF_pt25avg_up->SetBinContent(ix, iy, sum_SF_up_times_wgt);
+      }
+    }
+
+    outdir_Dilepton_Combined->WriteTObject(hSF_pt25avg_nominal);
+    outdir_Dilepton_Combined->WriteTObject(hSF_pt25avg_dn);
+    outdir_Dilepton_Combined->WriteTObject(hSF_pt25avg_up);
+
+    hSFs_pt25avg_combined[0].push_back(hSF_pt25avg_nominal);
+    hSFs_pt25avg_combined[1].push_back(hSF_pt25avg_dn);
+    hSFs_pt25avg_combined[2].push_back(hSF_pt25avg_up);
   }
   // Plot the efficiencies
   {
@@ -2162,6 +2263,7 @@ void collectEfficiencies(
     }
   }
 
+  for (unsigned short ihs=0; ihs<3; ihs++){ for (auto& hh:hSFs_pt25avg_combined[ihs]) delete hh; }
   for (unsigned short ihs=0; ihs<3; ihs++){ for (auto& hh:hSFs_combined[ihs]) delete hh; }
   for (unsigned short ihs=0; ihs<3; ihs++){ for (auto& hh:hSFs_SingleLepton[ihs]) delete hh; }
 
