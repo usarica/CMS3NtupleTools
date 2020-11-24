@@ -82,10 +82,12 @@ for sample in "${MCSampleList[@]}"; do
         strargs="${strargs/<period>/$dataperiod}"
         if [[ "${sample}" == "/ZZTo2L2Nu"* ]];then
           strargs="${strargs/<vetoExtraNonOverlappingLeptons>/true}"
-          strargs="${strargs/<hardProcessFallback>/true}"
+          #strargs="${strargs/<hardProcessFallback>/true}"
+          strargs="${strargs/<hardProcessFallback>/false}"
         elif [[ "${sample}" == "/ZZTo4L"* ]];then
           strargs="${strargs/<vetoExtraNonOverlappingLeptons>/false}"
-          strargs="${strargs/<hardProcessFallback>/true}"
+          #strargs="${strargs/<hardProcessFallback>/true}"
+          strargs="${strargs/<hardProcessFallback>/false}"
         else
           strargs="${strargs/<vetoExtraNonOverlappingLeptons>/true}"
           strargs="${strargs/<hardProcessFallback>/false}"

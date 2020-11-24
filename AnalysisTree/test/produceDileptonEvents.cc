@@ -11,7 +11,7 @@ namespace LooperFunctionHelpers{
   using namespace MELAStreamHelpers;
   using namespace OffshellCutflow;
 
-  bool looperRule(BaseTreeLooper*, double const&, SimpleEntry&);
+  bool looperRule(BaseTreeLooper*, std::unordered_map<SystematicsHelpers::SystematicVariationTypes, double> const&, SimpleEntry&);
 
 
   // Helper options for MET
@@ -42,7 +42,7 @@ namespace LooperFunctionHelpers{
   void addTimeDuration(TString const& strname, std::chrono::microseconds const& dur);
 
 }
-bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& extWgt, SimpleEntry& commonEntry){
+bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered_map<SystematicsHelpers::SystematicVariationTypes, double> const& extWgt, SimpleEntry& commonEntry){
   // Define handlers
 #define OBJECT_HANDLER_COMMON_DIRECTIVES \
   HANDLER_DIRECTIVE(EventFilterHandler, eventFilter) \
@@ -201,6 +201,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(float, event_wgt) \
   BRANCH_COMMAND(float, event_wgt_L1PrefiringDn) \
   BRANCH_COMMAND(float, event_wgt_L1PrefiringUp) \
+  BRANCH_COMMAND(float, event_wgt_PUDn) \
+  BRANCH_COMMAND(float, event_wgt_PUUp) \
   BRANCH_COMMAND(float, event_wgt_adjustment_NNPDF30) \
   BRANCH_COMMAND(float, event_wgt_triggers_SingleLepton) \
   BRANCH_COMMAND(float, event_wgt_triggers_Dilepton) \
@@ -238,6 +240,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(float, genmet_pTmiss) \
   BRANCH_COMMAND(float, genmet_phimiss) \
   BRANCH_COMMAND(unsigned int, event_n_vtxs_good) \
+  BRANCH_COMMAND(unsigned int, event_n_leptons_fakeableBase) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt30) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt30_btagged_loose) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt30_btagged_medium) \
@@ -307,7 +310,24 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
 
 
   // Always assign the external weight first
-  event_wgt = event_wgt_L1PrefiringDn = event_wgt_L1PrefiringUp = extWgt;
+  auto it_extWgt = extWgt.find(theGlobalSyst);
+  if (it_extWgt==extWgt.cend()) it_extWgt = extWgt.find(SystematicsHelpers::nSystematicVariations);
+  if (it_extWgt==extWgt.cend()){
+    MELAerr << "LooperFunctionHelpers::looperRule: External normalization map does not have a proper weight assigned!" << endl;
+    assert(0);
+  }
+  double const& extWgt_central = it_extWgt->second;
+
+  auto it_extWgt_PUDn = extWgt.find(SystematicsHelpers::ePUDn);
+  if (it_extWgt_PUDn==extWgt.cend()) it_extWgt_PUDn = it_extWgt;
+  double const& extWgt_PUDn = it_extWgt_PUDn->second;
+
+  auto it_extWgt_PUUp = extWgt.find(SystematicsHelpers::ePUUp);
+  if (it_extWgt_PUUp==extWgt.cend()) it_extWgt_PUUp = it_extWgt;
+  double const& extWgt_PUUp = it_extWgt_PUUp->second;
+
+  event_wgt = event_wgt_L1PrefiringDn = event_wgt_L1PrefiringUp = extWgt_central;
+  event_wgt_PUDn = extWgt_PUDn; event_wgt_PUUp = extWgt_PUUp;
   // Set NNPDF 3.0 adjustment to 1
   event_wgt_adjustment_NNPDF30 = 1;
 
@@ -319,6 +339,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     double genwgt_default = genInfo->getGenWeight(true);
     event_wgt_adjustment_NNPDF30 = (genwgt_default!=0. ? genwgt_NNPDF30 / genwgt_default : 0.);
     event_wgt *= genwgt_default;
+    event_wgt_PUDn *= genwgt_default;
+    event_wgt_PUUp *= genwgt_default;
     genmet_pTmiss = genInfo->extras.genmet_met;
     genmet_phimiss = genInfo->extras.genmet_metPhi;
     auto const& genparticles = genInfoHandler->getGenParticles();
@@ -327,7 +349,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       if (isQCD){
         for (auto const& part:genparticles){
           if (PDGHelpers::isAPhoton(part->pdgId()) && part->extras.isPromptFinalState && part->pt()>=25.f){
-            event_wgt = 0;
+            event_wgt = event_wgt_PUDn = event_wgt_PUUp = 0;
             break;
           }
         }
@@ -335,7 +357,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       if (isGJets_HT){
         for (auto const& part:genparticles){
           if (PDGHelpers::isAPhoton(part->pdgId()) && part->extras.isPromptFinalState){
-            event_wgt *= std::max(1., 1.71691-0.001221*part->pt());
+            double wgt_gjets = std::max(1., 1.71691-0.001221*part->pt());;
+            event_wgt *= wgt_gjets;
+            event_wgt_PUDn *= wgt_gjets;
+            event_wgt_PUUp *= wgt_gjets;
             break;
           }
         }
@@ -343,7 +368,9 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       if (hasPTGExceptionRange){
         for (auto const& part:genparticles){
           if (PDGHelpers::isAPhoton(part->pdgId()) && part->extras.isHardProcess){
-            if ((pTG_true_exception_range[0]>=0.f && part->pt()<pTG_true_exception_range[0]) || (pTG_true_exception_range[1]>=0.f && part->pt()>=pTG_true_exception_range[1])) event_wgt = 0;
+            if ((pTG_true_exception_range[0]>=0.f && part->pt()<pTG_true_exception_range[0]) || (pTG_true_exception_range[1]>=0.f && part->pt()>=pTG_true_exception_range[1])){
+              event_wgt = event_wgt_PUDn = event_wgt_PUUp = 0;
+            }
             break;
           }
         }
@@ -355,6 +382,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     event_wgt *= simEventHandler->getPileUpWeight(theGlobalSyst)*simEventHandler->getL1PrefiringWeight(theGlobalSyst);
     event_wgt_L1PrefiringDn *= simEventHandler->getPileUpWeight(theGlobalSyst)*simEventHandler->getL1PrefiringWeight(SystematicsHelpers::eL1PrefiringDn);
     event_wgt_L1PrefiringUp *= simEventHandler->getPileUpWeight(theGlobalSyst)*simEventHandler->getL1PrefiringWeight(SystematicsHelpers::eL1PrefiringUp);
+    event_wgt_PUDn *= simEventHandler->getPileUpWeight(SystematicsHelpers::ePUDn)*simEventHandler->getL1PrefiringWeight(theGlobalSyst);
+    event_wgt_PUUp *= simEventHandler->getPileUpWeight(SystematicsHelpers::ePUUp)*simEventHandler->getL1PrefiringWeight(theGlobalSyst);
 
     if (
       event_wgt==0.f
@@ -362,6 +391,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       event_wgt_L1PrefiringDn==0.f
       &&
       event_wgt_L1PrefiringUp==0.f
+      &&
+      event_wgt_PUDn==0.f
+      &&
+      event_wgt_PUUp==0.f
       ) return false;
 
     // Record LHE MEs and K factors
@@ -424,6 +457,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       theEff = 1; muonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eMuEffSystDn, part->pt(), part->eta(), true, true, true, theSF, &theEff); lepton_eff_SystDn_map[part] = theEff;
       theEff = 1; muonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eMuEffSystUp, part->pt(), part->eta(), true, true, true, theSF, &theEff); lepton_eff_SystUp_map[part] = theEff;
     }
+
+    if (!ParticleSelectionHelpers::isTightParticle(part) && part->testSelectionBit(MuonSelectionHelpers::kFakeableBase)) event_n_leptons_fakeableBase++;
   }
   event_wgt_SFs_muons = SF_muons;
   event_wgt_SFs_muons_StatDn = SF_muons_StatDn;
@@ -460,6 +495,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       theEff = 1; electronSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eEleEffSystDn, part->pt(), part->etaSC(), part->isGap(), true, true, true, theSF, &theEff); lepton_eff_SystDn_map[part] = theEff;
       theEff = 1; electronSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eEleEffSystUp, part->pt(), part->etaSC(), part->isGap(), true, true, true, theSF, &theEff); lepton_eff_SystUp_map[part] = theEff;
     }
+
+    if (!ParticleSelectionHelpers::isTightParticle(part) && part->testSelectionBit(ElectronSelectionHelpers::kFakeableBase)) event_n_leptons_fakeableBase++;
   }
   event_wgt_SFs_electrons = SF_electrons;
   event_wgt_SFs_electrons_StatDn = SF_electrons_StatDn;
@@ -890,6 +927,7 @@ void getTrees(
     ePUJetIdEffDn, ePUJetIdEffUp,
     eBTagSFDn, eBTagSFUp,
 
+    ePUDn, ePUUp,
     eL1PrefiringDn, eL1PrefiringUp
   };
   if (HelperFunctions::checkListVariable(disallowedSysts, theGlobalSyst)){
@@ -1127,6 +1165,8 @@ void getTrees(
 
     const int nEntries = sample_tree->getSelectedNEvents();
     double sum_wgts = (isData ? 1.f : 0.f);
+    double sum_wgts_PUDn = sum_wgts;
+    double sum_wgts_PUUp = sum_wgts;
     float xsec = 1;
     float xsec_scale = 1;
     if (!isData){
@@ -1173,11 +1213,13 @@ void getTrees(
           TH2D* hCounters = (TH2D*) ftmp->Get("cms3ntuple/Counters");
           if (!hCounters){
             hasCounters = false;
-            sum_wgts = 0;
+            sum_wgts = sum_wgts_PUDn = sum_wgts_PUUp = 0;
             break;
           }
           MELAout << "\t- Successfully found the counters histogram in " << fname << endl;
           sum_wgts += hCounters->GetBinContent(bin_syst, bin_period);
+          sum_wgts_PUDn += hCounters->GetBinContent(2, bin_period);
+          sum_wgts_PUUp += hCounters->GetBinContent(3, bin_period);
           sum_wgts_raw_withveto += hCounters->GetBinContent(0, 0);
           sum_wgts_raw_noveto += hCounters->GetBinContent(0, 0) / (1. - hCounters->GetBinContent(0, 1));
           ftmp->Close();
@@ -1212,16 +1254,23 @@ void getTrees(
 
           sum_wgts_raw_withveto += genwgt;
           sum_wgts += genwgt * simEventHandler.getPileUpWeight(theGlobalSyst);
+          sum_wgts_PUDn += genwgt * simEventHandler.getPileUpWeight(SystematicsHelpers::ePUDn);
+          sum_wgts_PUUp += genwgt * simEventHandler.getPileUpWeight(SystematicsHelpers::ePUUp);
         }
         if (nEntries>0) frac_zero_genwgts = double(n_zero_genwgts)/double(nEntries);
         sum_wgts_raw_noveto = sum_wgts_raw_withveto / (1. - frac_zero_genwgts);
       }
       xsec_scale = sum_wgts_raw_withveto / sum_wgts_raw_noveto;
     }
-    double globalWeight = xsec * xsec_scale * (isData ? 1.f : lumi) / sum_wgts;
-    MELAout << "Sample " << sample_tree->sampleIdentifier << " has a gen. weight sum of " << sum_wgts << "." << endl;
+    std::unordered_map<SystematicsHelpers::SystematicVariationTypes, double> globalWeights;
+    double globalWeight = xsec * xsec_scale * (isData ? 1.f : lumi) / sum_wgts; globalWeights[theGlobalSyst] = globalWeight;
+    double globalWeight_PUDn = xsec * xsec_scale * (isData ? 1.f : lumi) / sum_wgts_PUDn; globalWeights[SystematicsHelpers::ePUDn] = globalWeight_PUDn;
+    double globalWeight_PUUp = xsec * xsec_scale * (isData ? 1.f : lumi) / sum_wgts_PUUp; globalWeights[SystematicsHelpers::ePUUp] = globalWeight_PUUp;
+    MELAout << "Sample " << sample_tree->sampleIdentifier << " has a gen. weight sum of " << sum_wgts << " (PU dn: " << sum_wgts_PUDn << ", PU up: " << sum_wgts_PUUp << ")." << endl;
     MELAout << "\t- xsec scale = " << xsec_scale << endl;
     MELAout << "\t- Global weight = " << globalWeight << endl;
+    MELAout << "\t- Global weight (PU dn) = " << globalWeight_PUDn << endl;
+    MELAout << "\t- Global weight (PU up) = " << globalWeight_PUUp << endl;
 
     // Configure handlers
     pfcandidateHandler.bookBranches(sample_tree);
@@ -1257,7 +1306,7 @@ void getTrees(
     sample_tree->silenceUnused();
 
     // Add the input tree to the looper
-    theLooper.addTree(sample_tree, globalWeight);
+    theLooper.addTree(sample_tree, globalWeights);
   }
 
   // Loop over all events

@@ -5,12 +5,23 @@
 #include "TStyle.h"
 
 
+#define CONTROL_TRIGGER_COMMANDS \
+CONTROL_TRIGGER_COMMAND(AK8PFJet_Control) \
+CONTROL_TRIGGER_COMMAND(VBFJets_Control) \
+CONTROL_TRIGGER_COMMAND(PFHT_Control) \
+CONTROL_TRIGGER_COMMAND(MET_Control) \
+CONTROL_TRIGGER_COMMAND(PFMET_Control) \
+CONTROL_TRIGGER_COMMAND(PFHT_PFMET_Control) \
+CONTROL_TRIGGER_COMMAND(PFMET_MHT_Control) \
+CONTROL_TRIGGER_COMMAND(PFHT_PFMET_MHT_Control)
+
+
 namespace LooperFunctionHelpers{
   using namespace std;
   using namespace MELAStreamHelpers;
   using namespace OffshellCutflow;
 
-  bool looperRule(BaseTreeLooper*, double const&, SimpleEntry&);
+  bool looperRule(BaseTreeLooper*, std::unordered_map<SystematicsHelpers::SystematicVariationTypes, double> const&, SimpleEntry&);
 
 
   // Helper options for MET
@@ -41,7 +52,7 @@ namespace LooperFunctionHelpers{
   void setApplyFakeableId(bool applyFakeables_);
 
 }
-bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& extWgt, SimpleEntry& commonEntry){
+bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered_map<SystematicsHelpers::SystematicVariationTypes, double> const& extWgt, SimpleEntry& commonEntry){
   // Define handlers
 #define OBJECT_HANDLER_COMMON_DIRECTIVES \
   HANDLER_DIRECTIVE(EventFilterHandler, eventFilter) \
@@ -91,24 +102,31 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   bool needGenParticleChecks = isQCD || isGJets_HT || hasPTGExceptionRange;
 
   // Acquire triggers
-  auto const& triggerCheckListMap = theLooper->getHLTMenus();
   auto const& triggerPropsCheckListMap = theLooper->getHLTMenuProperties();
-  bool hasSimpleHLTMenus = theLooper->hasSimpleHLTMenus();
   bool hasHLTMenuProperties = theLooper->hasHLTMenuProperties();
-  if (hasSimpleHLTMenus && hasHLTMenuProperties){
-    MELAerr << "LooperFunctionHelpers::looperRule: Defining both simple HLT menus and menus with properties is not allowed. Choose only one!" << endl;
+  if (!hasHLTMenuProperties){
+    MELAerr << "LooperFunctionHelpers::looperRule: There must be HLT menus with properties." << endl;
     assert(0);
   }
-  auto it_HLTMenuSimple = triggerCheckListMap.find("SingleLepton");
   auto it_HLTMenuProps = triggerPropsCheckListMap.find("SingleLepton");
-  if (
-    (hasSimpleHLTMenus && it_HLTMenuSimple == triggerCheckListMap.cend())
-    ||
-    (hasHLTMenuProperties && it_HLTMenuProps == triggerPropsCheckListMap.cend())
-    ){
-    MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'SingleLepton' has to be defined in this looper rule!" << endl;
-    assert(0);
+#define CONTROL_TRIGGER_COMMAND(TYPE) auto it_HLTMenuProps_##TYPE = triggerPropsCheckListMap.find(#TYPE);
+  CONTROL_TRIGGER_COMMANDS;
+#undef CONTROL_TRIGGER_COMMAND
+#define CONTROL_TRIGGER_COMMAND(TYPE) \
+  if (it_HLTMenuProps_##TYPE == triggerPropsCheckListMap.cend()){ \
+    MELAerr << "LooperFunctionHelpers::looperRule: The trigger type '" << #TYPE << "' has to be defined in this looper rule!" << endl; \
+    assert(0); \
   }
+  if (!applyFakeables){
+    if (it_HLTMenuProps == triggerPropsCheckListMap.cend()){
+      MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'SingleLepton' has to be defined in this looper rule!" << endl;
+      assert(0);
+    }
+  }
+  else{
+    CONTROL_TRIGGER_COMMANDS;
+  }
+#undef CONTROL_TRIGGER_COMMAND
 
   // Acquire all handlers
 #define HANDLER_DIRECTIVE(TYPE, NAME) TYPE* NAME = nullptr;
@@ -149,6 +167,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(float, event_wgt) \
   BRANCH_COMMAND(float, event_wgt_L1PrefiringDn) \
   BRANCH_COMMAND(float, event_wgt_L1PrefiringUp) \
+  BRANCH_COMMAND(float, event_wgt_PUDn) \
+  BRANCH_COMMAND(float, event_wgt_PUUp) \
   BRANCH_COMMAND(float, event_wgt_adjustment_NNPDF30) \
   BRANCH_COMMAND(float, event_wgt_triggers) \
   BRANCH_COMMAND(float, event_wgt_SFs_muons) \
@@ -222,6 +242,9 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_SCALAR_COMMANDS \
   BRANCH_VECTOR_COMMANDS
 
+#define CONTROL_TRIGGER_COMMAND(TYPE) float event_wgt_triggers_##TYPE = 0;
+  CONTROL_TRIGGER_COMMANDS;
+#undef CONTROL_TRIGGER_COMMAND
 #define BRANCH_COMMAND(TYPE, NAME) TYPE NAME = 0;
   BRANCH_SCALAR_COMMANDS;
 #undef BRANCH_COMMAND
@@ -236,7 +259,24 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
 
 
   // Always assign the external weight first
-  event_wgt = event_wgt_L1PrefiringDn = event_wgt_L1PrefiringUp = extWgt;
+  auto it_extWgt = extWgt.find(theGlobalSyst);
+  if (it_extWgt==extWgt.cend()) it_extWgt = extWgt.find(SystematicsHelpers::nSystematicVariations);
+  if (it_extWgt==extWgt.cend()){
+    MELAerr << "LooperFunctionHelpers::looperRule: External normalization map does not have a proper weight assigned!" << endl;
+    assert(0);
+  }
+  double const& extWgt_central = it_extWgt->second;
+
+  auto it_extWgt_PUDn = extWgt.find(SystematicsHelpers::ePUDn);
+  if (it_extWgt_PUDn==extWgt.cend()) it_extWgt_PUDn = it_extWgt;
+  double const& extWgt_PUDn = it_extWgt_PUDn->second;
+
+  auto it_extWgt_PUUp = extWgt.find(SystematicsHelpers::ePUUp);
+  if (it_extWgt_PUUp==extWgt.cend()) it_extWgt_PUUp = it_extWgt;
+  double const& extWgt_PUUp = it_extWgt_PUUp->second;
+
+  event_wgt = event_wgt_L1PrefiringDn = event_wgt_L1PrefiringUp = extWgt_central;
+  event_wgt_PUDn = extWgt_PUDn; event_wgt_PUUp = extWgt_PUUp;
   // Set NNPDF 3.0 adjustment to 1
   event_wgt_adjustment_NNPDF30 = 1;
 
@@ -247,6 +287,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     double genwgt_default = genInfo->getGenWeight(true);
     event_wgt_adjustment_NNPDF30 = (genwgt_default!=0. ? genwgt_NNPDF30 / genwgt_default : 0.);
     event_wgt *= genwgt_default;
+    event_wgt_PUDn *= genwgt_default;
+    event_wgt_PUUp *= genwgt_default;
     genmet_pTmiss = genInfo->extras.genmet_met;
     genmet_phimiss = genInfo->extras.genmet_metPhi;
     auto const& genparticles = genInfoHandler->getGenParticles();
@@ -255,7 +297,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       if (isQCD){
         for (auto const& part:genparticles){
           if (PDGHelpers::isAPhoton(part->pdgId()) && part->extras.isPromptFinalState && part->pt()>=25.f){
-            event_wgt = 0;
+            event_wgt = event_wgt_PUDn = event_wgt_PUUp = 0;
             break;
           }
         }
@@ -263,7 +305,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       if (isGJets_HT){
         for (auto const& part:genparticles){
           if (PDGHelpers::isAPhoton(part->pdgId()) && part->extras.isPromptFinalState){
-            event_wgt *= std::max(1., 1.71691-0.001221*part->pt());
+            double wgt_gjets = std::max(1., 1.71691-0.001221*part->pt());;
+            event_wgt *= wgt_gjets;
+            event_wgt_PUDn *= wgt_gjets;
+            event_wgt_PUUp *= wgt_gjets;
             break;
           }
         }
@@ -271,7 +316,9 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       if (hasPTGExceptionRange){
         for (auto const& part:genparticles){
           if (PDGHelpers::isAPhoton(part->pdgId()) && part->extras.isHardProcess){
-            if ((pTG_true_exception_range[0]>=0.f && part->pt()<pTG_true_exception_range[0]) || (pTG_true_exception_range[1]>=0.f && part->pt()>=pTG_true_exception_range[1])) event_wgt = 0;
+            if ((pTG_true_exception_range[0]>=0.f && part->pt()<pTG_true_exception_range[0]) || (pTG_true_exception_range[1]>=0.f && part->pt()>=pTG_true_exception_range[1])){
+              event_wgt = event_wgt_PUDn = event_wgt_PUUp = 0;
+            }
             break;
           }
         }
@@ -283,6 +330,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     event_wgt *= simEventHandler->getPileUpWeight(theGlobalSyst)*simEventHandler->getL1PrefiringWeight(theGlobalSyst);
     event_wgt_L1PrefiringDn *= simEventHandler->getPileUpWeight(theGlobalSyst)*simEventHandler->getL1PrefiringWeight(SystematicsHelpers::eL1PrefiringDn);
     event_wgt_L1PrefiringUp *= simEventHandler->getPileUpWeight(theGlobalSyst)*simEventHandler->getL1PrefiringWeight(SystematicsHelpers::eL1PrefiringUp);
+    event_wgt_PUDn *= simEventHandler->getPileUpWeight(SystematicsHelpers::ePUDn)*simEventHandler->getL1PrefiringWeight(theGlobalSyst);
+    event_wgt_PUUp *= simEventHandler->getPileUpWeight(SystematicsHelpers::ePUUp)*simEventHandler->getL1PrefiringWeight(theGlobalSyst);
 
     if (
       event_wgt==0.f
@@ -290,21 +339,29 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       event_wgt_L1PrefiringDn==0.f
       &&
       event_wgt_L1PrefiringUp==0.f
+      &&
+      event_wgt_PUDn==0.f
+      &&
+      event_wgt_PUUp==0.f
       ) return false;
 
     // Record LHE MEs and K factors
     for (auto const& it:genInfo->extras.LHE_ME_weights) commonEntry.setNamedVal(it.first, it.second);
     for (auto const& it:genInfo->extras.Kfactors) commonEntry.setNamedVal(it.first, it.second);
   }
+  theLooper->incrementSelection("Valid gen. weights");
 
   vertexHandler->constructVertices();
   if (!vertexHandler->hasGoodPrimaryVertex()) return false;
   event_n_vtxs_good = vertexHandler->getNGoodVertices();
+  theLooper->incrementSelection("Good vertices");
 
   eventFilter->constructFilters(simEventHandler);
   if (isData && !eventFilter->isUniqueDataEvent()) return false;
+  theLooper->incrementSelection("Unique data");
 
   if (!eventFilter->passCommonSkim() || !eventFilter->passMETFilters(EventFilterHandler::kMETFilters_Standard)) return false;
+  theLooper->incrementSelection("MET filters");
   event_pass_tightMETFilters = eventFilter->passMETFilters(EventFilterHandler::kMETFilters_Tight);
 
   pfcandidateHandler->constructPFCandidates(theGlobalSyst);
@@ -388,6 +445,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   event_wgt_SFs_electrons_AltMCUp = SF_electrons_AltMCUp;
 
   if (!(n_leptons_tight==1 && n_leptons_veto==0)) return false;
+  theLooper->incrementSelection("Exactly one lepton");
 
   auto const& photons = photonHandler->getProducts();
   unsigned int n_photons_veto = 0;
@@ -408,6 +466,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   event_wgt_SFs_photons_EffDn = SF_photons_EffDn;
   event_wgt_SFs_photons_EffUp = SF_photons_EffUp;
   if (n_photons_veto!=0) return false;
+  theLooper->incrementSelection("Photon veto");
 
   isotrackHandler->constructIsotracks(&muons, &electrons);
   bool hasVetoIsotrack = false;
@@ -418,6 +477,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     }
   }
   if (hasVetoIsotrack) return false;
+  theLooper->incrementSelection("Isotrack veto");
 
   // Record lepton variables
   MuonObject* theMuon = dynamic_cast<MuonObject*>(theChosenLepton);
@@ -442,16 +502,37 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   jetHandler->constructJetMET(theGlobalSyst, &muons, &electrons, &photons, &pfcandidates);
   auto const& ak4jets = jetHandler->getAK4Jets();
   auto const& ak8jets = jetHandler->getAK8Jets();
+  auto const& eventmet = (use_MET_Puppi ? jetHandler->getPFPUPPIMET() : jetHandler->getPFMET());
+  if (!isData && use_MET_corrections) metCorrectionHandler->applyCorrections(
+    simEventHandler->getChosenDataPeriod(),
+    genmet_pTmiss, genmet_phimiss,
+    eventmet, !use_MET_Puppi,
+    &(simEventHandler->getRandomNumber(SimEventHandler::kGenMETSmear))
+  );
+  auto event_met_p4 = eventmet->p4(use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr, use_MET_p4Preservation);
+  event_pTmiss = event_met_p4.Pt();
+  event_phimiss = event_met_p4.Phi();
 
-  if (hasSimpleHLTMenus) event_wgt_triggers = eventFilter->getTriggerWeight(it_HLTMenuSimple->second);
-  else if (hasHLTMenuProperties) event_wgt_triggers = eventFilter->getTriggerWeight(
+  if (!applyFakeables) event_wgt_triggers = eventFilter->getTriggerWeight(
     it_HLTMenuProps->second,
     &muons, &electrons, nullptr, nullptr, nullptr, nullptr
   );
+  else{
+#define CONTROL_TRIGGER_COMMAND(TYPE) \
+    event_wgt_triggers_##TYPE = eventFilter->getTriggerWeight( \
+      it_HLTMenuProps_##TYPE->second, \
+      nullptr, nullptr, nullptr, &ak4jets, &ak8jets, eventmet \
+    ); \
+    if (event_wgt_triggers_##TYPE != 0.f) event_wgt_triggers = (event_wgt_triggers==0.f ? event_wgt_triggers_##TYPE : std::min(event_wgt_triggers_##TYPE, event_wgt_triggers));
+    CONTROL_TRIGGER_COMMANDS;
+#undef CONTROL_TRIGGER_COMMAND
+  }
   if (event_wgt_triggers == 0.f) return false;
+  theLooper->incrementSelection("Trigger");
 
   // Test HEM filter
   if (!eventFilter->test2018HEMFilter(simEventHandler, nullptr, nullptr, &ak4jets, &ak8jets)) return false;
+  theLooper->incrementSelection("HEM15/16 veto");
 
   ParticleObject::LorentzVector_t sump4_ak4jets(0, 0, 0, 0);
   std::vector<AK4JetObject*> ak4jets_tight; ak4jets_tight.reserve(ak4jets.size());
@@ -524,17 +605,6 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     ak8jets_mass.push_back(jet->mass());
   }
 
-  auto const& eventmet = (use_MET_Puppi ? jetHandler->getPFPUPPIMET() : jetHandler->getPFMET());
-  if (!isData && use_MET_corrections) metCorrectionHandler->applyCorrections(
-    simEventHandler->getChosenDataPeriod(),
-    genmet_pTmiss, genmet_phimiss,
-    eventmet, !use_MET_Puppi,
-    &(simEventHandler->getRandomNumber(SimEventHandler::kGenMETSmear))
-  );
-  auto event_met_p4 = eventmet->p4(use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr, use_MET_p4Preservation);
-  event_pTmiss = event_met_p4.Pt();
-  event_phimiss = event_met_p4.Phi();
-
   min_abs_dPhi_pTj_pTmiss = TMath::Pi();
   for (auto const& jet:ak4jets_tight){
     ak4jets_pt.push_back(jet->pt());
@@ -605,6 +675,12 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   for (auto const& selreq:v_passWW2l2nuSRlikeSelection){ if (selreq) n_passWW2l2nuSRlikeSelection++; }
   bool const pass_SRSel_Nminus1 = (n_passZZ2l2nuSRlikeSelection >= v_passZZ2l2nuSRlikeSelection.size()-1) || (n_passWW2l2nuSRlikeSelection >= v_passWW2l2nuSRlikeSelection.size()-1);
 
+  // Do not record sigle lepton CR events which do not pass N-1 selection requirements
+  if (!applyFakeables){
+    if (!pass_SRSel_Nminus1) return false;
+    theLooper->incrementSelection("N-1 veto");
+  }
+
   // Compute MEs
   bool computeMEs = theLooper->hasRecoMEs() && pass_SRSel_Nminus1;
   if (computeMEs){
@@ -635,7 +711,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
 
   // For the case of fakeable ids, add extra bracnhes for fakeable flavor
   if (applyFakeables){
+    // All leptons are loose, so record which ones are tight.
     bool lepton_is_tight = ParticleSelectionHelpers::isTightParticle(theChosenLepton); commonEntry.setNamedVal("lepton_is_tight", lepton_is_tight);
+    float event_MT = std::sqrt(2.*lepton_pt*event_pTmiss*(1.f - std::cos(dPhi_pTboson_pTmiss))); commonEntry.setNamedVal("event_MT", event_MT);
+
     std::vector<bool> lepton_pass_fakeable_ids; // These are the fakeable id variations for trigger
     if (theElectron){
       using namespace ElectronTriggerCutEnums;
@@ -703,10 +782,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       for (auto const& testbit:testbits_v2) lepton_pass_fakeable_ids.push_back(HelperFunctions::test_bit(trigbits_v2, testbit));
     }
     else{
-      bool isFakeableBase = theMuon->testSelection(MuonSelectionHelpers::kFakeableBase);
-      bool isFakeableBaseWithTrkIso03 = isFakeableBase && theMuon->extras.trkIso03_trackerSumPt<0.4f*lepton_pt;
-      lepton_pass_fakeable_ids.reserve(2);
-      lepton_pass_fakeable_ids.push_back(isFakeableBase);
+      bool isFakeableBaseWithTrkIso03 = theMuon->extras.trkIso03_trackerSumPt<0.4f*lepton_pt; // i.e. TrkIsoVVL
+      lepton_pass_fakeable_ids.reserve(1);
       lepton_pass_fakeable_ids.push_back(isFakeableBaseWithTrkIso03);
     }
 
@@ -720,6 +797,11 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
 #define BRANCH_COMMAND(TYPE, NAME) commonEntry.setNamedVal(#NAME, NAME);
   BRANCH_COMMANDS;
 #undef BRANCH_COMMAND
+#define CONTROL_TRIGGER_COMMAND(TYPE) commonEntry.setNamedVal(Form("event_wgt_triggers_%s", #TYPE), event_wgt_triggers_##TYPE);
+  if (applyFakeables){
+    CONTROL_TRIGGER_COMMANDS;
+  }
+#undef CONTROL_TRIGGER_COMMAND
 
   return true;
 
@@ -748,7 +830,14 @@ void LooperFunctionHelpers::setBtagWPs(){
   btag_thr_tight = vwps.at(2);
 }
 
-void LooperFunctionHelpers::setApplyFakeableId(bool applyFakeables_){ applyFakeables = applyFakeables_; }
+void LooperFunctionHelpers::setApplyFakeableId(bool applyFakeables_){
+  applyFakeables = applyFakeables_;
+  if (applyFakeables){
+    MuonSelectionHelpers::setAllowFakeableInLooseSelection(true);
+    MuonSelectionHelpers::doRequireTrackerIsolationInFakeable(-1); // Set rel. trk. iso. to -1 so that we can test it separately.
+    ElectronSelectionHelpers::setAllowFakeableInLooseSelection(true);
+  }
+}
 
 
 using namespace SystematicsHelpers;
@@ -773,6 +862,31 @@ void getTrees(
 
   if (nchunks==1){ nchunks = 0; ichunk=0; }
   if (nchunks>0 && (ichunk<0 || ichunk==nchunks)) return;
+
+  std::string systName = SystematicsHelpers::getSystName(theGlobalSyst);
+  std::vector<SystematicsHelpers::SystematicVariationTypes> const disallowedSysts{
+    eEleEffDn, eEleEffUp,
+    eEleEffStatDn, eEleEffStatUp,
+    eEleEffSystDn, eEleEffSystUp,
+    eEleEffAltMCDn, eEleEffAltMCUp,
+
+    eMuEffDn, eMuEffUp,
+    eMuEffStatDn, eMuEffStatUp,
+    eMuEffSystDn, eMuEffSystUp,
+    eMuEffAltMCDn, eMuEffAltMCUp,
+
+    ePhoEffDn, ePhoEffUp,
+
+    ePUJetIdEffDn, ePUJetIdEffUp,
+    eBTagSFDn, eBTagSFUp,
+
+    ePUDn, ePUUp,
+    eL1PrefiringDn, eL1PrefiringUp
+  };
+  if (HelperFunctions::checkListVariable(disallowedSysts, theGlobalSyst)){
+    MELAout << "Systematic type " << systName << " is not allowed because the set of weights already cover it." << endl;
+    return;
+  }
 
   gStyle->SetOptStat(0);
 
@@ -806,6 +920,18 @@ void getTrees(
     TriggerHelpers::kSingleEle, TriggerHelpers::kSingleEle_HighPt
   };
   auto triggerPropsCheckList = TriggerHelpers::getHLTMenuProperties(requiredTriggers);
+
+#define CONTROL_TRIGGER_COMMAND(TYPE) std::vector<TriggerHelpers::TriggerType> requiredTriggers_##TYPE{ TriggerHelpers::k##TYPE };
+  CONTROL_TRIGGER_COMMANDS;
+#undef CONTROL_TRIGGER_COMMAND
+  TriggerHelpers::dropSelectionCuts(TriggerHelpers::kMET_Control);
+  TriggerHelpers::dropSelectionCuts(TriggerHelpers::kPFMET_Control);
+  TriggerHelpers::dropSelectionCuts(TriggerHelpers::kPFHT_PFMET_Control);
+  TriggerHelpers::dropSelectionCuts(TriggerHelpers::kPFMET_MHT_Control);
+  TriggerHelpers::dropSelectionCuts(TriggerHelpers::kPFHT_PFMET_MHT_Control);
+#define CONTROL_TRIGGER_COMMAND(TYPE) auto triggerPropsCheckList_##TYPE = TriggerHelpers::getHLTMenuProperties(requiredTriggers_##TYPE);
+  CONTROL_TRIGGER_COMMANDS;
+#undef CONTROL_TRIGGER_COMMAND
 
   // Get sample specifications
   std::vector<TString> sampledirs;
@@ -854,7 +980,7 @@ void getTrees(
   HelperFunctions::replaceString(coutput, "_MINIAOD", "");
   TString stroutput = Form("%s/%s", coutput_main.Data(), coutput.Data());
   if (nchunks>0) stroutput = stroutput + Form("_%i_of_%i", ichunk, nchunks);
-  stroutput += Form("_%s", SystematicsHelpers::getSystName(theGlobalSyst).data());
+  stroutput += Form("_%s", systName.data());
   stroutput += ".root";
   TFile* foutput = TFile::Open(stroutput, "recreate");
   foutput->cd();
@@ -964,7 +1090,12 @@ void getTrees(
   // Set output tree
   theLooper.addOutputTree(tout);
   // Register the HLT menus
-  theLooper.addHLTMenu("SingleLepton", triggerPropsCheckList);
+#define CONTROL_TRIGGER_COMMAND(TYPE) theLooper.addHLTMenu(#TYPE, triggerPropsCheckList_##TYPE);
+  if (!useFakeables) theLooper.addHLTMenu("SingleLepton", triggerPropsCheckList);
+  else{
+    CONTROL_TRIGGER_COMMANDS;
+  }
+#undef CONTROL_TRIGGER_COMMAND
   // Set the MEs
   if (computeMEs) theLooper.setMatrixElementListFromFile(
     "${CMSSW_BASE}/src/CMS3/AnalysisTree/data/RecoProbabilities/RecoProbabilities.me",
@@ -998,6 +1129,8 @@ void getTrees(
 
     const int nEntries = sample_tree->getSelectedNEvents();
     double sum_wgts = (isData ? 1.f : 0.f);
+    double sum_wgts_PUDn = sum_wgts;
+    double sum_wgts_PUUp = sum_wgts;
     float xsec = 1;
     float xsec_scale = 1;
     if (!isData){
@@ -1014,7 +1147,7 @@ void getTrees(
         bool has_lheparticles = false;
         bool has_genparticles = false;
         for (auto const& bname:allbranchnames){
-          if (bname.Contains("p_Gen") || bname.Contains("LHECandMass")) has_lheMEweights=true;
+          if (bname.Contains("p_Gen") || bname.Contains("LHECandMass")) has_lheMEweights = true;
           else if (bname.Contains(GenInfoHandler::colName_lheparticles)) has_lheparticles = true;
           else if (bname.Contains(GenInfoHandler::colName_genparticles)) has_genparticles = true;
         }
@@ -1044,11 +1177,13 @@ void getTrees(
           TH2D* hCounters = (TH2D*) ftmp->Get("cms3ntuple/Counters");
           if (!hCounters){
             hasCounters = false;
-            sum_wgts = 0;
+            sum_wgts = sum_wgts_PUDn = sum_wgts_PUUp = 0;
             break;
           }
           MELAout << "\t- Successfully found the counters histogram in " << fname << endl;
           sum_wgts += hCounters->GetBinContent(bin_syst, bin_period);
+          sum_wgts_PUDn += hCounters->GetBinContent(2, bin_period);
+          sum_wgts_PUUp += hCounters->GetBinContent(3, bin_period);
           sum_wgts_raw_withveto += hCounters->GetBinContent(0, 0);
           sum_wgts_raw_noveto += hCounters->GetBinContent(0, 0) / (1. - hCounters->GetBinContent(0, 1));
           ftmp->Close();
@@ -1083,16 +1218,23 @@ void getTrees(
 
           sum_wgts_raw_withveto += genwgt;
           sum_wgts += genwgt * simEventHandler.getPileUpWeight(theGlobalSyst);
+          sum_wgts_PUDn += genwgt * simEventHandler.getPileUpWeight(SystematicsHelpers::ePUDn);
+          sum_wgts_PUUp += genwgt * simEventHandler.getPileUpWeight(SystematicsHelpers::ePUUp);
         }
         if (nEntries>0) frac_zero_genwgts = double(n_zero_genwgts)/double(nEntries);
         sum_wgts_raw_noveto = sum_wgts_raw_withveto / (1. - frac_zero_genwgts);
       }
       xsec_scale = sum_wgts_raw_withveto / sum_wgts_raw_noveto;
     }
-    double globalWeight = xsec * xsec_scale * (isData ? 1.f : lumi) / sum_wgts;
-    MELAout << "Sample " << sample_tree->sampleIdentifier << " has a gen. weight sum of " << sum_wgts << "." << endl;
+    std::unordered_map<SystematicsHelpers::SystematicVariationTypes, double> globalWeights;
+    double globalWeight = xsec * xsec_scale * (isData ? 1.f : lumi) / sum_wgts; globalWeights[theGlobalSyst] = globalWeight;
+    double globalWeight_PUDn = xsec * xsec_scale * (isData ? 1.f : lumi) / sum_wgts_PUDn; globalWeights[SystematicsHelpers::ePUDn] = globalWeight_PUDn;
+    double globalWeight_PUUp = xsec * xsec_scale * (isData ? 1.f : lumi) / sum_wgts_PUUp; globalWeights[SystematicsHelpers::ePUUp] = globalWeight_PUUp;
+    MELAout << "Sample " << sample_tree->sampleIdentifier << " has a gen. weight sum of " << sum_wgts << " (PU dn: " << sum_wgts_PUDn << ", PU up: " << sum_wgts_PUUp << ")." << endl;
     MELAout << "\t- xsec scale = " << xsec_scale << endl;
     MELAout << "\t- Global weight = " << globalWeight << endl;
+    MELAout << "\t- Global weight (PU dn) = " << globalWeight_PUDn << endl;
+    MELAout << "\t- Global weight (PU up) = " << globalWeight_PUUp << endl;
 
     // Configure handlers
     pfcandidateHandler.bookBranches(sample_tree);
@@ -1128,7 +1270,7 @@ void getTrees(
     sample_tree->silenceUnused();
 
     // Add the input tree to the looper
-    theLooper.addTree(sample_tree, globalWeight);
+    theLooper.addTree(sample_tree, globalWeights);
   }
 
   // Loop over all events
@@ -1147,3 +1289,6 @@ void getTrees(
 
   SampleHelpers::addToCondorTransferList(stroutput);
 }
+
+
+#undef CONTROL_TRIGGER_COMMANDS

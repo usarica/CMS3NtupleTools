@@ -21,7 +21,7 @@ namespace LooperFunctionHelpers{
   using namespace MELAStreamHelpers;
   using namespace OffshellCutflow;
 
-  bool looperRule(BaseTreeLooper*, double const&, SimpleEntry&);
+  bool looperRule(BaseTreeLooper*, std::unordered_map<SystematicsHelpers::SystematicVariationTypes, double> const&, SimpleEntry&);
 
 
   // Helper options for MET
@@ -49,7 +49,7 @@ namespace LooperFunctionHelpers{
   void setBtagWPs();
 
 }
-bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& extWgt, SimpleEntry& commonEntry){
+bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered_map<SystematicsHelpers::SystematicVariationTypes, double> const& extWgt, SimpleEntry& commonEntry){
   // Define handlers
 #define OBJECT_HANDLER_COMMON_DIRECTIVES \
   HANDLER_DIRECTIVE(EventFilterHandler, eventFilter) \
@@ -267,7 +267,15 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
 
 
   // Always assign the external weight first
-  event_wgt = extWgt;
+  auto it_extWgt = extWgt.find(theGlobalSyst);
+  if (it_extWgt==extWgt.cend()) it_extWgt = extWgt.find(SystematicsHelpers::nSystematicVariations);
+  if (it_extWgt==extWgt.cend()){
+    MELAerr << "LooperFunctionHelpers::looperRule: External normalization map does not have a proper weight assigned!" << endl;
+    assert(0);
+  }
+  double const& extWgt_central = it_extWgt->second;
+
+  event_wgt = extWgt_central;
   // Set NNPDF 3.0 adjustment to 1
   event_wgt_adjustment_NNPDF30 = 1;
 
@@ -294,7 +302,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       if (isGJets_HT){
         for (auto const& part:genparticles){
           if (PDGHelpers::isAPhoton(part->pdgId()) && part->extras.isPromptFinalState){
-            event_wgt *= std::max(1., 1.71691-0.001221*part->pt());
+            double wgt_gjets = std::max(1., 1.71691-0.001221*part->pt());;
+            event_wgt *= wgt_gjets;
             break;
           }
         }
@@ -302,7 +311,9 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
       if (hasPTGExceptionRange){
         for (auto const& part:genparticles){
           if (PDGHelpers::isAPhoton(part->pdgId()) && part->extras.isHardProcess){
-            if ((pTG_true_exception_range[0]>=0.f && part->pt()<pTG_true_exception_range[0]) || (pTG_true_exception_range[1]>=0.f && part->pt()>=pTG_true_exception_range[1])) event_wgt = 0;
+            if ((pTG_true_exception_range[0]>=0.f && part->pt()<pTG_true_exception_range[0]) || (pTG_true_exception_range[1]>=0.f && part->pt()>=pTG_true_exception_range[1])){
+              event_wgt = 0;
+            }
             break;
           }
         }
@@ -1171,6 +1182,8 @@ void getTrees(
 
     const int nEntries = sample_tree->getSelectedNEvents();
     double sum_wgts = (isData ? 1.f : 0.f);
+    double sum_wgts_PUDn = sum_wgts;
+    double sum_wgts_PUUp = sum_wgts;
     float xsec = 1;
     float xsec_scale = 1;
     if (!isData){
@@ -1217,11 +1230,13 @@ void getTrees(
           TH2D* hCounters = (TH2D*) ftmp->Get("cms3ntuple/Counters");
           if (!hCounters){
             hasCounters = false;
-            sum_wgts = 0;
+            sum_wgts = sum_wgts_PUDn = sum_wgts_PUUp = 0;
             break;
           }
           MELAout << "\t- Successfully found the counters histogram in " << fname << endl;
           sum_wgts += hCounters->GetBinContent(bin_syst, bin_period);
+          sum_wgts_PUDn += hCounters->GetBinContent(2, bin_period);
+          sum_wgts_PUUp += hCounters->GetBinContent(3, bin_period);
           sum_wgts_raw_withveto += hCounters->GetBinContent(0, 0);
           sum_wgts_raw_noveto += hCounters->GetBinContent(0, 0) / (1. - hCounters->GetBinContent(0, 1));
           ftmp->Close();
@@ -1256,16 +1271,23 @@ void getTrees(
 
           sum_wgts_raw_withveto += genwgt;
           sum_wgts += genwgt * simEventHandler.getPileUpWeight(theGlobalSyst);
+          sum_wgts_PUDn += genwgt * simEventHandler.getPileUpWeight(SystematicsHelpers::ePUDn);
+          sum_wgts_PUUp += genwgt * simEventHandler.getPileUpWeight(SystematicsHelpers::ePUUp);
         }
         if (nEntries>0) frac_zero_genwgts = double(n_zero_genwgts)/double(nEntries);
         sum_wgts_raw_noveto = sum_wgts_raw_withveto / (1. - frac_zero_genwgts);
       }
       xsec_scale = sum_wgts_raw_withveto / sum_wgts_raw_noveto;
     }
-    double globalWeight = xsec * xsec_scale * (isData ? 1.f : lumi) / sum_wgts;
-    MELAout << "Sample " << sample_tree->sampleIdentifier << " has a gen. weight sum of " << sum_wgts << "." << endl;
+    std::unordered_map<SystematicsHelpers::SystematicVariationTypes, double> globalWeights;
+    double globalWeight = xsec * xsec_scale * (isData ? 1.f : lumi) / sum_wgts; globalWeights[theGlobalSyst] = globalWeight;
+    double globalWeight_PUDn = xsec * xsec_scale * (isData ? 1.f : lumi) / sum_wgts_PUDn; globalWeights[SystematicsHelpers::ePUDn] = globalWeight_PUDn;
+    double globalWeight_PUUp = xsec * xsec_scale * (isData ? 1.f : lumi) / sum_wgts_PUUp; globalWeights[SystematicsHelpers::ePUUp] = globalWeight_PUUp;
+    MELAout << "Sample " << sample_tree->sampleIdentifier << " has a gen. weight sum of " << sum_wgts << " (PU dn: " << sum_wgts_PUDn << ", PU up: " << sum_wgts_PUUp << ")." << endl;
     MELAout << "\t- xsec scale = " << xsec_scale << endl;
     MELAout << "\t- Global weight = " << globalWeight << endl;
+    MELAout << "\t- Global weight (PU dn) = " << globalWeight_PUDn << endl;
+    MELAout << "\t- Global weight (PU up) = " << globalWeight_PUUp << endl;
 
     // Configure handlers
     pfcandidateHandler.bookBranches(sample_tree);
@@ -1301,7 +1323,7 @@ void getTrees(
     sample_tree->silenceUnused();
 
     // Add the input tree to the looper
-    theLooper.addTree(sample_tree, globalWeight);
+    theLooper.addTree(sample_tree, globalWeights);
   }
 
   // Loop over all events

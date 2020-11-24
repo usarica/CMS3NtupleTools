@@ -21,6 +21,10 @@ fi
 
 csvfile="skimSamples_${period}.csv"
 for sample in $(readCMS3SkimSamplesFromCSV.py --csv=${csvfile} --sim --tree_req="SinglePhoton"); do
+  if [[ "$sample" == *"WJetsToLNu_HT"* ]]; then
+    continue
+  fi
+
   sampleDir=${sample//MINIAODSIM}
 
   echo "====="
@@ -55,7 +59,7 @@ for sample in $(readCMS3SkimSamplesFromCSV.py --csv=${csvfile} --sim --tree_req=
     strargs="${strargs/<theGlobalSyst>/${syst}}"
     strargs="${strargs/<period>/$dataperiod}"
 
-    submitCMS3AnalysisProduction.sh script="${script}" function="${function}" arguments="${strargs}" date="${jobdate}" job_flavor="workday"
+    submitCMS3AnalysisProduction.sh script="${script}" function="${function}" arguments="${strargs}" date="${jobdate}" job_flavor="workday" no-proxycheck
     let ichunk=$ichunk+1
   done
 
@@ -75,5 +79,5 @@ for dataperiod in "${dataPeriods[@]}"; do
   strargs="${strargs/<theGlobalSyst>/sNominal}"
   strargs="${strargs/<period>/$dataperiod}"
 
-  submitCMS3AnalysisProduction.sh script="${script}" function="${function}" arguments="${strargs}" date="${jobdate}" job_flavor="workday"
+  submitCMS3AnalysisProduction.sh script="${script}" function="${function}" arguments="${strargs}" date="${jobdate}" job_flavor="workday" no-proxycheck
 done

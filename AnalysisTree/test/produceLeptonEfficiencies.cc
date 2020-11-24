@@ -282,7 +282,7 @@ void getTrees(
   JetMETHandler jetHandler;
   IsotrackHandler isotrackHandler;
   VertexHandler vertexHandler;
-  ParticleDisambiguator particleDisambiguator;
+  //ParticleDisambiguator particleDisambiguator; // Manual disambiguation is done, so no need for the disambiguator.
 
   PhotonScaleFactorHandler photonSFHandler;
   BtagScaleFactorHandler btagSFHandler;
@@ -500,9 +500,9 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
     MELAout << "Looping over " << nEntries << " events from " << sample_tree.sampleIdentifier << ", starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
 
     size_t n_pass_genWeights=0;
+    size_t n_pass_goodPVFilter=0;
     size_t n_pass_uniqueEvent=0;
     size_t n_pass_commonFilters=0;
-    size_t n_pass_goodPVFilter=0;
     std::vector<size_t> n_pass_dileptonPresel(2, 0);
     std::vector<size_t> n_pass_photonVeto(2, 0);
     std::vector<size_t> n_pass_isotrackVeto(2, 0);
@@ -597,18 +597,30 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
       }
       n_pass_genWeights++;
 
-      eventFilter.constructFilters();
-      if (isData && !eventFilter.isUniqueDataEvent()) continue;
-      n_pass_uniqueEvent++;
-
-      if (!eventFilter.passCommonSkim() || !eventFilter.passMETFilters() || !eventFilter.hasGoodVertex()) continue;
-      n_pass_commonFilters++;
-
       vertexHandler.constructVertices();
       if (!vertexHandler.hasGoodPrimaryVertex()) continue;
       n_pass_goodPVFilter++;
 
+      eventFilter.constructFilters(&simEventHandler);
+      if (isData && !eventFilter.isUniqueDataEvent()) continue;
+      n_pass_uniqueEvent++;
+
+      if (!eventFilter.passCommonSkim() || !eventFilter.passMETFilters(EventFilterHandler::kMETFilters_Standard)) continue;
+      n_pass_commonFilters++;
+
       event_nvtxs_good = vertexHandler.getNGoodVertices();
+
+      muonHandler.constructMuons(theGlobalSyst, nullptr);
+      auto const& muons = muonHandler.getProducts();
+
+      electronHandler.constructElectrons(theGlobalSyst, nullptr);
+      auto const& electrons = electronHandler.getProducts();
+
+      photonHandler.constructPhotons(theGlobalSyst, nullptr);
+      auto const& photons = photonHandler.getProducts();
+
+      isotrackHandler.constructIsotracks(nullptr, nullptr); // Will do mamual cleaning
+      auto const& isotracks = isotrackHandler.getProducts();
 
       for (unsigned short idx_emu=0; idx_emu<2; idx_emu++){
         event_wgt_SFs = 1;
@@ -618,14 +630,6 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
         BRANCHES_DIELECTRONS;
         BRANCHES_DIMUONS;
 #undef BRANCH_COMMAND
-
-        muonHandler.constructMuons(theGlobalSyst);
-        electronHandler.constructElectrons(theGlobalSyst);
-        photonHandler.constructPhotons(theGlobalSyst);
-
-        auto const& muons = muonHandler.getProducts();
-        auto const& electrons = electronHandler.getProducts();
-        auto const& photons = photonHandler.getProducts();
 
         ParticleObject::LorentzVector_t sump4_leptons(0, 0, 0, 0);
         std::vector<ElectronObject*> electrons_selected; electrons_selected.reserve(electrons.size());
@@ -740,9 +744,8 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
 
         event_wgt_SFs *= SF_photons;
 
-        isotrackHandler.constructIsotracks(nullptr, nullptr); // Do mamual cleaning
         bool hasVetoIsotrack = false;
-        for (auto const& isotrack:isotrackHandler.getProducts()){
+        for (auto const& isotrack:isotracks){
           if (isotrack->testSelectionBit(IsotrackSelectionHelpers::kPreselectionVeto)){
             float dR_isotrack = IsotrackSelectionHelpers::getIsolationDRmax(*isotrack);
 
@@ -778,7 +781,8 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
         if (hasVetoIsotrack) continue;
         n_pass_isotrackVeto[idx_emu]++;
 
-        jetHandler.constructJetMET(theGlobalSyst, &muons_selected, &electrons_selected, &photons);
+        jetHandler.resetCache();
+        jetHandler.constructJetMET(theGlobalSyst, &muons_selected, &electrons_selected, &photons, nullptr);
         auto const& ak4jets = jetHandler.getAK4Jets();
         auto const& ak8jets = jetHandler.getAK8Jets();
 
@@ -819,7 +823,7 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
           pfmet, true,
           &(simEventHandler.getRandomNumber(SimEventHandler::kGenMETSmear))
         );
-        auto pfmet_p4 = pfmet->p4(true, true, true);
+        auto pfmet_p4 = pfmet->p4(true, true, true, true);
         pfmet_pTmiss = pfmet_p4.Pt();
         pfmet_phimiss = pfmet_p4.Phi();
 
@@ -830,7 +834,7 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
           puppimet, false,
           &(simEventHandler.getRandomNumber(SimEventHandler::kGenMETSmear))
         );
-        auto puppimet_p4 = puppimet->p4(true, true, true);
+        auto puppimet_p4 = puppimet->p4(true, true, true, true);
         puppimet_pTmiss = puppimet_p4.Pt();
         puppimet_phimiss = puppimet_p4.Phi();
 
@@ -1024,9 +1028,9 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
     MELAout << "Number of events accepted from " << sample_tree.sampleIdentifier << ": " << n_evts_acc[0]+n_evts_acc[1] << " (" << n_evts_acc << ") / " << (ev_end - ev_start) << endl;
     MELAout << "\t- Number of events passing each cut:\n"
       << "\t\t- Gen. weights!=0: " << n_pass_genWeights << '\n'
+      << "\t\t- Good PV filter: " << n_pass_goodPVFilter << '\n'
       << "\t\t- Unique event: " << n_pass_uniqueEvent << '\n'
       << "\t\t- Common filters: " << n_pass_commonFilters << '\n'
-      << "\t\t- Good PV filter: " << n_pass_goodPVFilter << '\n'
       << "\t\t- Dilepton base selection: " << n_pass_dileptonPresel[0]+n_pass_dileptonPresel[1] << " (" << n_pass_dileptonPresel << ")" << '\n'
       << "\t\t- Photon veto: " << n_pass_photonVeto[0]+n_pass_photonVeto[1] << " (" <<  n_pass_photonVeto << ")" << '\n'
       << "\t\t- Isotrack veto: " << n_pass_isotrackVeto[0]+n_pass_isotrackVeto[1] << " (" <<  n_pass_isotrackVeto << ")" << '\n'

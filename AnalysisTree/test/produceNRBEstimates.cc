@@ -680,9 +680,9 @@ void getDistributions(
       for (auto const& tin:tins_collected) norm_map[tin] /= sum_wgts_MC;
     }
   }
-  for (auto const& sgroup_tin_pair:samples_all){
-    MELAout << "Relative normalization for sample in group " << sgroup_tin_pair.first << " = " << norm_map[sgroup_tin_pair.second] << endl;
-  }
+  for (auto const& sgroup_tin_pair:samples_all) MELAout
+    << "Relative normalization for sample in group " << sgroup_tin_pair.first << " = " << norm_map[sgroup_tin_pair.second]
+    << endl;
 
   TString const cinput_main_data =
     "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/DileptonEvents/SkimTrees/" + strdate
@@ -715,7 +715,6 @@ void getDistributions(
   BRANCH_COMMAND(float, event_wgt_adjustment_NNPDF30) \
   BRANCH_COMMAND(float, event_wgt_triggers_SingleLepton) \
   BRANCH_COMMAND(float, event_wgt_triggers_Dilepton) \
-  BRANCH_COMMAND(float, event_wgt_SFs) \
   BRANCH_COMMAND(float, event_wgt_SFs_muons) \
   BRANCH_COMMAND(float, event_wgt_SFs_electrons) \
   BRANCH_COMMAND(float, event_wgt_SFs_photons) \
@@ -774,15 +773,58 @@ void getDistributions(
   BRANCH_VECTOR_COMMANDS;
 #undef BRANCH_COMMAND
 
-  std::unordered_map<TChain*, float> event_wgt_SFs_thrs;
+  std::unordered_map<TString, float> ME_Kfactor_values;
   for (auto& pp:samples_all){
     auto const& tin = pp.second;
+
+    std::vector<TString> allbranchnames;
+    {
+      // Then check all leaves
+      const TList* llist = (const TList*) tin->GetListOfLeaves();
+      if (llist){
+        for (int ib=0; ib<llist->GetSize(); ib++){
+          auto const& bmem = llist->At(ib);
+          if (!bmem) continue;
+          TString bname = bmem->GetName();
+          if (!HelperFunctions::checkListVariable(allbranchnames, bname)) allbranchnames.push_back(bname);
+         }
+      }
+      // Then check all branches
+      const TList* blist = (const TList*) tin->GetListOfBranches();
+      if (blist){
+        for (int ib=0; ib<blist->GetSize(); ib++){
+          auto const& bmem = blist->At(ib);
+          if (!bmem) continue;
+          TString bname = bmem->GetName();
+          if (!HelperFunctions::checkListVariable(allbranchnames, bname)) allbranchnames.push_back(bname);
+        }
+      }
+
+      for (auto const& bname:allbranchnames){
+        if (bname.StartsWith("p_") && (bname.Contains("JHUGen") || bname.Contains("MCFM"))) ME_Kfactor_values[bname] = -1;
+      }
+    }
+
     tin->SetBranchStatus("*", 0);
 #define BRANCH_COMMAND(TYPE, NAME) tin->SetBranchStatus(#NAME, 1); tin->SetBranchAddress(#NAME, &NAME);
     BRANCH_COMMANDS;
 #undef BRANCH_COMMAND
-    event_wgt_SFs_thrs[tin] = 3./*getAbsWeightThresholdByNeff(tin, { &event_wgt_SFs }, std::min(300000., tin->GetEntries()/3.*2.))*/;
+    for (auto& it:ME_Kfactor_values){
+      TString const& MEname = it->first;
+      if (!HelperFunctions::checkListVariable(allbranchnames, MEname)) continue;
+      float& MEval = it->second;
+      tin->SetBranchStatus(MEname, 1); tin->SetBranchAddress(MEname, &MEval);
+    }
+
+    isFirstTree = false;
   }
+
+  // Build discriminants
+  Discriminant* DjjVBF = DiscriminantClasses::constructKDFromType(
+    DiscriminantClasses::kDjjVBF,
+    ANALYSISTREEPKGDATAPATH+"RecoMEConstants/SmoothKDConstant_m4l_DjjVBF_13TeV.root", "sp_gr_varReco_Constant_Smooth"
+  );
+
 
   std::vector<TString> strChannelNames{ "mumu", "ee", "mue", "mue_rewgt_mumu", "mue_rewgt_ee" };
   std::vector<TString> strChannelTitles{ "#mu#mu", "ee", "#mue (un-rewgt.)", "#mue (rewgt. #mu#mu)", "#mue (rewgt. ee)" };
@@ -848,6 +890,60 @@ void getDistributions(
   for (auto const& spair:samples_all){
     auto const& sgroup = spair.first;
     auto const& tin = spair.second;
+
+    // Reset ME and K factor values
+    for (auto& it:ME_Kfactor_values) it->second = -1;
+    bool is_qqVV = sgroup.Contains("qqZZ") || sgroup.Contains("qqWZ") || sgroup.Contains("qqWW");
+    bool is_ggVV = sgroup.Contains("ggZZ") || sgroup.Contains("ggWW") || sgroup.Contains("GGH");
+
+    float* val_Kfactor_QCD = nullptr;
+    float* val_Kfactor_EW = nullptr;
+    if (is_qqVV){
+      val_Kfactor_QCD = &(ME_Kfactor_values.find("KFactor_QCD_NNLO_qqVV_Bkg_Nominal")->second);
+      switch (theGlobalSyst){
+      case tEWDn:
+        val_Kfactor_EW = &(ME_Kfactor_values.find("KFactor_EW_NLO_qqVV_Bkg_EWDn")->second);
+        break;
+      case tEWUp:
+        val_Kfactor_EW = &(ME_Kfactor_values.find("KFactor_EW_NLO_qqVV_Bkg_EWUp")->second);
+        break;
+      default:
+        val_Kfactor_EW = &(ME_Kfactor_values.find("KFactor_EW_NLO_qqVV_Bkg_Nominal")->second);
+        break;
+      }
+    }
+    if (is_ggVV){
+      switch (theGlobalSyst){
+      case tQCDScaleDn:
+        val_Kfactor_QCD = &(ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_QCDScaleDn")->second);
+        break;
+      case tQCDScaleUp:
+        val_Kfactor_QCD = &(ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_QCDScaleUp")->second);
+        break;
+      case tPDFScaleDn:
+        val_Kfactor_QCD = &(ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_PDFScaleDn")->second);
+        break;
+      case tPDFScaleUp:
+        val_Kfactor_QCD = &(ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_PDFScaleUp")->second);
+        break;
+      case tPDFReplicaDn:
+        val_Kfactor_QCD = &(ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_PDFReplicaDn")->second);
+        break;
+      case tPDFReplicaUp:
+        val_Kfactor_QCD = &(ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_PDFReplicaUp")->second);
+        break;
+      case tAsMZDn:
+        val_Kfactor_QCD = &(ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_AsDn")->second);
+        break;
+      case tAsMZUp:
+        val_Kfactor_QCD = &(ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_AsUp")->second);
+        break;
+      default:
+        val_Kfactor_QCD = &(ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_Nominal")->second);
+        break;
+      }
+    }
+
     int nEntries = tin->GetEntries();
     for (int ev=0; ev<nEntries; ev++){
       tin->GetEntry(ev);
@@ -871,8 +967,11 @@ void getDistributions(
       bool is_ee = (dilepton_id==-121);
       if (!check_mll(dilepton_mass, is_ee || is_mumu)) continue;
 
-      event_wgt_SFs = std::min(event_wgt_SFs, event_wgt_SFs_thrs[tin]);
-      float wgt = event_wgt * event_wgt_SFs * norm_map[tin];
+      event_wgt_SFs_PUJetId = std::min(event_wgt_SFs_PUJetId, 3.f);
+      float wgt = event_wgt * event_wgt_SFs_muons * event_wgt_SFs_electrons * event_wgt_SFs_photons * event_wgt_SFs_PUJetId * event_wgt_SFs_btagging * norm_map[tin];
+      if (val_Kfactor_QCD) wgt *= *val_Kfactor_QCD;
+      if (val_Kfactor_EW) wgt *= *val_Kfactor_EW;
+
       float wgt_emu_rewgt_ee = 1;
       float wgt_emu_rewgt_mumu = 1;
       if (is_emu){

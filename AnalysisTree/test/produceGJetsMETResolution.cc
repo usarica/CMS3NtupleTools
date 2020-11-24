@@ -64,13 +64,19 @@ void getTrees(
     if (isData && nchunks>0) return;
 
     isQCD = sname.Contains("QCD") && sname.Contains("HT");
-    isGJets_HT = sname.Contains("GJetS_HT");
+    isGJets_HT = sname.Contains("GJets_HT");
     if ((sname.Contains("ZGTo2NuG") || sname.Contains("ZGTo2LG")) && sname.Contains("amcatnloFXFX") && !sname.Contains("PtG-130")) pTG_true_range[1]=130;
 
     break;
   }
   haspTGRange = pTG_true_range[0]!=pTG_true_range[1];
   bool needGenParticleChecks = isQCD || isGJets_HT || haspTGRange;
+  if (isData) MELAout << "Sample " << strSampleSet << " is data." << endl;
+  else{
+    if (isQCD) MELAout << "Sample " << strSampleSet << " has a QCD exception." << endl;
+    if (isGJets_HT) MELAout << "Sample " << strSampleSet << " has a GJets exception." << endl;
+    if (haspTGRange) MELAout << "Sample " << strSampleSet << " has a pTG exception with range [" << pTG_true_range[0] << ", " << pTG_true_range[1] << "]." << endl;
+  }
 
   gSystem->mkdir(coutput_main, true);
 
@@ -221,6 +227,7 @@ void getTrees(
     BRANCH_COMMAND(float, puppimet_pTmiss); BRANCH_COMMAND(float, puppimet_phimiss);
     BRANCH_COMMAND(bool, event_pass_tightMETFilters);
     BRANCH_COMMAND(unsigned int, event_n_vtxs_good);
+    BRANCH_COMMAND(unsigned int, event_n_leptons_fakeableBase);
     BRANCH_COMMAND(unsigned int, event_Njets);
     // Photon
     BRANCH_COMMAND(float, pt_gamma);
@@ -343,6 +350,8 @@ void getTrees(
       photonHandler.constructPhotons(theGlobalSyst, nullptr);
       particleDisambiguator.disambiguateParticles(&muonHandler, &electronHandler, &photonHandler);
 
+      event_n_leptons_fakeableBase = 0;
+
       auto const& muons = muonHandler.getProducts();
       unsigned int n_muons_veto = 0;
       float SF_muons = 1;
@@ -353,6 +362,7 @@ void getTrees(
         SF_muons *= theSF;
 
         if (ParticleSelectionHelpers::isVetoParticle(part)) n_muons_veto++;
+        else if (!ParticleSelectionHelpers::isTightParticle(part) && part->testSelectionBit(MuonSelectionHelpers::kFakeableBase)) event_n_leptons_fakeableBase++;
       }
       if (n_muons_veto!=0) continue;
 
@@ -366,6 +376,7 @@ void getTrees(
         SF_electrons *= theSF;
 
         if (ParticleSelectionHelpers::isVetoParticle(part)) n_electrons_veto++;
+        else if (!ParticleSelectionHelpers::isTightParticle(part) && part->testSelectionBit(ElectronSelectionHelpers::kFakeableBase)) event_n_leptons_fakeableBase++;
       }
       if (n_electrons_veto!=0) continue;
       n_pass_leptonVeto++;
@@ -490,12 +501,14 @@ void getTrees(
       float SF_PUJetId = 1;
       float SF_btagging = 1;
       for (auto* jet:ak4jets){
-        float theSF_PUJetId = 1;
-        float theSF_btag = 1;
-        pujetidSFHandler.getSFAndEff(theGlobalSyst, jet, theSF_PUJetId, nullptr);
-        btagSFHandler.getSFAndEff(theGlobalSyst, jet, theSF_btag, nullptr);
-        if (theSF_PUJetId != 0.f) SF_PUJetId *= theSF_PUJetId;
-        if (theSF_btag != 0.f) SF_btagging *= theSF_btag;
+        if (!isData){
+          float theSF_PUJetId = 1;
+          float theSF_btag = 1;
+          pujetidSFHandler.getSFAndEff(theGlobalSyst, jet, theSF_PUJetId, nullptr);
+          btagSFHandler.getSFAndEff(theGlobalSyst, jet, theSF_btag, nullptr);
+          if (theSF_PUJetId != 0.f) SF_PUJetId *= theSF_PUJetId;
+          if (theSF_btag != 0.f) SF_btagging *= theSF_btag;
+        }
 
         if (ParticleSelectionHelpers::isTightJet(jet)){
           ak4jets_tight.push_back(jet);

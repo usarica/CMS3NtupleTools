@@ -17,7 +17,7 @@
 
 class BaseTreeLooper : public IvyBase{
 public:
-  typedef bool(*LooperCoreFunction_t)(BaseTreeLooper*, double const&, SimpleEntry&);
+  typedef bool(*LooperCoreFunction_t)(BaseTreeLooper*, std::unordered_map<SystematicsHelpers::SystematicVariationTypes, double> const&, SimpleEntry&);
   typedef void(*LooperExtFunction_t)(BaseTreeLooper*, SimpleEntry&);
 
 protected:
@@ -76,7 +76,7 @@ protected:
   std::unordered_map<TString, std::vector< std::pair<TriggerHelpers::TriggerType, HLTTriggerPathProperties const*> > > registeredHLTMenuProperties;
 
   // External dependencies
-  std::unordered_map<BaseTree*, double> globalWeights;
+  std::unordered_map<BaseTree*, std::unordered_map<SystematicsHelpers::SystematicVariationTypes, double>> globalWeights;
   std::unordered_map<TString, LooperExtFunction_t> externalFunctions;
 
   // Output trees
@@ -114,6 +114,7 @@ public:
 
   // Add the necessary objects
   void addTree(BaseTree* tree, double wgt=1); // Adds a new input tree
+  void addTree(BaseTree* tree, std::unordered_map<SystematicsHelpers::SystematicVariationTypes, double> const& syst_wgt_map); // Adds a new input tree
   void addExternalFunction(TString fcnname, BaseTreeLooper::LooperExtFunction_t fcn);
   void addObjectHandler(IvyBase* handler);
   void addSFHandler(ScaleFactorHandlerBase* handler);
@@ -124,6 +125,7 @@ public:
   void setLooperFunction(BaseTreeLooper::LooperCoreFunction_t fcn){ looperFunction = fcn; }
   void setSystematic(SystematicsHelpers::SystematicVariationTypes const& syst){ registeredSyst = syst; }
   void setExternalWeight(BaseTree* tree, double const& wgt);
+  void setExternalWeights(BaseTree* tree, std::unordered_map<SystematicsHelpers::SystematicVariationTypes, double> const& wgts);
   void setMatrixElementList(std::vector<std::string> const& MElist, bool const& isGen);
   void setMatrixElementListFromFile(std::string fname, std::string const& MElistTypes, bool const& isGen); // MElistTypes is comman-separated
 

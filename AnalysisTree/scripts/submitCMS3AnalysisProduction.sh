@@ -134,7 +134,11 @@ else
 fi
 
 theOutdir="${OUTDIR}/${THEOUTPUTFILE}"
-if [[ $recreate -eq 1 ]] || [[ ! -e $theOutdir ]]; then
+let hasJobSetup=0
+if [[ -e $theOutdir ]] || [[ -e ${theOutdir}.tar ]]; then
+  let hasJobSetup=1
+fi
+if [[ $recreate -eq 1 ]] || [[ $hasJobSetup -eq 0 ]]; then
   CONDORSITE="DUMMY"
   if [[ "$hname" == *"lxplus"* ]];then
     echo "Setting default CONDORSITE to cern.ch"
@@ -158,7 +162,7 @@ if [[ $recreate -eq 1 ]] || [[ ! -e $theOutdir ]]; then
     echo "Condor directory chosen: ${THECONDORSITE}:${THECONDOROUTDIR}"
   fi
 
-  if [[ $checkproxy -eq 1 ]];then
+  if [[ $checkproxy -eq 1 ]]; then
     checkGridProxy.sh
   fi
 

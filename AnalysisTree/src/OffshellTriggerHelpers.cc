@@ -137,18 +137,17 @@ void TriggerHelpers::configureHLTmap(){
   case 2016:
     HLT_type_proplist_map[kDoubleMu] = std::vector<HLTTriggerPathProperties>{
       { "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kMuon } } },
-      { "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kMuon } } }
+      { "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kMuon } } },
+      { "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kMuon } } }, // Prescale=0 in 2016H
+      { "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kMuon } } } // Prescale=0 in 2016H
     };
     HLT_type_proplist_map[kDoubleMu_Extra] = std::vector<HLTTriggerPathProperties>{
       { "HLT_Mu30_TkMu11_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kMuon } } },
       { "HLT_Mu40_TkMu11_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kMuon } } } // Probably no need for this
     };
-    HLT_type_proplist_map[kDoubleMu_Prescaled] = std::vector<HLTTriggerPathProperties>{
-      { "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kMuon } } },
-      { "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kMuon } } }
-    };
+    HLT_type_proplist_map[kDoubleMu_Prescaled] = std::vector<HLTTriggerPathProperties>();
     HLT_type_proplist_map[kDoubleEle] = std::vector<HLTTriggerPathProperties>{
-      { "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*", { { HLTObjectProperties::kElectron }, { HLTObjectProperties::kElectron } } },
+      //{ "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*", { { HLTObjectProperties::kElectron }, { HLTObjectProperties::kElectron } } }, // If uncommented, needs to also uncomment its run range exclusion below.
       { "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*", { { HLTObjectProperties::kElectron }, { HLTObjectProperties::kElectron } } },
       { "HLT_DoubleEle33_CaloIdL_MW_v*", { { HLTObjectProperties::kElectron }, { HLTObjectProperties::kElectron } } },
       { "HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_v*", { { HLTObjectProperties::kElectron }, { HLTObjectProperties::kElectron } } }
@@ -308,11 +307,12 @@ void TriggerHelpers::configureHLTmap(){
         { 280919/*281613*/, -1 }
       }
     );
-    assignRunRangeExclusions(
-      "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*", {
-        { 274968, -1 } // Prescales in 2016D-H are crazy, they interchange between 0 and 1.
-      }
-    );
+    // HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v* is disabled because there is almost no gain from including it.
+    //assignRunRangeExclusions(
+    //  "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*", {
+    //    { 274968, -1 } // Prescales in 2016D-H are especially crazy, they interchange between 0 and 1.
+    //  }
+    //);
     assignRunRangeExclusions(
       "HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_v*", {
         { 278873, -1 }

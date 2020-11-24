@@ -23,6 +23,35 @@ using namespace reco;
 using namespace RooFit;
 
 
+#define BRANCH_COMMANDS \
+  BRANCH_COMMAND(float, event_wgt) \
+  BRANCH_COMMAND(float, event_wgt_triggers) \
+  BRANCH_COMMAND(float, event_wgt_SFs) \
+  BRANCH_COMMAND(unsigned int, event_n_vtxs_good) \
+  BRANCH_COMMAND(unsigned int, event_n_leptons_fakeableBase) \
+  BRANCH_COMMAND(unsigned int, event_Njets) \
+  BRANCH_COMMAND(float, pt_gamma) \
+  BRANCH_COMMAND(float, eta_gamma) \
+  BRANCH_COMMAND(float, phi_gamma) \
+  BRANCH_COMMAND(float, mass_gamma) \
+  BRANCH_COMMAND(bool, is_conversionSafe) \
+  BRANCH_COMMAND(bool, is_inTime) \
+  BRANCH_COMMAND(bool, is_beamHaloSafe) \
+  BRANCH_COMMAND(bool, is_spikeSafe) \
+  BRANCH_COMMAND(bool, is_PFID) \
+  BRANCH_COMMAND(bool, is_METSafe) \
+  BRANCH_COMMAND(bool, isGap) \
+  BRANCH_COMMAND(bool, isEB) \
+  BRANCH_COMMAND(bool, isEE) \
+  BRANCH_COMMAND(bool, isEBEEGap) \
+  BRANCH_COMMAND(float, pt_jets) \
+  BRANCH_COMMAND(float, eta_jets) \
+  BRANCH_COMMAND(float, phi_jets) \
+  BRANCH_COMMAND(float, mass_jets) \
+  BRANCH_COMMAND(float, HT_jets) \
+  BRANCH_COMMAND(float, HT_jets_eta_lt_2p4)
+
+
 struct Variable{
   TString name;
   TString title;
@@ -348,33 +377,6 @@ void produceCorrection(
   }
   for (auto const& tin:tins) MELAout << "Total number of events: " << tin->GetEntries() << endl;
 
-#define BRANCH_COMMANDS \
-  BRANCH_COMMAND(float, event_wgt) \
-  BRANCH_COMMAND(float, event_wgt_triggers) \
-  BRANCH_COMMAND(float, event_wgt_SFs) \
-  BRANCH_COMMAND(unsigned int, event_n_vtxs_good) \
-  BRANCH_COMMAND(unsigned int, event_Njets) \
-  BRANCH_COMMAND(float, pt_gamma) \
-  BRANCH_COMMAND(float, eta_gamma) \
-  BRANCH_COMMAND(float, phi_gamma) \
-  BRANCH_COMMAND(float, mass_gamma) \
-  BRANCH_COMMAND(bool, is_conversionSafe) \
-  BRANCH_COMMAND(bool, is_inTime) \
-  BRANCH_COMMAND(bool, is_beamHaloSafe) \
-  BRANCH_COMMAND(bool, is_spikeSafe) \
-  BRANCH_COMMAND(bool, is_PFID) \
-  BRANCH_COMMAND(bool, is_METSafe) \
-  BRANCH_COMMAND(bool, isGap) \
-  BRANCH_COMMAND(bool, isEB) \
-  BRANCH_COMMAND(bool, isEE) \
-  BRANCH_COMMAND(bool, isEBEEGap) \
-  BRANCH_COMMAND(float, pt_jets) \
-  BRANCH_COMMAND(float, eta_jets) \
-  BRANCH_COMMAND(float, phi_jets) \
-  BRANCH_COMMAND(float, mass_jets) \
-  BRANCH_COMMAND(float, HT_jets) \
-  BRANCH_COMMAND(float, HT_jets_eta_lt_2p4)
-
 #define BRANCH_COMMAND(type, name) type name = 0;
   BRANCH_COMMANDS;
 #undef BRANCH_COMMAND
@@ -450,8 +452,11 @@ void produceCorrection(
       tin->GetEntry(ev);
       HelperFunctions::progressbar(ev, nEntries);
 
+      if (it==0) event_wgt_SFs=1;
+
       if (!is_conversionSafe || !is_beamHaloSafe || !is_spikeSafe || !is_PFID || !is_METSafe) continue;
       if (event_Njets==0) continue;
+      if (event_n_leptons_fakeableBase>0) continue;
       if (pt_gamma<100.f) continue;
       if (!isEB) continue;
       
@@ -544,10 +549,11 @@ void produceCorrection(
 
   SampleHelpers::addToCondorTransferList(stroutput);
 }
-void produceCorrections(int year, TString prodVersion, TString strdate){
-  SampleHelpers::configure(Form("%i", year), "hadoop_skims:"+prodVersion);
+void produceCorrections(TString strperiod, TString prodVersion, TString strdate){
+  SampleHelpers::configure(strperiod, "hadoop_skims:"+prodVersion);
 
-  for (auto const& period:SampleHelpers::getValidDataPeriods()){
+  auto periods = SampleHelpers::getValidDataPeriods();
+  for (auto const& period:periods){
     for (auto const& syst:getAllowedSysts()){
       for (unsigned int istep=0; istep<4; istep++) produceCorrection(period, prodVersion, strdate, istep+1, syst);
     }
@@ -690,33 +696,6 @@ void produceFinalFits(
 
   curdir->cd();
 
-#define BRANCH_COMMANDS \
-  BRANCH_COMMAND(float, event_wgt) \
-  BRANCH_COMMAND(float, event_wgt_triggers) \
-  BRANCH_COMMAND(float, event_wgt_SFs) \
-  BRANCH_COMMAND(unsigned int, event_n_vtxs_good) \
-  BRANCH_COMMAND(unsigned int, event_Njets) \
-  BRANCH_COMMAND(float, pt_gamma) \
-  BRANCH_COMMAND(float, eta_gamma) \
-  BRANCH_COMMAND(float, phi_gamma) \
-  BRANCH_COMMAND(float, mass_gamma) \
-  BRANCH_COMMAND(bool, is_conversionSafe) \
-  BRANCH_COMMAND(bool, is_inTime) \
-  BRANCH_COMMAND(bool, is_beamHaloSafe) \
-  BRANCH_COMMAND(bool, is_spikeSafe) \
-  BRANCH_COMMAND(bool, is_PFID) \
-  BRANCH_COMMAND(bool, is_METSafe) \
-  BRANCH_COMMAND(bool, isGap) \
-  BRANCH_COMMAND(bool, isEB) \
-  BRANCH_COMMAND(bool, isEE) \
-  BRANCH_COMMAND(bool, isEBEEGap) \
-  BRANCH_COMMAND(float, pt_jets) \
-  BRANCH_COMMAND(float, eta_jets) \
-  BRANCH_COMMAND(float, phi_jets) \
-  BRANCH_COMMAND(float, mass_jets) \
-  BRANCH_COMMAND(float, HT_jets) \
-  BRANCH_COMMAND(float, HT_jets_eta_lt_2p4)
-
 #define BRANCH_COMMAND(type, name) type name = 0;
   BRANCH_COMMANDS;
 #undef BRANCH_COMMAND
@@ -835,8 +814,11 @@ void produceFinalFits(
         tin->GetEntry(ev);
         HelperFunctions::progressbar(ev, nEntries);
 
+        if (it==0) event_wgt_SFs=1;
+
         if (!is_conversionSafe || !is_beamHaloSafe || !is_spikeSafe || !is_PFID || !is_METSafe) continue;
         if (event_Njets==0) continue;
+        if (event_n_leptons_fakeableBase>0) continue;
         if (pt_gamma<100.f) continue;
         if (!isEB) continue;
         if (use_jets_eta_lt_2p4 && std::abs(HT_jets_eta_lt_2p4-HT_jets)>0.1) continue;
@@ -1405,7 +1387,7 @@ void produceFinalFits(
         fit_plot.SetTitleFont(42, "Y");
         fit_plot.GetYaxis()->SetRangeUser(0.5, std::pow(10., static_cast<int>(log10(sumWgts_data)+0.5)));
 
-        TString canvasname = Form("fit_%s_%s_%s", strMEToutname.Data(), SampleHelpers::theDataPeriod.Data(), (it==0 ? "Data" : "MC"));
+        TString canvasname = Form("fit_%s_%s_%s_%s", strMEToutname.Data(), (!use_jets_eta_lt_2p4 ? "abseta_lt_4p7" : "abseta_lt_2p4"), SampleHelpers::theDataPeriod.Data(), (it==0 ? "Data" : "MC"));
         if (it>0) canvasname += "_" + systname;
         TCanvas can(canvasname, "", 8, 30, 800, 800);
         gStyle->SetOptStat(0);
@@ -1486,12 +1468,11 @@ void produceFinalFits(
   }
 }
 void produceFinalFitSets(TString strperiod, TString prodVersion, TString strdate){
- // produceCorrections(year, prodVersion, strdate);
-
   SampleHelpers::configure(strperiod, "hadoop_skims:"+prodVersion);
   const bool isSingleEra = SampleHelpers::testDataPeriodIsLikeData();
 
-  for (auto const& period:SampleHelpers::getValidDataPeriods()){
+  auto periods = SampleHelpers::getValidDataPeriods();
+  for (auto const& period:periods){
     if (isSingleEra && period!=strperiod) continue;
     for (unsigned short ieta=0; ieta<2; ieta++){
       produceFinalFits(
@@ -1690,33 +1671,6 @@ void getCorrectionValidationHistograms(
 
   METCorrectionHandler metCorrectionHandler;
 
-#define BRANCH_COMMANDS \
-  BRANCH_COMMAND(float, event_wgt) \
-  BRANCH_COMMAND(float, event_wgt_triggers) \
-  BRANCH_COMMAND(float, event_wgt_SFs) \
-  BRANCH_COMMAND(unsigned int, event_n_vtxs_good) \
-  BRANCH_COMMAND(unsigned int, event_Njets) \
-  BRANCH_COMMAND(float, pt_gamma) \
-  BRANCH_COMMAND(float, eta_gamma) \
-  BRANCH_COMMAND(float, phi_gamma) \
-  BRANCH_COMMAND(float, mass_gamma) \
-  BRANCH_COMMAND(bool, is_conversionSafe) \
-  BRANCH_COMMAND(bool, is_inTime) \
-  BRANCH_COMMAND(bool, is_beamHaloSafe) \
-  BRANCH_COMMAND(bool, is_spikeSafe) \
-  BRANCH_COMMAND(bool, is_PFID) \
-  BRANCH_COMMAND(bool, is_METSafe) \
-  BRANCH_COMMAND(bool, isGap) \
-  BRANCH_COMMAND(bool, isEB) \
-  BRANCH_COMMAND(bool, isEE) \
-  BRANCH_COMMAND(bool, isEBEEGap) \
-  BRANCH_COMMAND(float, pt_jets) \
-  BRANCH_COMMAND(float, eta_jets) \
-  BRANCH_COMMAND(float, phi_jets) \
-  BRANCH_COMMAND(float, mass_jets) \
-  BRANCH_COMMAND(float, HT_jets) \
-  BRANCH_COMMAND(float, HT_jets_eta_lt_2p4)
-
 #define BRANCH_COMMAND(type, name) type name = 0;
   BRANCH_COMMANDS;
 #undef BRANCH_COMMAND
@@ -1832,8 +1786,11 @@ void getCorrectionValidationHistograms(
         tin->GetEntry(ev);
         HelperFunctions::progressbar(ev, nEntries);
 
+        if (it==0) event_wgt_SFs=1;
+
         if (!is_conversionSafe || !is_beamHaloSafe || !is_spikeSafe || !is_PFID || !is_METSafe) continue;
         if (event_Njets==0) continue;
+        if (event_n_leptons_fakeableBase>0) continue;
         if (pt_gamma<100.f) continue;
         if (!isEB) continue;
 
@@ -1938,7 +1895,8 @@ void getCorrectionValidationHistogramSets(TString strperiod, TString prodVersion
   const bool isSingleEra = SampleHelpers::testDataPeriodIsLikeData();
   std::vector<SystematicsHelpers::SystematicVariationTypes> allowedSysts = getAllowedSysts();
 
-  for (auto const& period:SampleHelpers::getValidDataPeriods()){
+  auto periods = SampleHelpers::getValidDataPeriods();
+  for (auto const& period:periods){
     if (isSingleEra && period!=strperiod) continue;
     for (auto const& syst:allowedSysts){
       getCorrectionValidationHistograms(period, prodVersion, strdate, "pfmet", "XY:JER:PartMomShifts:p4Preserved", syst);
@@ -2199,7 +2157,11 @@ void plotValidationHistogramSets(TString strperiod, TString prodVersion, TString
 }
 
 void runChain(TString strperiod, TString prodVersion, TString strdate){
+  produceCorrections(strperiod, prodVersion, strdate);
   produceFinalFitSets(strperiod, prodVersion, strdate);
   getCorrectionValidationHistogramSets(strperiod, prodVersion, strdate);
   plotValidationHistogramSets(strperiod, prodVersion, strdate);
 }
+
+
+#undef BRANCH_COMMANDS

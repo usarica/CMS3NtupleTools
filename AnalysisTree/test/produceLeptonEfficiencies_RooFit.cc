@@ -1540,12 +1540,13 @@ void getEfficiencies(
   xvar.setRange("LowObsTail", fit_low, 75);
   xvar.setRange("HighObsTail", 105, fit_high);
   RooRealVar var_n_vtxs_good("var_n_vtxs_good", "N_{vtx}", 50, 0, 100); var_n_vtxs_good.removeMax();
+  RooRealVar var_mTcorr("mTcorr", "m_{T}^{l,corr} (GeV)", 50, 0, 200); var_n_vtxs_good.removeMax();
   RooRealVar var_pt_tag("pt_tag", "p_{T}^{tag} (GeV)", 50, 0, 13000);
   RooRealVar var_eta_tag("eta_tag", "#eta_{tag}", 0, -5, 5); var_eta_tag.removeMin(); var_eta_tag.removeMax();
   RooRealVar var_pt_probe("pt_probe", "p_{T}^{probe} (GeV)", 50, 0, 13000);
   RooRealVar var_eta_probe("eta_probe", "#eta_{probe}", 0, -5, 5); var_eta_probe.removeMin(); var_eta_probe.removeMax();
   RooRealVar wgtvar("weight", "", 1, -10, 10); wgtvar.removeMin(); wgtvar.removeMax();
-  RooArgSet treevars(xvar, var_n_vtxs_good, var_pt_tag, var_eta_tag, var_pt_probe, var_eta_probe, wgtvar);
+  RooArgSet treevars(xvar, var_n_vtxs_good, var_mTcorr, var_pt_tag, var_eta_tag, var_pt_probe, var_eta_probe, wgtvar);
 
   foutput->cd();
   std::vector<BaseTree*> tout_fitparams_list; tout_fitparams_list.reserve(strIdIsoTypes.size());
@@ -1606,7 +1607,7 @@ void getEfficiencies(
         tin->GetEntry(ev);
         HelperFunctions::progressbar(ev, nEntries);
 
-        if (pfmet_pTmiss>=70.f || puppimet_pTmiss>=70.f) continue;
+        if (pfmet_pTmiss>=70.f) continue;
         nPassMET++;
 
         unsigned int nPairs = mass_ll->size(); assert(nPairs<=2);
@@ -1681,8 +1682,9 @@ void getEfficiencies(
             for (auto const& pp:known_bin_pairs){
               if (pp.first == own_bin_pair.first && pp.second == own_bin_pair.second) nValidPairs += 1;
             }
+            if (nValidPairs==2 && ip==1) continue; // Instead of biasing the error estimate, skip the second pairif both pairs correspond to the same bin.
 
-            double wgt = event_wgt*event_wgt_SFs * wgt_scale / nValidPairs * 2.; // x2 to make weights integer-like in data
+            double wgt = event_wgt*event_wgt_SFs * wgt_scale;
             if (!isDataTree) wgt = std::abs(wgt);
 
             bool pass_looseIso_l2 = true;
@@ -1745,8 +1747,14 @@ void getEfficiencies(
               );
             //MELAout << __LINE__ << endl;
 
+            ParticleObject::LorentzVector_t p4_METcorr; p4_METcorr = ParticleObject::PolarLorentzVector_t(pfmet_pTmiss, 0., pfmet_phimiss, 0.);
+            ParticleObject::LorentzVector_t p4_probe; p4_probe = ParticleObject::PolarLorentzVector_t(pt_l2->at(ip), 0., phi_l2->at(ip), 0.);
+            p4_METcorr = p4_METcorr + p4_probe;
+            double mTcorr = std::sqrt(2.*pt_l1->at(ip)*p4_METcorr.Pt()*(1.f - std::cos(phi_l1->at(ip) - p4_METcorr.Phi())));
+
             xvar.setVal(mass_ll->at(ip));
             var_n_vtxs_good.setVal(event_nvtxs_good);
+            var_mTcorr.setVal(mTcorr);
             var_pt_tag.setVal(pt_l1->at(ip));
             var_eta_tag.setVal(var_eta_binning_l1);
             var_pt_probe.setVal(pt_l2->at(ip));
@@ -1827,6 +1835,11 @@ void getEfficiencies(
       compareCoordinate(
         cplotsdir, controlsDir,
         var_n_vtxs_good, 50, 0, 100,
+        fit_data, fit_MC
+      );
+      compareCoordinate(
+        cplotsdir, controlsDir,
+        var_mTcorr, 50, 0, 200,
         fit_data, fit_MC
       );
       compareCoordinate(
@@ -2114,6 +2127,11 @@ void getEfficiencies(
         );
         compareCoordinate(
           cplotsdir, controlsDir,
+          var_mTcorr, 50, 0, 200,
+          fit_data, fit_MC
+        );
+        compareCoordinate(
+          cplotsdir, controlsDir,
           var_pt_tag, 20, 0, 200,
           fit_data, fit_MC
         );
@@ -2325,13 +2343,22 @@ void calculateRecursiveEfficiencies(
   for (unsigned int ieff=0; ieff<sum_indices.size()-1; ieff++){
     auto const& tp = sum_w_w2.at(ieff).first;
     auto const& tpsq = sum_w_w2.at(ieff).second;
-    double normval = tp/tpsq;
     auto const& pp = sum_w_w2.at(ieff+1).first;
-    double aa =  pp * normval + alpha;
-    double bb =  (tp - pp) * normval + beta;
-    effvals.at(ieff).at(0) = pp/tp; // Equivalent to TEfficiency::BetaMode(aa, bb) for alpha=beta=1
-    effvals.at(ieff).at(1) = TEfficiency::BetaCentralInterval(conf, aa, bb, false);
-    effvals.at(ieff).at(2) = TEfficiency::BetaCentralInterval(conf, aa, bb, true);
+    double normval = tp/tpsq;
+
+    // Using Bayesian eff. errors with flat prior (alpha=beta=1)
+    //double aa =  pp * normval + alpha;
+    //double bb =  (tp - pp) * normval + beta;
+    //effvals.at(ieff).at(0) = pp/tp; // Equivalent to TEfficiency::BetaMode(aa, bb) for alpha=beta=1
+    //effvals.at(ieff).at(1) = TEfficiency::BetaCentralInterval(conf, aa, bb, false);
+    //effvals.at(ieff).at(2) = TEfficiency::BetaCentralInterval(conf, aa, bb, true);
+
+    // Using Clopper-Pearson eff. errors
+    effvals.at(ieff).at(0) = pp/tp;
+    double total = tp*normval;
+    double passed = pp*normval;
+    effvals.at(ieff).at(1) = TEfficiency::ClopperPearson(total, passed, conf, false);
+    effvals.at(ieff).at(2) = TEfficiency::ClopperPearson(total, passed, conf, true);
   }
 }
 

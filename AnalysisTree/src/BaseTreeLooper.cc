@@ -91,6 +91,12 @@ void BaseTreeLooper::addTree(BaseTree* tree, double wgt){
     setExternalWeight(tree, wgt);
   }
 }
+void BaseTreeLooper::addTree(BaseTree* tree, std::unordered_map<SystematicsHelpers::SystematicVariationTypes, double> const& syst_wgt_map){
+  if (tree && !HelperFunctions::checkListVariable(this->treeList, tree)){
+    this->treeList.push_back(tree);
+    setExternalWeights(tree, syst_wgt_map);
+  }
+}
 
 void BaseTreeLooper::addExternalFunction(TString fcnname, BaseTreeLooper::LooperExtFunction_t fcn){
   if (!fcn) return;
@@ -192,7 +198,17 @@ void BaseTreeLooper::setExternalWeight(BaseTree* tree, double const& wgt){
     << "BaseTreeLooper::setExternalWeight: Warning! Tree " << tree->sampleIdentifier
     << " is not in the list of input trees, but a weight of " << wgt << " is being assigned to it."
     << endl;
-  globalWeights[tree] = wgt;
+  auto it = globalWeights.find(tree);
+  if (it==globalWeights.end()) globalWeights[tree] = std::unordered_map<SystematicsHelpers::SystematicVariationTypes, double>();
+  globalWeights[tree][SystematicsHelpers::nSystematicVariations] = wgt;
+}
+void BaseTreeLooper::setExternalWeights(BaseTree* tree, std::unordered_map<SystematicsHelpers::SystematicVariationTypes, double> const& wgts){
+  if (!tree) return;
+  if (this->verbosity>=TVar::INFO && !HelperFunctions::checkListVariable(treeList, tree)) MELAout
+    << "BaseTreeLooper::setExternalWeight: Warning! Tree " << tree->sampleIdentifier
+    << " is not in the list of input trees, but a set of weights is being assigned to it."
+    << endl;
+  globalWeights[tree] = wgts;
 }
 
 void BaseTreeLooper::setExternalProductList(std::vector<SimpleEntry>* extProductListRef){
@@ -369,9 +385,11 @@ void BaseTreeLooper::loop(bool keepProducts){
       if (MHval>0.f) sampleIdOpt = kStoreByMH;
     }
 
-    double globalTreeWeight = 1;
     auto it_globalWgt = globalWeights.find(tree);
-    if (it_globalWgt!=globalWeights.cend()) globalTreeWeight = it_globalWgt->second;
+    if (it_globalWgt==globalWeights.cend()){
+      if (this->verbosity>=TVar::ERROR) MELAerr << "BaseTreeLooper::loop: " << tree->sampleIdentifier << " does not have any weights assigned..." << endl;
+      assert(0);
+    }
 
     const int nevents = tree->getNEvents();
     MELAout << "BaseTreeLooper::loop: Looping over " << nevents << " events in " << tree->sampleIdentifier << "..." << endl;
@@ -395,7 +413,7 @@ void BaseTreeLooper::loop(bool keepProducts){
           }
           else if (sampleIdOpt==kStoreByMH) product.setNamedVal("SampleMHVal", MHval);
           if (tree->isValidEvent()){
-            if (this->looperFunction(this, globalTreeWeight, product)){
+            if (this->looperFunction(this, it_globalWgt->second, product)){
               if (keepProducts) this->addProduct(product, &ev_rec);
             }
           }

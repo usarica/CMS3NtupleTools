@@ -361,8 +361,11 @@ bool ElectronSelectionHelpers::testFakeable(ElectronObject const& part){
   if (part.testSelectionBit(kFakeableBase)){
     auto const& bits_V1 = part.extras.id_cutBased_triggerEmulationV1_Bits;
     auto const& bits_V2 = part.extras.id_cutBased_triggerEmulationV2_Bits;
-    for (auto const& bit:electron_triggeremulationV1_bits) res |= HelperFunctions::test_bit(bits_V1, bit);
-    for (auto const& bit:electron_triggeremulationV2_bits) res |= HelperFunctions::test_bit(bits_V2, bit);
+    if (electron_triggeremulationV1_bits.empty() && electron_triggeremulationV2_bits.empty()) res = true;
+    else{
+      for (auto const& bit:electron_triggeremulationV1_bits) res |= HelperFunctions::test_bit(bits_V1, bit);
+      for (auto const& bit:electron_triggeremulationV2_bits) res |= HelperFunctions::test_bit(bits_V2, bit);
+    }
   }
   return res;
 }
