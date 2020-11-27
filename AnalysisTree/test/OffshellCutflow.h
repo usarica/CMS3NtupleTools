@@ -8,6 +8,8 @@ using namespace MELAStreamHelpers;
 
 
 namespace OffshellCutflow{
+  constexpr float MZ_VAL_CUTS = 91.2f;
+
   enum FinalStateType{
     fs_ZZ_2l2nu,
     fs_WW_2l2nu,
@@ -107,7 +109,6 @@ namespace OffshellCutflow{
   }
 
   bool check_mll(float const& val, bool const& isSF){
-    constexpr float MZ_VAL_CUTS = 91.2f;
     float thr[2]={ -1, -1 };
     switch (activeFinalState){
     case fs_ZZ_2l2nu:

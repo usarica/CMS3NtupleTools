@@ -1365,11 +1365,11 @@ void getEfficiencies(
   //binning_eta = ExtendedBinning({ -1.566, -1.4442 }, "");
   if (bin_pt>=0){
     if (bin_pt>=(int) binning_pt.getNbins()) return;
-    binning_pt = ExtendedBinning({ binning_pt.getBinLowEdge(bin_pt), binning_pt.getBinHighEdge(bin_pt) }, binning_pt.getLabel());
+    binning_pt = ExtendedBinning({ binning_pt.getBinLowEdge(bin_pt), binning_pt.getBinHighEdge(bin_pt) }, binning_pt.getName(), binning_pt.getLabel());
   }
   if (bin_eta>=0){
     if (bin_eta>=(int) binning_eta.getNbins()) return;
-    binning_eta = ExtendedBinning({ binning_eta.getBinLowEdge(bin_eta), binning_eta.getBinHighEdge(bin_eta) }, binning_eta.getLabel());
+    binning_eta = ExtendedBinning({ binning_eta.getBinLowEdge(bin_eta), binning_eta.getBinHighEdge(bin_eta) }, binning_eta.getName(), binning_eta.getLabel());
   }
   gSystem->mkdir(coutput_main, true);
 
@@ -2324,11 +2324,6 @@ void calculateRecursiveEfficiencies(
   assert(sum_indices.size()>1);
   assert(sum_indices.front()==0);
 
-  // Bayesian parameters
-  constexpr double alpha=1;
-  constexpr double beta=1;
-  constexpr double conf = 0.682689492137;
-
   effvals.clear(); effvals.assign(sum_indices.size()-1, std::vector<double>(3, 0));
 
   std::vector<std::pair<double, double>> sum_w_w2(sum_indices.size(), std::pair<double, double>(0, 0));
@@ -2346,19 +2341,8 @@ void calculateRecursiveEfficiencies(
     auto const& pp = sum_w_w2.at(ieff+1).first;
     double normval = tp/tpsq;
 
-    // Using Bayesian eff. errors with flat prior (alpha=beta=1)
-    //double aa =  pp * normval + alpha;
-    //double bb =  (tp - pp) * normval + beta;
-    //effvals.at(ieff).at(0) = pp/tp; // Equivalent to TEfficiency::BetaMode(aa, bb) for alpha=beta=1
-    //effvals.at(ieff).at(1) = TEfficiency::BetaCentralInterval(conf, aa, bb, false);
-    //effvals.at(ieff).at(2) = TEfficiency::BetaCentralInterval(conf, aa, bb, true);
-
-    // Using Clopper-Pearson eff. errors
     effvals.at(ieff).at(0) = pp/tp;
-    double total = tp*normval;
-    double passed = pp*normval;
-    effvals.at(ieff).at(1) = TEfficiency::ClopperPearson(total, passed, conf, false);
-    effvals.at(ieff).at(2) = TEfficiency::ClopperPearson(total, passed, conf, true);
+    StatisticsHelpers::getPoissonEfficiencyConfidenceInterval_Frequentist(tp, pp, tpsq, StatisticsHelpers::VAL_CL_1SIGMA, effvals.at(ieff).at(1), effvals.at(ieff).at(2));
   }
 }
 

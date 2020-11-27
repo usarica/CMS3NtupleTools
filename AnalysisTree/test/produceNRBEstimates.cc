@@ -582,7 +582,9 @@ void getMCSampleDirs(std::vector< std::pair<TString, std::vector<std::pair<TStri
 using namespace SystematicsHelpers;
 void getDistributions(
   TString period, TString prodVersion, TString strdate,
-  SystematicsHelpers::SystematicVariationTypes theGlobalSyst
+  SystematicsHelpers::SystematicVariationTypes theGlobalSyst,
+  unsigned int istep,
+  bool useGenMatchedLeptons = false
 ){
   constexpr bool useJetOverlapStripping=false;
   constexpr bool applyPUIdToAK4Jets=true;
@@ -595,6 +597,10 @@ void getDistributions(
   constexpr bool use_MET_p4Preservation=true;
   constexpr bool use_MET_corrections=true;
 
+  if (istep>1) return;
+
+  if (!SampleHelpers::checkRunOnCondor()) std::signal(SIGINT, SampleHelpers::setSignalInterrupt);
+
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
   SampleHelpers::configure(period, Form("%s:%s", "hadoop_skims", prodVersion.Data()));
@@ -604,13 +610,62 @@ void getDistributions(
   std::vector<TString> const validDataPeriods = SampleHelpers::getValidDataPeriods();
   size_t const nValidDataPeriods = validDataPeriods.size();
 
+  std::vector<TString> const strChannelNames{ "mumu", "ee", "mue", "mue_rewgt_mumu", "mue_rewgt_ee" };
+  std::vector<TString> const strChannelTitles{ "#mu#mu", "ee", "#mue (un-rewgt.)", "#mue (rewgt. #mu#mu)", "#mue (rewgt. ee)" };
+  const unsigned int nchannels = strChannelNames.size();
+
+  std::vector<TString> const strNjetsNames{ "Nj_eq_0", "Nj_eq_1", "Nj_geq_2", "Nj_geq_0" };
+  std::vector<TString> const strNjetsTitles{ "N_{j}=0", "N_{j}=1", "N_{j}#geq2", "N_{j}#geq0" };
+  const unsigned int nbins_njets = strNjetsNames.size();
+
+  std::vector<TString> const strBtaggingRegionNames{ "Nbloose_eq_0", "Nbmed_geq_1" };
+  std::vector<TString> const strBtaggingRegionTitles{ "N_{b}^{loose}=0", "N_{b}^{medium}#geq1" };
+  const unsigned int nbins_nbtagged = strBtaggingRegionNames.size();
+
+  constexpr float thr_corr_pTmiss = 100;
+
   TString const coutput_main = "output/NRBEstimates/" + strdate + "/Histograms/" + period;
   TDirectory* curdir = gDirectory;
   gSystem->mkdir(coutput_main, true);
 
-  TString stroutput = coutput_main + Form("/histograms_%s.root", strSyst.Data());
+  TriggerScaleFactorHandler triggerSFHandler;
+
+  TString stroutput = coutput_main + Form("/histograms_%s", strSyst.Data());
+  if (useGenMatchedLeptons) stroutput = stroutput + "_GenMatchedLeptons";
+  stroutput = stroutput + Form("_Step%u", istep);
+  stroutput = stroutput + ".root";
   TFile* foutput = TFile::Open(stroutput, "recreate");
   foutput->cd();
+
+  // Acquire corrections from previous steps
+  std::vector<TGraph*> tg_incorr_list[2][2][nbins_njets-1]; // [Data, non-res MC][mumu, ee][Nj=0, 1, >=2]
+  std::vector<TFile*> finputs_prevstep;
+  if (istep>0){
+    auto const& strBtaggingRegionName = strBtaggingRegionNames.at(1);
+    for (unsigned int jstep=0; jstep<istep-1; jstep++){
+      TString strinput_prevstep = stroutput;
+      TString ownstep = Form("Step%u", istep);
+      TString prevstep = Form("Step%u", jstep);
+      HelperFunctions::replaceString(strinput_prevstep, ownstep, prevstep);
+      TFile* ftmp = TFile::Open(strinput_prevstep, "read"); finputs_prevstep.push_back(ftmp);
+      ftmp->cd();
+      for (unsigned int ip=0; ip<2; ip++){
+        TString strProcess = (ip==0 ? "Data" : "AllMC_NonRes");
+        for (unsigned int ic=0; ic<2; ic++){
+          auto const& strChannelName = strChannelNames.at(ic);
+          for (unsigned int ij=0; ij<nbins_njets-1; ij++){
+            auto const& strNjetsName = strNjetsNames.at(ij);
+
+            TString strCutName = strChannelName + "_" + strNjetsName + "_" + strBtaggingRegionName;
+            TString strname = Form("tg_corr_%s_%s_%s_Nominal", "pTmiss", strCutName.Data(), strProcess.Data());
+
+            tg_incorr_list[ip][ic][ij].push_back((TGraph*) ftmp->Get(strname));
+          }
+        }
+      }
+      foutput->cd();
+    }
+  }
 
   TString const cinput_main_MC =
     "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/DileptonEvents/SkimTrees/" + strdate
@@ -801,7 +856,11 @@ void getDistributions(
       }
 
       for (auto const& bname:allbranchnames){
-        if (bname.StartsWith("p_") && (bname.Contains("JHUGen") || bname.Contains("MCFM"))) ME_Kfactor_values[bname] = -1;
+        if (
+          (bname.BeginsWith("p_") && (bname.Contains("JHUGen") || bname.Contains("MCFM")))
+          ||
+          bname.BeginsWith("KFactor")
+          ) ME_Kfactor_values[bname] = -1;
       }
     }
 
@@ -810,13 +869,11 @@ void getDistributions(
     BRANCH_COMMANDS;
 #undef BRANCH_COMMAND
     for (auto& it:ME_Kfactor_values){
-      TString const& MEname = it->first;
+      TString const& MEname = it.first;
       if (!HelperFunctions::checkListVariable(allbranchnames, MEname)) continue;
-      float& MEval = it->second;
+      float& MEval = it.second;
       tin->SetBranchStatus(MEname, 1); tin->SetBranchAddress(MEname, &MEval);
     }
-
-    isFirstTree = false;
   }
 
   // Build discriminants
@@ -825,30 +882,36 @@ void getDistributions(
     ANALYSISTREEPKGDATAPATH+"RecoMEConstants/SmoothKDConstant_m4l_DjjVBF_13TeV.root", "sp_gr_varReco_Constant_Smooth"
   );
 
-
-  std::vector<TString> strChannelNames{ "mumu", "ee", "mue", "mue_rewgt_mumu", "mue_rewgt_ee" };
-  std::vector<TString> strChannelTitles{ "#mu#mu", "ee", "#mue (un-rewgt.)", "#mue (rewgt. #mu#mu)", "#mue (rewgt. ee)" };
-  const unsigned int nchannels = strChannelNames.size();
-
-  std::vector<TString> strNjetsNames{ "Nj_eq_0", "Nj_eq_1", "Nj_geq_2", "Nj_geq_0" };
-  std::vector<TString> strNjetsTitles{ "N_{j}=0", "N_{j}=1", "N_{j}#geq2", "N_{j}#geq0" };
-  const unsigned int nbins_njets = strNjetsNames.size();
-
-  std::vector<TString> strBtaggingRegionNames{ "Nbloose_eq_0", "Nbmed_geq_1" };
-  std::vector<TString> strBtaggingRegionTitles{ "N_{b}^{loose}=0", "N_{b}^{medium}#geq1" };
-  const unsigned int nbins_nbtagged = strBtaggingRegionNames.size();
-
   foutput->cd();
 
+  // Create the histograms
+  std::vector<TString> sgroups_allhists = sgroups;
+  if (HelperFunctions::checkListVariable<TString>(sgroups, "DY_2l")){
+    sgroups_allhists.push_back("DY_2l_genMatched");
+    sgroups_allhists.push_back("DY_2l_failedMatches");
+  }
+  if (HelperFunctions::checkListVariable<TString>(sgroups, "qqZZ_2l2nu")){
+    sgroups_allhists.push_back("qqZZ_2l2nu_genMatched");
+    sgroups_allhists.push_back("qqZZ_2l2nu_failedMatches");
+  }
+  if (HelperFunctions::checkListVariable<TString>(sgroups, "qqWZ_3lnu")){
+    sgroups_allhists.push_back("qqWZ_3lnu_genMatched");
+    sgroups_allhists.push_back("qqWZ_3lnu_failedMatches");
+  }
+  sgroups_allhists.push_back("AllMC_NonRes");
+  unsigned int const nprocesses = sgroups_allhists.size();
+
   std::vector<TH1F*> hlist;
-  for (auto const& sgroup:sgroups){
+  std::vector<ExtendedHistogram_1D*> hlist_SB;
+  for (auto const& sgroup:sgroups_allhists){
     int scolor = (int) kBlack;
     if (sgroup == "Data") scolor = (int) (kBlack);
-    else if (sgroup == "DY_2l") scolor = (int) (kCyan);
+    else if (sgroup == "AllMC_NonRes") scolor = (int) (kGray);
+    else if (sgroup.Contains("DY_2l")) scolor = (int) (kCyan);
+    else if (sgroup.Contains("qqZZ_2l2nu")) scolor = (int) (kYellow-3);
+    else if (sgroup.Contains("qqWZ_3lnu")) scolor = (int) (kBlue);
     else if (sgroup == "TT_2l2nu") scolor = (int) (kOrange-3);
     else if (sgroup == "qqWW_2l2nu") scolor = (int) (kTeal-1);
-    else if (sgroup == "qqZZ_2l2nu") scolor = (int) (kYellow-3);
-    else if (sgroup == "qqWZ_3lnu") scolor = (int) (kBlue);
     else if (sgroup == "WJets_lnu") scolor = (int) (kRed);
     else MELAerr << "Sample type " << sgroup << " is not recognized!" << endl;
 
@@ -871,12 +934,35 @@ void getDistributions(
           htmp->GetXaxis()->SetTitle(BINNING.getLabel()); htmp->GetYaxis()->SetTitle("Events / bin"); \
           htmp->SetLineColor(scolor); htmp->SetMarkerColor(scolor); htmp->SetLineWidth(2); \
           if (!strChannelName.Contains("rewgt") && sgroup!="Data") htmp->SetFillColor(scolor); \
-          else htmp->SetLineStyle(2); \
+          else if (sgroup!="Data") htmp->SetLineStyle(2); \
           hlist.push_back(htmp);
 
           ExtendedBinning binning_mTZZ(27, 150, 1500, "m_{T}^{ZZ} (GeV)");
           HISTOGRAM_COMMAND(mTZZ, binning_mTZZ);
+          ExtendedBinning binning_mll(30, 91.2-15., 91.2+15., "m_{ll} (GeV)");
+          HISTOGRAM_COMMAND(mll, binning_mll);
+          ExtendedBinning binning_pTl1(19, 25, 500, "p_{T}^{l1} (GeV)");
+          HISTOGRAM_COMMAND(pTl1, binning_pTl1);
+          ExtendedBinning binning_pTl2(30, 25, 325, "p_{T}^{l2} (GeV)");
+          HISTOGRAM_COMMAND(pTl2, binning_pTl2);
+          ExtendedBinning binning_pTmiss(35, 125, 1000, "p_{T}^{miss} (GeV)");
+          HISTOGRAM_COMMAND(pTmiss, binning_pTmiss);
+          ExtendedBinning binning_DjjVBF(10, 0, 1, "D_{2jet}^{VBF}");
+          HISTOGRAM_COMMAND(DjjVBF, binning_DjjVBF);
+#undef HISTOGRAM_COMMAND
 
+          ExtendedHistogram_1D* ehtmp = nullptr;
+#define HISTOGRAM_COMMAND(NAME, BINNING) \
+          ehtmp = new ExtendedHistogram_1D(Form("h_SB_%s_%s_%s", #NAME, strCutName.Data(), sgroup.Data()), strCutTitle, BINNING); \
+          htmp = ehtmp->getHistogram(); \
+          htmp->GetYaxis()->SetTitle("Events / bin"); \
+          htmp->SetLineColor(scolor); htmp->SetMarkerColor(scolor); htmp->SetLineWidth(2); \
+          if (!strChannelName.Contains("rewgt") && sgroup!="Data") htmp->SetFillColor(scolor); \
+          else if (sgroup!="Data") htmp->SetLineStyle(2); \
+          hlist_SB.push_back(ehtmp);
+
+          ExtendedBinning binning_pTmiss_vbin({ thr_corr_pTmiss, 110, 125, 150, 200, 300, 13000 }, "pTmiss", "p_{T}^{miss} (GeV)");
+          HISTOGRAM_COMMAND(pTmiss, binning_pTmiss_vbin);
 
 #undef HISTOGRAM_COMMAND
         }
@@ -892,9 +978,10 @@ void getDistributions(
     auto const& tin = spair.second;
 
     // Reset ME and K factor values
-    for (auto& it:ME_Kfactor_values) it->second = -1;
+    for (auto& it:ME_Kfactor_values) it.second = -1;
     bool is_qqVV = sgroup.Contains("qqZZ") || sgroup.Contains("qqWZ") || sgroup.Contains("qqWW");
     bool is_ggVV = sgroup.Contains("ggZZ") || sgroup.Contains("ggWW") || sgroup.Contains("GGH");
+    bool isData = (sgroup == "Data");
 
     float* val_Kfactor_QCD = nullptr;
     float* val_Kfactor_EW = nullptr;
@@ -944,19 +1031,24 @@ void getDistributions(
       }
     }
 
-    int nEntries = tin->GetEntries();
+    int const nEntries = tin->GetEntries();
     for (int ev=0; ev<nEntries; ev++){
+      if (SampleHelpers::doSignalInterrupt==1) break;
+
       tin->GetEntry(ev);
       HelperFunctions::progressbar(ev, nEntries);
 
       if (event_wgt_triggers_SingleLepton!=1.f && event_wgt_triggers_Dilepton!=1.f) continue;
 
-      if (!check_pTmiss(event_pTmiss)) continue;
+      if (event_pTmiss<thr_corr_pTmiss) continue;
+      bool pass_SR_pTmiss = check_pTmiss(event_pTmiss);
+
       if (!check_dPhi_pTll_pTmiss(dPhi_pTboson_pTmiss)) continue;
       if (!check_dPhi_pTlljets_pTmiss(dPhi_pTbosonjets_pTmiss)) continue;
       if (!check_min_abs_dPhi_pTj_pTmiss(min_abs_dPhi_pTj_pTmiss)) continue;
       if (!check_pTl1(dilepton_pt)) continue;
 
+      bool hasGenMatchedPair = isData || (leptons_is_genMatched_prompt->front() && leptons_is_genMatched_prompt->back());
       float pTl1 = std::max(leptons_pt->front(), leptons_pt->back());
       float pTl2 = std::min(leptons_pt->front(), leptons_pt->back());
       if (!check_pTl1(pTl1)) continue;
@@ -965,7 +1057,8 @@ void getDistributions(
       bool is_emu = (dilepton_id==-143);
       bool is_mumu = (dilepton_id==-169);
       bool is_ee = (dilepton_id==-121);
-      if (!check_mll(dilepton_mass, is_ee || is_mumu)) continue;
+      if (std::abs(dilepton_mass-MZ_VAL_CUTS)>=30.f) continue;
+      bool pass_SR_mll = check_mll(dilepton_mass, is_ee || is_mumu);
 
       event_wgt_SFs_PUJetId = std::min(event_wgt_SFs_PUJetId, 3.f);
       float wgt = event_wgt * event_wgt_SFs_muons * event_wgt_SFs_electrons * event_wgt_SFs_photons * event_wgt_SFs_PUJetId * event_wgt_SFs_btagging * norm_map[tin];
@@ -981,37 +1074,250 @@ void getDistributions(
         else wgt_emu_rewgt_mumu *= leptons_eff_DF->back() / leptons_eff->back();
       }
 
-      for (auto& hh:hlist){
-        TString hname = hh->GetName();
-        if (!hname.Contains(sgroup)) continue;
-        // Decay channels
-        if (hname.Contains("mue") && !is_emu) continue;
-        if (hname.Contains("mumu") && !hname.Contains("rewgt") && !is_mumu) continue;
-        if (hname.Contains("ee") && !hname.Contains("rewgt") && !is_ee) continue;
-        // b-taging veto
-        if (hname.Contains(strBtaggingRegionNames.front()) && event_n_ak4jets_pt30_btagged_loose!=0) continue;
-        if (hname.Contains(strBtaggingRegionNames.back()) && !(event_n_ak4jets_pt30_btagged_medium!=0 || (event_n_ak4jets_pt30==0 && event_n_ak4jets_pt20_btagged_medium!=0))) continue;
-        // Jet bins
-        if (hname.Contains(strNjetsNames.at(0)) && event_n_ak4jets_pt30!=0) continue;
-        if (hname.Contains(strNjetsNames.at(1)) && event_n_ak4jets_pt30!=1) continue;
-        if (hname.Contains(strNjetsNames.at(2)) && event_n_ak4jets_pt30<2) continue;
+      float SFself=1, effself=1;
+      triggerSFHandler.getCombinedDileptonSFAndEff(
+        theGlobalSyst,
+        leptons_pt->front(), leptons_eta->front(), leptons_id->front(),
+        leptons_pt->back(), leptons_eta->back(), leptons_id->back(),
+        true,
+        SFself, &effself
+      );
+      if (!isData) wgt *= SFself;
+      if (is_emu){
+        float SF_ee=1, eff_ee=1;
+        float SF_mumu=1, eff_mumu=1;
+        triggerSFHandler.getCombinedDileptonSFAndEff(
+          theGlobalSyst,
+          leptons_pt->front(), leptons_eta->front(), 11,
+          leptons_pt->back(), leptons_eta->back(), -11,
+          true,
+          SF_ee, &eff_ee
+        );
+        triggerSFHandler.getCombinedDileptonSFAndEff(
+          theGlobalSyst,
+          leptons_pt->front(), leptons_eta->front(), 13,
+          leptons_pt->back(), leptons_eta->back(), -13,
+          true,
+          SF_mumu, &eff_mumu
+        );
+        wgt_emu_rewgt_ee *= eff_ee/effself;
+        wgt_emu_rewgt_mumu *= eff_mumu/effself;
 
-        float hwgt = wgt;
-        if (hname.Contains("mue_rewgt_ee")) hwgt *= wgt_emu_rewgt_ee/2.;
-        if (hname.Contains("mue_rewgt_mumu")) hwgt *= wgt_emu_rewgt_mumu/2.;
+        for (auto const& tg:tg_incorr_list[!isData][0][1*(event_n_ak4jets_pt30==1) + 2*(event_n_ak4jets_pt30>=2)]) wgt_emu_rewgt_mumu *= tg->Eval(event_pTmiss);
+        for (auto const& tg:tg_incorr_list[!isData][1][1*(event_n_ak4jets_pt30==1) + 2*(event_n_ak4jets_pt30>=2)]) wgt_emu_rewgt_ee *= tg->Eval(event_pTmiss);
+      }
 
-        if (hname.Contains("mTZZ")) hh->Fill(event_mTZZ, hwgt);
+      bool const pass_sel_SR = pass_SR_pTmiss && pass_SR_mll;
+      bool const pass_sel_SB = !pass_SR_mll;
+
+      // Fill histograms
+      if (pass_sel_SR){
+        DjjVBF->update({ ME_Kfactor_values["p_JJVBF_SIG_ghv1_1_JHUGen"], ME_Kfactor_values["p_JJQCD_SIG_ghg2_1_JHUGen"] }, event_mZZ);
+        for (auto& hh:hlist){
+          TString hname = hh->GetName();
+          if (
+            !(
+              hname.Contains(sgroup)
+              ||
+              (
+                hname.Contains("AllMC_NonRes") && (
+                (
+                  !hasGenMatchedPair
+                  &&
+                  (
+                    sgroup == "DY_2l"
+                    ||
+                    sgroup == "qqZZ_2l2nu"
+                    ||
+                    sgroup == "qqWZ_3lnu"
+                    )
+                  )
+                  ||
+                  sgroup == "TT_2l2nu"
+                  ||
+                  sgroup == "qqWW_2l2nu"
+                  ||
+                  sgroup == "WJets_lnu"
+                  )
+                )
+              )
+            ) continue;
+          if (hname.Contains("failedMatches") && hasGenMatchedPair) continue;
+          if (hname.Contains("genMatched") && !hasGenMatchedPair) continue;
+          // Decay channels
+          if (hname.Contains("mue") && !is_emu) continue;
+          if (hname.Contains("mumu") && !hname.Contains("rewgt") && !is_mumu) continue;
+          if (hname.Contains("ee") && !hname.Contains("rewgt") && !is_ee) continue;
+          // b-tagging veto
+          if (hname.Contains(strBtaggingRegionNames.front()) && event_n_ak4jets_pt30_btagged_loose!=0) continue;
+          if (hname.Contains(strBtaggingRegionNames.back()) && !(event_n_ak4jets_pt30_btagged_medium!=0 || (event_n_ak4jets_pt30==0 && event_n_ak4jets_pt20_btagged_medium!=0))) continue;
+          // Jet bins
+          if (hname.Contains(strNjetsNames.at(0)) && event_n_ak4jets_pt30!=0) continue;
+          if (hname.Contains(strNjetsNames.at(1)) && event_n_ak4jets_pt30!=1) continue;
+          if (hname.Contains(strNjetsNames.at(2)) && event_n_ak4jets_pt30<2) continue;
+
+          float hwgt = wgt;
+          if (hname.Contains("mue_rewgt_ee")) hwgt *= wgt_emu_rewgt_ee/2.;
+          if (hname.Contains("mue_rewgt_mumu")) hwgt *= wgt_emu_rewgt_mumu/2.;
+
+          if (hname.Contains("mTZZ")) hh->Fill(event_mTZZ, hwgt);
+          if (hname.Contains("mll")) hh->Fill(dilepton_mass, hwgt);
+          if (hname.Contains("pTl1")) hh->Fill(pTl1, hwgt);
+          if (hname.Contains("pTl2")) hh->Fill(pTl2, hwgt);
+          if (hname.Contains("pTmiss")) hh->Fill(event_pTmiss, hwgt);
+          if (hname.Contains("DjjVBF") && event_n_ak4jets_pt30>=2) hh->Fill(*DjjVBF, hwgt);
+        }
+      }
+      if (pass_sel_SB){
+        for (auto& hh:hlist_SB){
+          TString hname = hh->getName();
+          if (
+            !(
+              hname.Contains(sgroup)
+              ||
+              (
+                hname.Contains("AllMC_NonRes") && (
+                (
+                  !hasGenMatchedPair
+                  &&
+                  (
+                    sgroup == "DY_2l"
+                    ||
+                    sgroup == "qqZZ_2l2nu"
+                    ||
+                    sgroup == "qqWZ_3lnu"
+                    )
+                  )
+                  ||
+                  sgroup == "TT_2l2nu"
+                  ||
+                  sgroup == "qqWW_2l2nu"
+                  ||
+                  sgroup == "WJets_lnu"
+                  )
+                )
+              )
+            ) continue;
+          if (hname.Contains("failedMatches") && hasGenMatchedPair) continue;
+          if (hname.Contains("genMatched") && !hasGenMatchedPair) continue;
+          // Decay channels
+          if (hname.Contains("mue") && !is_emu) continue;
+          if (hname.Contains("mumu") && !hname.Contains("rewgt") && !is_mumu) continue;
+          if (hname.Contains("ee") && !hname.Contains("rewgt") && !is_ee) continue;
+          // b-tagging veto
+          if (hname.Contains(strBtaggingRegionNames.front()) && event_n_ak4jets_pt30_btagged_loose!=0) continue;
+          if (hname.Contains(strBtaggingRegionNames.back()) && !(event_n_ak4jets_pt30_btagged_medium!=0 || (event_n_ak4jets_pt30==0 && event_n_ak4jets_pt20_btagged_medium!=0))) continue;
+          // Jet bins
+          if (hname.Contains(strNjetsNames.at(0)) && event_n_ak4jets_pt30!=0) continue;
+          if (hname.Contains(strNjetsNames.at(1)) && event_n_ak4jets_pt30!=1) continue;
+          if (hname.Contains(strNjetsNames.at(2)) && event_n_ak4jets_pt30<2) continue;
+
+          float hwgt = wgt;
+          if (hname.Contains("mue_rewgt_ee")) hwgt *= wgt_emu_rewgt_ee/2.;
+          if (hname.Contains("mue_rewgt_mumu")) hwgt *= wgt_emu_rewgt_mumu/2.;
+
+          if (hname.Contains("pTmiss")) hh->fill(event_pTmiss, hwgt);
+        }
       }
     }
   }
+
+  delete DjjVBF;
 
   for (auto& hh:hlist){
     foutput->WriteTObject(hh);
     delete hh;
   }
+
+  {
+    unsigned int const nhists_SB = hlist_SB.size()/(nprocesses * nchannels * nbins_njets * nbins_nbtagged);
+    std::vector<unsigned int> idxs_process;
+    {
+      unsigned int idx=0;
+      for (auto const& sgroup:sgroups_allhists){
+        if (
+          sgroup == "Data"
+          ||
+          sgroup == "AllMC_NonRes"
+          ||
+          sgroup == "TT_2l2nu"
+          ) idxs_process.push_back(idx);
+        idx++;
+      }
+    }
+
+    for (auto const& idx_process:idxs_process){
+      for (unsigned int ic=0; ic<2; ic++){
+        for (unsigned int ij=0; ij<nbins_njets; ij++){
+          for (unsigned int ibt=0; ibt<nbins_nbtagged; ibt++){
+            for (unsigned int ih=0; ih<nhists_SB; ih++){
+              auto const& eh_num = hlist_SB.at(ih + nhists_SB*(ibt+nbins_nbtagged*(ij+nbins_njets*(ic+nchannels*(idx_process)))));
+              auto const& eh_den = hlist_SB.at(ih + nhists_SB*(ibt+nbins_nbtagged*(ij+nbins_njets*((ic+3)+nchannels*(idx_process)))));
+
+              TString tgname = eh_num->getName();
+              if (!tgname.Contains("pTmiss")) continue;
+              HelperFunctions::replaceString<TString>(tgname, "h_SB", "tg_corr");
+
+              TGraphErrors* tgnum = eh_num->getGraph(tgname+"_num");
+              TGraphErrors* tgdenom = eh_den->getGraph(tgname+"_denom");
+
+              unsigned int const npoints = tgnum->GetN();
+              assert(npoints == tgdenom->GetN());
+
+              std::vector<std::pair<double, double>> xy; xy.reserve(npoints);
+              std::vector<std::pair<double, double>> xy_dn; xy_dn.reserve(npoints);
+              std::vector<std::pair<double, double>> xy_up; xy_up.reserve(npoints);
+              double* xxnum = tgnum->GetX();
+              double* exnum = tgnum->GetEX();
+              double* yynum = tgnum->GetY();
+              double* eynum = tgnum->GetEY();
+              double* xxdenom = tgdenom->GetX();
+              double* exdenom = tgdenom->GetEX();
+              double* yydenom = tgdenom->GetY();
+              double* eydenom = tgdenom->GetEY();
+              double xlast=0;
+              for (unsigned int ip=0; ip<npoints; ip++){
+                double cxx = (xxnum[ip]/std::pow(exnum[ip], 2) + xxdenom[ip]/std::pow(exdenom[ip], 2)) / (1./std::pow(exnum[ip], 2) + 1./std::pow(exdenom[ip], 2));
+
+                double cyy = yynum[ip] / yydenom[ip];
+
+                double cyy_dn = cyy - std::sqrt(std::pow((yynum[ip] - eynum[ip])/yydenom[ip] - cyy, 2) + std::pow(yynum[ip]/(yydenom[ip] + eydenom[ip]) - cyy, 2));
+                double cyy_up = cyy + std::sqrt(std::pow((yynum[ip] + eynum[ip])/yydenom[ip] - cyy, 2) + std::pow(yynum[ip]/(yydenom[ip] - eydenom[ip]) - cyy, 2));
+
+                xy.emplace_back(cxx, cyy);
+                xy_dn.emplace_back(cxx, cyy_dn);
+                xy_up.emplace_back(cxx, cyy_up);
+
+                if (ip==npoints-1) xlast = cxx;
+              }
+
+              delete tgnum;
+              delete tgdenom;
+
+              TGraph* tg_tmp = nullptr;
+              tg_tmp = HelperFunctions::makeGraphFromPair(xy, tgname+"_Nominal"); foutput->WriteTObject(tg_tmp); delete tg_tmp;
+              tg_tmp = HelperFunctions::makeGraphFromPair(xy_dn, tgname+"_StatDn"); foutput->WriteTObject(tg_tmp); delete tg_tmp;
+              tg_tmp = HelperFunctions::makeGraphFromPair(xy_up, tgname+"_StatUp"); foutput->WriteTObject(tg_tmp); delete tg_tmp;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  for (auto& hh:hlist_SB){
+    foutput->WriteTObject(hh->getHistogram());
+    delete hh;
+  }
+
   for (auto& pp:samples_all) delete pp.second;
 
+  for (auto& ftmp:finputs_prevstep) ftmp->Close();
+
   foutput->Close();
+  curdir->cd();
+
+  SampleHelpers::addToCondorTransferList(stroutput);
 
 #undef BRANCH_COMMANDS
 #undef BRANCH_VECTOR_COMMANDS

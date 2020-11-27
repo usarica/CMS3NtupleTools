@@ -48,8 +48,8 @@ public:
   void setGScale(float inval=1);
   void setInvertG(bool flag);
 
-  bool addAdditionalC(const TString filename, const TString splinename);
-  bool addAdditionalG(const TString filename, const TString splinename);
+  bool addAdditionalC(TString filename, TString splinename);
+  bool addAdditionalG(TString filename, TString splinename);
 
 };
 

@@ -16,7 +16,7 @@ void ScaleFactorHandlerBase::closeFile(TFile*& f){
   f = nullptr;
 }
 
-void ScaleFactorHandlerBase::getAxisBinning(TAxis const* ax, ExtendedBinning& res){ res = HelperFunctions::getExtendedBinning(ax); }
+void ScaleFactorHandlerBase::getAxisBinning(TAxis const* ax, ExtendedBinning& res){ HelperFunctions::getExtendedBinning(ax, res); }
 
 template<> bool ScaleFactorHandlerBase::getHistogram<TH1F, ExtendedHistogram_1D>(ExtendedHistogram_1D& h, TDirectory* f, TString s){
   TDirectory* curdir = gDirectory;
@@ -38,17 +38,18 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH1F, ExtendedHistogram_1D>
       return false;
     }
 
-    ExtendedBinning xbins; getAxisBinning(hh->GetXaxis(), xbins);
+    ExtendedBinning xbins("x"); getAxisBinning(hh->GetXaxis(), xbins);
     unsigned int nbinsx = xbins.getNbins();
-    h.setBinning(xbins, 0, "x");
+    h.setBinning(xbins, 0);
 
-    h.build(); h.resetProfiles();
+    h.build(); h.resetProfiles(); h.setNameTitle(s+"_copy");
     TH1F* const& th = h.getHistogram();
     for (unsigned int ix=0; ix<=nbinsx+1; ix++){
       th->SetBinContent(ix, hh->GetBinContent(ix));
       th->SetBinError(ix, hh->GetBinError(ix));
     }
   }
+  else MELAerr << "ScaleFactorHandlerBase::getHistogram: " << s << " cannot be acquired!" << endl;
 
   return (hh!=nullptr);
 }
@@ -72,17 +73,18 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH1D, ExtendedHistogram_1D>
       return false;
     }
 
-    ExtendedBinning xbins; getAxisBinning(hh->GetXaxis(), xbins);
+    ExtendedBinning xbins("x"); getAxisBinning(hh->GetXaxis(), xbins);
     unsigned int nbinsx = xbins.getNbins();
-    h.setBinning(xbins, 0, "x");
+    h.setBinning(xbins, 0);
 
-    h.build(); h.resetProfiles();
+    h.build(); h.resetProfiles(); h.setNameTitle(s+"_copy");
     TH1F* const& th = h.getHistogram();
     for (unsigned int ix=0; ix<=nbinsx+1; ix++){
       th->SetBinContent(ix, hh->GetBinContent(ix));
       th->SetBinError(ix, hh->GetBinError(ix));
     }
   }
+  else MELAerr << "ScaleFactorHandlerBase::getHistogram: " << s << " cannot be acquired!" << endl;
 
   return (hh!=nullptr);
 }
@@ -106,15 +108,15 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH2F, ExtendedHistogram_2D>
       return false;
     }
 
-    ExtendedBinning xbins; getAxisBinning(hh->GetXaxis(), xbins);
+    ExtendedBinning xbins("x"); getAxisBinning(hh->GetXaxis(), xbins);
     unsigned int nbinsx = xbins.getNbins();
-    h.setBinning(xbins, 0, "x");
+    h.setBinning(xbins, 0);
 
-    ExtendedBinning ybins; getAxisBinning(hh->GetYaxis(), ybins);
+    ExtendedBinning ybins("y"); getAxisBinning(hh->GetYaxis(), ybins);
     unsigned int nbinsy = ybins.getNbins();
-    h.setBinning(ybins, 1, "y");
+    h.setBinning(ybins, 1);
 
-    h.build(); h.resetProfiles();
+    h.build(); h.resetProfiles(); h.setNameTitle(s+"_copy");
     TH2F* const& th = h.getHistogram();
     for (unsigned int ix=0; ix<=nbinsx+1; ix++){
       for (unsigned int iy=0; iy<=nbinsy+1; iy++){
@@ -123,6 +125,7 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH2F, ExtendedHistogram_2D>
       }
     }
   }
+  else MELAerr << "ScaleFactorHandlerBase::getHistogram: " << s << " cannot be acquired!" << endl;
 
   return (hh!=nullptr);
 }
@@ -146,15 +149,15 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH2D, ExtendedHistogram_2D>
       return false;
     }
 
-    ExtendedBinning xbins; getAxisBinning(hh->GetXaxis(), xbins);
+    ExtendedBinning xbins("x"); getAxisBinning(hh->GetXaxis(), xbins);
     unsigned int nbinsx = xbins.getNbins();
-    h.setBinning(xbins, 0, "x");
+    h.setBinning(xbins, 0);
 
-    ExtendedBinning ybins; getAxisBinning(hh->GetYaxis(), ybins);
+    ExtendedBinning ybins("y"); getAxisBinning(hh->GetYaxis(), ybins);
     unsigned int nbinsy = ybins.getNbins();
-    h.setBinning(ybins, 1, "y");
+    h.setBinning(ybins, 1);
 
-    h.build(); h.resetProfiles();
+    h.build(); h.resetProfiles(); h.setNameTitle(s+"_copy");
     TH2F* const& th = h.getHistogram();
     for (unsigned int ix=0; ix<=nbinsx+1; ix++){
       for (unsigned int iy=0; iy<=nbinsy+1; iy++){
@@ -163,6 +166,7 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH2D, ExtendedHistogram_2D>
       }
     }
   }
+  else MELAerr << "ScaleFactorHandlerBase::getHistogram: " << s << " cannot be acquired!" << endl;
 
   return (hh!=nullptr);
 }
@@ -192,17 +196,18 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH1F, Extende
       return false;
     }
 
-    ExtendedBinning xbins; getAxisBinning(hh->GetXaxis(), xbins);
+    ExtendedBinning xbins("x"); getAxisBinning(hh->GetXaxis(), xbins);
     unsigned int nbinsx = xbins.getNbins();
-    h.setBinning(xbins, 0, "x");
+    h.setBinning(xbins, 0);
 
-    h.build(); h.resetProfiles();
+    h.build(); h.resetProfiles(); h.setNameTitle(s+"_copy");
     TH1F* const& th = h.getHistogram();
     for (unsigned int ix=0; ix<=nbinsx+1; ix++){
       th->SetBinContent(ix, hh->GetBinContent(ix));
       th->SetBinError(ix, hu->GetBinError(ix));
     }
   }
+  else MELAerr << "ScaleFactorHandlerBase::getHistogramWithUncertainy: " << s << " or " << su << " cannot be acquired!" << endl;
 
   return (hh!=nullptr);
 }
@@ -231,17 +236,18 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH1D, Extende
       return false;
     }
 
-    ExtendedBinning xbins; getAxisBinning(hh->GetXaxis(), xbins);
+    ExtendedBinning xbins("x"); getAxisBinning(hh->GetXaxis(), xbins);
     unsigned int nbinsx = xbins.getNbins();
-    h.setBinning(xbins, 0, "x");
+    h.setBinning(xbins, 0);
 
-    h.build(); h.resetProfiles();
+    h.build(); h.resetProfiles(); h.setNameTitle(s+"_copy");
     TH1F* const& th = h.getHistogram();
     for (unsigned int ix=0; ix<=nbinsx+1; ix++){
       th->SetBinContent(ix, hh->GetBinContent(ix));
       th->SetBinError(ix, hu->GetBinError(ix));
     }
   }
+  else MELAerr << "ScaleFactorHandlerBase::getHistogramWithUncertainy: " << s << " or " << su << " cannot be acquired!" << endl;
 
   return (hh!=nullptr);
 }
@@ -270,15 +276,15 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH2F, Extende
       return false;
     }
 
-    ExtendedBinning xbins; getAxisBinning(hh->GetXaxis(), xbins);
+    ExtendedBinning xbins("x"); getAxisBinning(hh->GetXaxis(), xbins);
     unsigned int nbinsx = xbins.getNbins();
-    h.setBinning(xbins, 0, "x");
+    h.setBinning(xbins, 0);
 
-    ExtendedBinning ybins; getAxisBinning(hh->GetYaxis(), ybins);
+    ExtendedBinning ybins("y"); getAxisBinning(hh->GetYaxis(), ybins);
     unsigned int nbinsy = ybins.getNbins();
-    h.setBinning(ybins, 1, "y");
+    h.setBinning(ybins, 1);
 
-    h.build(); h.resetProfiles();
+    h.build(); h.resetProfiles(); h.setNameTitle(s+"_copy");
     TH2F* const& th = h.getHistogram();
     for (unsigned int ix=0; ix<=nbinsx+1; ix++){
       for (unsigned int iy=0; iy<=nbinsy+1; iy++){
@@ -287,6 +293,7 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH2F, Extende
       }
     }
   }
+  else MELAerr << "ScaleFactorHandlerBase::getHistogramWithUncertainy: " << s << " or " << su << " cannot be acquired!" << endl;
 
   return (hh!=nullptr);
 }
@@ -315,15 +322,15 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH2D, Extende
       return false;
     }
 
-    ExtendedBinning xbins; getAxisBinning(hh->GetXaxis(), xbins);
+    ExtendedBinning xbins("x"); getAxisBinning(hh->GetXaxis(), xbins);
     unsigned int nbinsx = xbins.getNbins();
-    h.setBinning(xbins, 0, "x");
+    h.setBinning(xbins, 0);
 
-    ExtendedBinning ybins; getAxisBinning(hh->GetYaxis(), ybins);
+    ExtendedBinning ybins("y"); getAxisBinning(hh->GetYaxis(), ybins);
     unsigned int nbinsy = ybins.getNbins();
-    h.setBinning(ybins, 1, "y");
+    h.setBinning(ybins, 1);
 
-    h.build(); h.resetProfiles();
+    h.build(); h.resetProfiles(); h.setNameTitle(s+"_copy");
     TH2F* const& th = h.getHistogram();
     for (unsigned int ix=0; ix<=nbinsx+1; ix++){
       for (unsigned int iy=0; iy<=nbinsy+1; iy++){
@@ -332,6 +339,7 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH2D, Extende
       }
     }
   }
+  else MELAerr << "ScaleFactorHandlerBase::getHistogramWithUncertainy: " << s << " or " << su << " cannot be acquired!" << endl;
 
   return (hh!=nullptr);
 }

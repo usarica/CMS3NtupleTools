@@ -35,6 +35,8 @@
 #include "PhotonScaleFactorHandler.h"
 #include "PUJetIdScaleFactorHandler.h"
 #include "BtagScaleFactorHandler.h"
+#include "TriggerScaleFactorHandler.h"
+
 #include "METCorrectionHandler.h"
 
 #include "DiscriminantClasses.h"
@@ -43,10 +45,14 @@
 
 #include "HostHelpersCore.h"
 #include "HelperFunctions.h"
+#include "StatisticsHelpers.h"
 #include "MELAStreamHelpers.hh"
 #include "TSystem.h"
 #include "TDirectory.h"
 #include "TFile.h"
+#include "TH1F.h"
+#include "TH2F.h"
+#include "TH3F.h"
 #include "TH1D.h"
 #include "TH2D.h"
 #include "TH3D.h"

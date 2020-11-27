@@ -30,6 +30,9 @@ std::string SystematicsHelpers::getSystCoreName(SystematicsHelpers::SystematicVa
   case tPythiaTuneDn:
   case tPythiaTuneUp:
     return "PythiaTune";
+  case tEWDn:
+  case tEWUp:
+    return "EW";
 
   case eEleEffDn:
   case eEleEffUp:

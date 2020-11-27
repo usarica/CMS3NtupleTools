@@ -15,6 +15,7 @@ namespace SystematicsHelpers{
     tPDFReplicaDn, tPDFReplicaUp,
     tPythiaScaleDn, tPythiaScaleUp,
     tPythiaTuneDn, tPythiaTuneUp,
+    tEWDn, tEWUp,
 
     eEleEffDn, eEleEffUp,
     eEleEffStatDn, eEleEffStatUp,

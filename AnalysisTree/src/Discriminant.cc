@@ -1,4 +1,5 @@
 #include "Discriminant.h"
+#include "HostHelpersCore.h"
 #include "MELAStreamHelpers.hh"
 #include "TDirectory.h"
 
@@ -57,8 +58,10 @@ void Discriminant::setWP(float inval){
 void Discriminant::setGScale(float inval){ gscale=inval; }
 void Discriminant::setInvertG(bool flag){ invertG=flag; }
 
-bool Discriminant::addAdditionalC(const TString filename, const TString splinename){
+bool Discriminant::addAdditionalC(TString filename, TString splinename){
   bool success=false;
+
+  HostHelpers::ExpandEnvironmentVariables(filename);
   if (filename!="" && splinename!=""){
     MELAout << "Discriminant::addAdditionalC: Opening " << filename << endl;
     TFile* theFile = TFile::Open(filename);
@@ -87,8 +90,10 @@ bool Discriminant::addAdditionalC(const TString filename, const TString splinena
   }
   return success;
 }
-bool Discriminant::addAdditionalG(const TString filename, const TString splinename){
+bool Discriminant::addAdditionalG(TString filename, TString splinename){
   bool success=false;
+
+  HostHelpers::ExpandEnvironmentVariables(filename);
   if (filename!="" && splinename!=""){
     MELAout << "Discriminant::addAdditionalG: Opening " << filename << endl;
     TFile* theFile = TFile::Open(filename);

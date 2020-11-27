@@ -1191,11 +1191,6 @@ void getEfficiencyHistograms(
   }
 
 
-  // Constants for TEfficiency
-  constexpr double alpha = 1;
-  constexpr double beta = 1;
-  constexpr double conf = 0.682689492137;
-
   MELAout << "Writing dilepton counts before cuts..." << endl;
   subdir_Dileptons_Counts->cd();
   for (auto& hh:hcounts){
@@ -1223,13 +1218,10 @@ void getEfficiencyHistograms(
         double besq_denom = std::pow(hdenom->GetBinError(ix, iy), 2);
         if (bc_denom==0.) continue;
 
+        double bc_dn=0, bc_up=0;
         double bc_nominal = bc_num / bc_denom; hratio_nominal->SetBinContent(ix, iy, bc_nominal);
-
-        double normval = bc_denom/besq_denom;
-        double total = bc_denom*normval;
-        double passed = bc_num*normval;
-        double bc_dn = TEfficiency::ClopperPearson(total, passed, conf, false); hratio_dn->SetBinContent(ix, iy, bc_dn);
-        double bc_up = TEfficiency::ClopperPearson(total, passed, conf, true); hratio_up->SetBinContent(ix, iy, bc_up);
+        StatisticsHelpers::getPoissonEfficiencyConfidenceInterval_Frequentist(bc_denom, bc_num, besq_denom, StatisticsHelpers::VAL_CL_1SIGMA, bc_dn, bc_up);
+        hratio_dn->SetBinContent(ix, iy, bc_dn); hratio_up->SetBinContent(ix, iy, bc_up);
       }
     }
     subdir_Dileptons_Effs->WriteTObject(hratio_nominal);
@@ -1371,13 +1363,10 @@ void getEfficiencyHistograms(
         double besq_denom = std::pow(hdenom->GetBinError(ix, iy), 2);
         if (bc_denom==0.) continue;
 
+        double bc_dn=0, bc_up=0;
         double bc_nominal = bc_num / bc_denom; hratio_nominal->SetBinContent(ix, iy, bc_nominal);
-
-        double normval = bc_denom/besq_denom;
-        double total = bc_denom*normval;
-        double passed = bc_num*normval;
-        double bc_dn = TEfficiency::ClopperPearson(total, passed, conf, false); hratio_dn->SetBinContent(ix, iy, bc_dn);
-        double bc_up = TEfficiency::ClopperPearson(total, passed, conf, true); hratio_up->SetBinContent(ix, iy, bc_up);
+        StatisticsHelpers::getPoissonEfficiencyConfidenceInterval_Frequentist(bc_denom, bc_num, besq_denom, StatisticsHelpers::VAL_CL_1SIGMA, bc_dn, bc_up);
+        hratio_dn->SetBinContent(ix, iy, bc_dn); hratio_up->SetBinContent(ix, iy, bc_up);
       }
     }
     subdir_Dileptons_wcuts_Effs->WriteTObject(hratio_nominal);
@@ -1543,11 +1532,10 @@ void getEfficiencyHistograms(
             double bc_nominal = bc_num / bc_denom; hratio_nominal->SetBinContent(iy+1, ix+1, bc_nominal);
             double bc_nominal_wide = bc_num_wide / bc_denom_wide;
             double bc_nominal_diffsq = std::pow(bc_nominal_wide - bc_nominal, 2);
-            double normval = bc_denom/besq_denom;
-            double total = bc_denom*normval;
-            double passed = bc_num*normval;
-            double bc_dn = TEfficiency::ClopperPearson(total, passed, conf, false); bc_dn = std::max(0., bc_nominal - std::sqrt(std::pow(bc_dn - bc_nominal, 2) + bc_nominal_diffsq));
-            double bc_up = TEfficiency::ClopperPearson(total, passed, conf, true); bc_up = std::min(1., bc_nominal + std::sqrt(std::pow(bc_up - bc_nominal, 2) + bc_nominal_diffsq));
+            double bc_dn=0, bc_up=0;
+            StatisticsHelpers::getPoissonEfficiencyConfidenceInterval_Frequentist(bc_denom, bc_num, besq_denom, StatisticsHelpers::VAL_CL_1SIGMA, bc_dn, bc_up);
+            bc_dn = std::max(0., bc_nominal - std::sqrt(std::pow(bc_dn - bc_nominal, 2) + bc_nominal_diffsq));
+            bc_up = std::min(1., bc_nominal + std::sqrt(std::pow(bc_up - bc_nominal, 2) + bc_nominal_diffsq));
             hratio_dn->SetBinContent(iy+1, ix+1, bc_dn);
             hratio_up->SetBinContent(iy+1, ix+1, bc_up);
           }
