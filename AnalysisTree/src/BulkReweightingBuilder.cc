@@ -67,11 +67,11 @@ void BulkReweightingBuilder::setup(unsigned int ihypo_Neff, std::vector<std::pai
 
     MELAout << "\t- Obtaining weight thresholds..." << endl;
     absWeightThresholdsPerBinList[tree] = std::vector<std::vector<float>>(nhypos, std::vector<float>());
-    for (unsigned int ihypo=0; ihypo<nhypos; ihypo++) absWeightThresholdsPerBinList[tree].at(ihypo) = ReweightingFunctions::getAbsWeightThresholdsPerBinByNeff(
+    for (unsigned int ihypo=0; ihypo<nhypos; ihypo++) absWeightThresholdsPerBinList[tree].at(ihypo) = ReweightingFunctions::getAbsWeightThresholdsPerBinByFixedFractionalThreshold(
       tree,
       componentRefsList_reweightingweights[tree].at(ihypo), rule_reweightingweights_list.at(ihypo),
       binning, binningVarRefs[tree], rule_binningVar,
-      -1.
+      0.9999, 5.
     );
 
     NeffsPerBin[tree] = std::vector<double>(nbins, 0);
