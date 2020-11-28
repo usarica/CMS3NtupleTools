@@ -941,6 +941,47 @@ void LooperFunctionHelpers::setBtagWPs(){
 }
 
 
+void splitFileAndAddForTransfer(TString const& stroutput){
+  // Trivial case: If not running on condor, there is no need to transfer. Just exit.
+  if (!SampleHelpers::checkRunOnCondor()){
+    SampleHelpers::addToCondorTransferList(stroutput);
+    return;
+  }
+
+  TDirectory* curdir = gDirectory;
+  size_t const size_limit = std::pow(1024, 3);
+
+  TFile* finput = TFile::Open(stroutput, "read");
+  curdir->cd();
+
+  size_t const size_input = finput->GetSize();
+  size_t const nchunks = size_input/size_limit+1;
+  std::vector<TString> fnames; fnames.reserve(nchunks);
+  if (nchunks>1){
+    std::vector<TFile*> foutputlist; foutputlist.reserve(nchunks);
+
+    for (size_t ichunk=0; ichunk<nchunks; ichunk++){
+      TString fname = stroutput;
+      TString strchunk = Form("_chunk_%zu_of_%zu%s", ichunk, nchunks, ".root");
+      HelperFunctions::replaceString<TString, TString const>(fname, ".root", strchunk);
+      TFile* foutput = TFile::Open(fname, "recreate");
+      foutputlist.push_back(foutput);
+    }
+
+    std::vector<TDirectory*> outputdirs; outputdirs.reserve(nchunks);
+    for (auto& ff:foutputlist) outputdirs.push_back(ff);
+    HelperFunctions::distributeObjects(finput, outputdirs);
+
+    for (auto& ff:foutputlist) ff->Close();
+  }
+  else fnames.push_back(stroutput);
+
+  finput->Close();
+  curdir->cd();
+
+  for (auto const& fname:fnames) SampleHelpers::addToCondorTransferList(fname);
+}
+
 using namespace SystematicsHelpers;
 void getTrees(
   TString strSampleSet, TString period,
@@ -1052,8 +1093,8 @@ void getTrees(
   HelperFunctions::replaceString(coutput, "_MINIAODSIM", "");
   HelperFunctions::replaceString(coutput, "_MINIAOD", "");
   TString stroutput = Form("%s/%s", coutput_main.Data(), coutput.Data());
-  if (nchunks>0) stroutput = stroutput + Form("_%i_of_%i", ichunk, nchunks);
   stroutput += Form("_%s", SystematicsHelpers::getSystName(theGlobalSyst).data());
+  if (nchunks>0) stroutput = stroutput + Form("_%i_of_%i", ichunk, nchunks);
   stroutput += ".root";
   TFile* foutput = TFile::Open(stroutput, "recreate");
   foutput->cd();
@@ -1340,7 +1381,7 @@ void getTrees(
 
   curdir->cd();
 
-  SampleHelpers::addToCondorTransferList(stroutput);
+  splitFileAndAddForTransfer(stroutput);
 }
 
 

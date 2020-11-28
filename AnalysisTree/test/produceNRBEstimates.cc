@@ -638,7 +638,7 @@ void getDistributions(
   foutput->cd();
 
   // Acquire corrections from previous steps
-  std::vector<TGraph*> tg_incorr_list[2][2][nbins_njets-1]; // [Data, non-res MC][mumu, ee][Nj=0, 1, >=2]
+  std::vector<TGraph*> tg_incorr_list[2][2][nbins_njets]; // [Data, non-res MC][mumu, ee][Nj=0, 1, >=2, >=0]
   std::vector<TFile*> finputs_prevstep;
   if (istep>0){
     auto const& strBtaggingRegionName = strBtaggingRegionNames.at(1);
@@ -653,7 +653,7 @@ void getDistributions(
         TString strProcess = (ip==0 ? "Data" : "AllMC_NonRes");
         for (unsigned int ic=0; ic<2; ic++){
           auto const& strChannelName = strChannelNames.at(ic);
-          for (unsigned int ij=0; ij<nbins_njets-1; ij++){
+          for (unsigned int ij=0; ij<nbins_njets; ij++){
             auto const& strNjetsName = strNjetsNames.at(ij);
 
             TString strCutName = strChannelName + "_" + strNjetsName + "_" + strBtaggingRegionName;
@@ -903,6 +903,7 @@ void getDistributions(
 
   std::vector<TH1F*> hlist;
   std::vector<ExtendedHistogram_1D*> hlist_SB;
+  std::vector<ExtendedHistogram_1D*> hlist_SB_ttbar;
   for (auto const& sgroup:sgroups_allhists){
     int scolor = (int) kBlack;
     if (sgroup == "Data") scolor = (int) (kBlack);
@@ -928,6 +929,14 @@ void getDistributions(
           TString strCutName = strChannelName + "_" + strNjetsName + "_" + strBtaggingRegionName;
           TString strCutTitle = strChannelTitle + "|" + strNjetsTitle + ", " + strBtaggingRegionTitle;
 
+          ExtendedBinning binning_mTZZ(27, 150, 1500, "m_{T}^{ZZ} (GeV)");
+          ExtendedBinning binning_mll(30, 91.2-15., 91.2+15., "m_{ll} (GeV)");
+          ExtendedBinning binning_pTl1(19, 25, 500, "p_{T}^{l1} (GeV)");
+          ExtendedBinning binning_pTl2(30, 25, 325, "p_{T}^{l2} (GeV)");
+          ExtendedBinning binning_pTmiss(35, 125, 1000, "p_{T}^{miss} (GeV)");
+          ExtendedBinning binning_pTmiss_vbin({ thr_corr_pTmiss, 110, 125, 150, 200, 300, 13000 }, "pTmiss", "p_{T}^{miss} (GeV)");
+          ExtendedBinning binning_DjjVBF(10, 0, 1, "D_{2jet}^{VBF}");
+
           TH1F* htmp = nullptr;
 #define HISTOGRAM_COMMAND(NAME, BINNING) \
           htmp = new TH1F(Form("h_%s_%s_%s", #NAME, strCutName.Data(), sgroup.Data()), strCutTitle, BINNING.getNbins(), BINNING.getBinning()); htmp->Sumw2(); \
@@ -937,18 +946,15 @@ void getDistributions(
           else if (sgroup!="Data") htmp->SetLineStyle(2); \
           hlist.push_back(htmp);
 
-          ExtendedBinning binning_mTZZ(27, 150, 1500, "m_{T}^{ZZ} (GeV)");
-          HISTOGRAM_COMMAND(mTZZ, binning_mTZZ);
-          ExtendedBinning binning_mll(30, 91.2-15., 91.2+15., "m_{ll} (GeV)");
-          HISTOGRAM_COMMAND(mll, binning_mll);
-          ExtendedBinning binning_pTl1(19, 25, 500, "p_{T}^{l1} (GeV)");
-          HISTOGRAM_COMMAND(pTl1, binning_pTl1);
-          ExtendedBinning binning_pTl2(30, 25, 325, "p_{T}^{l2} (GeV)");
-          HISTOGRAM_COMMAND(pTl2, binning_pTl2);
-          ExtendedBinning binning_pTmiss(35, 125, 1000, "p_{T}^{miss} (GeV)");
+          if (istep>0){
+            HISTOGRAM_COMMAND(mTZZ, binning_mTZZ);
+            HISTOGRAM_COMMAND(mll, binning_mll);
+            HISTOGRAM_COMMAND(pTl1, binning_pTl1);
+            HISTOGRAM_COMMAND(pTl2, binning_pTl2);
+            HISTOGRAM_COMMAND(DjjVBF, binning_DjjVBF);
+          }
           HISTOGRAM_COMMAND(pTmiss, binning_pTmiss);
-          ExtendedBinning binning_DjjVBF(10, 0, 1, "D_{2jet}^{VBF}");
-          HISTOGRAM_COMMAND(DjjVBF, binning_DjjVBF);
+
 #undef HISTOGRAM_COMMAND
 
           ExtendedHistogram_1D* ehtmp = nullptr;
@@ -961,7 +967,19 @@ void getDistributions(
           else if (sgroup!="Data") htmp->SetLineStyle(2); \
           hlist_SB.push_back(ehtmp);
 
-          ExtendedBinning binning_pTmiss_vbin({ thr_corr_pTmiss, 110, 125, 150, 200, 300, 13000 }, "pTmiss", "p_{T}^{miss} (GeV)");
+          HISTOGRAM_COMMAND(pTmiss, binning_pTmiss_vbin);
+
+#undef HISTOGRAM_COMMAND
+
+#define HISTOGRAM_COMMAND(NAME, BINNING) \
+          ehtmp = new ExtendedHistogram_1D(Form("h_SB_ttbar_%s_%s_%s", #NAME, strCutName.Data(), sgroup.Data()), strCutTitle, BINNING); \
+          htmp = ehtmp->getHistogram(); \
+          htmp->GetYaxis()->SetTitle("Events / bin"); \
+          htmp->SetLineColor(scolor); htmp->SetMarkerColor(scolor); htmp->SetLineWidth(2); \
+          if (!strChannelName.Contains("rewgt") && sgroup!="Data") htmp->SetFillColor(scolor); \
+          else if (sgroup!="Data") htmp->SetLineStyle(2); \
+          hlist_SB_ttbar.push_back(ehtmp);
+
           HISTOGRAM_COMMAND(pTmiss, binning_pTmiss_vbin);
 
 #undef HISTOGRAM_COMMAND
@@ -1109,6 +1127,7 @@ void getDistributions(
 
       bool const pass_sel_SR = pass_SR_pTmiss && pass_SR_mll;
       bool const pass_sel_SB = !pass_SR_mll;
+      bool const pass_sel_SB_ttbar = dilepton_mass>=MZ_VAL_CUTS+15.f;
 
       // Fill histograms
       if (pass_sel_SR){
@@ -1168,6 +1187,7 @@ void getDistributions(
           if (hname.Contains("DjjVBF") && event_n_ak4jets_pt30>=2) hh->Fill(*DjjVBF, hwgt);
         }
       }
+
       if (pass_sel_SB){
         for (auto& hh:hlist_SB){
           TString hname = hh->getName();
@@ -1219,6 +1239,59 @@ void getDistributions(
           if (hname.Contains("pTmiss")) hh->fill(event_pTmiss, hwgt);
         }
       }
+
+      if (pass_sel_SB_ttbar){
+        for (auto& hh:hlist_SB_ttbar){
+          TString hname = hh->getName();
+          if (
+            !(
+              hname.Contains(sgroup)
+              ||
+              (
+                hname.Contains("AllMC_NonRes") && (
+                (
+                  !hasGenMatchedPair
+                  &&
+                  (
+                    sgroup == "DY_2l"
+                    ||
+                    sgroup == "qqZZ_2l2nu"
+                    ||
+                    sgroup == "qqWZ_3lnu"
+                    )
+                  )
+                  ||
+                  sgroup == "TT_2l2nu"
+                  ||
+                  sgroup == "qqWW_2l2nu"
+                  ||
+                  sgroup == "WJets_lnu"
+                  )
+                )
+              )
+            ) continue;
+          if (hname.Contains("failedMatches") && hasGenMatchedPair) continue;
+          if (hname.Contains("genMatched") && !hasGenMatchedPair) continue;
+          // Decay channels
+          if (hname.Contains("mue") && !is_emu) continue;
+          if (hname.Contains("mumu") && !hname.Contains("rewgt") && !is_mumu) continue;
+          if (hname.Contains("ee") && !hname.Contains("rewgt") && !is_ee) continue;
+          // b-tagging veto
+          if (hname.Contains(strBtaggingRegionNames.front()) && event_n_ak4jets_pt30_btagged_loose!=0) continue;
+          if (hname.Contains(strBtaggingRegionNames.back()) && !(event_n_ak4jets_pt30_btagged_medium!=0 || (event_n_ak4jets_pt30==0 && event_n_ak4jets_pt20_btagged_medium!=0))) continue;
+          // Jet bins
+          if (hname.Contains(strNjetsNames.at(0)) && event_n_ak4jets_pt30!=0) continue;
+          if (hname.Contains(strNjetsNames.at(1)) && event_n_ak4jets_pt30!=1) continue;
+          if (hname.Contains(strNjetsNames.at(2)) && event_n_ak4jets_pt30<2) continue;
+
+          float hwgt = wgt;
+          if (hname.Contains("mue_rewgt_ee")) hwgt *= wgt_emu_rewgt_ee/2.;
+          if (hname.Contains("mue_rewgt_mumu")) hwgt *= wgt_emu_rewgt_mumu/2.;
+
+          if (hname.Contains("pTmiss")) hh->fill(event_pTmiss, hwgt);
+        }
+      }
+
     }
   }
 
@@ -1306,6 +1379,10 @@ void getDistributions(
   }
 
   for (auto& hh:hlist_SB){
+    foutput->WriteTObject(hh->getHistogram());
+    delete hh;
+  }
+  for (auto& hh:hlist_SB_ttbar){
     foutput->WriteTObject(hh->getHistogram());
     delete hh;
   }

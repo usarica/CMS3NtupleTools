@@ -144,6 +144,47 @@ float getIsolationDRmax(ParticleObject const* part){
 }
 
 
+void splitFileAndAddForTransfer(TString const& stroutput){
+  // Trivial case: If not running on condor, there is no need to transfer. Just exit.
+  if (!SampleHelpers::checkRunOnCondor()){
+    SampleHelpers::addToCondorTransferList(stroutput);
+    return;
+  }
+
+  TDirectory* curdir = gDirectory;
+  size_t const size_limit = std::pow(1024, 3);
+
+  TFile* finput = TFile::Open(stroutput, "read");
+  curdir->cd();
+
+  size_t const size_input = finput->GetSize();
+  size_t const nchunks = size_input/size_limit+1;
+  std::vector<TString> fnames; fnames.reserve(nchunks);
+  if (nchunks>1){
+    std::vector<TFile*> foutputlist; foutputlist.reserve(nchunks);
+
+    for (size_t ichunk=0; ichunk<nchunks; ichunk++){
+      TString fname = stroutput;
+      TString strchunk = Form("_chunk_%zu_of_%zu%s", ichunk, nchunks, ".root");
+      HelperFunctions::replaceString<TString, TString const>(fname, ".root", strchunk);
+      TFile* foutput = TFile::Open(fname, "recreate");
+      foutputlist.push_back(foutput);
+    }
+
+    std::vector<TDirectory*> outputdirs; outputdirs.reserve(nchunks);
+    for (auto& ff:foutputlist) outputdirs.push_back(ff);
+    HelperFunctions::distributeObjects(finput, outputdirs);
+
+    for (auto& ff:foutputlist) ff->Close();
+  }
+  else fnames.push_back(stroutput);
+
+  finput->Close();
+  curdir->cd();
+
+  for (auto const& fname:fnames) SampleHelpers::addToCondorTransferList(fname);
+}
+
 using namespace SystematicsHelpers;
 void getTrees(
   TString strSampleSet, TString period,
@@ -231,7 +272,9 @@ void getTrees(
   haspTGRange = pTG_true_range[0]!=pTG_true_range[1];
   constexpr bool needGenParticleChecks = true; // Always turned on because we need to do gen. matching
 
+  TDirectory* curdir = gDirectory;
   gSystem->mkdir(coutput_main, true);
+  curdir->cd();
 
   // Get handlers
   SimEventHandler simEventHandler;
@@ -263,6 +306,8 @@ void getTrees(
   bool isFirstInputFile=true;
   for (auto const& sname:sampledirs){
     if (SampleHelpers::doSignalInterrupt==1) break;
+
+    curdir->cd();
 
     TString coutput = SampleHelpers::getSampleIdentifier(sname);
     HelperFunctions::replaceString(coutput, "_MINIAODSIM", "");
@@ -350,8 +395,8 @@ void getTrees(
     sample_tree.silenceUnused();
 
     TString stroutput = Form("%s/%s", coutput_main.Data(), coutput.Data());
-    if (nchunks>0) stroutput = stroutput + Form("_%i_of_%i", ichunk, nchunks);
     stroutput += Form("_%s", strSystName.Data());
+    if (nchunks>0) stroutput = stroutput + Form("_%i_of_%i", ichunk, nchunks);
     stroutput += ".root";
     TFile* foutput = TFile::Open(stroutput, "recreate");
     TTree* tout = new TTree("EGTree", "");
@@ -950,6 +995,8 @@ BRANCH_COMMAND(float, photon_dR_genMatch)
     foutput->WriteTObject(tout);
     foutput->Close();
 
-    SampleHelpers::addToCondorTransferList(stroutput);
+    curdir->cd();
+
+    splitFileAndAddForTransfer(stroutput);
   } // End loop over samples list
 }
