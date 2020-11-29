@@ -104,6 +104,66 @@ bool METCorrectionHandler::setup(){
     readFile(strinputcore + "fitparameters_puppimet_JEC_PartMomShifts_abseta_lt_4p7_" + period + ".txt", puppimet_map[period]);
   }
 
+  // Test all cases
+  for (unsigned short isPFMET=0; isPFMET<2; isPFMET++){
+    for (unsigned short iXY=0; iXY<2; iXY++){
+      for (unsigned short iJER=0; iJER<2; iJER++){
+        for (unsigned short iP4Preserve=0; iP4Preserve<2; iP4Preserve++){
+          std::unordered_map<
+            TString,
+            std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>
+          > const* theMap = getCorrectionMap(bool(isPFMET), iXY, iJER, iP4Preserve);
+          for (auto const& period:allowedDataPeriods){
+            auto it = theMap->find(period);
+
+            if (it == theMap->end()){
+              MELAerr << "METCorrectionHandler::setup: "
+                << (isPFMET==1 ? "pfmet_JEC" : "puppimet_JEC")
+                << (iXY==1 ? "_XY" : "")
+                << (iJER==1 ? "_JER" : "")
+                << "_PartMomShifts"
+                << (iP4Preserve==1 ? "_p4Preserved" : "")
+                << " did not set up properly for period " << period << "."
+                << endl;
+              res = false;
+              continue;
+            }
+            for (auto const& syst:allowedSysts){
+              auto it_syst_data = it->second.find(SystematicsHelpers::nSystematicVariations);
+              auto it_syst_MC = it->second.find(syst);
+              if (it_syst_data == it->second.end()){
+                MELAerr << "METCorrectionHandler::setup: "
+                  << (isPFMET==1 ? "pfmet_JEC" : "puppimet_JEC")
+                  << (iXY==1 ? "_XY" : "")
+                  << (iJER==1 ? "_JER" : "")
+                  << "_PartMomShifts"
+                  << (iP4Preserve==1 ? "_p4Preserved" : "")
+                  << " did not set up properly for period " << period << ". "
+                  << "Data is missing."
+                  << endl;
+                res = false;
+              }
+              if (it_syst_MC == it->second.end()){
+                MELAerr << "METCorrectionHandler::setup: "
+                  << (isPFMET==1 ? "pfmet_JEC" : "puppimet_JEC")
+                  << (iXY==1 ? "_XY" : "")
+                  << (iJER==1 ? "_JER" : "")
+                  << "_PartMomShifts"
+                  << (iP4Preserve==1 ? "_p4Preserved" : "")
+                  << " did not set up properly for period " << period << ". "
+                  << "Systematic " << SystematicsHelpers::getSystName(syst) << " is missing for the MC."
+                  << endl;
+                res = false;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  assert(res);
+
   return res;
 }
 void METCorrectionHandler::readFile(TString const& strinput, std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>& pars){
@@ -170,6 +230,24 @@ void METCorrectionHandler::reset(){
   puppimet_map.clear();
 }
 
+std::unordered_map<
+  TString,
+  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>
+> const* METCorrectionHandler::getCorrectionMap(bool const& isPFMET, unsigned short const& iXY, unsigned short const& iJER, unsigned short const& iP4Preserve) const{
+  std::unordered_map<
+    TString,
+    std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>
+  > const* res = nullptr;
+  if (!isPFMET) res = (iP4Preserve==0 ? &puppimet_map : &puppimet_p4Preserved_map);
+  else{
+    if (iXY==0 && iJER==0) res = (iP4Preserve==0 ? &pfmet_map : &pfmet_p4Preserved_map);
+    else if (iXY==0 && iJER==1) res = (iP4Preserve==0 ? &pfmet_JER_map : &pfmet_JER_p4Preserved_map);
+    else if (iXY==1 && iJER==0) res = (iP4Preserve==0 ? &pfmet_XY_map : &pfmet_XY_p4Preserved_map);
+    else res = (iP4Preserve==0 ? &pfmet_XY_JER_map : &pfmet_XY_JER_p4Preserved_map);
+  }
+  return res;
+}
+
 void METCorrectionHandler::applyCorrections(
   TString const& effDataPeriod,
   float const& genMET, float const& genMETPhi,
@@ -201,14 +279,7 @@ void METCorrectionHandler::applyCorrections(
         std::unordered_map<
           TString,
           std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>
-        > const* theMap = nullptr;
-        if (!isPFMET) theMap = (iP4Preserve==0 ? &puppimet_map : &puppimet_p4Preserved_map);
-        else{
-          if (iXY==0 && iJER==0) theMap = (iP4Preserve==0 ? &pfmet_map : &pfmet_p4Preserved_map);
-          else if (iXY==0 && iJER==1) theMap = (iP4Preserve==0 ? &pfmet_JER_map : &pfmet_JER_p4Preserved_map);
-          else if (iXY==1 && iJER==0) theMap = (iP4Preserve==0 ? &pfmet_XY_map : &pfmet_XY_p4Preserved_map);
-          else theMap = (iP4Preserve==0 ? &pfmet_XY_JER_map : &pfmet_XY_JER_p4Preserved_map);
-        }
+        > const* theMap = getCorrectionMap(isPFMET, iXY, iJER, iP4Preserve);
 
         auto it = theMap->find(effDataPeriod);
         if (it==theMap->cend()){

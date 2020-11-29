@@ -73,6 +73,11 @@ protected:
 
   void readFile(TString const& strinput, std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>& pars);
 
+  std::unordered_map<
+    TString,
+    std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>
+  > const* getCorrectionMap(bool const& isPFMET, unsigned short const& iXY, unsigned short const& iJER, unsigned short const& iP4Preserve) const;
+
   void printParameters(
     std::unordered_map<
     TString,

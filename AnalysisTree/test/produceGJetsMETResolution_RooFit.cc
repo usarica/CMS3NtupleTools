@@ -249,12 +249,12 @@ std::vector<SystematicsHelpers::SystematicVariationTypes> getAllowedSysts(){
 
 Variable getVariable(TString name){
   if (name=="pt_gamma"){
-    ExtendedBinning binning({ 100, 125, 150, 170, 190, 215, 240, 270, 300, 400, 600, 610 });
+    ExtendedBinning binning({ 100, 125, 150, 170, 190, 215, 240, 270, 300, 400, 600, 610 }, "pt_gamma", "p_{T}^{#gamma} (GeV)");
     return Variable(name, "p_{T}^{#gamma} (GeV)", binning);
   }
   else if (name=="eta_gamma"){
     //ExtendedBinning binning({ -2.5, -2., -1.566, -1.4442, -1., 0., 1., 1.4442, 1.566, 2., 2.5 });
-    ExtendedBinning binning({ -1.479, -1., 0., 1., 1.479 });
+    ExtendedBinning binning({ -1.479, -1., 0., 1., 1.479 }, "eta_gamma", "#eta_{#gamma}");
     return Variable(name, "#eta_{#gamma}", binning);
   }
   else if (name=="Nvtx"){
@@ -269,19 +269,19 @@ Variable getVariable(TString name){
     return Variable(name, "N_{jets}", binning);
   }
   else if (name=="HT_jets"){
-    ExtendedBinning binning({ 30, 50, 75, 100, 150, 300, 600, 1000, 1010 });
+    ExtendedBinning binning({ 30, 50, 75, 100, 150, 300, 600, 1000, 1010 }, "HT_jets", "H_{T}^{jets} (GeV)");
     return Variable(name, "H_{T}^{jets} (GeV)", binning);
   }
   else if (name=="HT_jets_eta_lt_2p4"){
-    ExtendedBinning binning({ 0, 30, 50, 75, 100, 150, 300, 600, 1000, 1010 });
+    ExtendedBinning binning({ 0, 30, 50, 75, 100, 150, 300, 600, 1000, 1010 }, "HT_jets_eta_lt_2p4", "H_{T}^{jets} (|#eta_{jet}|<2.4) (GeV)");
     return Variable(name, "H_{T}^{jets} (|#eta_{jet}|<2.4) (GeV)", binning);
   }
   else if (name=="abs_uPerp"){
-    ExtendedBinning binning({ 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110 });
+    ExtendedBinning binning({ 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110 }, "abs_uPerp", "|u_{perp}| (GeV)");
     return Variable(name, "|u_{perp}| (GeV)", binning);
   }
   else if (name=="uParallel"){
-    ExtendedBinning binning({ -510, -500, -400, -300, -250, -200, -150, -100, -50, 0, 10 });
+    ExtendedBinning binning({ -510, -500, -400, -300, -250, -200, -150, -100, -50, 0, 10 }, "uParallel", "u_{//} (GeV)");
     return Variable(name, "u_{//} (GeV)", binning);
   }
   else if (name=="MET"){
@@ -962,6 +962,7 @@ void produceFinalFits(
       RooFitResult* fitResult_prev=nullptr;
       RooFitResult* fitResult=nullptr;
       int fitStatus=-1;
+      int fitStatus_preMINOS = -1;
       unsigned int itry=0;
       constexpr unsigned int ntries=10;
       bool doImprove=false;
@@ -1213,7 +1214,7 @@ void produceFinalFits(
         delete fitResult_prev; fitResult_prev = fitResult;
         fitResult = pdf->fitTo(fit_data, cmdList);
         if (!fitResult) MELAerr << "No fit results found!" << endl;
-        fitStatus = fitResult->status();
+        fitStatus_preMINOS = fitStatus = fitResult->status();
         int covQual = fitResult->covQual();
         bool isIdentical = (!fitResult_prev || covQual<0 ? false : fitResult->isIdentical(*fitResult_prev, 1e-5, 1e-4, false));
         MELAout << "****************************" << endl;
@@ -1333,7 +1334,8 @@ void produceFinalFits(
         if (itry==ntries) break;
       }
       delete fitResult_prev;
-      if (fitStatus==0 || fitStatus==4 || (fitStatus==1 && itry==ntries)){
+      MELAout << "Iterations ended. Fit status before/after MINOS: " << fitStatus_preMINOS << " / " << fitStatus << endl;
+      if (fitStatus==0 || fitStatus==4 || ((fitStatus==1 || fitStatus_preMINOS==0) && itry==ntries)){
         //TMatrixDSym covMat;
         //if (nGaussians==4) getFitCovarianceMatrix(fitResult, RooArgList(g1_sigma, g1_frac, g2_sigma, g2_frac, g3_sigma, g3_frac, g4_sigma), covMat);
         //else getFitCovarianceMatrix(fitResult, RooArgList(g1_sigma, g1_frac, g2_sigma, g2_frac, g3_sigma), covMat);
@@ -1344,6 +1346,7 @@ void produceFinalFits(
         MELAout << "****************************" << endl;
         MELAout << "Final fitted parameters for systematic " << systname << " in " << (it==0 ? "data" : "MC") << ":" << endl;
         if (it==0) MELAout << "\t- Nevents: " << nValidEntries << endl;
+        if (fitStatus_preMINOS!=0 || fitStatus!=0) MELAout << "\t- Fit status before/after MINOS: " << fitStatus_preMINOS << " / " << fitStatus << endl;
         printParameterWithAsymErrors(g1_sigma, "\t- Sigma 1");
         printParameterWithAsymErrors(g1_frac, "\t- Frac 1");
         printParameterWithAsymErrors(g2_sigma, "\t- Sigma 2");

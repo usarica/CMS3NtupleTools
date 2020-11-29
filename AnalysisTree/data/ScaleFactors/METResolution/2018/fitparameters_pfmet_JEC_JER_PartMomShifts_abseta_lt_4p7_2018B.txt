@@ -1,4 +1,14 @@
 ****************************
+Final fitted parameters for systematic Nominal in data:
+	- Nevents: 177970
+	- Fit status before/after MINOS: 0 / -1
+	- Sigma 1: 20.0025 -0.0560346 +0.0560346
+	- Frac 1: 0.41945 -0.0152307 +0.0152307
+	- Sigma 2: 27.8068 -0.082694 +0.082694
+	- Frac 2: 0.743766 -0.0323495 +0.0323495
+	- Sigma 3: 35.0401 -0.129784 +0.129784
+****************************
+****************************
 Final fitted parameters for systematic Nominal in MC:
 	- Sigma 1: 18.9282 -0.050915 +0.0510644
 	- Frac 1: 0.41945 -0.0152307 +0.0152307
