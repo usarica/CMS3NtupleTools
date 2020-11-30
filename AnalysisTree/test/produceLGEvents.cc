@@ -57,13 +57,17 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
 #define OBJECT_HANDLER_DIRECTIVES \
   OBJECT_HANDLER_COMMON_DIRECTIVES \
   OBJECT_HANDLER_SIM_DIRECTIVES
-#define SCALEFACTOR_HANDLER_DIRECTIVES \
+#define SCALEFACTOR_HANDLER_COMMON_DIRECTIVES \
   HANDLER_DIRECTIVE(MuonScaleFactorHandler, muonSFHandler) \
-  HANDLER_DIRECTIVE(ElectronScaleFactorHandler, electronSFHandler) \
+  HANDLER_DIRECTIVE(ElectronScaleFactorHandler, electronSFHandler)
+#define SCALEFACTOR_HANDLER_SIM_DIRECTIVES \
   HANDLER_DIRECTIVE(PhotonScaleFactorHandler, photonSFHandler) \
   HANDLER_DIRECTIVE(PUJetIdScaleFactorHandler, pujetidSFHandler) \
   HANDLER_DIRECTIVE(BtagScaleFactorHandler, btagSFHandler) \
   HANDLER_DIRECTIVE(METCorrectionHandler, metCorrectionHandler)
+#define SCALEFACTOR_HANDLER_DIRECTIVES \
+  SCALEFACTOR_HANDLER_COMMON_DIRECTIVES \
+  SCALEFACTOR_HANDLER_SIM_DIRECTIVES
 
   // Get the current tree
   BaseTree* currentTree = theLooper->getWrappedTree();
@@ -92,6 +96,16 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     MELAerr << "LooperFunctionHelpers::looperRule: Defining both simple HLT menus and menus with properties is not allowed. Choose only one!" << endl;
     assert(0);
   }
+  auto it_HLTMenuSimple_SingleLepton = triggerCheckListMap.find("SingleLepton");
+  auto it_HLTMenuProps_SingleLepton = triggerPropsCheckListMap.find("SingleLepton");
+  if (
+    (hasSimpleHLTMenus && it_HLTMenuSimple_SingleLepton == triggerCheckListMap.cend())
+    ||
+    (hasHLTMenuProperties && it_HLTMenuProps_SingleLepton == triggerPropsCheckListMap.cend())
+    ){
+    MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'SingleLepton' has to be defined in this looper rule!" << endl;
+    assert(0);
+  }
   auto it_HLTMenuSimple_SinglePhoton = triggerCheckListMap.find("SinglePhoton");
   auto it_HLTMenuProps_SinglePhoton = triggerPropsCheckListMap.find("SinglePhoton");
   if (
@@ -99,7 +113,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     ||
     (hasHLTMenuProperties && it_HLTMenuProps_SinglePhoton == triggerPropsCheckListMap.cend())
     ){
-    MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'SinglePhoton' has to be defined in this looper rule!" << endl;
+    MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'Dilepton_SinglePhoton' has to be defined in this looper rule!" << endl;
     assert(0);
   }
 
@@ -115,9 +129,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
       OBJECT_HANDLER_SIM_DIRECTIVES;
     }
   }
-  if (!isData){
-    for (auto const& handler:theLooper->getSFHandlers()){
-      SCALEFACTOR_HANDLER_DIRECTIVES;
+  for (auto const& handler:theLooper->getSFHandlers()){
+    SCALEFACTOR_HANDLER_COMMON_DIRECTIVES;
+    if (!isData){
+      SCALEFACTOR_HANDLER_SIM_DIRECTIVES;
     }
   }
 #undef HANDLER_DIRECTIVE
@@ -127,9 +142,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     assert(0); \
   }
   OBJECT_HANDLER_COMMON_DIRECTIVES;
+  SCALEFACTOR_HANDLER_COMMON_DIRECTIVES;
   if (!isData){
     OBJECT_HANDLER_SIM_DIRECTIVES;
-    SCALEFACTOR_HANDLER_DIRECTIVES;
+    SCALEFACTOR_HANDLER_SIM_DIRECTIVES;
   }
 #undef HANDLER_DIRECTIVE
 
@@ -144,7 +160,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   BRANCH_COMMAND(float, event_wgt_PUDn) \
   BRANCH_COMMAND(float, event_wgt_PUUp) \
   BRANCH_COMMAND(float, event_wgt_adjustment_NNPDF30) \
-  BRANCH_COMMAND(float, event_wgt_triggers) \
+  BRANCH_COMMAND(float, event_wgt_triggers_SingleLepton) \
+  BRANCH_COMMAND(float, event_wgt_triggers_SinglePhoton) \
   BRANCH_COMMAND(float, event_wgt_SFs_muons) \
   BRANCH_COMMAND(float, event_wgt_SFs_muons_StatDn) \
   BRANCH_COMMAND(float, event_wgt_SFs_muons_StatUp) \
@@ -172,17 +189,35 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   BRANCH_COMMAND(float, event_phimiss) \
   BRANCH_COMMAND(float, event_mTZZ) \
   BRANCH_COMMAND(float, event_mZZ) \
+  BRANCH_COMMAND(float, event_mlg) \
   BRANCH_COMMAND(bool, event_pass_tightMETFilters) \
   BRANCH_COMMAND(float, genmet_pTmiss) \
   BRANCH_COMMAND(float, genmet_phimiss) \
   BRANCH_COMMAND(unsigned int, event_n_vtxs_good) \
   BRANCH_COMMAND(unsigned int, event_n_leptons_fakeableBase) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt30) \
+  BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt30_btagged_loose) \
+  BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt30_btagged_medium) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt20) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt20_btagged_loose) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt20_btagged_medium) \
   BRANCH_COMMAND(float, ak4jets_HT) \
   BRANCH_COMMAND(float, ak4jets_MHT) \
+  BRANCH_COMMAND(bool, lepton_is_genMatched_prompt) \
+  BRANCH_COMMAND(cms3_id_t, lepton_id) \
+  BRANCH_COMMAND(float, lepton_pt) \
+  BRANCH_COMMAND(float, lepton_eta) \
+  BRANCH_COMMAND(float, lepton_phi) \
+  BRANCH_COMMAND(float, lepton_mass) \
+  BRANCH_COMMAND(float, lepton_eff) \
+  BRANCH_COMMAND(float, lepton_eff_StatDn) \
+  BRANCH_COMMAND(float, lepton_eff_StatUp) \
+  BRANCH_COMMAND(float, lepton_eff_SystDn) \
+  BRANCH_COMMAND(float, lepton_eff_SystUp) \
+  BRANCH_COMMAND(float, electron_full5x5_sigmaIEtaIEta) \
+  BRANCH_COMMAND(float, electron_full5x5_sigmaIPhiIPhi) \
+  BRANCH_COMMAND(float, electron_full5x5_r9) \
+  BRANCH_COMMAND(float, electron_seedTime) \
   BRANCH_COMMAND(float, photon_pt) \
   BRANCH_COMMAND(float, photon_eta) \
   BRANCH_COMMAND(float, photon_phi) \
@@ -285,7 +320,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
       if (isGJets_HT){
         for (auto const& part:genparticles){
           if (PDGHelpers::isAPhoton(part->pdgId()) && part->extras.isPromptFinalState){
-            double wgt_gjets = std::max(1., 1.71691-0.001221*part->pt());;
+            double wgt_gjets = std::max(1., 1.71691-0.001221*part->pt());
             event_wgt *= wgt_gjets;
             event_wgt_PUDn *= wgt_gjets;
             event_wgt_PUUp *= wgt_gjets;
@@ -329,16 +364,12 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     for (auto const& it:genInfo->extras.LHE_ME_weights) commonEntry.setNamedVal(it.first, it.second);
     for (auto const& it:genInfo->extras.Kfactors) commonEntry.setNamedVal(it.first, it.second);
   }
+  theLooper->incrementSelection("Valid gen. weights");
 
   vertexHandler->constructVertices();
   if (!vertexHandler->hasGoodPrimaryVertex()) return false;
   event_n_vtxs_good = vertexHandler->getNGoodVertices();
-
-  eventFilter->constructFilters(simEventHandler);
-  if (isData && !eventFilter->isUniqueDataEvent()) return false;
-
-  if (!eventFilter->passCommonSkim() || !eventFilter->passMETFilters(EventFilterHandler::kMETFilters_Standard)) return false;
-  event_pass_tightMETFilters = eventFilter->passMETFilters(EventFilterHandler::kMETFilters_Tight);
+  theLooper->incrementSelection("Good vertices");
 
   pfcandidateHandler->constructPFCandidates(theGlobalSyst);
   auto const& pfcandidates = pfcandidateHandler->getProducts();
@@ -348,78 +379,13 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   photonHandler->constructPhotons(theGlobalSyst, &pfcandidates);
   particleDisambiguator.disambiguateParticles(muonHandler, electronHandler, photonHandler);
 
-  auto const& muons = muonHandler->getProducts();
-  unsigned int n_muons_veto = 0;
-  float SF_muons = 1;
-  float SF_muons_StatDn = 1;
-  float SF_muons_StatUp = 1;
-  float SF_muons_SystDn = 1;
-  float SF_muons_SystUp = 1;
-  float SF_muons_AltMCDn = 1;
-  float SF_muons_AltMCUp = 1;
-  for (auto const& part:muons){
-    float theSF = 1;
-    if (!isData){
-      theSF = 1; muonSFHandler->getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_muons *= theSF;
-      theSF = 1; muonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eMuEffStatDn, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_muons_StatDn *= theSF;
-      theSF = 1; muonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eMuEffStatUp, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_muons_StatUp *= theSF;
-      theSF = 1; muonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eMuEffSystDn, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_muons_SystDn *= theSF;
-      theSF = 1; muonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eMuEffSystUp, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_muons_SystUp *= theSF;
-      theSF = 1; muonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eMuEffAltMCDn, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_muons_AltMCDn *= theSF;
-      theSF = 1; muonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eMuEffAltMCUp, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_muons_AltMCUp *= theSF;
-    }
-
-    if (ParticleSelectionHelpers::isVetoParticle(part)) n_muons_veto++;
-    else if (!ParticleSelectionHelpers::isTightParticle(part) && part->testSelectionBit(MuonSelectionHelpers::kFakeableBase)) event_n_leptons_fakeableBase++;
-  }
-  event_wgt_SFs_muons = SF_muons;
-  event_wgt_SFs_muons_StatDn = SF_muons_StatDn;
-  event_wgt_SFs_muons_StatUp = SF_muons_StatUp;
-  event_wgt_SFs_muons_SystDn = SF_muons_SystDn;
-  event_wgt_SFs_muons_SystUp = SF_muons_SystUp;
-  event_wgt_SFs_muons_AltMCDn = SF_muons_AltMCDn;
-  event_wgt_SFs_muons_AltMCUp = SF_muons_AltMCUp;
-  if (n_muons_veto!=0) return false;
-
-  auto const& electrons = electronHandler->getProducts();
-  unsigned int n_electrons_veto = 0;
-  float SF_electrons = 1;
-  float SF_electrons_StatDn = 1;
-  float SF_electrons_StatUp = 1;
-  float SF_electrons_SystDn = 1;
-  float SF_electrons_SystUp = 1;
-  float SF_electrons_AltMCDn = 1;
-  float SF_electrons_AltMCUp = 1;
-  for (auto const& part:electrons){
-    float theSF = 1;
-    if (!isData){
-      theSF = 1; electronSFHandler->getIdIsoSFAndEff(theGlobalSyst, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_electrons *= theSF;
-      theSF = 1; electronSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eEleEffStatDn, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_electrons_StatDn *= theSF;
-      theSF = 1; electronSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eEleEffStatUp, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_electrons_StatUp *= theSF;
-      theSF = 1; electronSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eEleEffSystDn, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_electrons_SystDn *= theSF;
-      theSF = 1; electronSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eEleEffSystUp, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_electrons_SystUp *= theSF;
-      theSF = 1; electronSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eEleEffAltMCDn, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_electrons_AltMCDn *= theSF;
-      theSF = 1; electronSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eEleEffAltMCUp, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_electrons_AltMCUp *= theSF;
-    }
-
-    if (ParticleSelectionHelpers::isVetoParticle(part)) n_electrons_veto++;
-    else if (!ParticleSelectionHelpers::isTightParticle(part) && part->testSelectionBit(ElectronSelectionHelpers::kFakeableBase)) event_n_leptons_fakeableBase++;
-  }
-  event_wgt_SFs_electrons = SF_electrons;
-  event_wgt_SFs_electrons_StatDn = SF_electrons_StatDn;
-  event_wgt_SFs_electrons_StatUp = SF_electrons_StatUp;
-  event_wgt_SFs_electrons_SystDn = SF_electrons_SystDn;
-  event_wgt_SFs_electrons_SystUp = SF_electrons_SystUp;
-  event_wgt_SFs_electrons_AltMCDn = SF_electrons_AltMCDn;
-  event_wgt_SFs_electrons_AltMCUp = SF_electrons_AltMCUp;
-  if (n_electrons_veto!=0) return false;
+  PhotonObject const* theChosenPhoton = nullptr;
+  unsigned int n_photons_veto = 0;
 
   auto const& photons = photonHandler->getProducts();
-  unsigned int n_photons_tight = 0;
   float SF_photons = 1;
   float SF_photons_EffDn = 1;
   float SF_photons_EffUp = 1;
-  PhotonObject const* theChosenPhoton = nullptr;
   for (auto const& part:photons){
     if (!isData){
       float theSF = 1;
@@ -428,18 +394,201 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
       theSF = 1; photonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::ePhoEffUp, part, theSF, nullptr); theSF = std::max(1e-5f, theSF); SF_photons_EffUp *= theSF;
     }
 
-    if (ParticleSelectionHelpers::isTightParticle(part)){
-      if (!theChosenPhoton) theChosenPhoton = part;
-      n_photons_tight++;
-    }
+    if (!theChosenPhoton && ParticleSelectionHelpers::isTightParticle(part)) theChosenPhoton = part;
+    else if (ParticleSelectionHelpers::isVetoParticle(part)) n_photons_veto++;
   }
   event_wgt_SFs_photons = SF_photons;
   event_wgt_SFs_photons_EffDn = SF_photons_EffDn;
   event_wgt_SFs_photons_EffUp = SF_photons_EffUp;
-  if (n_photons_tight!=1) return false;
+  if (!theChosenPhoton || n_photons_veto!=0) return false;
+  theLooper->incrementSelection("Exactly one photon");
 
+  ParticleObject* theChosenLepton = nullptr;
+  unsigned short n_leptons_tight = 0;
+  unsigned short n_leptons_veto = 0;
+
+  std::unordered_map<ParticleObject const*, float> leptons_eff_map;
+  std::unordered_map<ParticleObject const*, float> leptons_eff_StatDn_map;
+  std::unordered_map<ParticleObject const*, float> leptons_eff_StatUp_map;
+  std::unordered_map<ParticleObject const*, float> leptons_eff_SystDn_map;
+  std::unordered_map<ParticleObject const*, float> leptons_eff_SystUp_map;
+
+  auto const& muons = muonHandler->getProducts();
+  float SF_muons = 1;
+  float SF_muons_StatDn = 1;
+  float SF_muons_StatUp = 1;
+  float SF_muons_SystDn = 1;
+  float SF_muons_SystUp = 1;
+  float SF_muons_AltMCDn = 1;
+  float SF_muons_AltMCUp = 1;
+  for (auto const& part:muons){
+    bool const is_tight = ParticleSelectionHelpers::isTightParticle(part);
+    bool const is_veto = ParticleSelectionHelpers::isVetoParticle(part);
+
+    float theSF = 1;
+    float theEff = 1;
+    if (!isData){
+      theSF = 1; theEff = 1; muonSFHandler->getIdIsoSFAndEff(theGlobalSyst, part, theSF, &theEff); theSF = std::max(1e-5f, theSF); SF_muons *= theSF; leptons_eff_map[part] = theEff;
+      theSF = 1; theEff = 1; muonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eMuEffStatDn, part, theSF, &theEff); theSF = std::max(1e-5f, theSF); SF_muons_StatDn *= theSF; leptons_eff_StatDn_map[part] = theEff;
+      theSF = 1; theEff = 1; muonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eMuEffStatUp, part, theSF, &theEff); theSF = std::max(1e-5f, theSF); SF_muons_StatUp *= theSF; leptons_eff_StatUp_map[part] = theEff;
+      theSF = 1; theEff = 1; muonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eMuEffSystDn, part, theSF, &theEff); theSF = std::max(1e-5f, theSF); SF_muons_SystDn *= theSF; leptons_eff_SystDn_map[part] = theEff;
+      theSF = 1; theEff = 1; muonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eMuEffSystUp, part, theSF, &theEff); theSF = std::max(1e-5f, theSF); SF_muons_SystUp *= theSF; leptons_eff_SystUp_map[part] = theEff;
+      theSF = 1; theEff = 1; muonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eMuEffAltMCDn, part, theSF, &theEff); theSF = std::max(1e-5f, theSF); SF_muons_AltMCDn *= theSF;
+      theSF = 1; theEff = 1; muonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eMuEffAltMCUp, part, theSF, &theEff); theSF = std::max(1e-5f, theSF); SF_muons_AltMCUp *= theSF;
+    }
+    else if (is_tight){
+      theEff = 1; muonSFHandler->getIdIsoSFAndEff(theGlobalSyst, part->pt(), part->eta(), true, true, true, theSF, &theEff); leptons_eff_map[part] = theEff;
+      theEff = 1; muonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eMuEffStatDn, part->pt(), part->eta(), true, true, true, theSF, &theEff); leptons_eff_StatDn_map[part] = theEff;
+      theEff = 1; muonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eMuEffStatUp, part->pt(), part->eta(), true, true, true, theSF, &theEff); leptons_eff_StatUp_map[part] = theEff;
+      theEff = 1; muonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eMuEffSystDn, part->pt(), part->eta(), true, true, true, theSF, &theEff); leptons_eff_SystDn_map[part] = theEff;
+      theEff = 1; muonSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eMuEffSystUp, part->pt(), part->eta(), true, true, true, theSF, &theEff); leptons_eff_SystUp_map[part] = theEff;
+    }
+
+    if (is_tight){
+      theChosenLepton = part;
+      n_leptons_tight++;
+    }
+    else if (is_veto) n_leptons_veto++;
+    else if (part->testSelectionBit(MuonSelectionHelpers::kFakeableBase)) event_n_leptons_fakeableBase++;
+  }
+  event_wgt_SFs_muons = SF_muons;
+  event_wgt_SFs_muons_StatDn = SF_muons_StatDn;
+  event_wgt_SFs_muons_StatUp = SF_muons_StatUp;
+  event_wgt_SFs_muons_SystDn = SF_muons_SystDn;
+  event_wgt_SFs_muons_SystUp = SF_muons_SystUp;
+  event_wgt_SFs_muons_AltMCDn = SF_muons_AltMCDn;
+  event_wgt_SFs_muons_AltMCUp = SF_muons_AltMCUp;
+
+  auto const& electrons = electronHandler->getProducts();
+  float SF_electrons = 1;
+  float SF_electrons_StatDn = 1;
+  float SF_electrons_StatUp = 1;
+  float SF_electrons_SystDn = 1;
+  float SF_electrons_SystUp = 1;
+  float SF_electrons_AltMCDn = 1;
+  float SF_electrons_AltMCUp = 1;
+  for (auto const& part:electrons){
+    bool const is_tight = ParticleSelectionHelpers::isTightParticle(part);
+    bool const is_veto = ParticleSelectionHelpers::isVetoParticle(part);
+
+    float theSF = 1;
+    float theEff = 1;
+    if (!isData){
+      theSF = 1; theEff = 1; electronSFHandler->getIdIsoSFAndEff(theGlobalSyst, part, theSF, &theEff); theSF = std::max(1e-5f, theSF); SF_electrons *= theSF; leptons_eff_map[part] = theEff;
+      theSF = 1; theEff = 1; electronSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eEleEffStatDn, part, theSF, &theEff); theSF = std::max(1e-5f, theSF); SF_electrons_StatDn *= theSF; leptons_eff_StatDn_map[part] = theEff;
+      theSF = 1; theEff = 1; electronSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eEleEffStatUp, part, theSF, &theEff); theSF = std::max(1e-5f, theSF); SF_electrons_StatUp *= theSF; leptons_eff_StatUp_map[part] = theEff;
+      theSF = 1; theEff = 1; electronSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eEleEffSystDn, part, theSF, &theEff); theSF = std::max(1e-5f, theSF); SF_electrons_SystDn *= theSF; leptons_eff_SystDn_map[part] = theEff;
+      theSF = 1; theEff = 1; electronSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eEleEffSystUp, part, theSF, &theEff); theSF = std::max(1e-5f, theSF); SF_electrons_SystUp *= theSF; leptons_eff_SystUp_map[part] = theEff;
+      theSF = 1; theEff = 1; electronSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eEleEffAltMCDn, part, theSF, &theEff); theSF = std::max(1e-5f, theSF); SF_electrons_AltMCDn *= theSF;
+      theSF = 1; theEff = 1; electronSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eEleEffAltMCUp, part, theSF, &theEff); theSF = std::max(1e-5f, theSF); SF_electrons_AltMCUp *= theSF;
+    }
+    else if (ParticleSelectionHelpers::isTightParticle(part)){
+      theEff = 1; electronSFHandler->getIdIsoSFAndEff(theGlobalSyst, part->pt(), part->etaSC(), part->isGap(), true, true, true, theSF, &theEff); leptons_eff_map[part] = theEff;
+      theEff = 1; electronSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eEleEffStatDn, part->pt(), part->etaSC(), part->isGap(), true, true, true, theSF, &theEff); leptons_eff_StatDn_map[part] = theEff;
+      theEff = 1; electronSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eEleEffStatUp, part->pt(), part->etaSC(), part->isGap(), true, true, true, theSF, &theEff); leptons_eff_StatUp_map[part] = theEff;
+      theEff = 1; electronSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eEleEffSystDn, part->pt(), part->etaSC(), part->isGap(), true, true, true, theSF, &theEff); leptons_eff_SystDn_map[part] = theEff;
+      theEff = 1; electronSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eEleEffSystUp, part->pt(), part->etaSC(), part->isGap(), true, true, true, theSF, &theEff); leptons_eff_SystUp_map[part] = theEff;
+    }
+
+    if (is_tight){
+      theChosenLepton = part;
+      n_leptons_tight++;
+    }
+    else if (is_veto) n_leptons_veto++;
+    else if (part->testSelectionBit(ElectronSelectionHelpers::kFakeableBase)) event_n_leptons_fakeableBase++;
+  }
+  event_wgt_SFs_electrons = SF_electrons;
+  event_wgt_SFs_electrons_StatDn = SF_electrons_StatDn;
+  event_wgt_SFs_electrons_StatUp = SF_electrons_StatUp;
+  event_wgt_SFs_electrons_SystDn = SF_electrons_SystDn;
+  event_wgt_SFs_electrons_SystUp = SF_electrons_SystUp;
+  event_wgt_SFs_electrons_AltMCDn = SF_electrons_AltMCDn;
+  event_wgt_SFs_electrons_AltMCUp = SF_electrons_AltMCUp;
+
+  if (!(n_leptons_tight==1 && n_leptons_veto==0)) return false;
+  theLooper->incrementSelection("Exactly one lepton");
+
+  isotrackHandler->constructIsotracks(&muons, &electrons);
+  bool hasVetoIsotrack = false;
+  for (auto const& isotrack:isotrackHandler->getProducts()){
+    if (isotrack->testSelectionBit(IsotrackSelectionHelpers::kPreselectionVeto)){
+      hasVetoIsotrack = true;
+      break;
+    }
+  }
+  if (hasVetoIsotrack) return false;
+  theLooper->incrementSelection("Isotrack veto");
+
+  jetHandler->constructJetMET(theGlobalSyst, &muons, &electrons, &photons, &pfcandidates);
+  auto const& ak4jets = jetHandler->getAK4Jets();
+  auto const& ak8jets = jetHandler->getAK8Jets();
+
+  eventFilter->constructFilters(simEventHandler);
+  if (isData && !eventFilter->isUniqueDataEvent()) return false;
+  theLooper->incrementSelection("Unique data");
+
+  if (!eventFilter->passCommonSkim() || !eventFilter->passMETFilters(EventFilterHandler::kMETFilters_Standard)) return false;
+  theLooper->incrementSelection("MET filters");
+  event_pass_tightMETFilters = eventFilter->passMETFilters(EventFilterHandler::kMETFilters_Tight);
+
+  // Test HEM filter
+  if (!eventFilter->test2018HEMFilter(simEventHandler, nullptr, nullptr, &ak4jets, &ak8jets)) return false;
+  theLooper->incrementSelection("HEM15/16 veto");
+
+  if (hasSimpleHLTMenus){
+    event_wgt_triggers_SingleLepton = eventFilter->getTriggerWeight(it_HLTMenuSimple_SingleLepton->second);
+    event_wgt_triggers_SinglePhoton = eventFilter->getTriggerWeight(it_HLTMenuSimple_SinglePhoton->second);
+  }
+  else if (hasHLTMenuProperties){
+    event_wgt_triggers_SingleLepton = eventFilter->getTriggerWeight(
+      it_HLTMenuProps_SingleLepton->second,
+      &muons, &electrons, nullptr, nullptr, nullptr, nullptr
+    );
+    event_wgt_triggers_SinglePhoton = eventFilter->getTriggerWeight(
+      it_HLTMenuProps_SinglePhoton->second,
+      nullptr, nullptr, &photons, nullptr, nullptr, nullptr
+    );
+  }
+  if ((event_wgt_triggers_SingleLepton + event_wgt_triggers_SinglePhoton) == 0.f) return false;
+  theLooper->incrementSelection("Trigger");
+
+  // Fill the lepton
+  {
+    MuonObject* theMuon = dynamic_cast<MuonObject*>(theChosenLepton);
+    ElectronObject* theElectron = dynamic_cast<ElectronObject*>(theChosenLepton);
+
+    lepton_is_genMatched_prompt = (theMuon ? theMuon->extras.is_genMatched_prompt : theElectron->extras.is_genMatched_prompt);
+    lepton_id = theChosenLepton->pdgId();
+    lepton_pt = theChosenLepton->pt();
+    lepton_eta = theChosenLepton->eta();
+    lepton_phi = theChosenLepton->phi();
+    lepton_mass = theChosenLepton->m();
+
+    // Fill efficiency for the lepton
+    auto it_eff = leptons_eff_map.find(theChosenLepton);
+    lepton_eff = (it_eff==leptons_eff_map.end() ? 1 : it_eff->second);
+    it_eff = leptons_eff_StatDn_map.find(theChosenLepton);
+    lepton_eff_StatDn = (it_eff==leptons_eff_StatDn_map.end() ? 1 : it_eff->second);
+    it_eff = leptons_eff_StatUp_map.find(theChosenLepton);
+    lepton_eff_StatUp = (it_eff==leptons_eff_StatUp_map.end() ? 1 : it_eff->second);
+    it_eff = leptons_eff_SystDn_map.find(theChosenLepton);
+    lepton_eff_SystDn = (it_eff==leptons_eff_SystDn_map.end() ? 1 : it_eff->second);
+    it_eff = leptons_eff_SystUp_map.find(theChosenLepton);
+    lepton_eff_SystUp = (it_eff==leptons_eff_SystUp_map.end() ? 1 : it_eff->second);
+
+    // Extra variables for e/gamma efficiency studies
+    if (theElectron){
+      auto const& extras = theElectron->extras;
+
+      electron_full5x5_sigmaIEtaIEta = extras.full5x5_sigmaIEtaIEta;
+      electron_full5x5_sigmaIPhiIPhi = extras.full5x5_sigmaIPhiIPhi;
+      electron_full5x5_r9 = extras.full5x5_r9;
+      electron_seedTime = extras.seedTime;
+    }
+  }
+
+  // Fill the photon
   photon_pt = theChosenPhoton->pt();
-  if (!OffshellCutflow::check_pTll(photon_pt)) return false; // Skim photons below the pTll threshold
   photon_eta = theChosenPhoton->eta();
   photon_phi = theChosenPhoton->phi();
   photon_mass = theChosenPhoton->m();
@@ -460,27 +609,6 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   photon_full5x5_r9 = theChosenPhoton->extras.full5x5_r9;
   photon_seedTime = theChosenPhoton->extras.seedTime;
   photon_MIPTotalEnergy = theChosenPhoton->extras.MIPTotalEnergy;
-
-  isotrackHandler->constructIsotracks(&muons, &electrons);
-  bool hasVetoIsotrack = false;
-  for (auto const& isotrack:isotrackHandler->getProducts()){
-    if (isotrack->testSelectionBit(IsotrackSelectionHelpers::kPreselectionVeto)){
-      hasVetoIsotrack = true;
-      break;
-    }
-  }
-  if (hasVetoIsotrack) return false;
-
-  jetHandler->constructJetMET(theGlobalSyst, &muons, &electrons, &photons, &pfcandidates);
-  auto const& ak4jets = jetHandler->getAK4Jets();
-  auto const& ak8jets = jetHandler->getAK8Jets();
-
-  if (hasSimpleHLTMenus) event_wgt_triggers = eventFilter->getTriggerWeight(it_HLTMenuSimple_SinglePhoton->second);
-  else if (hasHLTMenuProperties) event_wgt_triggers = eventFilter->getTriggerWeight(it_HLTMenuProps_SinglePhoton->second, nullptr, nullptr, &photons, nullptr, nullptr, nullptr);
-  if (event_wgt_triggers == 0.f) return false;
-
-  // Test HEM filter
-  if (!eventFilter->test2018HEMFilter(simEventHandler, nullptr, nullptr, &ak4jets, &ak8jets)) return false;
 
   ParticleObject::LorentzVector_t sump4_ak4jets(0, 0, 0, 0);
   std::vector<AK4JetObject*> ak4jets_tight; ak4jets_tight.reserve(ak4jets.size());
@@ -511,7 +639,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
 
     if (ParticleSelectionHelpers::isTightJet(jet)){
       ak4jets_tight.push_back(jet);
-      if (jet->getBtagValue()>=btag_thr_loose) n_ak4jets_tight_pt30_btagged_loose++;
+      if (jet->getBtagValue()>=btag_thr_loose) event_n_ak4jets_pt30_btagged_loose++;
+      if (jet->getBtagValue()>=btag_thr_medium) event_n_ak4jets_pt30_btagged_medium++;
 
       ak4jets_HT += jet->pt();
       sump4_ak4jets += jet->p4();
@@ -532,7 +661,6 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
       if (jet->getBtagValue()>=btag_thr_medium) event_n_ak4jets_pt20_btagged_medium++;
     }
   }
-  if (n_ak4jets_tight_pt30_btagged_loose>0) return false;
   event_wgt_SFs_PUJetId = std::min(SF_PUJetId, 3.f);
   event_wgt_SFs_PUJetId_EffDn = std::min(SF_PUJetId_EffDn, 3.f);
   event_wgt_SFs_PUJetId_EffUp = std::min(SF_PUJetId_EffUp, 3.f);
@@ -564,6 +692,11 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   event_pTmiss = event_met_p4.Pt();
   event_phimiss = event_met_p4.Phi();
 
+  // dPhi variables between pTmiss and boson are corrected in this looper by adding the momentum of the lepton object
+  ParticleObject::LorentzVector_t p4_lmet = event_met_p4 + theChosenLepton->p4();
+  float pt_lmet = p4_lmet.Pt();
+  float phi_lmet = p4_lmet.Phi();
+
   min_abs_dPhi_pTj_pTmiss = TMath::Pi();
   for (auto const& jet:ak4jets_tight){
     ak4jets_pt.push_back(jet->pt());
@@ -586,44 +719,49 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
 
     // Determine min_abs_dPhi_pTj_pTmiss
     float dphi_tmp;
-    HelperFunctions::deltaPhi(float(jet->phi()), event_phimiss, dphi_tmp); dphi_tmp = std::abs(dphi_tmp);
+    HelperFunctions::deltaPhi(float(jet->phi()), phi_lmet, dphi_tmp); dphi_tmp = std::abs(dphi_tmp);
     min_abs_dPhi_pTj_pTmiss = std::min(min_abs_dPhi_pTj_pTmiss, dphi_tmp);
   }
-
-  // Compute dPhi between the dilepton and pTmiss vector
-  dPhi_pTboson_pTmiss = theChosenPhoton->deltaPhi(event_phimiss);
-  HelperFunctions::deltaPhi(float((theChosenPhoton->p4()+sump4_ak4jets).Phi()), event_phimiss, dPhi_pTbosonjets_pTmiss);
+  
+  // Compute dPhi between the photon and lepton+miss vector
+  dPhi_pTboson_pTmiss = theChosenPhoton->deltaPhi(phi_lmet);
+  HelperFunctions::deltaPhi(float((theChosenPhoton->p4()+sump4_ak4jets).Phi()), phi_lmet, dPhi_pTbosonjets_pTmiss);
 
   // Compute mass variables
+  event_mlg = (theChosenPhoton->p4() + theChosenLepton->p4()).M();
+
   float const& etamiss_approx = photon_eta;
   ParticleObject::LorentzVector_t p4_photon_Z_approx; p4_photon_Z_approx = ParticleObject::PolarLorentzVector_t(photon_pt, photon_eta, photon_phi, PDGHelpers::Zmass);
-  ParticleObject::LorentzVector_t p4_ZZ_approx; p4_ZZ_approx = ParticleObject::PolarLorentzVector_t(event_pTmiss, etamiss_approx, event_phimiss, PDGHelpers::Zmass);
+  ParticleObject::LorentzVector_t p4_ZZ_approx; p4_ZZ_approx = ParticleObject::PolarLorentzVector_t(pt_lmet, etamiss_approx, phi_lmet, PDGHelpers::Zmass);
   p4_ZZ_approx = p4_ZZ_approx + p4_photon_Z_approx;
 
   event_mTZZ = std::sqrt(
     std::pow(
     (
       std::sqrt(std::pow(photon_pt, 2) + std::pow(p4_photon_Z_approx.M(), 2))
-      + std::sqrt(std::pow(event_pTmiss, 2) + std::pow(PDGHelpers::Zmass, 2))
+      + std::sqrt(std::pow(pt_lmet, 2) + std::pow(PDGHelpers::Zmass, 2)) // Do not use the invariant mass of the l+MET p4 because l+MET is now the MET proxy, and the formula uses Z mass for this part.
       ), 2
     )
-    - std::pow((p4_photon_Z_approx + event_met_p4).Pt(), 2)
+    - std::pow((p4_photon_Z_approx + p4_lmet).Pt(), 2)
   );
   event_mZZ = p4_ZZ_approx.M();
 
+  // Apply veto from SR-like selection
   OffshellCutflow::setActiveFinalState(OffshellCutflow::fs_ZZ_2l2nu);
   std::vector<bool> const v_passZZ2l2nuSRlikeSelection={
     OffshellCutflow::check_pTll(photon_pt),
-    OffshellCutflow::check_pTmiss(event_pTmiss),
+    OffshellCutflow::check_pTmiss(pt_lmet),
     OffshellCutflow::check_dPhi_pTll_pTmiss(dPhi_pTboson_pTmiss),
-    OffshellCutflow::check_dPhi_pTlljets_pTmiss(dPhi_pTbosonjets_pTmiss)
+    OffshellCutflow::check_dPhi_pTlljets_pTmiss(dPhi_pTbosonjets_pTmiss),
+    OffshellCutflow::check_Nb_veto(event_n_ak4jets_pt30_btagged_loose)
   };
   OffshellCutflow::setActiveFinalState(OffshellCutflow::fs_WW_2l2nu);
   std::vector<bool> const v_passWW2l2nuSRlikeSelection={
     OffshellCutflow::check_pTll(photon_pt),
-    OffshellCutflow::check_pTmiss(event_pTmiss),
+    OffshellCutflow::check_pTmiss(pt_lmet),
     OffshellCutflow::check_dPhi_pTll_pTmiss(dPhi_pTboson_pTmiss),
-    OffshellCutflow::check_dPhi_pTlljets_pTmiss(dPhi_pTbosonjets_pTmiss)
+    OffshellCutflow::check_dPhi_pTlljets_pTmiss(dPhi_pTbosonjets_pTmiss),
+    OffshellCutflow::check_Nb_veto(event_n_ak4jets_pt30_btagged_loose)
   };
   unsigned short n_passZZ2l2nuSRlikeSelection = 0;
   unsigned short n_passWW2l2nuSRlikeSelection = 0;
@@ -768,10 +906,13 @@ void getTrees(
   BtagHelpers::setBtagWPType(BtagHelpers::kDeepFlav_Loose);
   LooperFunctionHelpers::setBtagWPs();
 
-  OffshellCutflow::setActiveFinalState(OffshellCutflow::fs_ZZ_2l2nu); // This region is only relevant for the ZZ->2l2nu final state.
-
-  std::vector<TriggerHelpers::TriggerType> requiredTriggers{ TriggerHelpers::kSinglePho };
-  auto triggerPropsCheckList = TriggerHelpers::getHLTMenuProperties(requiredTriggers);
+  std::vector<TriggerHelpers::TriggerType> requiredTriggers_SingleLepton{
+    TriggerHelpers::kSingleMu, TriggerHelpers::kSingleMu_HighPt,
+    TriggerHelpers::kSingleEle, TriggerHelpers::kSingleEle_HighPt
+  };
+  std::vector<TriggerHelpers::TriggerType> requiredTriggers_SinglePhoton{ TriggerHelpers::kSinglePho };
+  auto triggerPropsCheckList_SingleLepton = TriggerHelpers::getHLTMenuProperties(requiredTriggers_SingleLepton);
+  auto triggerPropsCheckList_SinglePhoton = TriggerHelpers::getHLTMenuProperties(requiredTriggers_SinglePhoton);
 
   // Get sample specifications
   std::vector<TString> sampledirs;
@@ -790,7 +931,7 @@ void getTrees(
 
   // Set output directory
   TString coutput_main =
-    "output/SinglePhotonEvents/SkimTrees/" + strdate
+    "output/LGEvents/SkimTrees/" + strdate
     + "/AK4Jets"
     + "_" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
     + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
@@ -925,7 +1066,8 @@ void getTrees(
   // Set output tree
   theLooper.addOutputTree(tout);
   // Register the HLT menus
-  theLooper.addHLTMenu("SinglePhoton", triggerPropsCheckList);
+  theLooper.addHLTMenu("SingleLepton", triggerPropsCheckList_SingleLepton);
+  theLooper.addHLTMenu("SinglePhoton", triggerPropsCheckList_SinglePhoton);
   // Set the MEs
   if (computeMEs) theLooper.setMatrixElementListFromFile(
     "${CMSSW_BASE}/src/CMS3/AnalysisTree/data/RecoProbabilities/RecoProbabilities.me",
@@ -940,7 +1082,18 @@ void getTrees(
   for (auto const& sname:sampledirs){
     TString strdsetfname = SampleHelpers::getDatasetFileName(sname);
     MELAout << "=> Accessing the input trees from " << strdsetfname << "..." << endl;
-    BaseTree* sample_tree = new BaseTree(strdsetfname, (useSkims ? "cms3ntuple/SinglePhoton" : "cms3ntuple/Events"), "", ""); sample_trees.push_back(sample_tree);
+    BaseTree* sample_tree;
+    if (useSkims) sample_tree = new BaseTree(
+      strdsetfname,
+      {
+        "cms3ntuple/SingleLepton",
+        "cms3ntuple/Dilepton_Control", // These two trees are included in cases systematic variations move a few percent of events around
+        "cms3ntuple/Dilepton"
+      },
+      ""
+    );
+    else sample_tree = new BaseTree(strdsetfname, "cms3ntuple/Events", "", "");
+    sample_trees.push_back(sample_tree);
     sample_tree->sampleIdentifier = SampleHelpers::getSampleIdentifier(sname);
     MELAout << "\t- Sample identifier (is data ? " << isData << "): " << sample_tree->sampleIdentifier << endl;
 

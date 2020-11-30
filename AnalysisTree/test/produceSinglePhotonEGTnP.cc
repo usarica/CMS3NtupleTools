@@ -144,47 +144,6 @@ float getIsolationDRmax(ParticleObject const* part){
 }
 
 
-void splitFileAndAddForTransfer(TString const& stroutput){
-  // Trivial case: If not running on condor, there is no need to transfer. Just exit.
-  if (!SampleHelpers::checkRunOnCondor()){
-    SampleHelpers::addToCondorTransferList(stroutput);
-    return;
-  }
-
-  TDirectory* curdir = gDirectory;
-  size_t const size_limit = std::pow(1024, 3);
-
-  TFile* finput = TFile::Open(stroutput, "read");
-  curdir->cd();
-
-  size_t const size_input = finput->GetSize();
-  size_t const nchunks = size_input/size_limit+1;
-  std::vector<TString> fnames; fnames.reserve(nchunks);
-  if (nchunks>1){
-    std::vector<TFile*> foutputlist; foutputlist.reserve(nchunks);
-
-    for (size_t ichunk=0; ichunk<nchunks; ichunk++){
-      TString fname = stroutput;
-      TString strchunk = Form("_chunk_%zu_of_%zu%s", ichunk, nchunks, ".root");
-      HelperFunctions::replaceString<TString, TString const>(fname, ".root", strchunk);
-      TFile* foutput = TFile::Open(fname, "recreate");
-      foutputlist.push_back(foutput);
-    }
-
-    std::vector<TDirectory*> outputdirs; outputdirs.reserve(nchunks);
-    for (auto& ff:foutputlist) outputdirs.push_back(ff);
-    HelperFunctions::distributeObjects(finput, outputdirs);
-
-    for (auto& ff:foutputlist) ff->Close();
-  }
-  else fnames.push_back(stroutput);
-
-  finput->Close();
-  curdir->cd();
-
-  for (auto const& fname:fnames) SampleHelpers::addToCondorTransferList(fname);
-}
-
 using namespace SystematicsHelpers;
 void getTrees(
   TString strSampleSet, TString period,
@@ -411,10 +370,11 @@ BRANCH_COMMAND(float, event_pTmiss) \
 BRANCH_COMMAND(float, event_phimiss) \
 BRANCH_COMMAND(unsigned int, event_NGenPromptParticles) \
 BRANCH_COMMAND(unsigned int, event_nvtxs_good) \
-BRANCH_COMMAND(unsigned int, event_Njets) \
-BRANCH_COMMAND(unsigned int, event_Njets20) \
-BRANCH_COMMAND(unsigned int, event_Njets_btagged) \
-BRANCH_COMMAND(unsigned int, event_Njets20_btagged)
+BRANCH_COMMAND(unsigned int, event_n_leptons_fakeableBase) \
+BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt30) \
+BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt20) \
+BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt30_btagged_loose) \
+BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt20_btagged_loose)
 #define BRANCHES_VECTORIZED \
 BRANCH_COMMAND(float, pt_eg) \
 BRANCH_COMMAND(float, eta_eg) \
@@ -567,6 +527,8 @@ BRANCH_COMMAND(float, photon_dR_genMatch)
       auto const& electrons = electronHandler.getProducts();
       auto const& photons = photonHandler.getProducts();
 
+      event_n_leptons_fakeableBase = 0;
+
       ParticleObject::LorentzVector_t sump4_leptons(0, 0, 0, 0);
       std::vector<MuonObject*> muons_selected; muons_selected.reserve(muons.size());
       std::vector<ElectronObject*> electrons_selected; electrons_selected.reserve(electrons.size());
@@ -582,6 +544,7 @@ BRANCH_COMMAND(float, photon_dR_genMatch)
           if (theSF == 0.f) continue;
           SF_electrons *= theSF;
         }
+        else if (!ParticleSelectionHelpers::isTightParticle(part) && part->testSelectionBit(ElectronSelectionHelpers::kFakeableBase)) event_n_leptons_fakeableBase++;
       }
       event_wgt_SFs *= SF_electrons;
 
@@ -675,6 +638,7 @@ BRANCH_COMMAND(float, photon_dR_genMatch)
         SF_muons *= theSF;
 
         if (ParticleSelectionHelpers::isTightParticle(part)) muons_selected.push_back(part);
+        else if (part->testSelectionBit(MuonSelectionHelpers::kFakeableBase)) event_n_leptons_fakeableBase++;
       }
       event_wgt_SFs *= SF_muons;
 
@@ -722,10 +686,10 @@ BRANCH_COMMAND(float, photon_dR_genMatch)
 
       event_nvtxs_good = vertexHandler.getNGoodVertices();
 
-      event_Njets = 0;
-      event_Njets20 = 0;
-      event_Njets_btagged = 0;
-      event_Njets20_btagged = 0;
+      event_n_ak4jets_pt30 = 0;
+      event_n_ak4jets_pt20 = 0;
+      event_n_ak4jets_pt30_btagged_loose = 0;
+      event_n_ak4jets_pt20_btagged_loose = 0;
       float SF_PUJetId = 1;
       float SF_btagging = 1;
       ParticleObject::LorentzVector_t ak4jets_sump4(0, 0, 0, 0);
@@ -740,8 +704,8 @@ BRANCH_COMMAND(float, photon_dR_genMatch)
         if (theSF_btag != 0.f) SF_btagging *= theSF_btag;
 
         if (ParticleSelectionHelpers::isTightJet(jet)){
-          event_Njets++;
-          if (jet->getBtagValue()>=btag_loose_thr) event_Njets_btagged++;
+          event_n_ak4jets_pt30++;
+          if (jet->getBtagValue()>=btag_loose_thr) event_n_ak4jets_pt30_btagged_loose++;
         }
         if (
           jet->testSelectionBit(AK4JetSelectionHelpers::kTightId)
@@ -752,8 +716,8 @@ BRANCH_COMMAND(float, photon_dR_genMatch)
           &&
           jet->pt()>=20.f && fabs(jet->eta())<AK4JetSelectionHelpers::etaThr_skim_tight
           ){
-          event_Njets20++;
-          if (jet->getBtagValue()>=btag_loose_thr) event_Njets20_btagged++;
+          event_n_ak4jets_pt20++;
+          if (jet->getBtagValue()>=btag_loose_thr) event_n_ak4jets_pt20_btagged_loose++;
         }
       }
       event_wgt_SFs *= SF_PUJetId*SF_btagging;

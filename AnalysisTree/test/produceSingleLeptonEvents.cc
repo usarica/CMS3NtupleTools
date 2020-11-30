@@ -109,6 +109,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     assert(0);
   }
   auto it_HLTMenuProps = triggerPropsCheckListMap.find("SingleLepton");
+  if (it_HLTMenuProps == triggerPropsCheckListMap.cend()){
+    MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'SingleLepton' has to be defined in this looper rule!" << endl;
+    assert(0);
+  }
 #define CONTROL_TRIGGER_COMMAND(TYPE) auto it_HLTMenuProps_##TYPE = triggerPropsCheckListMap.find(#TYPE);
   CONTROL_TRIGGER_COMMANDS;
 #undef CONTROL_TRIGGER_COMMAND
@@ -117,13 +121,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     MELAerr << "LooperFunctionHelpers::looperRule: The trigger type '" << #TYPE << "' has to be defined in this looper rule!" << endl; \
     assert(0); \
   }
-  if (!applyFakeables){
-    if (it_HLTMenuProps == triggerPropsCheckListMap.cend()){
-      MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'SingleLepton' has to be defined in this looper rule!" << endl;
-      assert(0);
-    }
-  }
-  else{
+  if (applyFakeables){
     CONTROL_TRIGGER_COMMANDS;
   }
 #undef CONTROL_TRIGGER_COMMAND
@@ -202,6 +200,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   BRANCH_COMMAND(float, genmet_pTmiss) \
   BRANCH_COMMAND(float, genmet_phimiss) \
   BRANCH_COMMAND(unsigned int, event_n_vtxs_good) \
+  BRANCH_COMMAND(unsigned int, event_n_leptons_fakeableBase) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt30) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt30_btagged_loose) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt30_btagged_medium) \
@@ -356,14 +355,6 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   event_n_vtxs_good = vertexHandler->getNGoodVertices();
   theLooper->incrementSelection("Good vertices");
 
-  eventFilter->constructFilters(simEventHandler);
-  if (isData && !eventFilter->isUniqueDataEvent()) return false;
-  theLooper->incrementSelection("Unique data");
-
-  if (!eventFilter->passCommonSkim() || !eventFilter->passMETFilters(EventFilterHandler::kMETFilters_Standard)) return false;
-  theLooper->incrementSelection("MET filters");
-  event_pass_tightMETFilters = eventFilter->passMETFilters(EventFilterHandler::kMETFilters_Tight);
-
   pfcandidateHandler->constructPFCandidates(theGlobalSyst);
   auto const& pfcandidates = pfcandidateHandler->getProducts();
 
@@ -373,10 +364,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   particleDisambiguator.disambiguateParticles(muonHandler, electronHandler, photonHandler);
 
   ParticleObject* theChosenLepton = nullptr;
-
-  auto const& muons = muonHandler->getProducts();
   unsigned short n_leptons_tight = 0;
   unsigned short n_leptons_veto = 0;
+
+  auto const& muons = muonHandler->getProducts();
   float SF_muons = 1;
   float SF_muons_StatDn = 1;
   float SF_muons_StatUp = 1;
@@ -401,6 +392,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
       n_leptons_tight++;
     }
     else if (ParticleSelectionHelpers::isVetoParticle(part)) n_leptons_veto++;
+    else if (!ParticleSelectionHelpers::isTightParticle(part) && part->testSelectionBit(MuonSelectionHelpers::kFakeableBase)) event_n_leptons_fakeableBase++;
   }
   event_wgt_SFs_muons = SF_muons;
   event_wgt_SFs_muons_StatDn = SF_muons_StatDn;
@@ -435,6 +427,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
       n_leptons_tight++;
     }
     else if (ParticleSelectionHelpers::isVetoParticle(part)) n_leptons_veto++;
+    else if (!ParticleSelectionHelpers::isTightParticle(part) && part->testSelectionBit(ElectronSelectionHelpers::kFakeableBase)) event_n_leptons_fakeableBase++;
   }
   event_wgt_SFs_electrons = SF_electrons;
   event_wgt_SFs_electrons_StatDn = SF_electrons_StatDn;
@@ -513,27 +506,6 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   event_pTmiss = event_met_p4.Pt();
   event_phimiss = event_met_p4.Phi();
 
-  if (!applyFakeables) event_wgt_triggers = eventFilter->getTriggerWeight(
-    it_HLTMenuProps->second,
-    &muons, &electrons, nullptr, nullptr, nullptr, nullptr
-  );
-  else{
-#define CONTROL_TRIGGER_COMMAND(TYPE) \
-    event_wgt_triggers_##TYPE = eventFilter->getTriggerWeight( \
-      it_HLTMenuProps_##TYPE->second, \
-      nullptr, nullptr, nullptr, &ak4jets, &ak8jets, eventmet \
-    ); \
-    if (event_wgt_triggers_##TYPE != 0.f) event_wgt_triggers = (event_wgt_triggers==0.f ? event_wgt_triggers_##TYPE : std::min(event_wgt_triggers_##TYPE, event_wgt_triggers));
-    CONTROL_TRIGGER_COMMANDS;
-#undef CONTROL_TRIGGER_COMMAND
-  }
-  if (event_wgt_triggers == 0.f) return false;
-  theLooper->incrementSelection("Trigger");
-
-  // Test HEM filter
-  if (!eventFilter->test2018HEMFilter(simEventHandler, nullptr, nullptr, &ak4jets, &ak8jets)) return false;
-  theLooper->incrementSelection("HEM15/16 veto");
-
   ParticleObject::LorentzVector_t sump4_ak4jets(0, 0, 0, 0);
   std::vector<AK4JetObject*> ak4jets_tight; ak4jets_tight.reserve(ak4jets.size());
   unsigned int n_ak4jets_tight_pt30_btagged_loose = 0;
@@ -604,6 +576,105 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     ak8jets_phi.push_back(jet->phi());
     ak8jets_mass.push_back(jet->mass());
   }
+
+  eventFilter->constructFilters(simEventHandler);
+  if (isData && !eventFilter->isUniqueDataEvent()) return false;
+  theLooper->incrementSelection("Unique data");
+
+  if (!eventFilter->passCommonSkim() || !eventFilter->passMETFilters(EventFilterHandler::kMETFilters_Standard)) return false;
+  theLooper->incrementSelection("MET filters");
+  event_pass_tightMETFilters = eventFilter->passMETFilters(EventFilterHandler::kMETFilters_Tight);
+
+  // Test HEM filter
+  if (!eventFilter->test2018HEMFilter(simEventHandler, nullptr, nullptr, &ak4jets, &ak8jets)) return false;
+  theLooper->incrementSelection("HEM15/16 veto");
+
+  if (!applyFakeables) event_wgt_triggers = eventFilter->getTriggerWeight(
+    it_HLTMenuProps->second,
+    &muons, &electrons, nullptr, nullptr, nullptr, nullptr
+  );
+  else{
+#define CONTROL_TRIGGER_COMMAND(TYPE) \
+    event_wgt_triggers_##TYPE = eventFilter->getTriggerWeight( \
+      it_HLTMenuProps_##TYPE->second, \
+      nullptr, nullptr, nullptr, &ak4jets, &ak8jets, eventmet \
+    ); \
+    if (event_wgt_triggers_##TYPE != 0.f) event_wgt_triggers = (event_wgt_triggers==0.f ? event_wgt_triggers_##TYPE : std::min(event_wgt_triggers_##TYPE, event_wgt_triggers));
+    CONTROL_TRIGGER_COMMANDS;
+#undef CONTROL_TRIGGER_COMMAND
+
+    // Check matching of single lepton triggers to jets
+    float event_wgt_triggers_SingleLepton_jetMatched = 0;
+    auto const& hltpaths = eventFilter->getHLTPaths();
+    std::vector<ParticleObject*> triggerjet_candidates; // In order to match to single lepton manually
+    for (auto const& jet:ak4jets_tight) triggerjet_candidates.push_back(jet);
+    for (auto const& enumType_props_pair:it_HLTMenuProps->second){
+      if (event_wgt_triggers_SingleLepton_jetMatched==1.f) break;
+
+      auto const& trigger_type = enumType_props_pair.first;
+      auto const& hltprop = enumType_props_pair.second;
+      for (auto const& hltpath:hltpaths){
+        if (event_wgt_triggers_SingleLepton_jetMatched==1.f) break;
+
+        if (hltpath->isValid() && hltpath->passTrigger && hltprop->isSameTrigger(hltpath->name)){
+          HLTTriggerPathProperties::TriggerObjectExceptionType const& TOexception = hltprop->getTOException();
+          auto const& passedTriggerObjects = hltpath->getPassedTriggerObjects();
+
+          bool hasTORecovery = false;
+          std::vector<TriggerObject const*> passedTriggerObjectsWithRecovery;
+          if (TOexception == HLTTriggerPathProperties::toRecoverObjectsFromFailing){
+            // Determine what to recover
+            unsigned short n_TOmuons = 0;
+            unsigned short n_TOelectrons = 0;
+            unsigned short n_TOphotons = 0;
+            for (auto const& TOobj:passedTriggerObjects){
+              if (TOobj->isTriggerObjectType(trigger::TriggerMuon)) n_TOmuons++;
+              else if (TOobj->isTriggerObjectType(trigger::TriggerElectron)) n_TOelectrons++;
+              else if (TOobj->isTriggerObjectType(trigger::TriggerPhoton) || TOobj->isTriggerObjectType(trigger::TriggerCluster)){
+                n_TOelectrons++;
+                n_TOphotons++;
+              }
+            }
+            auto const& props_map = hltprop->getObjectProperties();
+            unsigned short n_TOmuons_req = (props_map.find(HLTObjectProperties::kMuon)!=props_map.end() ? props_map.find(HLTObjectProperties::kMuon)->second.size() : 0);
+            unsigned short n_TOelectrons_req = (props_map.find(HLTObjectProperties::kElectron)!=props_map.end() ? props_map.find(HLTObjectProperties::kElectron)->second.size() : 0);
+            unsigned short n_TOphotons_req = (props_map.find(HLTObjectProperties::kPhoton)!=props_map.end() ? props_map.find(HLTObjectProperties::kPhoton)->second.size() : 0);
+            bool needMuonRecovery = (n_TOmuons<n_TOmuons_req);
+            bool needElectronRecovery = (n_TOelectrons<n_TOelectrons_req);
+            bool needPhotonRecovery = (n_TOphotons<n_TOphotons_req);
+            // Add existing passing objects
+            for (auto const& TOobj:passedTriggerObjects) passedTriggerObjectsWithRecovery.push_back(TOobj);
+            // Add from failing objects
+            for (auto const& TOobj:hltpath->getFailedTriggerObjects()){
+              if (
+                (needMuonRecovery && TOobj->isTriggerObjectType(trigger::TriggerMuon))
+                ||
+                (needElectronRecovery && (TOobj->isTriggerObjectType(trigger::TriggerElectron) || TOobj->isTriggerObjectType(trigger::TriggerPhoton) || TOobj->isTriggerObjectType(trigger::TriggerCluster)))
+                ||
+                (needPhotonRecovery && (TOobj->isTriggerObjectType(trigger::TriggerPhoton) || TOobj->isTriggerObjectType(trigger::TriggerCluster)))
+                ) passedTriggerObjectsWithRecovery.push_back(TOobj);
+            }
+            hasTORecovery = true;
+          }
+
+          std::vector<TriggerObject const*> const& passedTriggerObjects_final = (!hasTORecovery ? passedTriggerObjects : passedTriggerObjectsWithRecovery);
+          std::vector<ParticleObject*> tmpvec_matched;
+          TriggerObject::getMatchedPhysicsObjects(
+            passedTriggerObjects_final, { trigger::TriggerMuon, trigger::TriggerElectron, trigger::TriggerPhoton, trigger::TriggerCluster }, 0.2,
+            triggerjet_candidates, tmpvec_matched
+          );
+          if (!tmpvec_matched.empty()){
+            float wgt_trigger = hltpath->L1prescale * hltpath->HLTprescale;
+            if (wgt_trigger!=0.f) event_wgt_triggers_SingleLepton_jetMatched = (event_wgt_triggers_SingleLepton_jetMatched==0.f ? wgt_trigger : std::min(wgt_trigger, event_wgt_triggers_SingleLepton_jetMatched));
+          }
+        }
+      }
+    }
+    commonEntry.setNamedVal("event_wgt_triggers_SingleLepton_jetMatched", event_wgt_triggers_SingleLepton_jetMatched);
+    event_wgt_triggers = (event_wgt_triggers==0.f ? event_wgt_triggers_SingleLepton_jetMatched : std::min(event_wgt_triggers_SingleLepton_jetMatched, event_wgt_triggers));
+  }
+  if (event_wgt_triggers == 0.f) return false;
+  theLooper->incrementSelection("Trigger");
 
   min_abs_dPhi_pTj_pTmiss = TMath::Pi();
   for (auto const& jet:ak4jets_tight){
@@ -839,47 +910,6 @@ void LooperFunctionHelpers::setApplyFakeableId(bool applyFakeables_){
   }
 }
 
-
-void splitFileAndAddForTransfer(TString const& stroutput){
-  // Trivial case: If not running on condor, there is no need to transfer. Just exit.
-  if (!SampleHelpers::checkRunOnCondor()){
-    SampleHelpers::addToCondorTransferList(stroutput);
-    return;
-  }
-
-  TDirectory* curdir = gDirectory;
-  size_t const size_limit = std::pow(1024, 3);
-
-  TFile* finput = TFile::Open(stroutput, "read");
-  curdir->cd();
-
-  size_t const size_input = finput->GetSize();
-  size_t const nchunks = size_input/size_limit+1;
-  std::vector<TString> fnames; fnames.reserve(nchunks);
-  if (nchunks>1){
-    std::vector<TFile*> foutputlist; foutputlist.reserve(nchunks);
-
-    for (size_t ichunk=0; ichunk<nchunks; ichunk++){
-      TString fname = stroutput;
-      TString strchunk = Form("_chunk_%zu_of_%zu%s", ichunk, nchunks, ".root");
-      HelperFunctions::replaceString<TString, TString const>(fname, ".root", strchunk);
-      TFile* foutput = TFile::Open(fname, "recreate");
-      foutputlist.push_back(foutput);
-    }
-
-    std::vector<TDirectory*> outputdirs; outputdirs.reserve(nchunks);
-    for (auto& ff:foutputlist) outputdirs.push_back(ff);
-    HelperFunctions::distributeObjects(finput, outputdirs);
-
-    for (auto& ff:foutputlist) ff->Close();
-  }
-  else fnames.push_back(stroutput);
-
-  finput->Close();
-  curdir->cd();
-
-  for (auto const& fname:fnames) SampleHelpers::addToCondorTransferList(fname);
-}
 
 using namespace SystematicsHelpers;
 void getTrees(
@@ -1131,9 +1161,9 @@ void getTrees(
   // Set output tree
   theLooper.addOutputTree(tout);
   // Register the HLT menus
+  theLooper.addHLTMenu("SingleLepton", triggerPropsCheckList);
 #define CONTROL_TRIGGER_COMMAND(TYPE) theLooper.addHLTMenu(#TYPE, triggerPropsCheckList_##TYPE);
-  if (!useFakeables) theLooper.addHLTMenu("SingleLepton", triggerPropsCheckList);
-  else{
+  if (useFakeables){
     CONTROL_TRIGGER_COMMANDS;
   }
 #undef CONTROL_TRIGGER_COMMAND
