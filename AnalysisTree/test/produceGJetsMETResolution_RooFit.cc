@@ -1919,9 +1919,11 @@ void plotValidationHistograms(
   bool addXY = METCorrectionLevels.Contains("XY");
   bool addJER = METCorrectionLevels.Contains("JER");
   bool addPartMomShifts = METCorrectionLevels.Contains("PartMomShifts");
+  bool addP4Preserve = METCorrectionLevels.Contains("p4Preserved");
   if (addXY) strMETsuffix += "_XY";
   if (addJER) strMETsuffix += "_JER";
   if (addPartMomShifts) strMETsuffix += "_PartMomShifts";
+  if (addP4Preserve) strMETsuffix += "_p4Preserved";
   TString const strMET_pTmiss = strMET + "_pTmiss" + strMETsuffix;
   TString const strMET_phimiss = strMET + "_phimiss" + strMETsuffix;
   TString const strMEToutname = strMET + "_JEC" + strMETsuffix;
@@ -2159,9 +2161,11 @@ void plotValidationHistogramSets(TString strperiod, TString prodVersion, TString
   }
 }
 
-void runChain(TString strperiod, TString prodVersion, TString strdate){
+void runFitChain(TString strperiod, TString prodVersion, TString strdate){
   produceCorrections(strperiod, prodVersion, strdate);
   produceFinalFitSets(strperiod, prodVersion, strdate);
+}
+void runValidationChain(TString strperiod, TString prodVersion, TString strdate){
   getCorrectionValidationHistogramSets(strperiod, prodVersion, strdate);
   plotValidationHistogramSets(strperiod, prodVersion, strdate);
 }

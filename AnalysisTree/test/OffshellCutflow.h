@@ -13,6 +13,7 @@ namespace OffshellCutflow{
   enum FinalStateType{
     fs_ZZ_2l2nu,
     fs_WW_2l2nu,
+    fs_ZW_3l1nu,
     nFinalStateTypes
   };
 
@@ -46,6 +47,9 @@ namespace OffshellCutflow{
     case fs_WW_2l2nu:
       thr=20.f;
       break;
+    case fs_ZW_3l1nu:
+      thr=20.f;
+      break;
     default:
       MELAerr << "OffshellCutflow::check_pTmiss: The active final state " << activeFinalState << " is not specified." << endl;
       assert(0);
@@ -62,9 +66,8 @@ namespace OffshellCutflow{
     float thr=-1;
     switch (activeFinalState){
     case fs_ZZ_2l2nu:
-      thr=25.f;
-      break;
     case fs_WW_2l2nu:
+    case fs_ZW_3l1nu:
       thr=25.f;
       break;
     default:
@@ -79,6 +82,7 @@ namespace OffshellCutflow{
     float thr=-1;
     switch (activeFinalState){
     case fs_ZZ_2l2nu:
+    case fs_ZW_3l1nu:
       thr=25.f;
       break;
     case fs_WW_2l2nu:
@@ -92,26 +96,46 @@ namespace OffshellCutflow{
     return val>=thr;
   }
 
-  bool check_pTll(float const& val){
+  // Please don't rename this function to check_pTll... It becomes painful to distinguish from the pTl1 version (and multiple bugs appeared in the past because of this).
+  bool check_pTboson(float const& val){
     float thr=-1;
     switch (activeFinalState){
     case fs_ZZ_2l2nu:
       thr=55.f;
       break;
     case fs_WW_2l2nu:
+    case fs_ZW_3l1nu:
       break;
     default:
-      MELAerr << "OffshellCutflow::check_pTll: The active final state " << activeFinalState << " is not specified." << endl;
+      MELAerr << "OffshellCutflow::check_pTboson: The active final state " << activeFinalState << " is not specified." << endl;
       assert(0);
       break;
     }
     return val>=thr;
   }
 
+  bool check_mll_QCDsuppression(float const& val){
+    bool res = true;
+    switch (activeFinalState){
+    case fs_ZW_3l1nu:
+      res = (val>=4.f);
+      break;
+    case fs_ZZ_2l2nu:
+    case fs_WW_2l2nu:
+      break;
+    default:
+      MELAerr << "OffshellCutflow::check_mll_QCDsuppression: The active final state " << activeFinalState << " is not specified." << endl;
+      assert(0);
+      break;
+    }
+    return res;
+  }
+
   bool check_mll(float const& val, bool const& isSF){
     float thr[2]={ -1, -1 };
     switch (activeFinalState){
     case fs_ZZ_2l2nu:
+    case fs_ZW_3l1nu:
       thr[0]=MZ_VAL_CUTS-15.f;
       thr[1]=MZ_VAL_CUTS+15.f;
       break;

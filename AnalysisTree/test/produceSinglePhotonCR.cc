@@ -439,7 +439,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   if (n_photons_tight!=1) return false;
 
   photon_pt = theChosenPhoton->pt();
-  if (!OffshellCutflow::check_pTll(photon_pt)) return false; // Skim photons below the pTll threshold
+  if (!OffshellCutflow::check_pTboson(photon_pt)) return false; // Skim photons below the pTll threshold
   photon_eta = theChosenPhoton->eta();
   photon_phi = theChosenPhoton->phi();
   photon_mass = theChosenPhoton->m();
@@ -613,14 +613,14 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
 
   OffshellCutflow::setActiveFinalState(OffshellCutflow::fs_ZZ_2l2nu);
   std::vector<bool> const v_passZZ2l2nuSRlikeSelection={
-    OffshellCutflow::check_pTll(photon_pt),
+    OffshellCutflow::check_pTboson(photon_pt),
     OffshellCutflow::check_pTmiss(event_pTmiss),
     OffshellCutflow::check_dPhi_pTll_pTmiss(dPhi_pTboson_pTmiss),
     OffshellCutflow::check_dPhi_pTlljets_pTmiss(dPhi_pTbosonjets_pTmiss)
   };
   OffshellCutflow::setActiveFinalState(OffshellCutflow::fs_WW_2l2nu);
   std::vector<bool> const v_passWW2l2nuSRlikeSelection={
-    OffshellCutflow::check_pTll(photon_pt),
+    OffshellCutflow::check_pTboson(photon_pt),
     OffshellCutflow::check_pTmiss(event_pTmiss),
     OffshellCutflow::check_dPhi_pTll_pTmiss(dPhi_pTboson_pTmiss),
     OffshellCutflow::check_dPhi_pTlljets_pTmiss(dPhi_pTbosonjets_pTmiss)

@@ -780,7 +780,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     bool passZZ2l2nuSRlikeSelection = (
       event_n_leptons_tight==2
       &&
-      OffshellCutflow::check_pTll(theChosenDilepton->pt())
+      OffshellCutflow::check_pTboson(theChosenDilepton->pt())
       &&
       OffshellCutflow::check_pTmiss(event_pTmiss)
       &&
@@ -792,7 +792,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     bool passWW2l2nuSRlikeSelection = (
       event_n_leptons_tight==2
       &&
-      OffshellCutflow::check_pTll(theChosenDilepton->pt())
+      OffshellCutflow::check_pTboson(theChosenDilepton->pt())
       &&
       OffshellCutflow::check_pTmiss(event_pTmiss)
       &&

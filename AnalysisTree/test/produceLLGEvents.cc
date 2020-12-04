@@ -763,7 +763,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   // Apply veto from SR-like selection
   OffshellCutflow::setActiveFinalState(OffshellCutflow::fs_ZZ_2l2nu);
   std::vector<bool> const v_passZZ2l2nuSRlikeSelection={
-    OffshellCutflow::check_pTll(photon_pt),
+    OffshellCutflow::check_pTboson(photon_pt),
     OffshellCutflow::check_pTmiss(pt_llmet),
     OffshellCutflow::check_dPhi_pTll_pTmiss(dPhi_pTboson_pTmiss),
     OffshellCutflow::check_dPhi_pTlljets_pTmiss(dPhi_pTbosonjets_pTmiss),
@@ -771,7 +771,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   };
   OffshellCutflow::setActiveFinalState(OffshellCutflow::fs_WW_2l2nu);
   std::vector<bool> const v_passWW2l2nuSRlikeSelection={
-    OffshellCutflow::check_pTll(photon_pt),
+    OffshellCutflow::check_pTboson(photon_pt),
     OffshellCutflow::check_pTmiss(pt_llmet),
     OffshellCutflow::check_dPhi_pTll_pTmiss(dPhi_pTboson_pTmiss),
     OffshellCutflow::check_dPhi_pTlljets_pTmiss(dPhi_pTbosonjets_pTmiss),

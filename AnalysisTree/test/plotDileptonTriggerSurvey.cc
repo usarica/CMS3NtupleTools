@@ -777,7 +777,7 @@ void plot(
       if (apply_btagging && event_n_ak4jets_pt30_btagged_loose>0) continue;
       sum_wgts_cuts[5] += wgt;
 
-      bool pass_boson_pt = check_pTl1(dilepton_pt);
+      bool pass_boson_pt = check_pTboson(dilepton_pt);
       bool pass_pTmiss = check_pTmiss(event_pTmiss);
       if (isData && id_ll!=-13*11) pass_pTmiss = !pass_pTmiss; // Invert requirement
       if ((apply_pTmiss && !pass_pTmiss) || !pass_boson_pt) continue;

@@ -835,7 +835,7 @@ void plot(
         if (isData && useDilepton && pass_pTmiss) continue; // Blinded
         if (useInvertedPTmissReq) pass_pTmiss = !pass_pTmiss;
 
-        bool pass_boson_pt = check_pTl1((useDilepton ? dilepton_pt : photon_pt));
+        bool pass_boson_pt = check_pTboson((useDilepton ? dilepton_pt : photon_pt));
 
         unsigned int index_Njets = std::min((unsigned int) 3, event_n_ak4jets_pt30);
 
