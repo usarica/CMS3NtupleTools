@@ -84,7 +84,7 @@ void getDataSampleDirs(std::vector<TString>& strsamples){
 
   for (auto const& period:validDataPeriods){
     if (isDataLikePeriod && period!=SampleHelpers::getDataPeriod()) continue;
-    strsamples.push_back(Form("%s/Run%s_%s%s", period.Data(), period.Data(), strSyst.Data(), ".root"));
+    strsamples.push_back(Form("%s/Run%s_%s*%s", period.Data(), period.Data(), strSyst.Data(), ".root"));
   }
 }
 void getMCSampleDirs(std::vector< std::pair<TString, std::vector<std::pair<TString, TString>>> >& strsamples, SystematicsHelpers::SystematicVariationTypes const& theGlobalSyst){
@@ -142,7 +142,7 @@ void getMCSampleDirs(std::vector< std::pair<TString, std::vector<std::pair<TStri
       TString cinput = SampleHelpers::getSampleIdentifier(sname);
       HelperFunctions::replaceString(cinput, "_MINIAODSIM", "");
       HelperFunctions::replaceString(cinput, "_MINIAOD", "");
-      cinput = cinput + "_*" + strSyst + ".root";
+      cinput = cinput + "_" + strSyst + "*.root";
       cinput = strPeriod + "/" + cinput;
       sname_dir_pairs.emplace_back(sname, cinput);
     }
