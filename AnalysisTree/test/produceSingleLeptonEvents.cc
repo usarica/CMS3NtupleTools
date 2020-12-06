@@ -606,7 +606,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     // Check matching of single lepton triggers to jets
     float event_wgt_triggers_SingleLepton_jetMatched = 0;
     auto const& hltpaths = eventFilter->getHLTPaths();
-    std::vector<ParticleObject*> triggerjet_candidates; // In order to match to single lepton manually
+    std::vector<ParticleObject*> triggerjet_candidates; // In order to match to single lepton triggers manually
     for (auto const& jet:ak4jets_tight) triggerjet_candidates.push_back(jet);
     for (auto const& enumType_props_pair:it_HLTMenuProps->second){
       if (event_wgt_triggers_SingleLepton_jetMatched==1.f) break;

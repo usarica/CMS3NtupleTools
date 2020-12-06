@@ -111,6 +111,13 @@ for spl in "${DataSampleList[@]}"; do
     strargs="${strargs/<theGlobalSyst>/sNominal}"
     strargs="${strargs/<period>/$dataperiod}"
 
-    submitCMS3AnalysisProduction.sh script="${script}" function="${function}" arguments="${strargs}" date="${jobdate}"
+    REQMEM=2048M
+    JOBFLAV=tomorrow
+    if [[ "${dataperiod}" == "2017E" ]] || [[ "${dataperiod}" == "2017F" ]] || [[ "${dataperiod}" == "2018A" ]] || [[ "${dataperiod}" == "2018D" ]]; then
+      REQMEM=4096M
+      JOBFLAV=testmatch
+    fi
+
+    submitCMS3AnalysisProduction.sh script="${script}" function="${function}" arguments="${strargs}" date="${jobdate}" memory="${REQMEM}" job_flavor="${JOBFLAV}"
   done
 done

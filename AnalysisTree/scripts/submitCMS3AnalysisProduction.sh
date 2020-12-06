@@ -76,7 +76,7 @@ if [[ $printhelp -eq 1 ]] || [[ -z "$SCRIPT" ]]; then
   echo " - date: Date of the generation; does not have to be an actual date. Default=[today's date in YYMMDD format]"
   echo " - condoroutdir: Condor output directory to override. Default=/hadoop/cms/store/user/<USER>/Offshell_2L2Nu/Worker"
   echo " - memory: Required RAM for the job. Default='2048M'"
-  echo " - job_flavor: Required time limit flavor for the job. Default='tomorrow'"
+  echo " - job_flavor: Required time limit flavor for the job. Can be 'workday', 'tomorrow', 'testmatch', or 'nextweek'. Default='tomorrow'"
   echo " - tarinclude: Include extra files in the tar. Can specify multiple times. Default: None"
   echo " - recreate: Force the recreation of the job directories"
   echo " - no-proxycheck: Do not check the proxy"
