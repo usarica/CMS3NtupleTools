@@ -29,6 +29,7 @@ opts.register('keepMuonPullInfo', False, mytype=vpbool) # Keep muon pull info fo
 opts.register('keepElectronMVAInfo', False, mytype=vpbool) # Keep MVA values and category indices for electron MVAs
 opts.register('sparminfo'  , False , mytype=vpbool) # separate flag to enable sparm if fastsim=True isn't specified
 opts.register('metrecipe'  , False , mytype=vpbool) # to enable the 2017 94X data,MC MET recipe v2
+opts.register('enableManualMETfix', False, mytype=vpbool) # to enable applying MET fixes outside miniAOD routines
 opts.register('goldenjson'  , "" , mytype=vpstring) # to only process a set of run,lumi sections; see note below for details
 opts.register('genxsecanalyzer'  , False , mytype=vpbool) # ONLY run the genxsec analyzer
 opts.register('applyEGscalesmear', True , mytype=vpbool) # to enable e/gamma scale and smear corrections
@@ -101,6 +102,12 @@ if not opts.data and opts.year<2016:
    raise RuntimeError("MC processing must define a year>=2016!")
 if opts.data and opts.year<2016:
    raise RuntimeError("Data processing must define a year>=2016!")
+if opts.enableManualMETfix and opts.metrecipe:
+   raise RuntimeError("MET recipe must be turned on when attempting manual MET fixes.")
+if opts.enableManualMETfix and (opts.year!=2017 and opts.year!=2018):
+   raise RuntimeError("Manual MET fixes are only for 2017 and 2018.")
+if opts.metrecipe and opts.year!=2017:
+   raise RuntimeError("MET recipe is currently only defined for 2017.")
 
 if opts.doTimingTest:
    print("Timing test is enabled. Please redirect output to a text file.")
@@ -785,8 +792,11 @@ else:
 
 # PF jets
 process.pfJetMaker.METshift_fixEE2017 = cms.bool(opts.metrecipe)
+process.pfJetMaker.enableManualMETfix = cms.bool(opts.enableManualMETfix)
 process.pfJetPUPPIMaker.METshift_fixEE2017 = cms.bool(opts.metrecipe)
+process.pfJetPUPPIMaker.enableManualMETfix = cms.bool(opts.enableManualMETfix)
 process.subJetMaker.METshift_fixEE2017 = cms.bool(opts.metrecipe)
+process.subJetMaker.enableManualMETfix = cms.bool(opts.enableManualMETfix)
 if jecVersion != "":
    process.pfJetMakerSeq = cms.Sequence( _process_pfJetMakerPreSeq * process.pfJetMaker )
    process.pfJetPUPPIMakerSeq = cms.Sequence( _process_pfJetPUPPIMakerPreSeq * process.pfJetPUPPIMaker )
@@ -973,6 +983,7 @@ else:
    process.cms3ntuple.year = cms.int32(opts.year)
    process.cms3ntuple.isMC = cms.bool((not opts.data))
    process.cms3ntuple.is80X = cms.bool(opts.is80x)
+   process.cms3ntuple.enableManualMETfix = cms.bool(opts.enableManualMETfix)
    process.cms3ntuple.processTriggerObjectInfos = cms.bool(doProcessTrigObjs)
    process.cms3ntuple.prefiringWeightsTag = cms.untracked.string(prefiringWeightsTag)
    process.cms3ntuple.keepGenParticles = cms.untracked.string(opts.keepGenParticles)

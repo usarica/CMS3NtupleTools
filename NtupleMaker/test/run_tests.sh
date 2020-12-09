@@ -66,12 +66,25 @@ $cmd $pset dumpProcess=True globaltag=94X_dataRun2_v11 nevents=$nevents metrecip
     minNleptons=2 minNphotons=1 includeLJetsSelection=True keepExtraSuperclusters=True doTrigObjMatching=True triggerListFromFile=OffshellTriggerFilterList_2017.lst \
     output=$outputdir/ntuple_2017_data.root >& $outputdir/log_2017_data.txt &
 
-# 2017 Re-reco Data (Re-Re-Reco of 2017F, so no MET recipe needed) -- /DoubleMuon/Run2017C-31Mar2018-v1/MINIAOD
+# 2017 MC (no MET recipe) -- /ttHToNonbb_M125_TuneCP5_13TeV-powheg-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v17-v1/MINIAODSIM
+$cmd $pset dumpProcess=True globaltag=94X_mc2017_realistic_v17 nevents=$nevents metrecipe=False enableManualMETfix=True \
+    inputs=/store/user/usarica/localcache/mc/RunIIFall17MiniAODv2/ttHToNonbb_M125_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14-v1/50000/00436CBC-6B70-E811-850C-00259075D70C.root \
+    minNleptons=2 minNphotons=1 includeLJetsSelection=True keepExtraSuperclusters=True doTrigObjMatching=True triggerListFromFile=OffshellTriggerFilterList_2017.lst \
+    output=$outputdir/ntuple_2017_mc_nometv2.root >& $outputdir/log_2017_mc_nometv2.txt &
+
+# 2017 Re-reco Data (no MET recipe v2) -- /DoubleMuon/Run2017C-31Mar2018-v1/MINIAOD
+$cmd $pset dumpProcess=True globaltag=94X_dataRun2_v11 nevents=$nevents metrecipe=False enableManualMETfix=True \
+    goldenjson=Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt \
+    inputs=/store/user/usarica/localcache/data/Run2017C/DoubleMuon/MINIAOD/31Mar2018-v1/80000/04FCFB0D-FF39-E811-94C7-AC162DA6D2F8.root \
+    minNleptons=2 minNphotons=1 includeLJetsSelection=True keepExtraSuperclusters=True doTrigObjMatching=True triggerListFromFile=OffshellTriggerFilterList_2017.lst \
+    output=$outputdir/ntuple_2017_data_nometv2.root >& $outputdir/log_2017_data_nometv2.txt &
+
+# 2017 Re-reco Data (Re-Re-Reco of 2017F, so no MET recipe needed) -- /DoubleMuon/Run2017C-09May2018-v1/MINIAOD
 $cmd $pset dumpProcess=True globaltag=94X_dataRun2_v11 nevents=$nevents \
     goldenjson=Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt \
     inputs=/store/user/usarica/localcache/data/Run2017F/DoubleEG/MINIAOD/09May2018-v1/10000/444E03EB-B75F-E811-AFBA-F01FAFD8F16A.root \
     minNleptons=2 minNphotons=1 includeLJetsSelection=True keepExtraSuperclusters=True doTrigObjMatching=True triggerListFromFile=OffshellTriggerFilterList_2017.lst \
-    output=$outputdir/ntuple_2017_dataf.root >& $outputdir/log_2017_dataf.txt &
+    output=$outputdir/ntuple_2017_dataf_may9.root >& $outputdir/log_2017_dataf_may9.txt &
 
 # 2018 Re-reco Data -- /DoubleMuon/Run2018A-17Sep2018-v2/MINIAOD
 $cmd $pset dumpProcess=True globaltag=102X_dataRun2_v13 nevents=$nevents \

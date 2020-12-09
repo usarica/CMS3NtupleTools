@@ -9,6 +9,8 @@ cms3ntuple = cms.EDAnalyzer(
    isMC = cms.bool(False),
    is80x = cms.bool(False),
 
+   enableManualMETfix = cms.bool(False),
+
    prefiringWeightsTag = cms.untracked.string(""),
 
    electronSrc = cms.InputTag("electronMaker"),

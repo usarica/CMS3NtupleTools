@@ -61,8 +61,11 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
 
   year(pset.getParameter<int>("year")),
   treename(pset.getUntrackedParameter<std::string>("treename")),
+
   isMC(pset.getParameter<bool>("isMC")),
   is80X(pset.getParameter<bool>("is80X")),
+
+  enableManualMETfix(pset.getParameter<bool>("enableManualMETfix")),
 
   processTriggerObjectInfos(pset.getParameter<bool>("processTriggerObjectInfos")),
 
@@ -248,11 +251,19 @@ void CMS3Ntuplizer::analyze(edm::Event const& iEvent, const edm::EventSetup& iSe
   // Fill important PF candidates
   // Check the muon, electron and photon objects for overlaps with jets and with themselves
   std::vector<PFCandidateInfo> filledPFCandAssociations; filledPFCandAssociations.reserve(pfcandsHandle->size());
+  if (enableManualMETfix){
+    for (edm::View<pat::PackedCandidate>::const_iterator obj = pfcandsHandle->begin(); obj != pfcandsHandle->end(); obj++){
+      // Only keep candidates for overlaps and EE noise
+      float const obj_abs_eta = std::abs(obj->eta());
+      if (obj_abs_eta>=2.65 && obj_abs_eta<=3.139) filledPFCandAssociations.emplace_back(&(*obj));
+    }
+  }
   this->fillJetOverlapInfo(pfcandsHandle, filledMuons, filledElectrons, filledPhotons, filledFSRInfos, filledAK4Jets, filledAK8Jets, filledPFCandAssociations);
   PFCandidateInfo::linkFSRCandidates(filledFSRInfos, filledPFCandAssociations); // Link the FSR candidates as well
   fillPFCandidates(
     filledVertices,
     filledMuons, filledElectrons, filledPhotons,
+    filledAK4Jets,
     filledPFCandAssociations
   );
 
@@ -2156,6 +2167,7 @@ size_t CMS3Ntuplizer::fillAK4Jets(
 
   MAKE_VECTOR_WITH_RESERVE(float, NEMF, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, CEMF, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, NHF, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, mucands_sump4_px, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, mucands_sump4_py, n_objects);
@@ -2181,11 +2193,15 @@ size_t CMS3Ntuplizer::fillAK4Jets(
 
   size_t n_skimmed_objects=0;
   for (edm::View<pat::Jet>::const_iterator obj = ak4jetsHandle->begin(); obj != ak4jetsHandle->end(); obj++){
+    float const jet_eta = obj->eta();
+    float const abs_jet_eta = std::abs(jet_eta);
+
     bool doContinue = AK4JetSelectionHelpers::testSkimAK4Jet(*obj, this->year, jetType);
 
     // If the jet fails skim selection, check if it is MET safe.
     bool isMETSafe = AK4JetSelectionHelpers::testAK4JetMETSafety(*obj);
     if (isMETSafe){
+      if (enableManualMETfix && abs_jet_eta>=2.65 && abs_jet_eta<=3.139) doContinue = true;
       if (!doContinue){
         for (auto const& part:filledMuons){
           if (reco::deltaR(obj->p4(), part->p4())<ConeRadiusConstant){
@@ -2215,7 +2231,12 @@ size_t CMS3Ntuplizer::fillAK4Jets(
         for (auto it_pfcand_jet = pfcands_jet.cbegin(); it_pfcand_jet != pfcands_jet.cend(); it_pfcand_jet++){
           size_t ipf = it_pfcand_jet->key();
           pat::PackedCandidate const* pfcand_jet = &(pfcandsHandle->at(ipf));
-          if (HelperFunctions::checkListVariable(allParticlePFCandidates, pfcand_jet)){
+          float const pfcand_abs_eta = std::abs(pfcand_jet->eta());
+          if (
+            HelperFunctions::checkListVariable(allParticlePFCandidates, pfcand_jet)
+            ||
+            (enableManualMETfix && pfcand_abs_eta>=2.65 && pfcand_abs_eta<=3.139)
+            ){
             doContinue = true;
             break;
           }
@@ -2231,7 +2252,7 @@ size_t CMS3Ntuplizer::fillAK4Jets(
     // Core particle quantities
     // These are the uncorrected momentum components!
     pt.push_back(AK4JetSelectionHelpers::getUncorrectedJetPt(*obj));
-    eta.push_back(obj->eta());
+    eta.push_back(jet_eta);
     phi.push_back(obj->phi());
     mass.push_back(AK4JetSelectionHelpers::getUncorrectedJetMass(*obj));
 
@@ -2271,6 +2292,7 @@ size_t CMS3Ntuplizer::fillAK4Jets(
 
     NEMF.push_back(obj->neutralEmEnergy() / uncorrected_energy);
     CEMF.push_back(obj->chargedEmEnergy() / uncorrected_energy);
+    NHF.push_back(obj->neutralHadronEnergy() / uncorrected_energy);
 
     PUSH_USERFLOAT_INTO_VECTOR(mucands_sump4_px);
     PUSH_USERFLOAT_INTO_VECTOR(mucands_sump4_py);
@@ -2342,6 +2364,7 @@ size_t CMS3Ntuplizer::fillAK4Jets(
 
   PUSH_VECTOR_WITH_NAME(colName, NEMF);
   PUSH_VECTOR_WITH_NAME(colName, CEMF);
+  PUSH_VECTOR_WITH_NAME(colName, NHF);
 
   PUSH_VECTOR_WITH_NAME(colName, mucands_sump4_px);
   PUSH_VECTOR_WITH_NAME(colName, mucands_sump4_py);
@@ -2847,12 +2870,29 @@ void CMS3Ntuplizer::fillJetOverlapInfo(
 
   // Temporary containers for faster looping
   std::vector< std::vector<pat::PackedCandidate const*> > ak4jets_pfcands; ak4jets_pfcands.reserve(filledAK4Jets.size());
-  for (auto const& jet:filledAK4Jets){
-    auto const& pfcands_jet = jet->daughterPtrVector();
-    std::vector<pat::PackedCandidate const*> vec_pfcands; vec_pfcands.reserve(pfcands_jet.size());
-    for (auto it_pfcand_jet = pfcands_jet.cbegin(); it_pfcand_jet != pfcands_jet.cend(); it_pfcand_jet++) vec_pfcands.push_back(&(pfcandsHandle->at(it_pfcand_jet->key())));
-    ak4jets_pfcands.push_back(vec_pfcands);
+  {
+    cms3_listSize_t ijet = 0;
+    for (auto const& jet:filledAK4Jets){
+      float const jet_abs_eta = std::abs(jet->eta());
+      bool const checkNoisyPFCands = enableManualMETfix && (jet_abs_eta>=2.65 && jet_abs_eta<=3.139);
+
+      auto const& pfcands_jet = jet->daughterPtrVector();
+      std::vector<pat::PackedCandidate const*> vec_pfcands; vec_pfcands.reserve(pfcands_jet.size());
+      for (auto it_pfcand_jet = pfcands_jet.cbegin(); it_pfcand_jet != pfcands_jet.cend(); it_pfcand_jet++){
+        pat::PackedCandidate const* pfcand = &(pfcandsHandle->at(it_pfcand_jet->key()));
+        vec_pfcands.push_back(pfcand);
+
+        if (checkNoisyPFCands){
+          PFCandidateInfo& pfcandInfo = PFCandidateInfo::make_and_get_PFCandidateInfo(filledPFCandAssociations, pfcand);
+          pfcandInfo.addAK4JetMatch(ijet);
+        }
+      }
+      ak4jets_pfcands.push_back(vec_pfcands);
+
+      ijet++;
+    }
   }
+  // No need to pre-match ak8 jets when EE noise fix is applied.
   std::vector< std::vector<pat::PackedCandidate const*> > ak8jets_pfcands; ak8jets_pfcands.reserve(filledAK8Jets.size());
   for (auto const& jet:filledAK8Jets){
     auto const& pfcands_jet = jet->daughterPtrVector();
@@ -3418,6 +3458,7 @@ void CMS3Ntuplizer::fillJetOverlapInfo(
 void CMS3Ntuplizer::fillPFCandidates(
   std::vector<reco::Vertex const*> const& filledVertices,
   std::vector<pat::Muon const*> const& filledMuons, std::vector<pat::Electron const*> const& filledElectrons, std::vector<pat::Photon const*> const& filledPhotons,
+  std::vector<pat::Jet const*> const& filledAK4Jets,
   std::vector<PFCandidateInfo> const& pfcandInfos
 ){
   std::string const& colName = CMS3Ntuplizer::colName_pfcands;
@@ -3453,19 +3494,77 @@ void CMS3Ntuplizer::fillPFCandidates(
   MAKE_VECTOR_WITH_RESERVE(float, dxy_firstPV, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, dz_firstPV, n_objects);
 
+  // p4 sums of unclustered, omitted PF candidates in the EE noise region
+  reco::Particle::LorentzVector METfix_pfcands_NEM_sump4;
+  reco::Particle::LorentzVector METfix_pfcands_CEM_sump4;
+  reco::Particle::LorentzVector METfix_pfcands_MU_sump4;
+  reco::Particle::LorentzVector METfix_pfcands_NH_sump4;
+  reco::Particle::LorentzVector METfix_pfcands_CH_sump4;
+  reco::Particle::LorentzVector METfix_pfcands_EMforward_sump4;
+  reco::Particle::LorentzVector METfix_pfcands_Hforward_sump4;
+
   for (auto const& obj:pfcandInfos){
     cms3_listIndex_long_t nImperfectOverlaps, nPerfectOverlaps;
     obj.analyzeParticleOverlaps(filledMuons, filledElectrons, filledPhotons, nImperfectOverlaps, nPerfectOverlaps);
 
-    // Skip candidates that contain no overlaps.
-    if (nImperfectOverlaps==0) continue;
+    float const obj_eta = obj.eta();
+    float const obj_abs_eta = std::abs(obj_eta);
+
+    bool needForEENoise = false;
+    // Only keep candidates for overlaps and EE noise
+    // For EE noise, require that the PF candidate is not clustered to a jet.
+    if (enableManualMETfix){
+      bool const isInEENoiseRegion = obj_abs_eta>=2.65 && obj_abs_eta<=3.139;
+      needForEENoise = isInEENoiseRegion && (!obj.matched_muons.empty() || !obj.matched_electrons.empty() || !obj.matched_photons.empty());
+      if (!needForEENoise){
+        bool passEENoiseJet = false;
+        for (auto const& idx_jet:obj.matched_ak4jets){
+          auto const& jet = filledAK4Jets.at(idx_jet);
+          float const jet_abs_eta = std::abs(jet->eta());
+          passEENoiseJet |= (jet_abs_eta>=2.65 && jet_abs_eta<=3.139);
+          if (passEENoiseJet) break;
+        }
+        // If the PF candidate is not clustered into a noisy jet, we don't really need to store it.
+        // The only reason of storage is to take into account jet constituency correctly.
+        needForEENoise = passEENoiseJet;
+      }
+      // If we don't store this candidate, it is unclustered. If it is in the noise region, we need to keep track of its totality.
+      if (!needForEENoise && isInEENoiseRegion){
+        switch (std::abs(obj.pdgId())){
+        case 22:
+          METfix_pfcands_NEM_sump4 = METfix_pfcands_NEM_sump4 + obj.p4();
+          break;
+        case 11:
+          METfix_pfcands_CEM_sump4 = METfix_pfcands_CEM_sump4 + obj.p4();
+          break;
+        case 13:
+          METfix_pfcands_MU_sump4 = METfix_pfcands_MU_sump4 + obj.p4();
+          break;
+        case 130:
+          METfix_pfcands_NH_sump4 = METfix_pfcands_NH_sump4 + obj.p4();
+          break;
+        case 211:
+          METfix_pfcands_CH_sump4 = METfix_pfcands_CH_sump4 + obj.p4();
+          break;
+        case 2:
+          METfix_pfcands_EMforward_sump4 = METfix_pfcands_EMforward_sump4 + obj.p4();
+          break;
+        case 1:
+          METfix_pfcands_Hforward_sump4 = METfix_pfcands_Hforward_sump4 + obj.p4();
+          break;
+        default:
+          break;
+        }
+      }
+    }
+    if (nImperfectOverlaps==0 && !needForEENoise) continue;
 
     reco::VertexRef PVref = obj.obj->vertexRef();
     cms3_refkey_t PVrefkey = -1;
     if (PVref.isNonnull()) PVrefkey = PVref.key();
 
     pt.push_back(obj.pt());
-    eta.push_back(obj.eta());
+    eta.push_back(obj_eta);
     phi.push_back(obj.phi());
     mass.push_back(obj.mass());
 
@@ -3512,6 +3611,24 @@ void CMS3Ntuplizer::fillPFCandidates(
   PUSH_VECTOR_WITH_NAME(colName, dz_associatedPV);
   PUSH_VECTOR_WITH_NAME(colName, dxy_firstPV);
   PUSH_VECTOR_WITH_NAME(colName, dz_firstPV);
+
+  // Fill pT and phi of sum of vectors if manual MET fix is being carried out.
+  if (enableManualMETfix){
+    commonEntry.setNamedVal<float>("METfix_pfcands_NEM_sump4_pt", METfix_pfcands_NEM_sump4.Pt());
+    commonEntry.setNamedVal<float>("METfix_pfcands_NEM_sump4_phi", METfix_pfcands_NEM_sump4.Phi());
+    commonEntry.setNamedVal<float>("METfix_pfcands_CEM_sump4_pt", METfix_pfcands_CEM_sump4.Pt());
+    commonEntry.setNamedVal<float>("METfix_pfcands_CEM_sump4_phi", METfix_pfcands_CEM_sump4.Phi());
+    commonEntry.setNamedVal<float>("METfix_pfcands_MU_sump4_pt", METfix_pfcands_MU_sump4.Pt());
+    commonEntry.setNamedVal<float>("METfix_pfcands_MU_sump4_phi", METfix_pfcands_MU_sump4.Phi());
+    commonEntry.setNamedVal<float>("METfix_pfcands_NH_sump4_pt", METfix_pfcands_NH_sump4.Pt());
+    commonEntry.setNamedVal<float>("METfix_pfcands_NH_sump4_phi", METfix_pfcands_NH_sump4.Phi());
+    commonEntry.setNamedVal<float>("METfix_pfcands_CH_sump4_pt", METfix_pfcands_CH_sump4.Pt());
+    commonEntry.setNamedVal<float>("METfix_pfcands_CH_sump4_phi", METfix_pfcands_CH_sump4.Phi());
+    commonEntry.setNamedVal<float>("METfix_pfcands_EMforward_sump4_pt", METfix_pfcands_EMforward_sump4.Pt());
+    commonEntry.setNamedVal<float>("METfix_pfcands_EMforward_sump4_phi", METfix_pfcands_EMforward_sump4.Phi());
+    commonEntry.setNamedVal<float>("METfix_pfcands_Hforward_sump4_pt", METfix_pfcands_Hforward_sump4.Pt());
+    commonEntry.setNamedVal<float>("METfix_pfcands_Hforward_sump4_phi", METfix_pfcands_Hforward_sump4.Phi());
+  }
 }
 
 

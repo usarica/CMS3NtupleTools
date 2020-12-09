@@ -99,9 +99,11 @@ protected:
 
   int year;
   TString treename;
-  //TString outfilename;
+
   bool isMC;
   bool is80X;
+
+  bool enableManualMETfix;
 
   bool processTriggerObjectInfos;
 
@@ -208,6 +210,7 @@ protected:
   void fillPFCandidates(
     std::vector<reco::Vertex const*> const&,
     std::vector<pat::Muon const*> const&, std::vector<pat::Electron const*> const&, std::vector<pat::Photon const*> const&,
+    std::vector<pat::Jet const*> const&,
     std::vector<PFCandidateInfo> const&
   );
 

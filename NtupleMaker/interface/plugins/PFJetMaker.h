@@ -44,6 +44,7 @@ protected:
   bool isFatJet;
   bool isPuppi;
   bool METshift_fixEE2017;
+  bool enableManualMETfix;
   std::vector<std::string> JEClevels;
 
   unsigned long long cacheId_rcdJEC;

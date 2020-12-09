@@ -51,6 +51,7 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig) :
   isPuppi(jetCollection_.find("Puppi")!=std::string::npos || jetCollection_.find("puppi")!=std::string::npos),
 
   METshift_fixEE2017(iConfig.getParameter<bool>("METshift_fixEE2017")),
+  enableManualMETfix(iConfig.getParameter<bool>("enableManualMETfix")),
   JEClevels(iConfig.getParameter< std::vector<std::string> >("JEClevels")),
 
   cacheId_rcdJEC(0)
@@ -213,7 +214,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     // Inside JetMETCorrections/Type1MET/interface/JetCleanerForType1METT.h:
     //   double emEnergyFraction = jet.chargedEmEnergyFraction() + jet.neutralEmEnergyFraction();
     //   if(skipEM_&&emEnergyFraction>skipEMfractionThreshold_ ) continue;
-    bool const hasMETJERCSafeEM = !isFatJet && ((pfjet_it->chargedEmEnergy() + pfjet_it->neutralEmEnergy())/uncorrected_p4.energy()<=0.9);
+    bool const hasMETJERCSafeEM = !isFatJet && (enableManualMETfix || (pfjet_it->chargedEmEnergy() + pfjet_it->neutralEmEnergy())/uncorrected_p4.energy()<=0.9);
     // process.basicJetsForMetModifiedMET also has uncorrected_p4_nomus.Pt()*JECNominal>=15. Do not set that here...
     bool const passMETEEFix2017 = !isFatJet && (!METshift_fixEE2017 || (uncorrected_pt > 50. || abs_uncorrected_eta < 2.65 || abs_uncorrected_eta > 3.139));
     bool const passMETJERCCuts = hasMETJERCSafeEM && passMETEEFix2017 && abs_uncorrected_eta<=9.9;

@@ -15,6 +15,7 @@ pfJetMaker = cms.EDProducer(
    genJetsInputTag = cms.InputTag("slimmedGenJets"),
 
    METshift_fixEE2017 = cms.bool(False),
+   enableManualMETfix = cms.bool(False),
    JEClevels = cms.vstring(),
 
    )
@@ -34,6 +35,7 @@ pfJetPUPPIMaker = cms.EDProducer(
    genJetsInputTag = cms.InputTag("slimmedGenJets"),
 
    METshift_fixEE2017 = cms.bool(False),
+   enableManualMETfix = cms.bool(False),
    JEClevels = cms.vstring(),
 
    )
@@ -53,6 +55,7 @@ subJetMaker = cms.EDProducer(
    genJetsInputTag = cms.InputTag("slimmedGenJetsAK8"),
 
    METshift_fixEE2017 = cms.bool(False),
+   enableManualMETfix = cms.bool(False),
    JEClevels = cms.vstring(),
 
    )
