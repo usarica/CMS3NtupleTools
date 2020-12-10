@@ -566,6 +566,82 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   event_n_ak4jets_pt30 = ak4jets_tight.size();
   ak4jets_MHT = sump4_ak4jets.Pt();
 
+  min_abs_dPhi_pTj_pTmiss = TMath::Pi();
+  for (auto const& jet:ak4jets_tight){
+    ak4jets_pt.push_back(jet->pt());
+    ak4jets_eta.push_back(jet->eta());
+    ak4jets_phi.push_back(jet->phi());
+    ak4jets_mass.push_back(jet->mass());
+    ak4jets_is_genMatched.push_back(jet->extras.is_genMatched);
+    ak4jets_is_genMatched_fullCone.push_back(jet->extras.is_genMatched_fullCone);
+    ak4jets_NEMF.push_back(jet->extras.NEMF);
+    ak4jets_CEMF.push_back(jet->extras.CEMF);
+
+    // Determine b-tag WP passing bits
+    {
+      unsigned char btag_bits=0;
+      if (jet->getBtagValue()>=btag_thr_loose) HelperFunctions::set_bit(btag_bits, 0, true);
+      if (jet->getBtagValue()>=btag_thr_medium) HelperFunctions::set_bit(btag_bits, 1, true);
+      if (jet->getBtagValue()>=btag_thr_tight) HelperFunctions::set_bit(btag_bits, 2, true);
+      ak4jets_btagWP_Bits.push_back(btag_bits);
+    }
+
+    // Determine min_abs_dPhi_pTj_pTmiss
+    float dphi_tmp;
+    HelperFunctions::deltaPhi(float(jet->phi()), event_phimiss, dphi_tmp); dphi_tmp = std::abs(dphi_tmp);
+    min_abs_dPhi_pTj_pTmiss = std::min(min_abs_dPhi_pTj_pTmiss, dphi_tmp);
+  }
+  
+  // Compute dPhi between the dilepton and pTmiss vector
+  dPhi_pTboson_pTmiss = theChosenLepton->deltaPhi(event_phimiss);
+  HelperFunctions::deltaPhi(float((theChosenLepton->p4()+sump4_ak4jets).Phi()), event_phimiss, dPhi_pTbosonjets_pTmiss);
+
+  // Compute mass variables
+  float const& etamiss_approx = lepton_eta;
+  ParticleObject::LorentzVector_t p4_lepton_Z_approx; p4_lepton_Z_approx = ParticleObject::PolarLorentzVector_t(lepton_pt, lepton_eta, lepton_phi, PDGHelpers::Zmass);
+  ParticleObject::LorentzVector_t p4_ZZ_approx; p4_ZZ_approx = ParticleObject::PolarLorentzVector_t(event_pTmiss, etamiss_approx, event_phimiss, PDGHelpers::Zmass);
+  p4_ZZ_approx = p4_ZZ_approx + p4_lepton_Z_approx;
+
+  event_mTZZ = std::sqrt(
+    std::pow(
+    (
+      std::sqrt(std::pow(lepton_pt, 2) + std::pow(p4_lepton_Z_approx.M(), 2))
+      + std::sqrt(std::pow(event_pTmiss, 2) + std::pow(PDGHelpers::Zmass, 2))
+      ), 2
+    )
+    - std::pow((p4_lepton_Z_approx + event_met_p4).Pt(), 2)
+  );
+  event_mZZ = p4_ZZ_approx.M();
+
+  // Apply veto from SR-like selection
+  OffshellCutflow::setActiveFinalState(OffshellCutflow::fs_ZZ_2l2nu);
+  std::vector<bool> const v_passZZ2l2nuSRlikeSelection={
+    OffshellCutflow::check_pTboson(lepton_pt),
+    OffshellCutflow::check_pTmiss(event_pTmiss),
+    OffshellCutflow::check_dPhi_pTll_pTmiss(dPhi_pTboson_pTmiss),
+    OffshellCutflow::check_dPhi_pTlljets_pTmiss(dPhi_pTbosonjets_pTmiss),
+    OffshellCutflow::check_Nb_veto(event_n_ak4jets_pt30_btagged_loose)
+  };
+  OffshellCutflow::setActiveFinalState(OffshellCutflow::fs_WW_2l2nu);
+  std::vector<bool> const v_passWW2l2nuSRlikeSelection={
+    OffshellCutflow::check_pTboson(lepton_pt),
+    OffshellCutflow::check_pTmiss(event_pTmiss),
+    OffshellCutflow::check_dPhi_pTll_pTmiss(dPhi_pTboson_pTmiss),
+    OffshellCutflow::check_dPhi_pTlljets_pTmiss(dPhi_pTbosonjets_pTmiss),
+    OffshellCutflow::check_Nb_veto(event_n_ak4jets_pt30_btagged_loose)
+  };
+  unsigned short n_passZZ2l2nuSRlikeSelection = 0;
+  unsigned short n_passWW2l2nuSRlikeSelection = 0;
+  for (auto const& selreq:v_passZZ2l2nuSRlikeSelection){ if (selreq) n_passZZ2l2nuSRlikeSelection++; }
+  for (auto const& selreq:v_passWW2l2nuSRlikeSelection){ if (selreq) n_passWW2l2nuSRlikeSelection++; }
+  bool const pass_SRSel_Nminus1 = (n_passZZ2l2nuSRlikeSelection >= v_passZZ2l2nuSRlikeSelection.size()-1) || (n_passWW2l2nuSRlikeSelection >= v_passWW2l2nuSRlikeSelection.size()-1);
+
+  // Do not record sigle lepton CR events which do not pass N-1 selection requirements
+  if (!applyFakeables){
+    if (!pass_SRSel_Nminus1) return false;
+    theLooper->incrementSelection("N-1 veto");
+  }
+
   // Accumulate ak8 jets as well
   for (auto const& jet:ak8jets){
     if (!ParticleSelectionHelpers::isTightJet(jet)) continue;
@@ -675,82 +751,6 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   }
   if (event_wgt_triggers == 0.f) return false;
   theLooper->incrementSelection("Trigger");
-
-  min_abs_dPhi_pTj_pTmiss = TMath::Pi();
-  for (auto const& jet:ak4jets_tight){
-    ak4jets_pt.push_back(jet->pt());
-    ak4jets_eta.push_back(jet->eta());
-    ak4jets_phi.push_back(jet->phi());
-    ak4jets_mass.push_back(jet->mass());
-    ak4jets_is_genMatched.push_back(jet->extras.is_genMatched);
-    ak4jets_is_genMatched_fullCone.push_back(jet->extras.is_genMatched_fullCone);
-    ak4jets_NEMF.push_back(jet->extras.NEMF);
-    ak4jets_CEMF.push_back(jet->extras.CEMF);
-
-    // Determine b-tag WP passing bits
-    {
-      unsigned char btag_bits=0;
-      if (jet->getBtagValue()>=btag_thr_loose) HelperFunctions::set_bit(btag_bits, 0, true);
-      if (jet->getBtagValue()>=btag_thr_medium) HelperFunctions::set_bit(btag_bits, 1, true);
-      if (jet->getBtagValue()>=btag_thr_tight) HelperFunctions::set_bit(btag_bits, 2, true);
-      ak4jets_btagWP_Bits.push_back(btag_bits);
-    }
-
-    // Determine min_abs_dPhi_pTj_pTmiss
-    float dphi_tmp;
-    HelperFunctions::deltaPhi(float(jet->phi()), event_phimiss, dphi_tmp); dphi_tmp = std::abs(dphi_tmp);
-    min_abs_dPhi_pTj_pTmiss = std::min(min_abs_dPhi_pTj_pTmiss, dphi_tmp);
-  }
-  
-  // Compute dPhi between the dilepton and pTmiss vector
-  dPhi_pTboson_pTmiss = theChosenLepton->deltaPhi(event_phimiss);
-  HelperFunctions::deltaPhi(float((theChosenLepton->p4()+sump4_ak4jets).Phi()), event_phimiss, dPhi_pTbosonjets_pTmiss);
-
-  // Compute mass variables
-  float const& etamiss_approx = lepton_eta;
-  ParticleObject::LorentzVector_t p4_lepton_Z_approx; p4_lepton_Z_approx = ParticleObject::PolarLorentzVector_t(lepton_pt, lepton_eta, lepton_phi, PDGHelpers::Zmass);
-  ParticleObject::LorentzVector_t p4_ZZ_approx; p4_ZZ_approx = ParticleObject::PolarLorentzVector_t(event_pTmiss, etamiss_approx, event_phimiss, PDGHelpers::Zmass);
-  p4_ZZ_approx = p4_ZZ_approx + p4_lepton_Z_approx;
-
-  event_mTZZ = std::sqrt(
-    std::pow(
-    (
-      std::sqrt(std::pow(lepton_pt, 2) + std::pow(p4_lepton_Z_approx.M(), 2))
-      + std::sqrt(std::pow(event_pTmiss, 2) + std::pow(PDGHelpers::Zmass, 2))
-      ), 2
-    )
-    - std::pow((p4_lepton_Z_approx + event_met_p4).Pt(), 2)
-  );
-  event_mZZ = p4_ZZ_approx.M();
-
-  // Apply veto from SR-like selection
-  OffshellCutflow::setActiveFinalState(OffshellCutflow::fs_ZZ_2l2nu);
-  std::vector<bool> const v_passZZ2l2nuSRlikeSelection={
-    OffshellCutflow::check_pTboson(lepton_pt),
-    OffshellCutflow::check_pTmiss(event_pTmiss),
-    OffshellCutflow::check_dPhi_pTll_pTmiss(dPhi_pTboson_pTmiss),
-    OffshellCutflow::check_dPhi_pTlljets_pTmiss(dPhi_pTbosonjets_pTmiss),
-    OffshellCutflow::check_Nb_veto(event_n_ak4jets_pt30_btagged_loose)
-  };
-  OffshellCutflow::setActiveFinalState(OffshellCutflow::fs_WW_2l2nu);
-  std::vector<bool> const v_passWW2l2nuSRlikeSelection={
-    OffshellCutflow::check_pTboson(lepton_pt),
-    OffshellCutflow::check_pTmiss(event_pTmiss),
-    OffshellCutflow::check_dPhi_pTll_pTmiss(dPhi_pTboson_pTmiss),
-    OffshellCutflow::check_dPhi_pTlljets_pTmiss(dPhi_pTbosonjets_pTmiss),
-    OffshellCutflow::check_Nb_veto(event_n_ak4jets_pt30_btagged_loose)
-  };
-  unsigned short n_passZZ2l2nuSRlikeSelection = 0;
-  unsigned short n_passWW2l2nuSRlikeSelection = 0;
-  for (auto const& selreq:v_passZZ2l2nuSRlikeSelection){ if (selreq) n_passZZ2l2nuSRlikeSelection++; }
-  for (auto const& selreq:v_passWW2l2nuSRlikeSelection){ if (selreq) n_passWW2l2nuSRlikeSelection++; }
-  bool const pass_SRSel_Nminus1 = (n_passZZ2l2nuSRlikeSelection >= v_passZZ2l2nuSRlikeSelection.size()-1) || (n_passWW2l2nuSRlikeSelection >= v_passWW2l2nuSRlikeSelection.size()-1);
-
-  // Do not record sigle lepton CR events which do not pass N-1 selection requirements
-  if (!applyFakeables){
-    if (!pass_SRSel_Nminus1) return false;
-    theLooper->incrementSelection("N-1 veto");
-  }
 
   // Compute MEs
   bool computeMEs = theLooper->hasRecoMEs() && pass_SRSel_Nminus1;

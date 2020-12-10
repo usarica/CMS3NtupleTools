@@ -83,10 +83,8 @@ namespace OffshellCutflow{
     switch (activeFinalState){
     case fs_ZZ_2l2nu:
     case fs_ZW_3l1nu:
-      thr=25.f;
-      break;
     case fs_WW_2l2nu:
-      thr=20.f;
+      thr=25.f;
       break;
     default:
       MELAerr << "OffshellCutflow::check_pTl2: The active final state " << activeFinalState << " is not specified." << endl;
