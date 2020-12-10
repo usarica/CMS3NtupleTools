@@ -2874,7 +2874,7 @@ void CMS3Ntuplizer::fillJetOverlapInfo(
     cms3_listSize_t ijet = 0;
     for (auto const& jet:filledAK4Jets){
       float const jet_abs_eta = std::abs(jet->eta());
-      bool const checkNoisyPFCands = enableManualMETfix && (jet_abs_eta>=2.65 && jet_abs_eta<=3.139);
+      bool const checkNoisyPFCands = (enableManualMETfix && jet_abs_eta>=2.65 && jet_abs_eta<=3.139);
 
       auto const& pfcands_jet = jet->daughterPtrVector();
       std::vector<pat::PackedCandidate const*> vec_pfcands; vec_pfcands.reserve(pfcands_jet.size());
@@ -2882,7 +2882,8 @@ void CMS3Ntuplizer::fillJetOverlapInfo(
         pat::PackedCandidate const* pfcand = &(pfcandsHandle->at(it_pfcand_jet->key()));
         vec_pfcands.push_back(pfcand);
 
-        if (checkNoisyPFCands){
+        float const pfcand_abs_eta = std::abs(pfcand->eta());
+        if (checkNoisyPFCands || (enableManualMETfix && pfcand_abs_eta>=2.65 && pfcand_abs_eta<=3.139)){
           PFCandidateInfo& pfcandInfo = PFCandidateInfo::make_and_get_PFCandidateInfo(filledPFCandAssociations, pfcand);
           pfcandInfo.addAK4JetMatch(ijet);
         }
@@ -3510,26 +3511,23 @@ void CMS3Ntuplizer::fillPFCandidates(
     float const obj_eta = obj.eta();
     float const obj_abs_eta = std::abs(obj_eta);
 
-    bool needForEENoise = false;
+    bool needForOtherPurposes = false;
     // Only keep candidates for overlaps and EE noise
     // For EE noise, require that the PF candidate is not clustered to a jet.
     if (enableManualMETfix){
       bool const isInEENoiseRegion = obj_abs_eta>=2.65 && obj_abs_eta<=3.139;
-      needForEENoise = isInEENoiseRegion && (!obj.matched_muons.empty() || !obj.matched_electrons.empty() || !obj.matched_photons.empty());
-      if (!needForEENoise){
-        bool passEENoiseJet = false;
-        for (auto const& idx_jet:obj.matched_ak4jets){
-          auto const& jet = filledAK4Jets.at(idx_jet);
-          float const jet_abs_eta = std::abs(jet->eta());
-          passEENoiseJet |= (jet_abs_eta>=2.65 && jet_abs_eta<=3.139);
-          if (passEENoiseJet) break;
-        }
-        // If the PF candidate is not clustered into a noisy jet, we don't really need to store it.
-        // The only reason of storage is to take into account jet constituency correctly.
-        needForEENoise = passEENoiseJet;
+      bool const isClustered = (!obj.matched_ak4jets.empty() || !obj.matched_muons.empty() || !obj.matched_electrons.empty() || !obj.matched_photons.empty());
+      bool isNoisyEEAK4JetClustered = false;
+
+      for (auto const& idx_jet:obj.matched_ak4jets){
+        auto const& jet = filledAK4Jets.at(idx_jet);
+        float const jet_abs_eta = std::abs(jet->eta());
+        isNoisyEEAK4JetClustered |= (jet_abs_eta>=2.65 && jet_abs_eta<=3.139);
+        if (isNoisyEEAK4JetClustered) break;
       }
-      // If we don't store this candidate, it is unclustered. If it is in the noise region, we need to keep track of its totality.
-      if (!needForEENoise && isInEENoiseRegion){
+
+      // If the PF candidate is unclustered and is in the noisy EE region, we need to keep track of its totality.
+      if (!isClustered && isInEENoiseRegion){
         switch (std::abs(obj.pdgId())){
         case 22:
           METfix_pfcands_NEM_sump4 = METfix_pfcands_NEM_sump4 + obj.p4();
@@ -3556,8 +3554,14 @@ void CMS3Ntuplizer::fillPFCandidates(
           break;
         }
       }
+
+      // If the PF candidate is not clustered into a noisy jet, we don't really need to store it.
+      // The only reason of storage is to take into account consistency with jet/particle selections.
+      // We store PF candidates within the noise region clustered into objects outside the noise region
+      // because if their ids fail, the PF candidate should switch back to being unclustered while still being within the noise region.
+      needForOtherPurposes = isNoisyEEAK4JetClustered || (isInEENoiseRegion && isClustered);
     }
-    if (nImperfectOverlaps==0 && !needForEENoise) continue;
+    if (nImperfectOverlaps==0 && !needForOtherPurposes) continue;
 
     reco::VertexRef PVref = obj.obj->vertexRef();
     cms3_refkey_t PVrefkey = -1;
