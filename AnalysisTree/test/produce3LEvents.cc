@@ -236,6 +236,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   BRANCH_COMMAND(float, leptons_eta) \
   BRANCH_COMMAND(float, leptons_phi) \
   BRANCH_COMMAND(float, leptons_mass) \
+  BRANCH_COMMAND(float, leptons_relIso) \
   BRANCH_COMMAND(float, leptons_eff) \
   BRANCH_COMMAND(float, leptons_eff_StatDn) \
   BRANCH_COMMAND(float, leptons_eff_StatUp) \
@@ -688,11 +689,13 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     it_eff = lepton_eff_SystUp_map.find(part);
     leptons_eff_SystUp.push_back((it_eff==lepton_eff_SystUp_map.end() ? 1 : it_eff->second));
 
-    std::vector<bool> lepton_pass_fakeable_ids;
-    // Compute efficiency for the oppsite flavor (mu <-> e)
     {
+      float lepton_relIso = 0;
+      std::vector<bool> lepton_pass_fakeable_ids;
       float eff_DF = 1, eff_DF_StatDn = 1, eff_DF_StatUp = 1, eff_DF_SystDn = 1, eff_DF_SystUp = 1, SF_dummy = 1;
       if (theMuon){
+        lepton_relIso = MuonSelectionHelpers::computeIso(*theMuon);
+
         electronSFHandler->getIdIsoSFAndEff(theGlobalSyst, part->pt(), part->eta(), 2, true, true, true, SF_dummy, &eff_DF);
         electronSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eEleEffStatDn, part->pt(), part->eta(), 2, true, true, true, SF_dummy, &eff_DF_StatDn);
         electronSFHandler->getIdIsoSFAndEff(SystematicsHelpers::eEleEffStatUp, part->pt(), part->eta(), 2, true, true, true, SF_dummy, &eff_DF_StatUp);
@@ -705,6 +708,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
         lepton_pass_fakeable_ids.push_back(isFakeableBaseWithTrkIso03);
       }
       else{
+        lepton_relIso = ElectronSelectionHelpers::computeIso(*theElectron);
+
         using namespace ElectronTriggerCutEnums;
 
         muonSFHandler->getIdIsoSFAndEff(theGlobalSyst, part->pt(), theElectron->etaSC(), true, true, true, SF_dummy, &eff_DF);
@@ -776,6 +781,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
         for (auto const& testbit:testbits_v1) lepton_pass_fakeable_ids.push_back(HelperFunctions::test_bit(trigbits_v1, testbit));
         for (auto const& testbit:testbits_v2) lepton_pass_fakeable_ids.push_back(HelperFunctions::test_bit(trigbits_v2, testbit));
       }
+      leptons_relIso.push_back(lepton_relIso);
+
       leptons_eff_DF.push_back(eff_DF);
       leptons_eff_DF_StatDn.push_back(eff_DF_StatDn);
       leptons_eff_DF_StatUp.push_back(eff_DF_StatUp);
@@ -1051,7 +1058,7 @@ void getTrees(
   SampleHelpers::constructSamplesList(strSampleSet, theGlobalSyst, sampledirs);
   if (sampledirs.empty()) return;
   bool isData = SampleHelpers::checkSampleIsData(sampledirs.front());
-  if (isData && (nchunks>0 || theGlobalSyst!=sNominal)) return;
+  if (isData && (/*nchunks>0 || */theGlobalSyst!=sNominal)) return;
 
   // Set flags for ak4jet tight id
   AK4JetSelectionHelpers::setPUIdWP(applyPUIdToAK4Jets ? AK4JetSelectionHelpers::kTightPUJetId : AK4JetSelectionHelpers::nSelectionBits); // Default is 'tight'

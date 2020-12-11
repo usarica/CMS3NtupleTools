@@ -13,7 +13,7 @@ arguments="${arguments/<prodVersion>/$prodVersion}"
 declare -a dataPeriods=( $period )
 declare -a DataSampleList=( )
 declare -a MCDataPeriods=( $period )
-declare -a MCSysts=( sNominal )
+declare -a MCSysts=( sNominal ePUDn ePUUp )
 declare -i dataYear
 
 DataSampleList=( Run )

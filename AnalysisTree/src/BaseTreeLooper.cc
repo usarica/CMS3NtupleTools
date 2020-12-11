@@ -315,15 +315,56 @@ void BaseTreeLooper::loop(bool keepProducts){
 
   // Count total number of events
   int nevents_total = 0;
-  for (auto& tree:treeList) nevents_total += tree->getNEvents();
+  bool hasDataTrees = false;
+  bool hasSimTrees = false;
+  for (auto& tree:treeList){
+    nevents_total += tree->getNEvents();
+    if (SampleHelpers::checkSampleIsData(tree->sampleIdentifier)) hasDataTrees = true;
+    else hasSimTrees = true;
+  }
+  if (hasDataTrees && hasSimTrees){
+    MELAerr << "BaseTreeLooper::loop: Looping over both real data and simulation at the same time is forbidden. Please run to separate loopers." << endl;
+    assert(0);
+  }
 
   // Adjust event ranges to actual event indices
+  int const eventIndex_begin_orig = eventIndex_begin;
+  int const eventIndex_end_orig = eventIndex_end;
   if (this->useChunkIndices && eventIndex_end>0){
     const int ichunk = eventIndex_begin;
     const int nchunks = eventIndex_end;
-    int ev_inc = static_cast<int>(float(nevents_total)/float(nchunks));
-    eventIndex_begin = ev_inc*ichunk;
-    eventIndex_end = std::min(nevents_total, (ichunk == nchunks-1 ? nevents_total : eventIndex_begin + ev_inc));
+    if (hasSimTrees){
+      // Assign the range over total number of events
+      int ev_inc = static_cast<int>(float(nevents_total)/float(nchunks));
+      int ev_rem = nevents_total - ev_inc*nchunks;
+      eventIndex_begin = ev_inc*ichunk + std::min(ev_rem, ichunk);
+      eventIndex_end = ev_inc*(ichunk+1) + std::min(ev_rem, ichunk+1);
+      MELAout << "BaseTreeLooper::loop: A simulation loop will proceed. The requested event range is [" << eventIndex_begin << ", " << eventIndex_end << ")." << endl;
+    }
+    else if (hasDataTrees){
+      // Assign the range over run numbers
+      double const lumi_total = SampleHelpers::getIntegratedLuminosity(SampleHelpers::getDataPeriod());
+      auto const& runnumber_lumi_pairs = SampleHelpers::getRunNumberLumiPairsForDataPeriod(SampleHelpers::getDataPeriod());
+      int const nruns_total = runnumber_lumi_pairs.size();
+      int const nruns_inc = static_cast<int>(static_cast<double>(nruns_total) / static_cast<double>(nchunks));
+      int const nruns_rem = nruns_total - nruns_inc*nchunks;
+
+      int const idx_firstRun = nruns_inc*ichunk + std::min(nruns_rem, ichunk);
+      int const idx_firstRun_next = nruns_inc*(ichunk+1) + std::min(nruns_rem, ichunk+1);
+      eventIndex_begin = (idx_firstRun>=nruns_total ? 0 : (int) runnumber_lumi_pairs.at(idx_firstRun).first);
+      eventIndex_end = (idx_firstRun_next-1>=nruns_total || idx_firstRun_next<=idx_firstRun ? 0 : (int) runnumber_lumi_pairs.at(idx_firstRun_next-1).first);
+
+      double lumi_acc = 0;
+      for (auto const& runnumber_lumi_pair:runnumber_lumi_pairs){
+        if (
+          (eventIndex_begin<0 || eventIndex_begin<=(int) runnumber_lumi_pair.first)
+          &&
+          (eventIndex_end<0 || eventIndex_end>=(int) runnumber_lumi_pair.first)
+          ) lumi_acc += runnumber_lumi_pair.second;
+      }
+
+      MELAout << "BaseTreeLooper::loop: A real data loop will proceed. The requested run range is [" << eventIndex_begin << ", " << eventIndex_end << "]. Total luminosity covered will be " << lumi_acc << " / " << lumi_total << "." << endl;
+    }
   }
 
   // Build the MEs if they are specified
@@ -354,15 +395,6 @@ void BaseTreeLooper::loop(bool keepProducts){
   for (auto& tree:treeList){
     // Skip the tree if it cannot be wrapped
     if (!(this->wrapTree(tree))) continue;
-
-    if (
-      this->isData_currentTree
-      &&
-      (eventIndex_begin>0 || (eventIndex_end>0 && eventIndex_end<nevents_total))
-      ){
-      MELAerr << "BaseTreeLooper::loop: " << tree->sampleIdentifier << " is a data tree, and splitting events is not permitted for data!" << endl;
-      assert(0);
-    }
 
 #define RUNLUMIEVENT_VARIABLE(TYPE, NAME, DEFVAL) TYPE const* NAME = nullptr;
     RUNLUMIEVENT_VARIABLES;
@@ -399,11 +431,24 @@ void BaseTreeLooper::loop(bool keepProducts){
         ||
         (maxNEvents>=0 && (int) ev_rec==maxNEvents)
         ) break;
-      if (
+
+      bool doAccumulate = true;
+      if (this->isData_currentTree){
+        if (eventIndex_begin>0 || eventIndex_end>0) doAccumulate = (
+          tree->updateBranch(ev, "RunNumber", false)
+          &&
+          (eventIndex_begin<0 || static_cast<int>(*RunNumber)>=eventIndex_begin)
+          &&
+          (eventIndex_end<0 || static_cast<int>(*RunNumber)<=eventIndex_end)
+          );
+      }
+      else doAccumulate = (
         (eventIndex_begin<0 || (int) ev_traversed>=eventIndex_begin)
         &&
         (eventIndex_end<0 || (int) ev_traversed<eventIndex_end)
-        ){
+        );
+
+      if (doAccumulate){
         if (tree->getEvent(ev)){
           SimpleEntry product;
           if (sampleIdOpt==kStoreByRunAndEventNumber){
@@ -420,6 +465,7 @@ void BaseTreeLooper::loop(bool keepProducts){
         }
         ev_acc++;
       }
+
       HelperFunctions::progressbar(ev, nevents);
       ev_traversed++;
     }
@@ -433,6 +479,10 @@ void BaseTreeLooper::loop(bool keepProducts){
     resetSelectionCounts();
   } // End loop over the trees
   MELAout << "BaseTreeLooper::loop: Total number of products: " << ev_rec << " / " << ev_acc << " / " << ev_traversed << endl;
+
+  // Restore original event index values
+  eventIndex_begin = eventIndex_begin_orig;
+  eventIndex_end = eventIndex_end_orig;
 }
 
 std::vector<SimpleEntry> const& BaseTreeLooper::getProducts() const{ return *productListRef; }
