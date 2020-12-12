@@ -142,6 +142,11 @@ namespace DiscriminantClasses{
   bool usesProdInfo(const Type type);
   bool usesProdInfo(const TString name);
 
+  // Channel index should be 0 unless constructing discriminants specifically for a particular 4l final state.
+  // In that case, index should be the product of lepton ids.
+  // strCategory can be "", "JJVBFTagged" or "HadVHTagged"
+  void constructDiscriminants(std::vector<DiscriminantClasses::KDspecs>& KDlist, unsigned int idx_channel=0, TString strCategory="");
+
 }
 
 

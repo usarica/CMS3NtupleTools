@@ -1,13 +1,22 @@
+#include <cassert>
+#include "SamplesCore.h"
 #include "DiscriminantClasses.h"
+#include "ACHypothesisHelpers.h"
+#include "MELAStreamHelpers.hh"
 
 
 namespace DiscriminantClasses{
   const std::unordered_map<TString, DiscriminantClasses::Type> mapKDNameType = DiscriminantClasses::getKDNameTypeMap();
 }
 
+
+using namespace std;
+using namespace MELAStreamHelpers;
+
+
 DiscriminantClasses::KDspecs::KDspecs() : KDtype(DiscriminantClasses::kNTypes), KD(nullptr) {}
 DiscriminantClasses::KDspecs::KDspecs(TString strname) : KDname(strname), KDtype(DiscriminantClasses::getKDType(KDname)), KD(nullptr) {}
-DiscriminantClasses::KDspecs::KDspecs(DiscriminantClasses::Type type) : KDname(DiscriminantClasses::getKDType(type)), KDtype(type), KD(nullptr) {}
+DiscriminantClasses::KDspecs::KDspecs(DiscriminantClasses::Type type) : KDname(DiscriminantClasses::getKDName(type)), KDtype(type), KD(nullptr) {}
 bool DiscriminantClasses::KDspecs::isValid() const{ return (KD!=nullptr); }
 
 std::unordered_map<TString, DiscriminantClasses::Type> DiscriminantClasses::getKDNameTypeMap(){
@@ -409,174 +418,174 @@ std::vector<TString> DiscriminantClasses::getKDVars(const Type type){
     break;
 
   case kDjVBF:
-    res.push_back("p_JVBF_SIG_ghv1_1_JHUGen_JECNominal");
-    res.push_back("pAux_JVBF_SIG_ghv1_1_JHUGen_JECNominal");
-    res.push_back("p_JQCD_SIG_ghg2_1_JHUGen_JECNominal");
+    res.push_back("p_JVBF_SIG_ghv1_1_JHUGen");
+    res.push_back("pAux_JVBF_SIG_ghv1_1_JHUGen");
+    res.push_back("p_JQCD_SIG_ghg2_1_JHUGen");
     break;
   case kDjjVBF:
-    res.push_back("p_JJVBF_SIG_ghv1_1_JHUGen_JECNominal");
-    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen_JECNominal");
+    res.push_back("p_JJVBF_SIG_ghv1_1_JHUGen");
+    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen");
     break;
   case kDjjVBFL1:
-    res.push_back("p_JJVBF_SIG_ghv1prime2_1E4_JHUGen_JECNominal");
-    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen_JECNominal");
+    res.push_back("p_JJVBF_SIG_ghv1prime2_1E4_JHUGen");
+    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen");
     break;
   case kDjjVBFa2:
-    res.push_back("p_JJVBF_SIG_ghv2_1_JHUGen_JECNominal");
-    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen_JECNominal");
+    res.push_back("p_JJVBF_SIG_ghv2_1_JHUGen");
+    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen");
     break;
   case kDjjVBFa3:
-    res.push_back("p_JJVBF_SIG_ghv4_1_JHUGen_JECNominal");
-    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen_JECNominal");
+    res.push_back("p_JJVBF_SIG_ghv4_1_JHUGen");
+    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen");
     break;
   case kDjjVBFL1ZGs:
-    res.push_back("p_JJVBF_SIG_ghza1prime2_1E4_JHUGen_JECNominal");
-    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen_JECNominal");
+    res.push_back("p_JJVBF_SIG_ghza1prime2_1E4_JHUGen");
+    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen");
     break;
 
   case kDjjZH:
-    res.push_back("p_HadZH_SIG_ghz1_1_JHUGen_JECNominal");
-    res.push_back("p_HadZH_mavjj_JECNominal");
-    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen_JECNominal");
-    res.push_back("p_HadZH_mavjj_true_JECNominal");
+    res.push_back("p_HadZH_SIG_ghz1_1_JHUGen");
+    res.push_back("p_HadZH_mavjj");
+    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen");
+    res.push_back("p_HadZH_mavjj_true");
     break;
   case kDjjZHL1:
-    res.push_back("p_HadZH_SIG_ghz1prime2_1E4_JHUGen_JECNominal");
-    res.push_back("p_HadZH_mavjj_JECNominal");
-    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen_JECNominal");
-    res.push_back("p_HadZH_mavjj_true_JECNominal");
+    res.push_back("p_HadZH_SIG_ghz1prime2_1E4_JHUGen");
+    res.push_back("p_HadZH_mavjj");
+    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen");
+    res.push_back("p_HadZH_mavjj_true");
     break;
   case kDjjZHL1ZGs:
-    res.push_back("p_HadZH_SIG_ghza1prime2_1E4_JHUGen_JECNominal");
-    res.push_back("p_HadZH_mavjj_JECNominal");
-    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen_JECNominal");
-    res.push_back("p_HadZH_mavjj_true_JECNominal");
+    res.push_back("p_HadZH_SIG_ghza1prime2_1E4_JHUGen");
+    res.push_back("p_HadZH_mavjj");
+    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen");
+    res.push_back("p_HadZH_mavjj_true");
     break;
   case kDjjZHa2:
-    res.push_back("p_HadZH_SIG_ghz2_1_JHUGen_JECNominal");
-    res.push_back("p_HadZH_mavjj_JECNominal");
-    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen_JECNominal");
-    res.push_back("p_HadZH_mavjj_true_JECNominal");
+    res.push_back("p_HadZH_SIG_ghz2_1_JHUGen");
+    res.push_back("p_HadZH_mavjj");
+    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen");
+    res.push_back("p_HadZH_mavjj_true");
     break;
   case kDjjZHa3:
-    res.push_back("p_HadZH_SIG_ghz4_1_JHUGen_JECNominal");
-    res.push_back("p_HadZH_mavjj_JECNominal");
-    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen_JECNominal");
-    res.push_back("p_HadZH_mavjj_true_JECNominal");
+    res.push_back("p_HadZH_SIG_ghz4_1_JHUGen");
+    res.push_back("p_HadZH_mavjj");
+    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen");
+    res.push_back("p_HadZH_mavjj_true");
     break;
 
   case kDjjWH:
-    res.push_back("p_HadWH_SIG_ghw1_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_mavjj_JECNominal");
-    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_mavjj_true_JECNominal");
+    res.push_back("p_HadWH_SIG_ghw1_1_JHUGen");
+    res.push_back("p_HadWH_mavjj");
+    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen");
+    res.push_back("p_HadWH_mavjj_true");
     break;
   case kDjjWHL1:
-    res.push_back("p_HadWH_SIG_ghw1prime2_1E4_JHUGen_JECNominal");
-    res.push_back("p_HadWH_mavjj_JECNominal");
-    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_mavjj_true_JECNominal");
+    res.push_back("p_HadWH_SIG_ghw1prime2_1E4_JHUGen");
+    res.push_back("p_HadWH_mavjj");
+    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen");
+    res.push_back("p_HadWH_mavjj_true");
     break;
   case kDjjWHa2:
-    res.push_back("p_HadWH_SIG_ghw2_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_mavjj_JECNominal");
-    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_mavjj_true_JECNominal");
+    res.push_back("p_HadWH_SIG_ghw2_1_JHUGen");
+    res.push_back("p_HadWH_mavjj");
+    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen");
+    res.push_back("p_HadWH_mavjj_true");
     break;
   case kDjjWHa3:
-    res.push_back("p_HadWH_SIG_ghw4_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_mavjj_JECNominal");
-    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_mavjj_true_JECNominal");
+    res.push_back("p_HadWH_SIG_ghw4_1_JHUGen");
+    res.push_back("p_HadWH_mavjj");
+    res.push_back("p_JJQCD_SIG_ghg2_1_JHUGen");
+    res.push_back("p_HadWH_mavjj_true");
     break;
 
   case kDbkgjjEWQCD:
-    res.push_back("p_JJVBF_S_SIG_ghv1_1_MCFM_JECNominal");
-    res.push_back("p_HadZH_S_SIG_ghz1_1_MCFM_JECNominal");
-    res.push_back("p_HadWH_S_SIG_ghw1_1_MCFM_JECNominal");
-    res.push_back("p_JJVBF_BKG_MCFM_JECNominal");
-    res.push_back("p_HadZH_BKG_MCFM_JECNominal");
-    res.push_back("p_HadWH_BKG_MCFM_JECNominal");
-    res.push_back("p_JJQCD_BKG_MCFM_JECNominal");
-    res.push_back("p_HadZH_mavjj_JECNominal");
-    res.push_back("p_HadZH_mavjj_true_JECNominal");
-    res.push_back("p_HadWH_mavjj_JECNominal");
-    res.push_back("p_HadWH_mavjj_true_JECNominal");
-    res.push_back("pConst_JJVBF_S_SIG_ghv1_1_MCFM_JECNominal");
-    res.push_back("pConst_HadZH_S_SIG_ghz1_1_MCFM_JECNominal");
-    res.push_back("pConst_HadWH_S_SIG_ghw1_1_MCFM_JECNominal");
-    res.push_back("pConst_JJVBF_BKG_MCFM_JECNominal");
-    res.push_back("pConst_HadZH_BKG_MCFM_JECNominal");
-    res.push_back("pConst_HadWH_BKG_MCFM_JECNominal");
-    res.push_back("pConst_JJQCD_BKG_MCFM_JECNominal");
+    res.push_back("p_JJVBF_S_SIG_ghv1_1_MCFM");
+    res.push_back("p_HadZH_S_SIG_ghz1_1_MCFM");
+    res.push_back("p_HadWH_S_SIG_ghw1_1_MCFM");
+    res.push_back("p_JJVBF_BKG_MCFM");
+    res.push_back("p_HadZH_BKG_MCFM");
+    res.push_back("p_HadWH_BKG_MCFM");
+    res.push_back("p_JJQCD_BKG_MCFM");
+    res.push_back("p_HadZH_mavjj");
+    res.push_back("p_HadZH_mavjj_true");
+    res.push_back("p_HadWH_mavjj");
+    res.push_back("p_HadWH_mavjj_true");
+    res.push_back("pConst_JJVBF_S_SIG_ghv1_1_MCFM");
+    res.push_back("pConst_HadZH_S_SIG_ghz1_1_MCFM");
+    res.push_back("pConst_HadWH_S_SIG_ghw1_1_MCFM");
+    res.push_back("pConst_JJVBF_BKG_MCFM");
+    res.push_back("pConst_HadZH_BKG_MCFM");
+    res.push_back("pConst_HadWH_BKG_MCFM");
+    res.push_back("pConst_JJQCD_BKG_MCFM");
     break;
 
   case kDbkgm4ljjEWQCD:
-    res.push_back("p_JJVBF_S_SIG_ghv1_1_MCFM_JECNominal");
-    res.push_back("p_HadZH_S_SIG_ghz1_1_MCFM_JECNominal");
-    res.push_back("p_HadWH_S_SIG_ghw1_1_MCFM_JECNominal");
-    res.push_back("p_JJVBF_BKG_MCFM_JECNominal");
-    res.push_back("p_HadZH_BKG_MCFM_JECNominal");
-    res.push_back("p_HadWH_BKG_MCFM_JECNominal");
-    res.push_back("p_JJQCD_BKG_MCFM_JECNominal");
-    res.push_back("p_HadZH_mavjj_JECNominal");
-    res.push_back("p_HadZH_mavjj_true_JECNominal");
-    res.push_back("p_HadWH_mavjj_JECNominal");
-    res.push_back("p_HadWH_mavjj_true_JECNominal");
-    res.push_back("pConst_JJVBF_S_SIG_ghv1_1_MCFM_JECNominal");
-    res.push_back("pConst_HadZH_S_SIG_ghz1_1_MCFM_JECNominal");
-    res.push_back("pConst_HadWH_S_SIG_ghw1_1_MCFM_JECNominal");
-    res.push_back("pConst_JJVBF_BKG_MCFM_JECNominal");
-    res.push_back("pConst_HadZH_BKG_MCFM_JECNominal");
-    res.push_back("pConst_HadWH_BKG_MCFM_JECNominal");
-    res.push_back("pConst_JJQCD_BKG_MCFM_JECNominal");
+    res.push_back("p_JJVBF_S_SIG_ghv1_1_MCFM");
+    res.push_back("p_HadZH_S_SIG_ghz1_1_MCFM");
+    res.push_back("p_HadWH_S_SIG_ghw1_1_MCFM");
+    res.push_back("p_JJVBF_BKG_MCFM");
+    res.push_back("p_HadZH_BKG_MCFM");
+    res.push_back("p_HadWH_BKG_MCFM");
+    res.push_back("p_JJQCD_BKG_MCFM");
+    res.push_back("p_HadZH_mavjj");
+    res.push_back("p_HadZH_mavjj_true");
+    res.push_back("p_HadWH_mavjj");
+    res.push_back("p_HadWH_mavjj_true");
+    res.push_back("pConst_JJVBF_S_SIG_ghv1_1_MCFM");
+    res.push_back("pConst_HadZH_S_SIG_ghz1_1_MCFM");
+    res.push_back("pConst_HadWH_S_SIG_ghw1_1_MCFM");
+    res.push_back("pConst_JJVBF_BKG_MCFM");
+    res.push_back("pConst_HadZH_BKG_MCFM");
+    res.push_back("pConst_HadWH_BKG_MCFM");
+    res.push_back("pConst_JJQCD_BKG_MCFM");
     res.push_back("p_m4l_SIG");
     res.push_back("p_m4l_BKG");
     break;
 
   case kDintjjEWQCD:
-    res.push_back("p_JJVBF_S_SIG_ghv1_1_MCFM_JECNominal");
-    res.push_back("p_HadZH_S_SIG_ghz1_1_MCFM_JECNominal");
-    res.push_back("p_HadWH_S_SIG_ghw1_1_MCFM_JECNominal");
-    res.push_back("p_JJVBF_BKG_MCFM_JECNominal");
-    res.push_back("p_HadZH_BKG_MCFM_JECNominal");
-    res.push_back("p_HadWH_BKG_MCFM_JECNominal");
-    res.push_back("p_JJQCD_BKG_MCFM_JECNominal");
-    res.push_back("p_HadZH_mavjj_JECNominal");
-    res.push_back("p_HadZH_mavjj_true_JECNominal");
-    res.push_back("p_HadWH_mavjj_JECNominal");
-    res.push_back("p_HadWH_mavjj_true_JECNominal");
-    res.push_back("pConst_JJVBF_S_SIG_ghv1_1_MCFM_JECNominal");
-    res.push_back("pConst_HadZH_S_SIG_ghz1_1_MCFM_JECNominal");
-    res.push_back("pConst_HadWH_S_SIG_ghw1_1_MCFM_JECNominal");
-    res.push_back("pConst_JJVBF_BKG_MCFM_JECNominal");
-    res.push_back("pConst_HadZH_BKG_MCFM_JECNominal");
-    res.push_back("pConst_HadWH_BKG_MCFM_JECNominal");
-    res.push_back("pConst_JJQCD_BKG_MCFM_JECNominal");
-    res.push_back("p_JJVBF_S_BSI_ghv1_1_MCFM_JECNominal");
-    res.push_back("p_HadZH_S_BSI_ghz1_1_MCFM_JECNominal");
-    res.push_back("p_HadWH_S_BSI_ghw1_1_MCFM_JECNominal");
+    res.push_back("p_JJVBF_S_SIG_ghv1_1_MCFM");
+    res.push_back("p_HadZH_S_SIG_ghz1_1_MCFM");
+    res.push_back("p_HadWH_S_SIG_ghw1_1_MCFM");
+    res.push_back("p_JJVBF_BKG_MCFM");
+    res.push_back("p_HadZH_BKG_MCFM");
+    res.push_back("p_HadWH_BKG_MCFM");
+    res.push_back("p_JJQCD_BKG_MCFM");
+    res.push_back("p_HadZH_mavjj");
+    res.push_back("p_HadZH_mavjj_true");
+    res.push_back("p_HadWH_mavjj");
+    res.push_back("p_HadWH_mavjj_true");
+    res.push_back("pConst_JJVBF_S_SIG_ghv1_1_MCFM");
+    res.push_back("pConst_HadZH_S_SIG_ghz1_1_MCFM");
+    res.push_back("pConst_HadWH_S_SIG_ghw1_1_MCFM");
+    res.push_back("pConst_JJVBF_BKG_MCFM");
+    res.push_back("pConst_HadZH_BKG_MCFM");
+    res.push_back("pConst_HadWH_BKG_MCFM");
+    res.push_back("pConst_JJQCD_BKG_MCFM");
+    res.push_back("p_JJVBF_S_BSI_ghv1_1_MCFM");
+    res.push_back("p_HadZH_S_BSI_ghz1_1_MCFM");
+    res.push_back("p_HadWH_S_BSI_ghw1_1_MCFM");
     break;
 
   case kCjjVBFint:
-    res.push_back("p_JJVBF_S_SIG_ghv1_1_MCFM_JECNominal");
-    res.push_back("p_JJVBF_BKG_MCFM_JECNominal");
-    res.push_back("p_JJVBF_S_BSI_ghv1_1_MCFM_JECNominal");
-    res.push_back("pConst_JJVBF_S_SIG_ghv1_1_MCFM_JECNominal");
-    res.push_back("pConst_JJVBF_BKG_MCFM_JECNominal");
+    res.push_back("p_JJVBF_S_SIG_ghv1_1_MCFM");
+    res.push_back("p_JJVBF_BKG_MCFM");
+    res.push_back("p_JJVBF_S_BSI_ghv1_1_MCFM");
+    res.push_back("pConst_JJVBF_S_SIG_ghv1_1_MCFM");
+    res.push_back("pConst_JJVBF_BKG_MCFM");
     break;
 
   case kCjjVHint:
-    res.push_back("p_HadZH_S_SIG_ghz1_1_MCFM_JECNominal");
-    res.push_back("p_HadZH_BKG_MCFM_JECNominal");
-    res.push_back("p_HadZH_S_BSI_ghz1_1_MCFM_JECNominal");
-    res.push_back("pConst_HadZH_S_SIG_ghz1_1_MCFM_JECNominal");
-    res.push_back("pConst_HadZH_BKG_MCFM_JECNominal");
-    res.push_back("p_HadWH_S_SIG_ghw1_1_MCFM_JECNominal");
-    res.push_back("p_HadWH_BKG_MCFM_JECNominal");
-    res.push_back("p_HadWH_S_BSI_ghw1_1_MCFM_JECNominal");
-    res.push_back("pConst_HadWH_S_SIG_ghw1_1_MCFM_JECNominal");
-    res.push_back("pConst_HadWH_BKG_MCFM_JECNominal");
+    res.push_back("p_HadZH_S_SIG_ghz1_1_MCFM");
+    res.push_back("p_HadZH_BKG_MCFM");
+    res.push_back("p_HadZH_S_BSI_ghz1_1_MCFM");
+    res.push_back("pConst_HadZH_S_SIG_ghz1_1_MCFM");
+    res.push_back("pConst_HadZH_BKG_MCFM");
+    res.push_back("p_HadWH_S_SIG_ghw1_1_MCFM");
+    res.push_back("p_HadWH_BKG_MCFM");
+    res.push_back("p_HadWH_S_BSI_ghw1_1_MCFM");
+    res.push_back("pConst_HadWH_S_SIG_ghw1_1_MCFM");
+    res.push_back("pConst_HadWH_BKG_MCFM");
     break;
 
   case kDL1dec:
@@ -622,171 +631,171 @@ std::vector<TString> DiscriminantClasses::getKDVars(const Type type){
     break;
 
   case kDL1jjVBFdec:
-    res.push_back("p_JJVBF_SIG_ghv1_1_JHUGen_JECNominal");
+    res.push_back("p_JJVBF_SIG_ghv1_1_JHUGen");
     res.push_back("p_GG_SIG_ghg2_1_ghz1_1_JHUGen");
-    res.push_back("p_JJVBF_SIG_ghv1prime2_1E4_JHUGen_JECNominal");
+    res.push_back("p_JJVBF_SIG_ghv1prime2_1E4_JHUGen");
     res.push_back("p_GG_SIG_ghg2_1_ghz1prime2_1E4_JHUGen");
     break;
   case kDa2jjVBFdec:
-    res.push_back("p_JJVBF_SIG_ghv1_1_JHUGen_JECNominal");
+    res.push_back("p_JJVBF_SIG_ghv1_1_JHUGen");
     res.push_back("p_GG_SIG_ghg2_1_ghz1_1_JHUGen");
-    res.push_back("p_JJVBF_SIG_ghv2_1_JHUGen_JECNominal");
+    res.push_back("p_JJVBF_SIG_ghv2_1_JHUGen");
     res.push_back("p_GG_SIG_ghg2_1_ghz2_1_JHUGen");
     break;
   case kDa3jjVBFdec:
-    res.push_back("p_JJVBF_SIG_ghv1_1_JHUGen_JECNominal");
+    res.push_back("p_JJVBF_SIG_ghv1_1_JHUGen");
     res.push_back("p_GG_SIG_ghg2_1_ghz1_1_JHUGen");
-    res.push_back("p_JJVBF_SIG_ghv4_1_JHUGen_JECNominal");
+    res.push_back("p_JJVBF_SIG_ghv4_1_JHUGen");
     res.push_back("p_GG_SIG_ghg2_1_ghz4_1_JHUGen");
     break;
   case kDL1ZGsjjVBFdec:
-    res.push_back("p_JJVBF_SIG_ghv1_1_JHUGen_JECNominal");
+    res.push_back("p_JJVBF_SIG_ghv1_1_JHUGen");
     res.push_back("p_GG_SIG_ghg2_1_ghz1_1_JHUGen");
-    res.push_back("p_JJVBF_SIG_ghza1prime2_1E4_JHUGen_JECNominal");
+    res.push_back("p_JJVBF_SIG_ghza1prime2_1E4_JHUGen");
     res.push_back("p_GG_SIG_ghg2_1_ghza1prime2_1E4_JHUGen");
     break;
 
   case kDL1jjVHdec:
-    res.push_back("p_HadZH_SIG_ghz1_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_SIG_ghw1_1_JHUGen_JECNominal");
+    res.push_back("p_HadZH_SIG_ghz1_1_JHUGen");
+    res.push_back("p_HadWH_SIG_ghw1_1_JHUGen");
     res.push_back("p_GG_SIG_ghg2_1_ghz1_1_JHUGen");
-    res.push_back("p_HadZH_SIG_ghz1prime2_1E4_JHUGen_JECNominal");
-    res.push_back("p_HadWH_SIG_ghw1prime2_1E4_JHUGen_JECNominal");
+    res.push_back("p_HadZH_SIG_ghz1prime2_1E4_JHUGen");
+    res.push_back("p_HadWH_SIG_ghw1prime2_1E4_JHUGen");
     res.push_back("p_GG_SIG_ghg2_1_ghz1prime2_1E4_JHUGen");
-    res.push_back("pConst_HadZH_SIG_ghz1_1_JHUGen_JECNominal");
-    res.push_back("pConst_HadWH_SIG_ghw1_1_JHUGen_JECNominal");
-    res.push_back("p_HadZH_mavjj_JECNominal");
-    res.push_back("p_HadZH_mavjj_true_JECNominal");
-    res.push_back("p_HadWH_mavjj_JECNominal");
-    res.push_back("p_HadWH_mavjj_true_JECNominal");
+    res.push_back("pConst_HadZH_SIG_ghz1_1_JHUGen");
+    res.push_back("pConst_HadWH_SIG_ghw1_1_JHUGen");
+    res.push_back("p_HadZH_mavjj");
+    res.push_back("p_HadZH_mavjj_true");
+    res.push_back("p_HadWH_mavjj");
+    res.push_back("p_HadWH_mavjj_true");
     break;
   case kDa2jjVHdec:
-    res.push_back("p_HadZH_SIG_ghz1_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_SIG_ghw1_1_JHUGen_JECNominal");
+    res.push_back("p_HadZH_SIG_ghz1_1_JHUGen");
+    res.push_back("p_HadWH_SIG_ghw1_1_JHUGen");
     res.push_back("p_GG_SIG_ghg2_1_ghz1_1_JHUGen");
-    res.push_back("p_HadZH_SIG_ghz2_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_SIG_ghw2_1_JHUGen_JECNominal");
+    res.push_back("p_HadZH_SIG_ghz2_1_JHUGen");
+    res.push_back("p_HadWH_SIG_ghw2_1_JHUGen");
     res.push_back("p_GG_SIG_ghg2_1_ghz2_1_JHUGen");
-    res.push_back("pConst_HadZH_SIG_ghz1_1_JHUGen_JECNominal");
-    res.push_back("pConst_HadWH_SIG_ghw1_1_JHUGen_JECNominal");
-    res.push_back("p_HadZH_mavjj_JECNominal");
-    res.push_back("p_HadZH_mavjj_true_JECNominal");
-    res.push_back("p_HadWH_mavjj_JECNominal");
-    res.push_back("p_HadWH_mavjj_true_JECNominal");
+    res.push_back("pConst_HadZH_SIG_ghz1_1_JHUGen");
+    res.push_back("pConst_HadWH_SIG_ghw1_1_JHUGen");
+    res.push_back("p_HadZH_mavjj");
+    res.push_back("p_HadZH_mavjj_true");
+    res.push_back("p_HadWH_mavjj");
+    res.push_back("p_HadWH_mavjj_true");
     break;
   case kDa3jjVHdec:
-    res.push_back("p_HadZH_SIG_ghz1_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_SIG_ghw1_1_JHUGen_JECNominal");
+    res.push_back("p_HadZH_SIG_ghz1_1_JHUGen");
+    res.push_back("p_HadWH_SIG_ghw1_1_JHUGen");
     res.push_back("p_GG_SIG_ghg2_1_ghz1_1_JHUGen");
-    res.push_back("p_HadZH_SIG_ghz4_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_SIG_ghw4_1_JHUGen_JECNominal");
+    res.push_back("p_HadZH_SIG_ghz4_1_JHUGen");
+    res.push_back("p_HadWH_SIG_ghw4_1_JHUGen");
     res.push_back("p_GG_SIG_ghg2_1_ghz4_1_JHUGen");
-    res.push_back("pConst_HadZH_SIG_ghz1_1_JHUGen_JECNominal");
-    res.push_back("pConst_HadWH_SIG_ghw1_1_JHUGen_JECNominal");
-    res.push_back("p_HadZH_mavjj_JECNominal");
-    res.push_back("p_HadZH_mavjj_true_JECNominal");
-    res.push_back("p_HadWH_mavjj_JECNominal");
-    res.push_back("p_HadWH_mavjj_true_JECNominal");
+    res.push_back("pConst_HadZH_SIG_ghz1_1_JHUGen");
+    res.push_back("pConst_HadWH_SIG_ghw1_1_JHUGen");
+    res.push_back("p_HadZH_mavjj");
+    res.push_back("p_HadZH_mavjj_true");
+    res.push_back("p_HadWH_mavjj");
+    res.push_back("p_HadWH_mavjj_true");
     break;
   case kDL1ZGsjjVHdec:
-    res.push_back("p_HadZH_SIG_ghz1_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_SIG_ghw1_1_JHUGen_JECNominal");
+    res.push_back("p_HadZH_SIG_ghz1_1_JHUGen");
+    res.push_back("p_HadWH_SIG_ghw1_1_JHUGen");
     res.push_back("p_GG_SIG_ghg2_1_ghz1_1_JHUGen");
-    res.push_back("p_HadZH_SIG_ghza1prime2_1E4_JHUGen_JECNominal");
-    //res.push_back("p_HadWH_SIG_ghw1_1_JHUGen_JECNominal");
+    res.push_back("p_HadZH_SIG_ghza1prime2_1E4_JHUGen");
+    //res.push_back("p_HadWH_SIG_ghw1_1_JHUGen");
     res.push_back("p_GG_SIG_ghg2_1_ghza1prime2_1E4_JHUGen");
-    res.push_back("pConst_HadZH_SIG_ghz1_1_JHUGen_JECNominal");
-    res.push_back("pConst_HadWH_SIG_ghw1_1_JHUGen_JECNominal");
-    res.push_back("p_HadZH_mavjj_JECNominal");
-    res.push_back("p_HadZH_mavjj_true_JECNominal");
-    res.push_back("p_HadWH_mavjj_JECNominal");
-    res.push_back("p_HadWH_mavjj_true_JECNominal");
+    res.push_back("pConst_HadZH_SIG_ghz1_1_JHUGen");
+    res.push_back("pConst_HadWH_SIG_ghw1_1_JHUGen");
+    res.push_back("p_HadZH_mavjj");
+    res.push_back("p_HadZH_mavjj_true");
+    res.push_back("p_HadWH_mavjj");
+    res.push_back("p_HadWH_mavjj_true");
     break;
 
   case kDL1jjVBFint:
   case kCL1jjVBFint:
-    res.push_back("p_JJVBF_SIG_ghv1_1_JHUGen_JECNominal");
-    res.push_back("p_JJVBF_SIG_ghv1prime2_1E4_JHUGen_JECNominal");
-    res.push_back("p_JJVBF_SIG_ghv1_1_ghv1prime2_1E4_JHUGen_JECNominal");
+    res.push_back("p_JJVBF_SIG_ghv1_1_JHUGen");
+    res.push_back("p_JJVBF_SIG_ghv1prime2_1E4_JHUGen");
+    res.push_back("p_JJVBF_SIG_ghv1_1_ghv1prime2_1E4_JHUGen");
     break;
   case kDa2jjVBFint:
   case kCa2jjVBFint:
-    res.push_back("p_JJVBF_SIG_ghv1_1_JHUGen_JECNominal");
-    res.push_back("p_JJVBF_SIG_ghv2_1_JHUGen_JECNominal");
-    res.push_back("p_JJVBF_SIG_ghv1_1_ghv2_1_JHUGen_JECNominal");
+    res.push_back("p_JJVBF_SIG_ghv1_1_JHUGen");
+    res.push_back("p_JJVBF_SIG_ghv2_1_JHUGen");
+    res.push_back("p_JJVBF_SIG_ghv1_1_ghv2_1_JHUGen");
     break;
   case kDa3jjVBFint:
   case kCa3jjVBFint:
-    res.push_back("p_JJVBF_SIG_ghv1_1_JHUGen_JECNominal");
-    res.push_back("p_JJVBF_SIG_ghv4_1_JHUGen_JECNominal");
-    res.push_back("p_JJVBF_SIG_ghv1_1_ghv4_1_JHUGen_JECNominal");
+    res.push_back("p_JJVBF_SIG_ghv1_1_JHUGen");
+    res.push_back("p_JJVBF_SIG_ghv4_1_JHUGen");
+    res.push_back("p_JJVBF_SIG_ghv1_1_ghv4_1_JHUGen");
     break;
   case kDL1ZGsjjVBFint:
   case kCL1ZGsjjVBFint:
-    res.push_back("p_JJVBF_SIG_ghv1_1_JHUGen_JECNominal");
-    res.push_back("p_JJVBF_SIG_ghza1prime2_1E4_JHUGen_JECNominal");
-    res.push_back("p_JJVBF_SIG_ghv1_1_ghza1prime2_1E4_JHUGen_JECNominal");
+    res.push_back("p_JJVBF_SIG_ghv1_1_JHUGen");
+    res.push_back("p_JJVBF_SIG_ghza1prime2_1E4_JHUGen");
+    res.push_back("p_JJVBF_SIG_ghv1_1_ghza1prime2_1E4_JHUGen");
     break;
 
   case kDL1jjVHint:
-    res.push_back("p_HadZH_SIG_ghz1_1_JHUGen_JECNominal");
-    res.push_back("p_HadZH_SIG_ghz1prime2_1E4_JHUGen_JECNominal");
-    res.push_back("p_HadZH_SIG_ghz1_1_ghz1prime2_1E4_JHUGen_JECNominal");
-    res.push_back("pConst_HadZH_SIG_ghz1_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_SIG_ghw1_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_SIG_ghw1prime2_1E4_JHUGen_JECNominal");
-    res.push_back("p_HadWH_SIG_ghw1_1_ghw1prime2_1E4_JHUGen_JECNominal");
-    res.push_back("pConst_HadWH_SIG_ghw1_1_JHUGen_JECNominal");
+    res.push_back("p_HadZH_SIG_ghz1_1_JHUGen");
+    res.push_back("p_HadZH_SIG_ghz1prime2_1E4_JHUGen");
+    res.push_back("p_HadZH_SIG_ghz1_1_ghz1prime2_1E4_JHUGen");
+    res.push_back("pConst_HadZH_SIG_ghz1_1_JHUGen");
+    res.push_back("p_HadWH_SIG_ghw1_1_JHUGen");
+    res.push_back("p_HadWH_SIG_ghw1prime2_1E4_JHUGen");
+    res.push_back("p_HadWH_SIG_ghw1_1_ghw1prime2_1E4_JHUGen");
+    res.push_back("pConst_HadWH_SIG_ghw1_1_JHUGen");
     break;
   case kCL1jjVHint:
-    res.push_back("p_HadZH_SIG_ghz1_1_JHUGen_JECNominal");
-    res.push_back("p_HadZH_SIG_ghz1prime2_1E4_JHUGen_JECNominal");
-    res.push_back("p_HadZH_SIG_ghz1_1_ghz1prime2_1E4_JHUGen_JECNominal");
-    res.push_back("p_HadWH_SIG_ghw1_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_SIG_ghw1prime2_1E4_JHUGen_JECNominal");
-    res.push_back("p_HadWH_SIG_ghw1_1_ghw1prime2_1E4_JHUGen_JECNominal");
+    res.push_back("p_HadZH_SIG_ghz1_1_JHUGen");
+    res.push_back("p_HadZH_SIG_ghz1prime2_1E4_JHUGen");
+    res.push_back("p_HadZH_SIG_ghz1_1_ghz1prime2_1E4_JHUGen");
+    res.push_back("p_HadWH_SIG_ghw1_1_JHUGen");
+    res.push_back("p_HadWH_SIG_ghw1prime2_1E4_JHUGen");
+    res.push_back("p_HadWH_SIG_ghw1_1_ghw1prime2_1E4_JHUGen");
     break;
   case kDa2jjVHint:
-    res.push_back("p_HadZH_SIG_ghz1_1_JHUGen_JECNominal");
-    res.push_back("p_HadZH_SIG_ghz2_1_JHUGen_JECNominal");
-    res.push_back("p_HadZH_SIG_ghz1_1_ghz2_1_JHUGen_JECNominal");
-    res.push_back("pConst_HadZH_SIG_ghz1_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_SIG_ghw1_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_SIG_ghw2_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_SIG_ghw1_1_ghw2_1_JHUGen_JECNominal");
-    res.push_back("pConst_HadWH_SIG_ghw1_1_JHUGen_JECNominal");
+    res.push_back("p_HadZH_SIG_ghz1_1_JHUGen");
+    res.push_back("p_HadZH_SIG_ghz2_1_JHUGen");
+    res.push_back("p_HadZH_SIG_ghz1_1_ghz2_1_JHUGen");
+    res.push_back("pConst_HadZH_SIG_ghz1_1_JHUGen");
+    res.push_back("p_HadWH_SIG_ghw1_1_JHUGen");
+    res.push_back("p_HadWH_SIG_ghw2_1_JHUGen");
+    res.push_back("p_HadWH_SIG_ghw1_1_ghw2_1_JHUGen");
+    res.push_back("pConst_HadWH_SIG_ghw1_1_JHUGen");
     break;
   case kCa2jjVHint:
-    res.push_back("p_HadZH_SIG_ghz1_1_JHUGen_JECNominal");
-    res.push_back("p_HadZH_SIG_ghz2_1_JHUGen_JECNominal");
-    res.push_back("p_HadZH_SIG_ghz1_1_ghz2_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_SIG_ghw1_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_SIG_ghw2_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_SIG_ghw1_1_ghw2_1_JHUGen_JECNominal");
+    res.push_back("p_HadZH_SIG_ghz1_1_JHUGen");
+    res.push_back("p_HadZH_SIG_ghz2_1_JHUGen");
+    res.push_back("p_HadZH_SIG_ghz1_1_ghz2_1_JHUGen");
+    res.push_back("p_HadWH_SIG_ghw1_1_JHUGen");
+    res.push_back("p_HadWH_SIG_ghw2_1_JHUGen");
+    res.push_back("p_HadWH_SIG_ghw1_1_ghw2_1_JHUGen");
     break;
   case kDa3jjVHint:
-    res.push_back("p_HadZH_SIG_ghz1_1_JHUGen_JECNominal");
-    res.push_back("p_HadZH_SIG_ghz4_1_JHUGen_JECNominal");
-    res.push_back("p_HadZH_SIG_ghz1_1_ghz4_1_JHUGen_JECNominal");
-    res.push_back("pConst_HadZH_SIG_ghz1_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_SIG_ghw1_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_SIG_ghw4_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_SIG_ghw1_1_ghw4_1_JHUGen_JECNominal");
-    res.push_back("pConst_HadWH_SIG_ghw1_1_JHUGen_JECNominal");
+    res.push_back("p_HadZH_SIG_ghz1_1_JHUGen");
+    res.push_back("p_HadZH_SIG_ghz4_1_JHUGen");
+    res.push_back("p_HadZH_SIG_ghz1_1_ghz4_1_JHUGen");
+    res.push_back("pConst_HadZH_SIG_ghz1_1_JHUGen");
+    res.push_back("p_HadWH_SIG_ghw1_1_JHUGen");
+    res.push_back("p_HadWH_SIG_ghw4_1_JHUGen");
+    res.push_back("p_HadWH_SIG_ghw1_1_ghw4_1_JHUGen");
+    res.push_back("pConst_HadWH_SIG_ghw1_1_JHUGen");
     break;
   case kCa3jjVHint:
-    res.push_back("p_HadZH_SIG_ghz1_1_JHUGen_JECNominal");
-    res.push_back("p_HadZH_SIG_ghz4_1_JHUGen_JECNominal");
-    res.push_back("p_HadZH_SIG_ghz1_1_ghz4_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_SIG_ghw1_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_SIG_ghw4_1_JHUGen_JECNominal");
-    res.push_back("p_HadWH_SIG_ghw1_1_ghw4_1_JHUGen_JECNominal");
+    res.push_back("p_HadZH_SIG_ghz1_1_JHUGen");
+    res.push_back("p_HadZH_SIG_ghz4_1_JHUGen");
+    res.push_back("p_HadZH_SIG_ghz1_1_ghz4_1_JHUGen");
+    res.push_back("p_HadWH_SIG_ghw1_1_JHUGen");
+    res.push_back("p_HadWH_SIG_ghw4_1_JHUGen");
+    res.push_back("p_HadWH_SIG_ghw1_1_ghw4_1_JHUGen");
     break;
   case kDL1ZGsjjVHint:
   case kCL1ZGsjjVHint:
-    res.push_back("p_HadZH_SIG_ghz1_1_JHUGen_JECNominal");
-    res.push_back("p_HadZH_SIG_ghza1prime2_1E4_JHUGen_JECNominal");
-    res.push_back("p_HadZH_SIG_ghz1_1_ghza1prime2_1E4_JHUGen_JECNominal");
+    res.push_back("p_HadZH_SIG_ghz1_1_JHUGen");
+    res.push_back("p_HadZH_SIG_ghza1prime2_1E4_JHUGen");
+    res.push_back("p_HadZH_SIG_ghz1_1_ghza1prime2_1E4_JHUGen");
     break;
 
   default:
@@ -913,4 +922,175 @@ bool DiscriminantClasses::usesProdInfo(const TString name){
   std::unordered_map<TString, DiscriminantClasses::Type>::const_iterator it;
   if (HelperFunctions::getUnorderedMapIterator(name, mapKDNameType, it)) return usesProdInfo(it->second);
   else return false;
+}
+
+void DiscriminantClasses::constructDiscriminants(std::vector<DiscriminantClasses::KDspecs>& KDlist, unsigned int idx_channel, TString strCategory){
+  TString strChannel;
+  TString strChannel_2l2l_4l;
+  switch (idx_channel){
+  case 169*169:
+    strChannel = "4mu";
+    strChannel_2l2l_4l = "4l";
+    break;
+  case 121*121:
+    strChannel = "4e";
+    strChannel_2l2l_4l = "4l";
+    break;
+  case 169*121:
+    strChannel = "2e2mu";
+    strChannel_2l2l_4l = "2l2l";
+    break;
+  default:
+    break;
+  }
+
+  for (auto& KDspec:KDlist){
+    switch (KDspec.KDtype){
+    case kDbkgkin:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_Dbkgkin_" + strChannel + "_13TeV.root", "sp_gr_varReco_Constant_Smooth");
+      break;
+    case kDbkgm4l:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_Dbkgkin_" + strChannel + "_13TeV.root", "sp_gr_varReco_Constant_Smooth");
+      break;
+    case kDggint:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_Dggbkgkin_" + strChannel + "_13TeV.root", "sp_gr_varReco_Constant_Smooth");
+      break;
+    case kDL1dec:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", ANALYSISTREEPKGDATAPATH + "gConstant_HZZ2e2mu_L1.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_L1", 1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1));
+      break;
+    case kDa2dec:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", ANALYSISTREEPKGDATAPATH + "gConstant_HZZ2e2mu_g2.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_g2");
+      break;
+    case kDa3dec:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", ANALYSISTREEPKGDATAPATH + "gConstant_HZZ2e2mu_g4.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_g4");
+      break;
+    case kDL1ZGsdec:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", ANALYSISTREEPKGDATAPATH + "gConstant_HZZ2e2mu_L1Zgs.root", "sp_tgfinal_HZZ2e2mu_SM_photoncut_over_tgfinal_HZZ2e2mu_L1Zgs", 1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1ZGs));
+      break;
+    case kDbkgjjEWQCD:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DbkgjjEWQCD_" + strChannel_2l2l_4l + "_" + strCategory + "_13TeV.root", "sp_gr_varReco_Constant_Smooth");
+      break;
+    case kDbkgm4ljjEWQCD:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DbkgjjEWQCD_" + strChannel_2l2l_4l + "_" + strCategory + "_13TeV.root", "sp_gr_varReco_Constant_Smooth");
+      break;
+    case kDintjjEWQCD:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DbkgjjEWQCD_" + strChannel_2l2l_4l + "_" + strCategory + "_13TeV.root", "sp_gr_varReco_Constant_Smooth");
+      break;
+    case kDL1jjVBFdec:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", "", "", pow(1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1), 2));
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_VBF_L1.root", "sp_tgfinal_VBF_SM_over_tgfinal_VBF_L1");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_HZZ2e2mu_L1.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_L1");
+      break;
+    case kDa2jjVBFdec:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", "", "");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_VBF_g2.root", "sp_tgfinal_VBF_SM_over_tgfinal_VBF_g2");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_HZZ2e2mu_g2.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_g2");
+      break;
+    case kDa3jjVBFdec:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", "", "");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_VBF_g4.root", "sp_tgfinal_VBF_SM_over_tgfinal_VBF_g4");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_HZZ2e2mu_g4.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_g4");
+      break;
+    case kDL1ZGsjjVBFdec:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", "", "", pow(1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1ZGs), 2));
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_VBF_L1Zgs.root", "sp_tgfinal_VBF_SM_photoncut_over_tgfinal_VBF_L1Zgs");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_HZZ2e2mu_L1Zgs.root", "sp_tgfinal_HZZ2e2mu_SM_photoncut_over_tgfinal_HZZ2e2mu_L1Zgs");
+      break;
+    case kDL1jjVHdec:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", "", "", pow(1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1), 2));
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_VH_L1.root", "sp_tgfinal_ZH_SM_plus_tgfinal_WH_SM_over_tgfinal_ZH_L1_plus_tgfinal_WH_L1");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_HZZ2e2mu_L1.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_L1");
+      break;
+    case kDa2jjVHdec:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", "", "");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_VH_g2.root", "sp_tgfinal_ZH_SM_plus_tgfinal_WH_SM_over_tgfinal_ZH_g2_plus_tgfinal_WH_g2");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_HZZ2e2mu_g2.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_g2");
+      break;
+    case kDa3jjVHdec:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", "", "");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_VH_g4.root", "sp_tgfinal_ZH_SM_plus_tgfinal_WH_SM_over_tgfinal_ZH_g4_plus_tgfinal_WH_g4");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_HZZ2e2mu_g4.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_g4");
+      break;
+    case kDL1ZGsjjVHdec:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", "", "", pow(1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1ZGs), 2));
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_VH_L1Zgs.root", "sp_tgfinal_ZH_SM_photoncut_plus_tgfinal_WH_SM_over_tgfinal_ZH_L1Zgs");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_HZZ2e2mu_L1Zgs.root", "sp_tgfinal_HZZ2e2mu_SM_photoncut_over_tgfinal_HZZ2e2mu_L1Zgs");
+      break;
+    case kDjjVBF:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjVBF_13TeV.root", "sp_gr_varReco_Constant_Smooth");
+      break;
+    case kDjjZH:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjZH_13TeV.root", "sp_gr_varReco_Constant_Smooth");
+      break;
+    case kDjjWH:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjWH_13TeV.root", "sp_gr_varReco_Constant_Smooth");
+      break;
+    case kDjjVBFL1:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjVBF_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "gConstant_VBF_L1.root", "sp_tgfinal_VBF_SM_over_tgfinal_VBF_L1", 1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1));
+      KDspec.KD->setInvertG(true);
+      break;
+    case kDjjZHL1:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjZH_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "gConstant_ZH_L1.root", "sp_tgfinal_ZH_SM_over_tgfinal_ZH_L1", 1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1));
+      KDspec.KD->setInvertG(true);
+      break;
+    case kDjjWHL1:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjWH_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "gConstant_WH_L1.root", "sp_tgfinal_WH_SM_over_tgfinal_WH_L1", 1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1));
+      KDspec.KD->setInvertG(true);
+      break;
+    case kDjjVBFa2:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjVBF_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "gConstant_VBF_g2.root", "sp_tgfinal_VBF_SM_over_tgfinal_VBF_g2");
+      KDspec.KD->setInvertG(true);
+      break;
+    case kDjjZHa2:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjZH_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "gConstant_ZH_g2.root", "sp_tgfinal_ZH_SM_over_tgfinal_ZH_g2");
+      KDspec.KD->setInvertG(true);
+      break;
+    case kDjjWHa2:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjWH_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "gConstant_WH_g2.root", "sp_tgfinal_WH_SM_over_tgfinal_WH_g2");
+      KDspec.KD->setInvertG(true);
+      break;
+    case kDjjVBFa3:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjVBF_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "gConstant_VBF_g4.root", "sp_tgfinal_VBF_SM_over_tgfinal_VBF_g4");
+      KDspec.KD->setInvertG(true);
+      break;
+    case kDjjZHa3:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjZH_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "gConstant_ZH_g4.root", "sp_tgfinal_ZH_SM_over_tgfinal_ZH_g4");
+      KDspec.KD->setInvertG(true);
+      break;
+    case kDjjWHa3:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjWH_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "gConstant_WH_g4.root", "sp_tgfinal_WH_SM_over_tgfinal_WH_g4");
+      KDspec.KD->setInvertG(true);
+      break;
+    case kDjjVBFL1ZGs:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjVBF_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "gConstant_VBF_L1Zgs.root", "sp_tgfinal_VBF_SM_photoncut_over_tgfinal_VBF_L1Zgs", 1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1ZGs));
+      KDspec.KD->setInvertG(true);
+      break;
+    case kDjjZHL1ZGs:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjZH_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "gConstant_ZH_L1Zgs.root", "sp_tgfinal_ZH_SM_photoncut_over_tgfinal_ZH_L1Zgs", 1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1ZGs));
+      KDspec.KD->setInvertG(true);
+      break;
+    case kCggint:
+    case kCL1decint:
+    case kCa2decint:
+    case kCa3decint:
+    case kCL1ZGsdecint:
+    case kCjjVBFint:
+    case kCL1jjVBFint:
+    case kCa2jjVBFint:
+    case kCa3jjVBFint:
+    case kCL1ZGsjjVBFint:
+    case kCL1jjVHint:
+    case kCa2jjVHint:
+    case kCa3jjVHint:
+    case kCL1ZGsjjVHint:
+      KDspec.KD = constructKDFromType(KDspec.KDtype, "", "");
+      break;
+    default:
+      MELAerr << "DiscriminantClasses::constructDiscriminants: KD " << KDspec.KDname << " is not defined." << endl;
+      assert(0);
+      break;
+    }
+    KDspec.KDvars = getKDVars(KDspec.KDtype);
+  }
+
 }
