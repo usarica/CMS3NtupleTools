@@ -38,8 +38,8 @@ bool TriggerScaleFactorHandler::setup(){
   TString cinput_main = ANALYSISTREEPKGDATAPATH+Form("ScaleFactors/Trigger/%i/", SampleHelpers::getDataYear());
   HostHelpers::ExpandEnvironmentVariables(cinput_main);
 
-  std::vector<SystematicVariationTypes> const allowedSysts={ sNominal, eTriggerEffDn, eTriggerEffUp };
-  std::vector<SystematicVariationTypes> const allowedSysts_eff={ sNominal };
+  std::vector<SystematicVariationTypes> const allowedSysts={ sNominal, eTriggerEffDn, eTriggerEffUp, ePUDn, ePUUp };
+  std::vector<SystematicVariationTypes> const allowedSysts_eff={ sNominal, ePUDn, ePUUp };
 
   {
     TString cinput = cinput_main + "trigger_efficiencies_leptons.root";
@@ -53,13 +53,16 @@ bool TriggerScaleFactorHandler::setup(){
     TDirectory* dir_SingleLepton_Combined = (TDirectory*) finput->Get("SingleLepton_Combined");
     uppermostdir->cd();
     for (auto const& syst:allowedSysts){
+      TString strSyst = SystematicsHelpers::getSystName(syst).data();
       TString systname;
       switch (syst){
       case eTriggerEffDn:
         systname = "dn";
+        strSyst = SystematicsHelpers::getSystName(SystematicsHelpers::sNominal).data();
         break;
       case eTriggerEffUp:
         systname = "up";
+        strSyst = SystematicsHelpers::getSystName(SystematicsHelpers::sNominal).data();
         break;
       default:
         systname = "nominal";
@@ -89,23 +92,23 @@ bool TriggerScaleFactorHandler::setup(){
           unsigned short const idx_hist = 2*ibe+jbe;
           TString hname;
 
-          hname = Form("h_Combined_SF_pt25avg_%s_wcuts_mumu_%s_%s", systname.Data(), benames.at(ibe).Data(), benames.at(jbe).Data());
+          hname = Form("h_Combined_SF_pt25avg_%s_wcuts_mumu_%s_%s_%s", systname.Data(), benames.at(ibe).Data(), benames.at(jbe).Data(), strSyst.Data());
           res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_SF_Dilepton_SingleLepton_mumu_map[syst].at(idx_hist), dir_Dilepton_Combined, hname);
           uppermostdir->cd();
-          hname = Form("h_Combined_SF_pt25avg_%s_wcuts_ee_%s_%s", systname.Data(), benames.at(ibe).Data(), benames.at(jbe).Data());
+          hname = Form("h_Combined_SF_pt25avg_%s_wcuts_ee_%s_%s_%s", systname.Data(), benames.at(ibe).Data(), benames.at(jbe).Data(), strSyst.Data());
           res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_SF_Dilepton_SingleLepton_ee_map[syst].at(idx_hist), dir_Dilepton_Combined, hname);
           uppermostdir->cd();
-          hname = Form("h_Combined_SF_pt25avg_%s_wcuts_mue_%s_%s", systname.Data(), benames.at(ibe).Data(), benames.at(jbe).Data());
+          hname = Form("h_Combined_SF_pt25avg_%s_wcuts_mue_%s_%s_%s", systname.Data(), benames.at(ibe).Data(), benames.at(jbe).Data(), strSyst.Data());
           res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_SF_Dilepton_SingleLepton_mue_map[syst].at(idx_hist), dir_Dilepton_Combined, hname);
           uppermostdir->cd();
           if (HelperFunctions::checkListVariable(allowedSysts_eff, syst)){
-            hname = Form("h_Combined_eff_%s_wcuts_mumu_%s_%s_MC", systname.Data(), benames.at(ibe).Data(), benames.at(jbe).Data());
+            hname = Form("h_Combined_eff_%s_wcuts_mumu_%s_%s_MC_%s", systname.Data(), benames.at(ibe).Data(), benames.at(jbe).Data(), strSyst.Data());
             res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_eff_mc_Dilepton_SingleLepton_mumu_map[syst].at(idx_hist), dir_Dilepton_Combined, hname);
             uppermostdir->cd();
-            hname = Form("h_Combined_eff_%s_wcuts_ee_%s_%s_MC", systname.Data(), benames.at(ibe).Data(), benames.at(jbe).Data());
+            hname = Form("h_Combined_eff_%s_wcuts_ee_%s_%s_MC_%s", systname.Data(), benames.at(ibe).Data(), benames.at(jbe).Data(), strSyst.Data());
             res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_eff_mc_Dilepton_SingleLepton_ee_map[syst].at(idx_hist), dir_Dilepton_Combined, hname);
             uppermostdir->cd();
-            hname = Form("h_Combined_eff_%s_wcuts_mue_%s_%s_MC", systname.Data(), benames.at(ibe).Data(), benames.at(jbe).Data());
+            hname = Form("h_Combined_eff_%s_wcuts_mue_%s_%s_MC_%s", systname.Data(), benames.at(ibe).Data(), benames.at(jbe).Data(), strSyst.Data());
             res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_eff_mc_Dilepton_SingleLepton_mue_map[syst].at(idx_hist), dir_Dilepton_Combined, hname);
             uppermostdir->cd();
           }
@@ -115,17 +118,17 @@ bool TriggerScaleFactorHandler::setup(){
       {
         TString hname;
 
-        hname = Form("h_SingleMuon_SF_%s", systname.Data());
+        hname = Form("h_SingleMuon_SF_%s_%s", systname.Data(), strSyst.Data());
         res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_SF_SingleMuon_map[syst], dir_SingleLepton_Combined, hname);
         uppermostdir->cd();
-        hname = Form("h_SingleElectron_SF_%s", systname.Data());
+        hname = Form("h_SingleElectron_SF_%s_%s", systname.Data(), strSyst.Data());
         res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_SF_SingleElectron_map[syst], dir_SingleLepton_Combined, hname);
         uppermostdir->cd();
         if (HelperFunctions::checkListVariable(allowedSysts_eff, syst)){
-          hname = Form("h_SingleMuon_eff_%s_MC", systname.Data());
+          hname = Form("h_SingleMuon_eff_%s_MC_%s", systname.Data(), strSyst.Data());
           res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_eff_mc_SingleMuon_map[syst], dir_SingleLepton_Combined, hname);
           uppermostdir->cd();
-          hname = Form("h_SingleElectron_eff_%s_MC", systname.Data());
+          hname = Form("h_SingleElectron_eff_%s_MC_%s", systname.Data(), strSyst.Data());
           res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_eff_mc_SingleElectron_map[syst], dir_SingleLepton_Combined, hname);
           uppermostdir->cd();
         }
@@ -217,8 +220,8 @@ void TriggerScaleFactorHandler::getCombinedDileptonSFAndEff(
   val = 1;
   if (effval) *effval = 1;
 
-  std::vector<SystematicVariationTypes> const allowedSysts={ sNominal, eTriggerEffDn, eTriggerEffUp };
-  std::vector<SystematicVariationTypes> const allowedSysts_eff={ sNominal };
+  std::vector<SystematicVariationTypes> const allowedSysts={ sNominal, eTriggerEffDn, eTriggerEffUp, ePUDn, ePUUp };
+  std::vector<SystematicVariationTypes> const allowedSysts_eff={ sNominal, ePUDn, ePUUp };
 
   SystematicVariationTypes activeSyst_eff_nominal = sNominal;
   if (HelperFunctions::checkListVariable(allowedSysts_eff, syst)) activeSyst_eff_nominal = syst;
@@ -310,8 +313,8 @@ void TriggerScaleFactorHandler::getCombinedSingleLeptonSFAndEff(
   val = 1;
   if (effval) *effval = 1;
 
-  std::vector<SystematicVariationTypes> const allowedSysts={ sNominal, eTriggerEffDn, eTriggerEffUp };
-  std::vector<SystematicVariationTypes> const allowedSysts_eff={ sNominal };
+  std::vector<SystematicVariationTypes> const allowedSysts={ sNominal, eTriggerEffDn, eTriggerEffUp, ePUDn, ePUUp };
+  std::vector<SystematicVariationTypes> const allowedSysts_eff={ sNominal, ePUDn, ePUUp };
 
   SystematicVariationTypes activeSyst_eff_nominal = sNominal;
   if (HelperFunctions::checkListVariable(allowedSysts_eff, syst)) activeSyst_eff_nominal = syst;

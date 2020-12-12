@@ -1794,9 +1794,6 @@ void collectEfficiencies(
 
   SampleHelpers::configure(period, Form("hadoop_skims:%s", prodVersion.Data()));
 
-  SystematicsHelpers::SystematicVariationTypes const theGlobalSyst = SystematicsHelpers::sNominal;
-
-  TString strSyst = SystematicsHelpers::getSystName(theGlobalSyst).data();
   const float lumi = SampleHelpers::getIntegratedLuminosity(SampleHelpers::getDataPeriod());
   std::vector<TString> const validDataPeriods = SampleHelpers::getValidDataPeriods();
   size_t const nValidDataPeriods = validDataPeriods.size();
@@ -1822,442 +1819,462 @@ void collectEfficiencies(
   TDirectory* outdir_Dilepton_Combined = foutput->mkdir("Dilepton_Combined"); foutput->cd();
   TDirectory* outdir_SingleLepton_Combined = foutput->mkdir("SingleLepton_Combined"); foutput->cd();
 
-  TString cinput_main = "output/DileptonTriggerTnPEvents/Efficiencies/" + strdate + "/" + period + "/Combined";
-  TString strinput = cinput_main + Form("/histograms_%s.root", strSyst.Data());
-  TFile* finput = TFile::Open(strinput, "read");
+  std::vector<SystematicsHelpers::SystematicVariationTypes> const allowedSysts{ SystematicsHelpers::sNominal, SystematicsHelpers::ePUDn, SystematicsHelpers::ePUUp };
+  for (auto const& syst:allowedSysts){
+    TString strSyst = SystematicsHelpers::getSystName(syst).data();
+    TString cinput_main = "output/DileptonTriggerTnPEvents/Efficiencies/" + strdate + "/" + period + "/Combined";
+    TString strinput = cinput_main + Form("/histograms_%s.root", strSyst.Data());
+    TFile* finput = TFile::Open(strinput, "read");
 
-  finput->cd();
-  TDirectory* subdir_Dileptons = (TDirectory*) finput->Get("Dileptons");
-  TDirectory* subdir_Dileptons_Counts = (TDirectory*) subdir_Dileptons->Get("Counts");
-  TDirectory* subdir_Dileptons_Effs = (TDirectory*) subdir_Dileptons->Get("Effs");
-  TDirectory* subdir_Dileptons_mll = (TDirectory*) subdir_Dileptons->Get("mll");
-  TDirectory* subdir_Dileptons_MET = (TDirectory*) subdir_Dileptons->Get("MET");
-  TDirectory* subdir_Dileptons_HT = (TDirectory*) subdir_Dileptons->Get("HT");
-  TDirectory* subdir_Dileptons_MHT = (TDirectory*) subdir_Dileptons->Get("MHT");
+    finput->cd();
+    TDirectory* subdir_Dileptons = (TDirectory*) finput->Get("Dileptons");
+    TDirectory* subdir_Dileptons_Counts = (TDirectory*) subdir_Dileptons->Get("Counts");
+    TDirectory* subdir_Dileptons_Effs = (TDirectory*) subdir_Dileptons->Get("Effs");
+    TDirectory* subdir_Dileptons_mll = (TDirectory*) subdir_Dileptons->Get("mll");
+    TDirectory* subdir_Dileptons_MET = (TDirectory*) subdir_Dileptons->Get("MET");
+    TDirectory* subdir_Dileptons_HT = (TDirectory*) subdir_Dileptons->Get("HT");
+    TDirectory* subdir_Dileptons_MHT = (TDirectory*) subdir_Dileptons->Get("MHT");
 
-  TDirectory* subdir_Dileptons_wcuts = (TDirectory*) finput->Get("Dileptons_wCuts");
-  TDirectory* subdir_Dileptons_wcuts_Counts = (TDirectory*) subdir_Dileptons_wcuts->Get("Counts");
-  TDirectory* subdir_Dileptons_wcuts_Effs = (TDirectory*) subdir_Dileptons_wcuts->Get("Effs");
-  TDirectory* subdir_Dileptons_wcuts_mll = (TDirectory*) subdir_Dileptons_wcuts->Get("mll");
-  TDirectory* subdir_Dileptons_wcuts_MET = (TDirectory*) subdir_Dileptons_wcuts->Get("MET");
-  TDirectory* subdir_Dileptons_wcuts_HT = (TDirectory*) subdir_Dileptons_wcuts->Get("HT");
-  TDirectory* subdir_Dileptons_wcuts_MHT = (TDirectory*) subdir_Dileptons_wcuts->Get("MHT");
+    TDirectory* subdir_Dileptons_wcuts = (TDirectory*) finput->Get("Dileptons_wCuts");
+    TDirectory* subdir_Dileptons_wcuts_Counts = (TDirectory*) subdir_Dileptons_wcuts->Get("Counts");
+    TDirectory* subdir_Dileptons_wcuts_Effs = (TDirectory*) subdir_Dileptons_wcuts->Get("Effs");
+    TDirectory* subdir_Dileptons_wcuts_mll = (TDirectory*) subdir_Dileptons_wcuts->Get("mll");
+    TDirectory* subdir_Dileptons_wcuts_MET = (TDirectory*) subdir_Dileptons_wcuts->Get("MET");
+    TDirectory* subdir_Dileptons_wcuts_HT = (TDirectory*) subdir_Dileptons_wcuts->Get("HT");
+    TDirectory* subdir_Dileptons_wcuts_MHT = (TDirectory*) subdir_Dileptons_wcuts->Get("MHT");
 
-  TDirectory* subdir_SingleLeptonTnP = (TDirectory*) finput->Get("SingleLeptonTnP");
-  TDirectory* subdir_SingleLeptonTnP_Counts = (TDirectory*) subdir_SingleLeptonTnP->Get("Counts");
-  TDirectory* subdir_SingleLeptonTnP_Effs = (TDirectory*) subdir_SingleLeptonTnP->Get("Effs");
+    TDirectory* subdir_SingleLeptonTnP = (TDirectory*) finput->Get("SingleLeptonTnP");
+    TDirectory* subdir_SingleLeptonTnP_Counts = (TDirectory*) subdir_SingleLeptonTnP->Get("Counts");
+    TDirectory* subdir_SingleLeptonTnP_Effs = (TDirectory*) subdir_SingleLeptonTnP->Get("Effs");
 
-  std::vector<TH2F*> heffs_combined[2];
-  std::vector<TH2F*> hSFs_combined[3];
-  std::vector<TH2F*> hSFs_pt25avg_combined[3];
-  {
-    subdir_Dileptons_wcuts_Effs->cd();
-    std::vector<TH2F*> tmplist;
-    HelperFunctions::extractHistogramsFromDirectory(subdir_Dileptons_wcuts_Effs, tmplist, TVar::SILENT);
-    for (auto& hh:tmplist){
-      TString hname = hh->GetName();
-      short idatasim = -1;
-      if (hname.Contains("_Data")) idatasim = 0;
-      else if (hname.Contains("_MC")) idatasim = 1;
-      if (idatasim>=0){
+    std::vector<TH2F*> heffs_combined[2];
+    std::vector<TH2F*> hSFs_combined[3];
+    std::vector<TH2F*> hSFs_pt25avg_combined[3];
+    {
+      subdir_Dileptons_wcuts_Effs->cd();
+      std::vector<TH2F*> tmplist;
+      HelperFunctions::extractHistogramsFromDirectory(subdir_Dileptons_wcuts_Effs, tmplist, TVar::SILENT);
+      for (auto& hh:tmplist){
         TString hname = hh->GetName();
-        HelperFunctions::replaceString(hname, "_Data", "_data");
-        hh->SetName(hname);
-        if (hname.Contains("_nominal_")) hh->GetZaxis()->SetTitle("#epsilon");
-        else if (hname.Contains("_dn_")) hh->GetZaxis()->SetTitle("#epsilon^{#minus}");
-        else if (hname.Contains("_up_")) hh->GetZaxis()->SetTitle("#epsilon^{#plus}");
-        heffs_combined[idatasim].push_back(hh);
-      }
-    }
-  }
-  // Build the SFs
-  outdir_Dilepton_Combined->cd();
-  for (unsigned int ib=0; ib<heffs_combined[0].size(); ib+=3){
-    auto const& hdata_nominal = heffs_combined[0].at(ib);
-    auto const& hdata_dn = heffs_combined[0].at(ib+1);
-    auto const& hdata_up = heffs_combined[0].at(ib+2);
-
-    auto const& hMC_nominal = heffs_combined[1].at(ib);
-    auto const& hMC_dn = heffs_combined[1].at(ib+1);
-    auto const& hMC_up = heffs_combined[1].at(ib+2);
-
-    TString hname;
-
-    hname = hMC_nominal->GetName(); HelperFunctions::replaceString(hname, "_MC", ""); HelperFunctions::replaceString(hname, "_eff_", "_SF_");
-    TH2F* hSF_nominal = (TH2F*) hMC_nominal->Clone(hname); hSF_nominal->Reset("ICESM");
-    hSF_nominal->GetZaxis()->SetTitle("SF");
-
-    bool const isSF = hname.Contains("_ee_") || hname.Contains("_mumu_");
-
-    hname = hMC_dn->GetName(); HelperFunctions::replaceString(hname, "_MC", ""); HelperFunctions::replaceString(hname, "_eff_", "_SF_");
-    TH2F* hSF_dn = (TH2F*) hMC_dn->Clone(hname); hSF_dn->Reset("ICESM");
-    hSF_dn->GetZaxis()->SetTitle("SF^{#minus}");
-
-    hname = hMC_up->GetName(); HelperFunctions::replaceString(hname, "_MC", ""); HelperFunctions::replaceString(hname, "_eff_", "_SF_");
-    TH2F* hSF_up = (TH2F*) hMC_up->Clone(hname); hSF_up->Reset("ICESM");
-    hSF_up->GetZaxis()->SetTitle("SF^{#plus}");
-
-    for (int ix=1; ix<=hMC_nominal->GetNbinsX(); ix++){
-      for (int iy=1; iy<=hMC_nominal->GetNbinsY(); iy++){
-        if (isSF && iy>ix) continue;
-
-        double bc_data_nominal = hdata_nominal->GetBinContent(ix, iy);
-        double bc_data_dn = hdata_dn->GetBinContent(ix, iy);
-        double bc_data_up = hdata_up->GetBinContent(ix, iy);
-        if (bc_data_nominal==0. && bc_data_dn==0. && bc_data_up==0.){
-          bc_data_nominal = 0.5;
-          bc_data_dn = 0;
-          bc_data_up = 1;
+        short idatasim = -1;
+        if (hname.Contains("_Data")) idatasim = 0;
+        else if (hname.Contains("_MC")) idatasim = 1;
+        if (idatasim>=0){
+          TString hname = hh->GetName();
+          HelperFunctions::replaceString(hname, "_Data", "_data");
+          hname = Form("%s_%s", hname.Data(), strSyst.Data());
+          hh->SetName(hname);
+          if (hname.Contains("_nominal_")) hh->GetZaxis()->SetTitle("#epsilon");
+          else if (hname.Contains("_dn_")) hh->GetZaxis()->SetTitle("#epsilon^{#minus}");
+          else if (hname.Contains("_up_")) hh->GetZaxis()->SetTitle("#epsilon^{#plus}");
+          heffs_combined[idatasim].push_back(hh);
         }
+      }
+    }
+    // Build the SFs
+    outdir_Dilepton_Combined->cd();
+    for (unsigned int ib=0; ib<heffs_combined[0].size(); ib+=3){
+      auto const& hdata_nominal = heffs_combined[0].at(ib);
+      auto const& hdata_dn = heffs_combined[0].at(ib+1);
+      auto const& hdata_up = heffs_combined[0].at(ib+2);
 
-        double bc_MC_nominal = hMC_nominal->GetBinContent(ix, iy);
-        double bc_MC_dn = hMC_dn->GetBinContent(ix, iy);
-        double bc_MC_up = hMC_up->GetBinContent(ix, iy);
-        if (bc_MC_nominal==0. && bc_MC_dn==0. && bc_MC_up==0.){
-          bc_MC_nominal = 0.5;
-          bc_MC_dn = 0;
-          bc_MC_up = 1;
+      auto const& hMC_nominal = heffs_combined[1].at(ib);
+      auto const& hMC_dn = heffs_combined[1].at(ib+1);
+      auto const& hMC_up = heffs_combined[1].at(ib+2);
+
+      TString hname;
+
+      hname = hMC_nominal->GetName(); HelperFunctions::replaceString(hname, "_MC", ""); HelperFunctions::replaceString(hname, "_eff_", "_SF_");
+      TH2F* hSF_nominal = (TH2F*) hMC_nominal->Clone(hname); hSF_nominal->Reset("ICESM");
+      hSF_nominal->GetZaxis()->SetTitle("SF");
+
+      bool const isSF = hname.Contains("_ee_") || hname.Contains("_mumu_");
+
+      hname = hMC_dn->GetName(); HelperFunctions::replaceString(hname, "_MC", ""); HelperFunctions::replaceString(hname, "_eff_", "_SF_");
+      TH2F* hSF_dn = (TH2F*) hMC_dn->Clone(hname); hSF_dn->Reset("ICESM");
+      hSF_dn->GetZaxis()->SetTitle("SF^{#minus}");
+
+      hname = hMC_up->GetName(); HelperFunctions::replaceString(hname, "_MC", ""); HelperFunctions::replaceString(hname, "_eff_", "_SF_");
+      TH2F* hSF_up = (TH2F*) hMC_up->Clone(hname); hSF_up->Reset("ICESM");
+      hSF_up->GetZaxis()->SetTitle("SF^{#plus}");
+
+      for (int ix=1; ix<=hMC_nominal->GetNbinsX(); ix++){
+        for (int iy=1; iy<=hMC_nominal->GetNbinsY(); iy++){
+          if (isSF && iy>ix) continue;
+
+          double bc_data_nominal = hdata_nominal->GetBinContent(ix, iy);
+          double bc_data_dn = hdata_dn->GetBinContent(ix, iy);
+          double bc_data_up = hdata_up->GetBinContent(ix, iy);
+          if (bc_data_nominal==0. && bc_data_dn==0. && bc_data_up==0.){
+            bc_data_nominal = 0.5;
+            bc_data_dn = 0;
+            bc_data_up = 1;
+          }
+
+          double bc_MC_nominal = hMC_nominal->GetBinContent(ix, iy);
+          double bc_MC_dn = hMC_dn->GetBinContent(ix, iy);
+          double bc_MC_up = hMC_up->GetBinContent(ix, iy);
+          if (bc_MC_nominal==0. && bc_MC_dn==0. && bc_MC_up==0.){
+            bc_MC_nominal = 0.5;
+            bc_MC_dn = 0;
+            bc_MC_up = 1;
+          }
+
+          double SF_nominal=1, SF_dn=0.5, SF_up=1.5;
+          if (bc_MC_nominal>0.){
+            SF_nominal = bc_data_nominal / bc_MC_nominal;
+            if (bc_MC_up>0.) SF_dn = SF_nominal - std::sqrt(std::pow(bc_data_dn / bc_MC_nominal - SF_nominal, 2) + std::pow(bc_data_nominal / bc_MC_up - SF_nominal, 2));
+            else SF_dn = bc_data_dn / bc_MC_nominal;
+            if (bc_MC_dn>0.) SF_up = SF_nominal + std::sqrt(std::pow(bc_data_up / bc_MC_nominal - SF_nominal, 2) + std::pow(bc_data_nominal / bc_MC_dn - SF_nominal, 2));
+            else SF_up = bc_data_up / bc_MC_nominal;
+          }
+          SF_dn = std::max(SF_dn, 0.);
+
+          hSF_nominal->SetBinContent(ix, iy, SF_nominal);
+          hSF_dn->SetBinContent(ix, iy, SF_dn);
+          hSF_up->SetBinContent(ix, iy, SF_up);
         }
+      }
 
-        double SF_nominal=1, SF_dn=0.5, SF_up=1.5;
-        if (bc_MC_nominal>0.){
-          SF_nominal = bc_data_nominal / bc_MC_nominal;
-          if (bc_MC_up>0.) SF_dn = SF_nominal - std::sqrt(std::pow(bc_data_dn / bc_MC_nominal - SF_nominal, 2) + std::pow(bc_data_nominal / bc_MC_up - SF_nominal, 2));
-          else SF_dn = bc_data_dn / bc_MC_nominal;
-          if (bc_MC_dn>0.) SF_up = SF_nominal + std::sqrt(std::pow(bc_data_up / bc_MC_nominal - SF_nominal, 2) + std::pow(bc_data_nominal / bc_MC_dn - SF_nominal, 2));
-          else SF_up = bc_data_up / bc_MC_nominal;
+      if (syst==sNominal){
+        outdir_Dilepton_Combined->WriteTObject(hdata_nominal);
+        outdir_Dilepton_Combined->WriteTObject(hdata_dn);
+        outdir_Dilepton_Combined->WriteTObject(hdata_up);
+      }
+      outdir_Dilepton_Combined->WriteTObject(hMC_nominal);
+      if (syst==sNominal){
+        outdir_Dilepton_Combined->WriteTObject(hMC_dn);
+        outdir_Dilepton_Combined->WriteTObject(hMC_up);
+      }
+      outdir_Dilepton_Combined->WriteTObject(hSF_nominal);
+      if (syst==sNominal){
+        outdir_Dilepton_Combined->WriteTObject(hSF_dn);
+        outdir_Dilepton_Combined->WriteTObject(hSF_up);
+      }
+
+      hSFs_combined[0].push_back(hSF_nominal);
+      hSFs_combined[1].push_back(hSF_dn);
+      hSFs_combined[2].push_back(hSF_up);
+
+      // Get averaged SFs
+      hname = hSF_nominal->GetName(); HelperFunctions::replaceString(hname, "_SF_", "_SF_pt25avg_");
+      TH2F* hSF_pt25avg_nominal = (TH2F*) hSF_nominal->Clone(hname);
+      hname = hSF_dn->GetName(); HelperFunctions::replaceString(hname, "_SF_", "_SF_pt25avg_");
+      TH2F* hSF_pt25avg_dn = (TH2F*) hSF_dn->Clone(hname);
+      hname = hSF_up->GetName(); HelperFunctions::replaceString(hname, "_SF_", "_SF_pt25avg_");
+      TH2F* hSF_pt25avg_up = (TH2F*) hSF_up->Clone(hname);
+
+      int i25 = hSF_nominal->GetXaxis()->FindBin(25);
+      int j25 = hSF_nominal->GetYaxis()->FindBin(25);
+      double sum_SF_nominal_times_wgt = 0;
+      double sum_SF_dn_times_wgt = 0;
+      double sum_SF_up_times_wgt = 0;
+      double sum_wgt = 0;
+      for (int ix=i25; ix<=hSF_nominal->GetNbinsX(); ix++){
+        for (int iy=j25; iy<=hSF_nominal->GetNbinsY(); iy++){
+          double SF_nominal = hSF_nominal->GetBinContent(ix, iy);
+          double SF_dn = hSF_dn->GetBinContent(ix, iy);
+          double SF_up = hSF_up->GetBinContent(ix, iy);
+          if (SF_dn == SF_up && SF_nominal==0.) continue;
+          double wgt = 1./std::pow(SF_up-SF_dn, 2);
+          sum_SF_nominal_times_wgt += SF_nominal*wgt;
+          sum_SF_dn_times_wgt += SF_dn*wgt;
+          sum_SF_up_times_wgt += SF_up*wgt;
+          sum_wgt += wgt;
         }
-        SF_dn = std::max(SF_dn, 0.);
+      }
+      sum_SF_nominal_times_wgt /= sum_wgt;
+      sum_SF_dn_times_wgt /= sum_wgt;
+      sum_SF_up_times_wgt /= sum_wgt;
+      MELAout
+        << "SF on " << hMC_nominal->GetName() << " might be averaged as " << sum_SF_nominal_times_wgt << " [" << sum_SF_dn_times_wgt << ", " << sum_SF_up_times_wgt << "] | "
+        << (sum_SF_dn_times_wgt/sum_SF_nominal_times_wgt-1.)*100. << ", " << (sum_SF_up_times_wgt/sum_SF_nominal_times_wgt-1.)*100.
+        << endl;
+      // Set the avg. values
+      for (int ix=i25; ix<=hSF_nominal->GetNbinsX(); ix++){
+        for (int iy=j25; iy<=hSF_nominal->GetNbinsY(); iy++){
+          double SF_nominal = hSF_nominal->GetBinContent(ix, iy);
+          double SF_dn = hSF_dn->GetBinContent(ix, iy);
+          double SF_up = hSF_up->GetBinContent(ix, iy);
+          if (SF_dn == SF_up && SF_nominal==0.) continue;
+          hSF_pt25avg_nominal->SetBinContent(ix, iy, sum_SF_nominal_times_wgt);
+          hSF_pt25avg_dn->SetBinContent(ix, iy, sum_SF_dn_times_wgt);
+          hSF_pt25avg_up->SetBinContent(ix, iy, sum_SF_up_times_wgt);
+        }
+      }
 
-        hSF_nominal->SetBinContent(ix, iy, SF_nominal);
-        hSF_dn->SetBinContent(ix, iy, SF_dn);
-        hSF_up->SetBinContent(ix, iy, SF_up);
+      outdir_Dilepton_Combined->WriteTObject(hSF_pt25avg_nominal);
+      if (syst==sNominal){
+        outdir_Dilepton_Combined->WriteTObject(hSF_pt25avg_dn);
+        outdir_Dilepton_Combined->WriteTObject(hSF_pt25avg_up);
+      }
+
+      hSFs_pt25avg_combined[0].push_back(hSF_pt25avg_nominal);
+      hSFs_pt25avg_combined[1].push_back(hSF_pt25avg_dn);
+      hSFs_pt25avg_combined[2].push_back(hSF_pt25avg_up);
+    }
+    // Plot the efficiencies
+    {
+      foutput->cd();
+      std::vector<TH2F*> efflist_flat[3];
+      int effhists_ix_setZeroThr[3]={ 1 };
+      int effhists_iy_setZeroThr[3]={ 1 };
+      for (unsigned short ihs=0; ihs<2; ihs++){
+        for (auto const& hh:heffs_combined[ihs]){
+          TString hname = hh->GetName();
+          unsigned short const ic = (0*hname.Contains("_mumu_") + 1*hname.Contains("_mue_") + 2*hname.Contains("_ee_"));
+
+          int ix_setZeroThr = 1;
+          int iy_setZeroThr = 1;
+          if (ic==1){
+            ix_setZeroThr = hh->GetXaxis()->FindBin(25)-1;
+            iy_setZeroThr = hh->GetYaxis()->FindBin(25)-1;
+          }
+          else{
+            ix_setZeroThr = hh->GetXaxis()->FindBin(25);
+            iy_setZeroThr = hh->GetYaxis()->FindBin(25)-1;
+          }
+          effhists_ix_setZeroThr[ic] = ix_setZeroThr;
+          effhists_iy_setZeroThr[ic] = iy_setZeroThr;
+
+          efflist_flat[ic].push_back(convertHistogramToFlatBins(hh, ix_setZeroThr, iy_setZeroThr));
+        }
+      }
+      for (unsigned short ic=0; ic<3; ic++){
+        double minZ, maxZ;
+        findZMinMax(efflist_flat[ic], minZ, maxZ);
+        double minX = efflist_flat[ic].front()->GetXaxis()->GetBinLowEdge(effhists_ix_setZeroThr[ic]);
+        double maxX = efflist_flat[ic].front()->GetXaxis()->GetBinLowEdge(efflist_flat[ic].front()->GetNbinsX()+1);
+        double minY = efflist_flat[ic].front()->GetYaxis()->GetBinLowEdge(effhists_iy_setZeroThr[ic]);
+        double maxY = efflist_flat[ic].front()->GetYaxis()->GetBinLowEdge(efflist_flat[ic].front()->GetNbinsY()+1);
+        for (auto& hh:efflist_flat[ic]){
+          TString cname_app;
+          TString ptitle;
+          plotEffSF(coutput_plots+"/Effs", cname_app, ptitle, hh, minX, maxX, minY, maxY, minZ, maxZ);
+          delete hh;
+        }
+        efflist_flat[ic].clear();
+      }
+
+      std::vector<TH2F*> SFlist_flat[3];
+      int SFhists_ix_setZeroThr[3]={ 1 };
+      int SFhists_iy_setZeroThr[3]={ 1 };
+      for (unsigned short ihs=0; ihs<3; ihs++){
+        for (auto const& hh:hSFs_combined[ihs]){
+          TString hname = hh->GetName();
+          unsigned short const ic = (0*hname.Contains("_mumu_") + 1*hname.Contains("_mue_") + 2*hname.Contains("_ee_"));
+
+          int ix_setZeroThr = 1;
+          int iy_setZeroThr = 1;
+          if (ic==1){
+            ix_setZeroThr = hh->GetXaxis()->FindBin(25)-1;
+            iy_setZeroThr = hh->GetYaxis()->FindBin(25)-1;
+          }
+          else{
+            ix_setZeroThr = hh->GetXaxis()->FindBin(25);
+            iy_setZeroThr = hh->GetYaxis()->FindBin(25)-1;
+          }
+          SFhists_ix_setZeroThr[ic] = ix_setZeroThr;
+          SFhists_iy_setZeroThr[ic] = iy_setZeroThr;
+
+          SFlist_flat[ic].push_back(convertHistogramToFlatBins(hh, ix_setZeroThr, iy_setZeroThr));
+        }
+      }
+      for (unsigned short ic=0; ic<3; ic++){
+        double minZ, maxZ;
+        findZMinMax(SFlist_flat[ic], minZ, maxZ);
+        double minX = SFlist_flat[ic].front()->GetXaxis()->GetBinLowEdge(SFhists_ix_setZeroThr[ic]);
+        double maxX = SFlist_flat[ic].front()->GetXaxis()->GetBinLowEdge(SFlist_flat[ic].front()->GetNbinsX()+1);
+        double minY = SFlist_flat[ic].front()->GetYaxis()->GetBinLowEdge(SFhists_iy_setZeroThr[ic]);
+        double maxY = SFlist_flat[ic].front()->GetYaxis()->GetBinLowEdge(SFlist_flat[ic].front()->GetNbinsY()+1);
+        for (auto& hh:SFlist_flat[ic]){
+          TString cname_app;
+          TString ptitle;
+          plotEffSF(coutput_plots+"/SFs", cname_app, ptitle, hh, minX, maxX, minY, maxY, minZ, maxZ);
+          delete hh;
+        }
+        SFlist_flat[ic].clear();
       }
     }
 
-    outdir_Dilepton_Combined->WriteTObject(hdata_nominal);
-    outdir_Dilepton_Combined->WriteTObject(hdata_dn);
-    outdir_Dilepton_Combined->WriteTObject(hdata_up);
-    outdir_Dilepton_Combined->WriteTObject(hMC_nominal);
-    outdir_Dilepton_Combined->WriteTObject(hMC_dn);
-    outdir_Dilepton_Combined->WriteTObject(hMC_up);
-    outdir_Dilepton_Combined->WriteTObject(hSF_nominal);
-    outdir_Dilepton_Combined->WriteTObject(hSF_dn);
-    outdir_Dilepton_Combined->WriteTObject(hSF_up);
-
-    hSFs_combined[0].push_back(hSF_nominal);
-    hSFs_combined[1].push_back(hSF_dn);
-    hSFs_combined[2].push_back(hSF_up);
-
-    // Get averaged SFs
-    hname = hSF_nominal->GetName(); HelperFunctions::replaceString(hname, "_SF_", "_SF_pt25avg_");
-    TH2F* hSF_pt25avg_nominal = (TH2F*) hSF_nominal->Clone(hname);
-    hname = hSF_dn->GetName(); HelperFunctions::replaceString(hname, "_SF_", "_SF_pt25avg_");
-    TH2F* hSF_pt25avg_dn = (TH2F*) hSF_dn->Clone(hname);
-    hname = hSF_up->GetName(); HelperFunctions::replaceString(hname, "_SF_", "_SF_pt25avg_");
-    TH2F* hSF_pt25avg_up = (TH2F*) hSF_up->Clone(hname);
-
-    int i25 = hSF_nominal->GetXaxis()->FindBin(25);
-    int j25 = hSF_nominal->GetYaxis()->FindBin(25);
-    double sum_SF_nominal_times_wgt = 0;
-    double sum_SF_dn_times_wgt = 0;
-    double sum_SF_up_times_wgt = 0;
-    double sum_wgt = 0;
-    for (int ix=i25; ix<=hSF_nominal->GetNbinsX(); ix++){
-      for (int iy=j25; iy<=hSF_nominal->GetNbinsY(); iy++){
-        double SF_nominal = hSF_nominal->GetBinContent(ix, iy);
-        double SF_dn = hSF_dn->GetBinContent(ix, iy);
-        double SF_up = hSF_up->GetBinContent(ix, iy);
-        if (SF_dn == SF_up && SF_nominal==0.) continue;
-        double wgt = 1./std::pow(SF_up-SF_dn, 2);
-        sum_SF_nominal_times_wgt += SF_nominal*wgt;
-        sum_SF_dn_times_wgt += SF_dn*wgt;
-        sum_SF_up_times_wgt += SF_up*wgt;
-        sum_wgt += wgt;
-      }
-    }
-    sum_SF_nominal_times_wgt /= sum_wgt;
-    sum_SF_dn_times_wgt /= sum_wgt;
-    sum_SF_up_times_wgt /= sum_wgt;
-    MELAout
-      << "SF on " << hMC_nominal->GetName() << " might be averaged as " << sum_SF_nominal_times_wgt << " [" << sum_SF_dn_times_wgt << ", " << sum_SF_up_times_wgt << "] | "
-      << (sum_SF_dn_times_wgt/sum_SF_nominal_times_wgt-1.)*100. << ", " << (sum_SF_up_times_wgt/sum_SF_nominal_times_wgt-1.)*100.
-      << endl;
-    // Set the avg. values
-    for (int ix=i25; ix<=hSF_nominal->GetNbinsX(); ix++){
-      for (int iy=j25; iy<=hSF_nominal->GetNbinsY(); iy++){
-        double SF_nominal = hSF_nominal->GetBinContent(ix, iy);
-        double SF_dn = hSF_dn->GetBinContent(ix, iy);
-        double SF_up = hSF_up->GetBinContent(ix, iy);
-        if (SF_dn == SF_up && SF_nominal==0.) continue;
-        hSF_pt25avg_nominal->SetBinContent(ix, iy, sum_SF_nominal_times_wgt);
-        hSF_pt25avg_dn->SetBinContent(ix, iy, sum_SF_dn_times_wgt);
-        hSF_pt25avg_up->SetBinContent(ix, iy, sum_SF_up_times_wgt);
-      }
-    }
-
-    outdir_Dilepton_Combined->WriteTObject(hSF_pt25avg_nominal);
-    outdir_Dilepton_Combined->WriteTObject(hSF_pt25avg_dn);
-    outdir_Dilepton_Combined->WriteTObject(hSF_pt25avg_up);
-
-    hSFs_pt25avg_combined[0].push_back(hSF_pt25avg_nominal);
-    hSFs_pt25avg_combined[1].push_back(hSF_pt25avg_dn);
-    hSFs_pt25avg_combined[2].push_back(hSF_pt25avg_up);
-  }
-  // Plot the efficiencies
-  {
+    // Single lepton triggers
     foutput->cd();
-    std::vector<TH2F*> efflist_flat[3];
-    int effhists_ix_setZeroThr[3]={ 1 };
-    int effhists_iy_setZeroThr[3]={ 1 };
-    for (unsigned short ihs=0; ihs<2; ihs++){
-      for (auto const& hh:heffs_combined[ihs]){
+    std::vector<TH2F*> heffs_SingleLepton[2];
+    std::vector<TH2F*> hSFs_SingleLepton[3];
+    {
+      std::vector<TH2F*> tmplist;
+      subdir_SingleLeptonTnP_Effs->cd();
+      HelperFunctions::extractHistogramsFromDirectory(subdir_SingleLeptonTnP_Effs, tmplist, TVar::ERROR);
+      for (auto& hh:tmplist){
         TString hname = hh->GetName();
-        unsigned short const ic = (0*hname.Contains("_mumu_") + 1*hname.Contains("_mue_") + 2*hname.Contains("_ee_"));
-
-        int ix_setZeroThr = 1;
-        int iy_setZeroThr = 1;
-        if (ic==1){
-          ix_setZeroThr = hh->GetXaxis()->FindBin(25)-1;
-          iy_setZeroThr = hh->GetYaxis()->FindBin(25)-1;
+        short idatasim = -1;
+        if (hname.Contains("_Data")) idatasim = 0;
+        else if (hname.Contains("_DY_2l")) idatasim = 1;
+        if (!hname.Contains("SingleElectron") && !hname.Contains("SingleMuon")) continue;
+        if (idatasim>=0){
+          TString hname = hh->GetName();
+          HelperFunctions::replaceString(hname, "_DY_2l", "_MC");
+          HelperFunctions::replaceString(hname, "_Data", "_data");
+          hname = Form("%s_%s", hname.Data(), strSyst.Data());
+          hh->SetName(hname);
+          if (hname.Contains("_nominal_")) hh->GetZaxis()->SetTitle("#epsilon");
+          else if (hname.Contains("_dn_")) hh->GetZaxis()->SetTitle("#epsilon^{#minus}");
+          else if (hname.Contains("_up_")) hh->GetZaxis()->SetTitle("#epsilon^{#plus}");
+          heffs_SingleLepton[idatasim].push_back(hh);
         }
-        else{
-          ix_setZeroThr = hh->GetXaxis()->FindBin(25);
-          iy_setZeroThr = hh->GetYaxis()->FindBin(25)-1;
-        }
-        effhists_ix_setZeroThr[ic] = ix_setZeroThr;
-        effhists_iy_setZeroThr[ic] = iy_setZeroThr;
-
-        efflist_flat[ic].push_back(convertHistogramToFlatBins(hh, ix_setZeroThr, iy_setZeroThr));
       }
     }
-    for (unsigned short ic=0; ic<3; ic++){
-      double minZ, maxZ;
-      findZMinMax(efflist_flat[ic], minZ, maxZ);
-      double minX = efflist_flat[ic].front()->GetXaxis()->GetBinLowEdge(effhists_ix_setZeroThr[ic]);
-      double maxX = efflist_flat[ic].front()->GetXaxis()->GetBinLowEdge(efflist_flat[ic].front()->GetNbinsX()+1);
-      double minY = efflist_flat[ic].front()->GetYaxis()->GetBinLowEdge(effhists_iy_setZeroThr[ic]);
-      double maxY = efflist_flat[ic].front()->GetYaxis()->GetBinLowEdge(efflist_flat[ic].front()->GetNbinsY()+1);
-      for (auto& hh:efflist_flat[ic]){
-        TString cname_app;
-        TString ptitle;
-        plotEffSF(coutput_plots+"/Effs", cname_app, ptitle, hh, minX, maxX, minY, maxY, minZ, maxZ);
-        delete hh;
+    // Build the SFs
+    outdir_SingleLepton_Combined->cd();
+    for (unsigned int ib=0; ib<heffs_SingleLepton[0].size(); ib+=3){
+      auto const& hdata_nominal = heffs_SingleLepton[0].at(ib);
+      auto const& hdata_dn = heffs_SingleLepton[0].at(ib+1);
+      auto const& hdata_up = heffs_SingleLepton[0].at(ib+2);
+
+      auto const& hMC_nominal = heffs_SingleLepton[1].at(ib);
+      auto const& hMC_dn = heffs_SingleLepton[1].at(ib+1);
+      auto const& hMC_up = heffs_SingleLepton[1].at(ib+2);
+
+      TString hname;
+
+      hname = hMC_nominal->GetName(); HelperFunctions::replaceString(hname, "_MC", ""); HelperFunctions::replaceString(hname, "_eff_", "_SF_");
+      TH2F* hSF_nominal = (TH2F*) hMC_nominal->Clone(hname); hSF_nominal->Reset("ICESM");
+      hSF_nominal->GetZaxis()->SetTitle("SF");
+
+      hname = hMC_dn->GetName(); HelperFunctions::replaceString(hname, "_MC", ""); HelperFunctions::replaceString(hname, "_eff_", "_SF_");
+      TH2F* hSF_dn = (TH2F*) hMC_dn->Clone(hname); hSF_dn->Reset("ICESM");
+      hSF_dn->GetZaxis()->SetTitle("SF^{#minus}");
+
+      hname = hMC_up->GetName(); HelperFunctions::replaceString(hname, "_MC", ""); HelperFunctions::replaceString(hname, "_eff_", "_SF_");
+      TH2F* hSF_up = (TH2F*) hMC_up->Clone(hname); hSF_up->Reset("ICESM");
+      hSF_up->GetZaxis()->SetTitle("SF^{#plus}");
+
+      for (int ix=0; ix<=hMC_nominal->GetNbinsX()+1; ix++){
+        for (int iy=0; iy<=hMC_nominal->GetNbinsY()+1; iy++){
+          double bc_data_nominal = hdata_nominal->GetBinContent(ix, iy);
+          double bc_data_dn = hdata_dn->GetBinContent(ix, iy);
+          double bc_data_up = hdata_up->GetBinContent(ix, iy);
+          if (bc_data_nominal==0. && bc_data_dn==0. && bc_data_up==0.){
+            bc_data_nominal = 0.5;
+            bc_data_dn = 0;
+            bc_data_up = 1;
+          }
+
+          double bc_MC_nominal = hMC_nominal->GetBinContent(ix, iy);
+          double bc_MC_dn = hMC_dn->GetBinContent(ix, iy);
+          double bc_MC_up = hMC_up->GetBinContent(ix, iy);
+          if (bc_MC_nominal==0. && bc_MC_dn==0. && bc_MC_up==0.){
+            bc_MC_nominal = 0.5;
+            bc_MC_dn = 0;
+            bc_MC_up = 1;
+          }
+
+          double SF_nominal=1, SF_dn=0.5, SF_up=1.5;
+          if (bc_MC_nominal>0.){
+            SF_nominal = bc_data_nominal / bc_MC_nominal;
+            if (bc_MC_up>0.) SF_dn = SF_nominal - std::sqrt(std::pow(bc_data_dn / bc_MC_nominal - SF_nominal, 2) + std::pow(bc_data_nominal / bc_MC_up - SF_nominal, 2));
+            else SF_dn = bc_data_dn / bc_MC_nominal;
+            if (bc_MC_dn>0.) SF_up = SF_nominal + std::sqrt(std::pow(bc_data_up / bc_MC_nominal - SF_nominal, 2) + std::pow(bc_data_nominal / bc_MC_dn - SF_nominal, 2));
+            else SF_up = bc_data_up / bc_MC_nominal;
+          }
+          SF_dn = std::max(SF_dn, 0.);
+
+          hSF_nominal->SetBinContent(ix, iy, SF_nominal);
+          hSF_dn->SetBinContent(ix, iy, SF_dn);
+          hSF_up->SetBinContent(ix, iy, SF_up);
+        }
       }
-      efflist_flat[ic].clear();
+
+      if (syst==sNominal){
+        outdir_SingleLepton_Combined->WriteTObject(hdata_nominal);
+        outdir_SingleLepton_Combined->WriteTObject(hdata_dn);
+        outdir_SingleLepton_Combined->WriteTObject(hdata_up);
+      }
+      outdir_SingleLepton_Combined->WriteTObject(hMC_nominal);
+      if (syst==sNominal){
+        outdir_SingleLepton_Combined->WriteTObject(hMC_dn);
+        outdir_SingleLepton_Combined->WriteTObject(hMC_up);
+      }
+      outdir_SingleLepton_Combined->WriteTObject(hSF_nominal);
+      if (syst==sNominal){
+        outdir_SingleLepton_Combined->WriteTObject(hSF_dn);
+        outdir_SingleLepton_Combined->WriteTObject(hSF_up);
+      }
+
+      hSFs_SingleLepton[0].push_back(hSF_nominal);
+      hSFs_SingleLepton[1].push_back(hSF_dn);
+      hSFs_SingleLepton[2].push_back(hSF_up);
+    }
+    // Plot the efficiencies
+    {
+      foutput->cd();
+      std::vector<TH2F*> efflist_flat[2];
+      int effhists_iy_setZeroThr[2]={ 1 };
+      for (unsigned short ihs=0; ihs<2; ihs++){
+        for (auto const& hh:heffs_SingleLepton[ihs]){
+          TString hname = hh->GetName();
+          unsigned short const ic = (0*hname.Contains("SingleMuon") + 1*hname.Contains("SingleElectron"));
+
+          int iy_setZeroThr = 2;
+          effhists_iy_setZeroThr[ic] = iy_setZeroThr;
+
+          efflist_flat[ic].push_back(convertHistogramToFlatBins(hh, 1, iy_setZeroThr));
+        }
+      }
+      for (unsigned short ic=0; ic<2; ic++){
+        double minZ, maxZ;
+        findZMinMax(efflist_flat[ic], minZ, maxZ);
+        double minX = efflist_flat[ic].front()->GetXaxis()->GetBinLowEdge(1);
+        double maxX = efflist_flat[ic].front()->GetXaxis()->GetBinLowEdge(efflist_flat[ic].front()->GetNbinsX()+1);
+        double minY = efflist_flat[ic].front()->GetYaxis()->GetBinLowEdge(effhists_iy_setZeroThr[ic]);
+        double maxY = efflist_flat[ic].front()->GetYaxis()->GetBinLowEdge(efflist_flat[ic].front()->GetNbinsY()+1);
+        for (auto& hh:efflist_flat[ic]){
+          TString cname_app;
+          TString ptitle;
+          plotEffSF(coutput_plots+"/Effs", cname_app, ptitle, hh, minX, maxX, minY, maxY, minZ, maxZ);
+          delete hh;
+        }
+        efflist_flat[ic].clear();
+      }
+
+      std::vector<TH2F*> SFlist_flat[2];
+      int SFhists_iy_setZeroThr[2]={ 1 };
+      for (unsigned short ihs=0; ihs<3; ihs++){
+        for (auto const& hh:hSFs_SingleLepton[ihs]){
+          TString hname = hh->GetName();
+          unsigned short const ic = (0*hname.Contains("SingleMuon") + 1*hname.Contains("SingleElectron"));
+
+          int iy_setZeroThr = 2;
+          SFhists_iy_setZeroThr[ic] = iy_setZeroThr;
+
+          SFlist_flat[ic].push_back(convertHistogramToFlatBins(hh, 1, iy_setZeroThr));
+        }
+      }
+      for (unsigned short ic=0; ic<2; ic++){
+        double minZ, maxZ;
+        findZMinMax(SFlist_flat[ic], minZ, maxZ);
+        double minX = SFlist_flat[ic].front()->GetXaxis()->GetBinLowEdge(1);
+        double maxX = SFlist_flat[ic].front()->GetXaxis()->GetBinLowEdge(SFlist_flat[ic].front()->GetNbinsX()+1);
+        double minY = SFlist_flat[ic].front()->GetYaxis()->GetBinLowEdge(SFhists_iy_setZeroThr[ic]);
+        double maxY = SFlist_flat[ic].front()->GetYaxis()->GetBinLowEdge(SFlist_flat[ic].front()->GetNbinsY()+1);
+        for (auto& hh:SFlist_flat[ic]){
+          TString cname_app;
+          TString ptitle;
+          plotEffSF(coutput_plots+"/SFs", cname_app, ptitle, hh, minX, maxX, minY, maxY, minZ, maxZ);
+          delete hh;
+        }
+        SFlist_flat[ic].clear();
+      }
     }
 
-    std::vector<TH2F*> SFlist_flat[3];
-    int SFhists_ix_setZeroThr[3]={ 1 };
-    int SFhists_iy_setZeroThr[3]={ 1 };
-    for (unsigned short ihs=0; ihs<3; ihs++){
-      for (auto const& hh:hSFs_combined[ihs]){
-        TString hname = hh->GetName();
-        unsigned short const ic = (0*hname.Contains("_mumu_") + 1*hname.Contains("_mue_") + 2*hname.Contains("_ee_"));
+    for (unsigned short ihs=0; ihs<3; ihs++){ for (auto& hh:hSFs_pt25avg_combined[ihs]) delete hh; }
+    for (unsigned short ihs=0; ihs<3; ihs++){ for (auto& hh:hSFs_combined[ihs]) delete hh; }
+    for (unsigned short ihs=0; ihs<3; ihs++){ for (auto& hh:hSFs_SingleLepton[ihs]) delete hh; }
 
-        int ix_setZeroThr = 1;
-        int iy_setZeroThr = 1;
-        if (ic==1){
-          ix_setZeroThr = hh->GetXaxis()->FindBin(25)-1;
-          iy_setZeroThr = hh->GetYaxis()->FindBin(25)-1;
-        }
-        else{
-          ix_setZeroThr = hh->GetXaxis()->FindBin(25);
-          iy_setZeroThr = hh->GetYaxis()->FindBin(25)-1;
-        }
-        SFhists_ix_setZeroThr[ic] = ix_setZeroThr;
-        SFhists_iy_setZeroThr[ic] = iy_setZeroThr;
-
-        SFlist_flat[ic].push_back(convertHistogramToFlatBins(hh, ix_setZeroThr, iy_setZeroThr));
-      }
-    }
-    for (unsigned short ic=0; ic<3; ic++){
-      double minZ, maxZ;
-      findZMinMax(SFlist_flat[ic], minZ, maxZ);
-      double minX = SFlist_flat[ic].front()->GetXaxis()->GetBinLowEdge(SFhists_ix_setZeroThr[ic]);
-      double maxX = SFlist_flat[ic].front()->GetXaxis()->GetBinLowEdge(SFlist_flat[ic].front()->GetNbinsX()+1);
-      double minY = SFlist_flat[ic].front()->GetYaxis()->GetBinLowEdge(SFhists_iy_setZeroThr[ic]);
-      double maxY = SFlist_flat[ic].front()->GetYaxis()->GetBinLowEdge(SFlist_flat[ic].front()->GetNbinsY()+1);
-      for (auto& hh:SFlist_flat[ic]){
-        TString cname_app;
-        TString ptitle;
-        plotEffSF(coutput_plots+"/SFs", cname_app, ptitle, hh, minX, maxX, minY, maxY, minZ, maxZ);
-        delete hh;
-      }
-      SFlist_flat[ic].clear();
-    }
-  }
-
-  // Single lepton triggers
-  foutput->cd();
-  std::vector<TH2F*> heffs_SingleLepton[2];
-  std::vector<TH2F*> hSFs_SingleLepton[3];
-  {
-    std::vector<TH2F*> tmplist;
-    subdir_SingleLeptonTnP_Effs->cd();
-    HelperFunctions::extractHistogramsFromDirectory(subdir_SingleLeptonTnP_Effs, tmplist, TVar::ERROR);
-    for (auto& hh:tmplist){
-      TString hname = hh->GetName();
-      short idatasim = -1;
-      if (hname.Contains("_Data")) idatasim = 0;
-      else if (hname.Contains("_DY_2l")) idatasim = 1;
-      if (!hname.Contains("SingleElectron") && !hname.Contains("SingleMuon")) continue;
-      if (idatasim>=0){
-        TString hname = hh->GetName();
-        HelperFunctions::replaceString(hname, "_DY_2l", "_MC");
-        HelperFunctions::replaceString(hname, "_Data", "_data");
-        hh->SetName(hname);
-        if (hname.Contains("_nominal_")) hh->GetZaxis()->SetTitle("#epsilon");
-        else if (hname.Contains("_dn_")) hh->GetZaxis()->SetTitle("#epsilon^{#minus}");
-        else if (hname.Contains("_up_")) hh->GetZaxis()->SetTitle("#epsilon^{#plus}");
-        heffs_SingleLepton[idatasim].push_back(hh);
-      }
-    }
-  }
-  // Build the SFs
-  outdir_SingleLepton_Combined->cd();
-  for (unsigned int ib=0; ib<heffs_SingleLepton[0].size(); ib+=3){
-    auto const& hdata_nominal = heffs_SingleLepton[0].at(ib);
-    auto const& hdata_dn = heffs_SingleLepton[0].at(ib+1);
-    auto const& hdata_up = heffs_SingleLepton[0].at(ib+2);
-
-    auto const& hMC_nominal = heffs_SingleLepton[1].at(ib);
-    auto const& hMC_dn = heffs_SingleLepton[1].at(ib+1);
-    auto const& hMC_up = heffs_SingleLepton[1].at(ib+2);
-
-    TString hname;
-
-    hname = hMC_nominal->GetName(); HelperFunctions::replaceString(hname, "_MC", ""); HelperFunctions::replaceString(hname, "_eff_", "_SF_");
-    TH2F* hSF_nominal = (TH2F*) hMC_nominal->Clone(hname); hSF_nominal->Reset("ICESM");
-    hSF_nominal->GetZaxis()->SetTitle("SF");
-
-    hname = hMC_dn->GetName(); HelperFunctions::replaceString(hname, "_MC", ""); HelperFunctions::replaceString(hname, "_eff_", "_SF_");
-    TH2F* hSF_dn = (TH2F*) hMC_dn->Clone(hname); hSF_dn->Reset("ICESM");
-    hSF_dn->GetZaxis()->SetTitle("SF^{#minus}");
-
-    hname = hMC_up->GetName(); HelperFunctions::replaceString(hname, "_MC", ""); HelperFunctions::replaceString(hname, "_eff_", "_SF_");
-    TH2F* hSF_up = (TH2F*) hMC_up->Clone(hname); hSF_up->Reset("ICESM");
-    hSF_up->GetZaxis()->SetTitle("SF^{#plus}");
-
-    for (int ix=0; ix<=hMC_nominal->GetNbinsX()+1; ix++){
-      for (int iy=0; iy<=hMC_nominal->GetNbinsY()+1; iy++){
-        double bc_data_nominal = hdata_nominal->GetBinContent(ix, iy);
-        double bc_data_dn = hdata_dn->GetBinContent(ix, iy);
-        double bc_data_up = hdata_up->GetBinContent(ix, iy);
-        if (bc_data_nominal==0. && bc_data_dn==0. && bc_data_up==0.){
-          bc_data_nominal = 0.5;
-          bc_data_dn = 0;
-          bc_data_up = 1;
-        }
-
-        double bc_MC_nominal = hMC_nominal->GetBinContent(ix, iy);
-        double bc_MC_dn = hMC_dn->GetBinContent(ix, iy);
-        double bc_MC_up = hMC_up->GetBinContent(ix, iy);
-        if (bc_MC_nominal==0. && bc_MC_dn==0. && bc_MC_up==0.){
-          bc_MC_nominal = 0.5;
-          bc_MC_dn = 0;
-          bc_MC_up = 1;
-        }
-
-        double SF_nominal=1, SF_dn=0.5, SF_up=1.5;
-        if (bc_MC_nominal>0.){
-          SF_nominal = bc_data_nominal / bc_MC_nominal;
-          if (bc_MC_up>0.) SF_dn = SF_nominal - std::sqrt(std::pow(bc_data_dn / bc_MC_nominal - SF_nominal, 2) + std::pow(bc_data_nominal / bc_MC_up - SF_nominal, 2));
-          else SF_dn = bc_data_dn / bc_MC_nominal;
-          if (bc_MC_dn>0.) SF_up = SF_nominal + std::sqrt(std::pow(bc_data_up / bc_MC_nominal - SF_nominal, 2) + std::pow(bc_data_nominal / bc_MC_dn - SF_nominal, 2));
-          else SF_up = bc_data_up / bc_MC_nominal;
-        }
-        SF_dn = std::max(SF_dn, 0.);
-
-        hSF_nominal->SetBinContent(ix, iy, SF_nominal);
-        hSF_dn->SetBinContent(ix, iy, SF_dn);
-        hSF_up->SetBinContent(ix, iy, SF_up);
-      }
-    }
-
-    outdir_SingleLepton_Combined->WriteTObject(hdata_nominal);
-    outdir_SingleLepton_Combined->WriteTObject(hdata_dn);
-    outdir_SingleLepton_Combined->WriteTObject(hdata_up);
-    outdir_SingleLepton_Combined->WriteTObject(hMC_nominal);
-    outdir_SingleLepton_Combined->WriteTObject(hMC_dn);
-    outdir_SingleLepton_Combined->WriteTObject(hMC_up);
-    outdir_SingleLepton_Combined->WriteTObject(hSF_nominal);
-    outdir_SingleLepton_Combined->WriteTObject(hSF_dn);
-    outdir_SingleLepton_Combined->WriteTObject(hSF_up);
-
-    hSFs_SingleLepton[0].push_back(hSF_nominal);
-    hSFs_SingleLepton[1].push_back(hSF_dn);
-    hSFs_SingleLepton[2].push_back(hSF_up);
-  }
-  // Plot the efficiencies
-  {
+    finput->Close();
     foutput->cd();
-    std::vector<TH2F*> efflist_flat[2];
-    int effhists_iy_setZeroThr[2]={ 1 };
-    for (unsigned short ihs=0; ihs<2; ihs++){
-      for (auto const& hh:heffs_SingleLepton[ihs]){
-        TString hname = hh->GetName();
-        unsigned short const ic = (0*hname.Contains("SingleMuon") + 1*hname.Contains("SingleElectron"));
-
-        int iy_setZeroThr = 2;
-        effhists_iy_setZeroThr[ic] = iy_setZeroThr;
-
-        efflist_flat[ic].push_back(convertHistogramToFlatBins(hh, 1, iy_setZeroThr));
-      }
-    }
-    for (unsigned short ic=0; ic<2; ic++){
-      double minZ, maxZ;
-      findZMinMax(efflist_flat[ic], minZ, maxZ);
-      double minX = efflist_flat[ic].front()->GetXaxis()->GetBinLowEdge(1);
-      double maxX = efflist_flat[ic].front()->GetXaxis()->GetBinLowEdge(efflist_flat[ic].front()->GetNbinsX()+1);
-      double minY = efflist_flat[ic].front()->GetYaxis()->GetBinLowEdge(effhists_iy_setZeroThr[ic]);
-      double maxY = efflist_flat[ic].front()->GetYaxis()->GetBinLowEdge(efflist_flat[ic].front()->GetNbinsY()+1);
-      for (auto& hh:efflist_flat[ic]){
-        TString cname_app;
-        TString ptitle;
-        plotEffSF(coutput_plots+"/Effs", cname_app, ptitle, hh, minX, maxX, minY, maxY, minZ, maxZ);
-        delete hh;
-      }
-      efflist_flat[ic].clear();
-    }
-
-    std::vector<TH2F*> SFlist_flat[2];
-    int SFhists_iy_setZeroThr[2]={ 1 };
-    for (unsigned short ihs=0; ihs<3; ihs++){
-      for (auto const& hh:hSFs_SingleLepton[ihs]){
-        TString hname = hh->GetName();
-        unsigned short const ic = (0*hname.Contains("SingleMuon") + 1*hname.Contains("SingleElectron"));
-
-        int iy_setZeroThr = 2;
-        SFhists_iy_setZeroThr[ic] = iy_setZeroThr;
-
-        SFlist_flat[ic].push_back(convertHistogramToFlatBins(hh, 1, iy_setZeroThr));
-      }
-    }
-    for (unsigned short ic=0; ic<2; ic++){
-      double minZ, maxZ;
-      findZMinMax(SFlist_flat[ic], minZ, maxZ);
-      double minX = SFlist_flat[ic].front()->GetXaxis()->GetBinLowEdge(1);
-      double maxX = SFlist_flat[ic].front()->GetXaxis()->GetBinLowEdge(SFlist_flat[ic].front()->GetNbinsX()+1);
-      double minY = SFlist_flat[ic].front()->GetYaxis()->GetBinLowEdge(SFhists_iy_setZeroThr[ic]);
-      double maxY = SFlist_flat[ic].front()->GetYaxis()->GetBinLowEdge(SFlist_flat[ic].front()->GetNbinsY()+1);
-      for (auto& hh:SFlist_flat[ic]){
-        TString cname_app;
-        TString ptitle;
-        plotEffSF(coutput_plots+"/SFs", cname_app, ptitle, hh, minX, maxX, minY, maxY, minZ, maxZ);
-        delete hh;
-      }
-      SFlist_flat[ic].clear();
-    }
   }
-
-  for (unsigned short ihs=0; ihs<3; ihs++){ for (auto& hh:hSFs_pt25avg_combined[ihs]) delete hh; }
-  for (unsigned short ihs=0; ihs<3; ihs++){ for (auto& hh:hSFs_combined[ihs]) delete hh; }
-  for (unsigned short ihs=0; ihs<3; ihs++){ for (auto& hh:hSFs_SingleLepton[ihs]) delete hh; }
-
   outdir_SingleLepton_Combined->Close();
   outdir_Dilepton_Combined->Close();
-
-  finput->Close();
   foutput->Close();
 }
