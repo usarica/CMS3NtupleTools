@@ -40,6 +40,7 @@
 #include "METCorrectionHandler.h"
 
 #include "DiscriminantClasses.h"
+#include "ACHypothesisHelpers.h"
 
 #include "BaseTreeLooper.h"
 

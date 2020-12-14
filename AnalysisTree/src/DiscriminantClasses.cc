@@ -15,9 +15,10 @@ using namespace MELAStreamHelpers;
 
 
 DiscriminantClasses::KDspecs::KDspecs() : KDtype(DiscriminantClasses::kNTypes), KD(nullptr) {}
-DiscriminantClasses::KDspecs::KDspecs(TString strname) : KDname(strname), KDtype(DiscriminantClasses::getKDType(KDname)), KD(nullptr) {}
-DiscriminantClasses::KDspecs::KDspecs(DiscriminantClasses::Type type) : KDname(DiscriminantClasses::getKDName(type)), KDtype(type), KD(nullptr) {}
+DiscriminantClasses::KDspecs::KDspecs(DiscriminantClasses::Type type) : KDtype(type), KDname(DiscriminantClasses::getKDName(type)), KDlabel(DiscriminantClasses::getKDLabel(type)), KD(nullptr) {}
+DiscriminantClasses::KDspecs::KDspecs(TString strname) : KDtype(DiscriminantClasses::getKDType(strname)), KDname(strname), KDlabel(DiscriminantClasses::getKDLabel(KDtype)), KD(nullptr) {}
 bool DiscriminantClasses::KDspecs::isValid() const{ return (KD!=nullptr); }
+void DiscriminantClasses::KDspecs::resetKD(){ delete KD; KD = nullptr; }
 
 std::unordered_map<TString, DiscriminantClasses::Type> DiscriminantClasses::getKDNameTypeMap(){
   std::unordered_map<TString, DiscriminantClasses::Type> res;
@@ -947,126 +948,126 @@ void DiscriminantClasses::constructDiscriminants(std::vector<DiscriminantClasses
   for (auto& KDspec:KDlist){
     switch (KDspec.KDtype){
     case kDbkgkin:
-      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_Dbkgkin_" + strChannel + "_13TeV.root", "sp_gr_varReco_Constant_Smooth");
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "RecoMEConstants/SmoothKDConstant_m4l_Dbkgkin_" + strChannel + "_13TeV.root", "sp_gr_varReco_Constant_Smooth");
       break;
     case kDbkgm4l:
-      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_Dbkgkin_" + strChannel + "_13TeV.root", "sp_gr_varReco_Constant_Smooth");
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "RecoMEConstants/SmoothKDConstant_m4l_Dbkgkin_" + strChannel + "_13TeV.root", "sp_gr_varReco_Constant_Smooth");
       break;
     case kDggint:
-      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_Dggbkgkin_" + strChannel + "_13TeV.root", "sp_gr_varReco_Constant_Smooth");
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "RecoMEConstants/SmoothKDConstant_m4l_Dggbkgkin_" + strChannel + "_13TeV.root", "sp_gr_varReco_Constant_Smooth");
       break;
     case kDL1dec:
-      KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", ANALYSISTREEPKGDATAPATH + "gConstant_HZZ2e2mu_L1.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_L1", 1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1));
+      KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_HZZ2e2mu_L1.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_L1", 1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1));
       break;
     case kDa2dec:
-      KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", ANALYSISTREEPKGDATAPATH + "gConstant_HZZ2e2mu_g2.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_g2");
+      KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_HZZ2e2mu_g2.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_g2");
       break;
     case kDa3dec:
-      KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", ANALYSISTREEPKGDATAPATH + "gConstant_HZZ2e2mu_g4.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_g4");
+      KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_HZZ2e2mu_g4.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_g4");
       break;
     case kDL1ZGsdec:
-      KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", ANALYSISTREEPKGDATAPATH + "gConstant_HZZ2e2mu_L1Zgs.root", "sp_tgfinal_HZZ2e2mu_SM_photoncut_over_tgfinal_HZZ2e2mu_L1Zgs", 1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1ZGs));
+      KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_HZZ2e2mu_L1Zgs.root", "sp_tgfinal_HZZ2e2mu_SM_photoncut_over_tgfinal_HZZ2e2mu_L1Zgs", 1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1ZGs));
       break;
     case kDbkgjjEWQCD:
-      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DbkgjjEWQCD_" + strChannel_2l2l_4l + "_" + strCategory + "_13TeV.root", "sp_gr_varReco_Constant_Smooth");
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "RecoMEConstants/SmoothKDConstant_m4l_DbkgjjEWQCD_" + strChannel_2l2l_4l + "_" + strCategory + "_13TeV.root", "sp_gr_varReco_Constant_Smooth");
       break;
     case kDbkgm4ljjEWQCD:
-      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DbkgjjEWQCD_" + strChannel_2l2l_4l + "_" + strCategory + "_13TeV.root", "sp_gr_varReco_Constant_Smooth");
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "RecoMEConstants/SmoothKDConstant_m4l_DbkgjjEWQCD_" + strChannel_2l2l_4l + "_" + strCategory + "_13TeV.root", "sp_gr_varReco_Constant_Smooth");
       break;
     case kDintjjEWQCD:
-      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DbkgjjEWQCD_" + strChannel_2l2l_4l + "_" + strCategory + "_13TeV.root", "sp_gr_varReco_Constant_Smooth");
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "RecoMEConstants/SmoothKDConstant_m4l_DbkgjjEWQCD_" + strChannel_2l2l_4l + "_" + strCategory + "_13TeV.root", "sp_gr_varReco_Constant_Smooth");
       break;
     case kDL1jjVBFdec:
       KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", "", "", pow(1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1), 2));
-      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_VBF_L1.root", "sp_tgfinal_VBF_SM_over_tgfinal_VBF_L1");
-      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_HZZ2e2mu_L1.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_L1");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_VBF_L1.root", "sp_tgfinal_VBF_SM_over_tgfinal_VBF_L1");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_HZZ2e2mu_L1.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_L1");
       break;
     case kDa2jjVBFdec:
       KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", "", "");
-      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_VBF_g2.root", "sp_tgfinal_VBF_SM_over_tgfinal_VBF_g2");
-      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_HZZ2e2mu_g2.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_g2");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_VBF_g2.root", "sp_tgfinal_VBF_SM_over_tgfinal_VBF_g2");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_HZZ2e2mu_g2.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_g2");
       break;
     case kDa3jjVBFdec:
       KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", "", "");
-      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_VBF_g4.root", "sp_tgfinal_VBF_SM_over_tgfinal_VBF_g4");
-      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_HZZ2e2mu_g4.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_g4");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_VBF_g4.root", "sp_tgfinal_VBF_SM_over_tgfinal_VBF_g4");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_HZZ2e2mu_g4.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_g4");
       break;
     case kDL1ZGsjjVBFdec:
       KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", "", "", pow(1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1ZGs), 2));
-      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_VBF_L1Zgs.root", "sp_tgfinal_VBF_SM_photoncut_over_tgfinal_VBF_L1Zgs");
-      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_HZZ2e2mu_L1Zgs.root", "sp_tgfinal_HZZ2e2mu_SM_photoncut_over_tgfinal_HZZ2e2mu_L1Zgs");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_VBF_L1Zgs.root", "sp_tgfinal_VBF_SM_photoncut_over_tgfinal_VBF_L1Zgs");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_HZZ2e2mu_L1Zgs.root", "sp_tgfinal_HZZ2e2mu_SM_photoncut_over_tgfinal_HZZ2e2mu_L1Zgs");
       break;
     case kDL1jjVHdec:
       KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", "", "", pow(1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1), 2));
-      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_VH_L1.root", "sp_tgfinal_ZH_SM_plus_tgfinal_WH_SM_over_tgfinal_ZH_L1_plus_tgfinal_WH_L1");
-      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_HZZ2e2mu_L1.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_L1");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_VH_L1.root", "sp_tgfinal_ZH_SM_plus_tgfinal_WH_SM_over_tgfinal_ZH_L1_plus_tgfinal_WH_L1");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_HZZ2e2mu_L1.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_L1");
       break;
     case kDa2jjVHdec:
       KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", "", "");
-      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_VH_g2.root", "sp_tgfinal_ZH_SM_plus_tgfinal_WH_SM_over_tgfinal_ZH_g2_plus_tgfinal_WH_g2");
-      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_HZZ2e2mu_g2.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_g2");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_VH_g2.root", "sp_tgfinal_ZH_SM_plus_tgfinal_WH_SM_over_tgfinal_ZH_g2_plus_tgfinal_WH_g2");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_HZZ2e2mu_g2.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_g2");
       break;
     case kDa3jjVHdec:
       KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", "", "");
-      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_VH_g4.root", "sp_tgfinal_ZH_SM_plus_tgfinal_WH_SM_over_tgfinal_ZH_g4_plus_tgfinal_WH_g4");
-      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_HZZ2e2mu_g4.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_g4");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_VH_g4.root", "sp_tgfinal_ZH_SM_plus_tgfinal_WH_SM_over_tgfinal_ZH_g4_plus_tgfinal_WH_g4");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_HZZ2e2mu_g4.root", "sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_g4");
       break;
     case kDL1ZGsjjVHdec:
       KDspec.KD = constructKDFromType(KDspec.KDtype, "", "", "", "", pow(1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1ZGs), 2));
-      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_VH_L1Zgs.root", "sp_tgfinal_ZH_SM_photoncut_plus_tgfinal_WH_SM_over_tgfinal_ZH_L1Zgs");
-      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "gConstant_HZZ2e2mu_L1Zgs.root", "sp_tgfinal_HZZ2e2mu_SM_photoncut_over_tgfinal_HZZ2e2mu_L1Zgs");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_VH_L1Zgs.root", "sp_tgfinal_ZH_SM_photoncut_plus_tgfinal_WH_SM_over_tgfinal_ZH_L1Zgs");
+      KDspec.KD->addAdditionalG(ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_HZZ2e2mu_L1Zgs.root", "sp_tgfinal_HZZ2e2mu_SM_photoncut_over_tgfinal_HZZ2e2mu_L1Zgs");
       break;
     case kDjjVBF:
-      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjVBF_13TeV.root", "sp_gr_varReco_Constant_Smooth");
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "RecoMEConstants/SmoothKDConstant_m4l_DjjVBF_13TeV.root", "sp_gr_varReco_Constant_Smooth");
       break;
     case kDjjZH:
-      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjZH_13TeV.root", "sp_gr_varReco_Constant_Smooth");
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "RecoMEConstants/SmoothKDConstant_m4l_DjjZH_13TeV.root", "sp_gr_varReco_Constant_Smooth");
       break;
     case kDjjWH:
-      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjWH_13TeV.root", "sp_gr_varReco_Constant_Smooth");
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "RecoMEConstants/SmoothKDConstant_m4l_DjjWH_13TeV.root", "sp_gr_varReco_Constant_Smooth");
       break;
     case kDjjVBFL1:
-      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjVBF_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "gConstant_VBF_L1.root", "sp_tgfinal_VBF_SM_over_tgfinal_VBF_L1", 1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1));
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "RecoMEConstants/SmoothKDConstant_m4l_DjjVBF_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_VBF_L1.root", "sp_tgfinal_VBF_SM_over_tgfinal_VBF_L1", 1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1));
       KDspec.KD->setInvertG(true);
       break;
     case kDjjZHL1:
-      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjZH_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "gConstant_ZH_L1.root", "sp_tgfinal_ZH_SM_over_tgfinal_ZH_L1", 1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1));
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "RecoMEConstants/SmoothKDConstant_m4l_DjjZH_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_ZH_L1.root", "sp_tgfinal_ZH_SM_over_tgfinal_ZH_L1", 1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1));
       KDspec.KD->setInvertG(true);
       break;
     case kDjjWHL1:
-      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjWH_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "gConstant_WH_L1.root", "sp_tgfinal_WH_SM_over_tgfinal_WH_L1", 1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1));
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "RecoMEConstants/SmoothKDConstant_m4l_DjjWH_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_WH_L1.root", "sp_tgfinal_WH_SM_over_tgfinal_WH_L1", 1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1));
       KDspec.KD->setInvertG(true);
       break;
     case kDjjVBFa2:
-      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjVBF_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "gConstant_VBF_g2.root", "sp_tgfinal_VBF_SM_over_tgfinal_VBF_g2");
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "RecoMEConstants/SmoothKDConstant_m4l_DjjVBF_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_VBF_g2.root", "sp_tgfinal_VBF_SM_over_tgfinal_VBF_g2");
       KDspec.KD->setInvertG(true);
       break;
     case kDjjZHa2:
-      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjZH_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "gConstant_ZH_g2.root", "sp_tgfinal_ZH_SM_over_tgfinal_ZH_g2");
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "RecoMEConstants/SmoothKDConstant_m4l_DjjZH_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_ZH_g2.root", "sp_tgfinal_ZH_SM_over_tgfinal_ZH_g2");
       KDspec.KD->setInvertG(true);
       break;
     case kDjjWHa2:
-      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjWH_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "gConstant_WH_g2.root", "sp_tgfinal_WH_SM_over_tgfinal_WH_g2");
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "RecoMEConstants/SmoothKDConstant_m4l_DjjWH_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_WH_g2.root", "sp_tgfinal_WH_SM_over_tgfinal_WH_g2");
       KDspec.KD->setInvertG(true);
       break;
     case kDjjVBFa3:
-      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjVBF_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "gConstant_VBF_g4.root", "sp_tgfinal_VBF_SM_over_tgfinal_VBF_g4");
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "RecoMEConstants/SmoothKDConstant_m4l_DjjVBF_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_VBF_g4.root", "sp_tgfinal_VBF_SM_over_tgfinal_VBF_g4");
       KDspec.KD->setInvertG(true);
       break;
     case kDjjZHa3:
-      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjZH_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "gConstant_ZH_g4.root", "sp_tgfinal_ZH_SM_over_tgfinal_ZH_g4");
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "RecoMEConstants/SmoothKDConstant_m4l_DjjZH_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_ZH_g4.root", "sp_tgfinal_ZH_SM_over_tgfinal_ZH_g4");
       KDspec.KD->setInvertG(true);
       break;
     case kDjjWHa3:
-      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjWH_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "gConstant_WH_g4.root", "sp_tgfinal_WH_SM_over_tgfinal_WH_g4");
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "RecoMEConstants/SmoothKDConstant_m4l_DjjWH_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_WH_g4.root", "sp_tgfinal_WH_SM_over_tgfinal_WH_g4");
       KDspec.KD->setInvertG(true);
       break;
     case kDjjVBFL1ZGs:
-      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjVBF_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "gConstant_VBF_L1Zgs.root", "sp_tgfinal_VBF_SM_photoncut_over_tgfinal_VBF_L1Zgs", 1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1ZGs));
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "RecoMEConstants/SmoothKDConstant_m4l_DjjVBF_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_VBF_L1Zgs.root", "sp_tgfinal_VBF_SM_photoncut_over_tgfinal_VBF_L1Zgs", 1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1ZGs));
       KDspec.KD->setInvertG(true);
       break;
     case kDjjZHL1ZGs:
-      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "SmoothKDConstant_m4l_DjjZH_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "gConstant_ZH_L1Zgs.root", "sp_tgfinal_ZH_SM_photoncut_over_tgfinal_ZH_L1Zgs", 1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1ZGs));
+      KDspec.KD = constructKDFromType(KDspec.KDtype, ANALYSISTREEPKGDATAPATH + "RecoMEConstants/SmoothKDConstant_m4l_DjjZH_13TeV.root", "sp_gr_varReco_Constant_Smooth", ANALYSISTREEPKGDATAPATH + "RecoMEConstants/gConstant_ZH_L1Zgs.root", "sp_tgfinal_ZH_SM_photoncut_over_tgfinal_ZH_L1Zgs", 1./ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::kL1ZGs));
       KDspec.KD->setInvertG(true);
       break;
     case kCggint:

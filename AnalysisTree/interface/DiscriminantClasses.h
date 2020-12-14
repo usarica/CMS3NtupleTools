@@ -97,16 +97,18 @@ namespace DiscriminantClasses{
   };
 
   struct KDspecs{
-    TString KDname;
     Type KDtype;
+    TString KDname;
+    TString KDlabel;
     std::vector<TString> KDvars;
 
     Discriminant* KD;
 
     KDspecs();
-    KDspecs(TString strname);
     KDspecs(DiscriminantClasses::Type type);
+    KDspecs(TString strname);
     bool isValid() const;
+    void resetKD();
   };
 
   extern const std::unordered_map<TString, DiscriminantClasses::Type> mapKDNameType;
