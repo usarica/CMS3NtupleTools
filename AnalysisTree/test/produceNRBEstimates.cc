@@ -1,3 +1,5 @@
+#include <thread>
+#include <chrono>
 #include "common_includes.h"
 #include "OffshellCutflow.h"
 #include "TStyle.h"
@@ -317,6 +319,7 @@ void getDistributions(
   constexpr float thr_corr_pTboson = 25.f;
   constexpr float thr_corr_mll = 201.2f;
 
+  std::vector<TString> transfer_list;
   TString const coutput_main = "output/NRBEstimates/" + strdate + "/Histograms/" + period;
   TDirectory* curdir = gDirectory;
   gSystem->mkdir(coutput_main, true);
@@ -327,7 +330,7 @@ void getDistributions(
   stroutput = stroutput + Form("_Step%u", istep);
   stroutput = stroutput + ".root";
   TFile* foutput = TFile::Open(stroutput, "recreate");
-  SampleHelpers::addToCondorTransferList(stroutput);
+  transfer_list.push_back(stroutput);
   TDirectory* dir_hists_SR = foutput->mkdir("hists_SR");
   TDirectory* dir_hists_SB_near = foutput->mkdir("hists_SB_near");
   TDirectory* dir_hists_SB_ttbar = foutput->mkdir("hists_SB_ttbar");
@@ -349,6 +352,30 @@ void getDistributions(
       HelperFunctions::replaceString<TString, TString const>(strinput_prevstep, ownstep, prevstep);
       HelperFunctions::replaceString<TString, TString const>(strinput_prevstep, strSyst_output, strSyst);
       if (SampleHelpers::checkRunOnCondor()) strinput_prevstep = Form("/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/%s", strinput_prevstep.Data());
+      if (!HostHelpers::FileReadable(strinput_prevstep.Data())){
+        if (SampleHelpers::checkRunOnCondor()){
+          MELAerr << "File " << strinput_prevstep << " is not present. Sleeping until the file appears." << endl;
+          unsigned int icounts=0;
+          while (true){
+            if (icounts==8){
+              MELAerr << "File " << strinput_prevstep << " did not appear for 4 hours. Aborting execution..." << endl;
+              return;
+            }
+            std::this_thread::sleep_for(std::chrono::minutes(30));
+            if (HostHelpers::FileReadable(strinput_prevstep.Data())){
+              MELAout << "File " << strinput_prevstep << " is now present. Exiting out of sleep..." << endl;
+              break;
+            }
+            icounts++;
+          }
+        }
+        else{
+          foutput->Close();
+          MELAerr << "File " << strinput_prevstep << " is not present. Please run the corresponding step first." << endl;
+          assert(0);
+          return;
+        }
+      }
       TFile* ftmp = TFile::Open(strinput_prevstep, "read"); finputs_prevstep.push_back(ftmp);
       ftmp->cd();
       for (unsigned int ip=0; ip<2; ip++){
@@ -562,7 +589,7 @@ void getDistributions(
     gSystem->mkdir(coutput_tree, true);
     TString stroutput_tree = coutput_tree + Form("/finaltree_data_%s%s", strSyst_output.Data(), ".root");
     foutput_tree = TFile::Open(stroutput_tree, "recreate");
-    SampleHelpers::addToCondorTransferList(stroutput_tree);
+    transfer_list.push_back(stroutput_tree);
 
     foutput_tree->cd();
     tout_data = new BaseTree("FinalTree");
@@ -664,6 +691,7 @@ void getDistributions(
 
           ExtendedBinning binning_mTZZ(27, 150, 1500, "m_{T}^{ZZ} (GeV)");
           ExtendedBinning binning_mll(30, 91.2-15., 91.2+15., "m_{ll} (GeV)");
+          ExtendedBinning binning_pTll(30, 55., 105, "p_{T}^{ll} (GeV)");
           ExtendedBinning binning_pTl1(19, 25, 500, "p_{T}^{l1} (GeV)");
           ExtendedBinning binning_pTl2(30, 25, 325, "p_{T}^{l2} (GeV)");
           ExtendedBinning binning_pTmiss(35, 125, 1000, "p_{T}^{miss} (GeV)");
@@ -672,6 +700,13 @@ void getDistributions(
           ExtendedBinning binning_abs_dPhi_pTboson_pTmiss(32, 0, 3.2, "|#phi_{ll}-#phi_{miss}|");
           ExtendedBinning binning_abs_dPhi_pTbosonjets_pTmiss(32, 0, 3.2, "|#phi_{ll+jets}-#phi_{miss}|");
           ExtendedBinning binning_min_abs_dPhi_pTj_pTmiss(32, 0, 3.2, "Min. |#phi_{j}-#phi_{miss}|");
+          ExtendedBinning binning_mjj(38, 30., 600., "m_{jj} (GeV)");
+          ExtendedBinning binning_Nak4jets(4, 0, 4, "N_{j}");
+          ExtendedBinning binning_Nak4jets_mass60(2, 0, 2, "N_{j} (m_{j}#geq60 GeV)");
+          ExtendedBinning binning_mJ(20, 60., 260., "m_{J} (leading-p_{T}^{J}) (GeV)");
+          ExtendedBinning binning_Nak8jets(3, 0, 3, "N_{J}");
+          ExtendedBinning binning_Nak8jets_mass60to110(3, 0, 3, "N_{J} (110 GeV>m_{J}#geq60 GeV)");
+          ExtendedBinning binning_Nak8jets_mass140(3, 0, 3, "N_{J} (m_{J}#geq140 GeV)");
 
           ExtendedHistogram_1D* ehtmp = nullptr;
           TH1F* htmp = nullptr;
@@ -690,6 +725,7 @@ void getDistributions(
           if (!fast_mode){
             HISTOGRAM_COMMAND("mTZZ", binning_mTZZ);
             HISTOGRAM_COMMAND("mll", binning_mll);
+            HISTOGRAM_COMMAND("pTll", binning_pTll);
             HISTOGRAM_COMMAND("pTl1", binning_pTl1);
             HISTOGRAM_COMMAND("pTl2", binning_pTl2);
             HISTOGRAM_COMMAND("pTmiss", binning_pTmiss);
@@ -697,6 +733,13 @@ void getDistributions(
             HISTOGRAM_COMMAND("abs_dPhi_pTboson_pTmiss", binning_abs_dPhi_pTboson_pTmiss);
             HISTOGRAM_COMMAND("abs_dPhi_pTbosonjets_pTmiss", binning_abs_dPhi_pTbosonjets_pTmiss);
             HISTOGRAM_COMMAND("min_abs_dPhi_pTj_pTmiss", binning_min_abs_dPhi_pTj_pTmiss);
+            HISTOGRAM_COMMAND("mjj", binning_mjj);
+            HISTOGRAM_COMMAND("Nak4jets", binning_Nak4jets);
+            HISTOGRAM_COMMAND("Nak4jetsMass60", binning_Nak4jets_mass60);
+            HISTOGRAM_COMMAND("mJ", binning_mJ);
+            HISTOGRAM_COMMAND("Nak8jets", binning_Nak8jets);
+            HISTOGRAM_COMMAND("Nak8jetsMass60to110", binning_Nak8jets_mass60to110);
+            HISTOGRAM_COMMAND("Nak8jetsMass140", binning_Nak8jets_mass140);
             for (auto const& KDspec:KDlist){
               ExtendedBinning binning_KD(10, 0, 1, KDspec.KDlabel);
               HISTOGRAM_COMMAND(KDspec.KDname.Data(), binning_KD);
@@ -876,6 +919,13 @@ void getDistributions(
         break;
       case eL1PrefiringUp:
         ptr_event_wgt = &event_wgt_L1PrefiringUp;
+        break;
+
+      case ePUDn:
+        ptr_event_wgt = &event_wgt_PUDn;
+        break;
+      case ePUUp:
+        ptr_event_wgt = &event_wgt_PUUp;
         break;
 
       default:
@@ -1093,6 +1143,32 @@ void getDistributions(
 
       // Fill histograms
       if (pass_sel_SR){
+        unsigned int out_n_ak4jets_pt30_mass60 = 0;
+        ROOT::Math::PtEtaPhiMVector ak4jet_leadingpt, ak4jet_subleadingpt;
+        for (unsigned int ijet=0; ijet<ak4jets_mass->size(); ijet++){
+          if (ak4jets_mass->at(ijet)>=60.f) out_n_ak4jets_pt30_mass60++;
+          if (ijet==0) ak4jet_leadingpt.SetCoordinates(ak4jets_pt->at(ijet), ak4jets_eta->at(ijet), ak4jets_phi->at(ijet), ak4jets_mass->at(ijet));
+          else if (ijet==1) ak4jet_subleadingpt.SetCoordinates(ak4jets_pt->at(ijet), ak4jets_eta->at(ijet), ak4jets_phi->at(ijet), ak4jets_mass->at(ijet));
+        }
+        ROOT::Math::PtEtaPhiMVector p4_dijet = ak4jet_leadingpt + ak4jet_subleadingpt;
+        float dijet_dEta, dijet_dPhi;
+        HelperFunctions::deltaEta(float(ak4jet_leadingpt.Eta()), float(ak4jet_subleadingpt.Eta()), dijet_dEta);
+        if (ak4jet_leadingpt.Pz()>ak4jet_subleadingpt.Pz()){
+          HelperFunctions::deltaPhi(float(ak4jet_leadingpt.Phi()), float(ak4jet_subleadingpt.Phi()), dijet_dPhi);
+        }
+        else{
+          HelperFunctions::deltaPhi(float(ak4jet_subleadingpt.Phi()), float(ak4jet_leadingpt.Phi()), dijet_dPhi);
+        }
+
+        unsigned int out_n_ak8jets_pt200(0), out_n_ak8jets_pt200_mass60to110(0), out_n_ak8jets_pt200_mass140(0);
+        // Tight ak8 jet selection always ensures pT>=200 GeV, so we only need to look at mass.
+        out_n_ak8jets_pt200 = ak8jets_mass->size();
+        for (auto const& ak8jet_mass:(*ak8jets_mass)){
+          if (ak8jet_mass>=60.f && ak8jet_mass<110.f) out_n_ak8jets_pt200_mass60to110++;
+          else if (ak8jet_mass>=140.f) out_n_ak8jets_pt200_mass140++;
+        }
+
+
         // Update discriminants
         for (auto& KDspec:KDlist){
           std::vector<float> KDvars; KDvars.reserve(KDspec.KDvars.size());
@@ -1151,6 +1227,7 @@ void getDistributions(
 
           if (hname.Contains("mTZZ")) hh->fill(event_mTZZ, hwgt);
           if (hname.Contains("mll")) hh->fill(dilepton_mass, hwgt);
+          if (hname.Contains("pTll")) hh->fill(dilepton_pt, hwgt);
           if (hname.Contains("pTl1")) hh->fill(pTl1, hwgt);
           if (hname.Contains("pTl2")) hh->fill(pTl2, hwgt);
           if (hname.Contains("pTmiss")) hh->fill(event_pTmiss, hwgt);
@@ -1158,6 +1235,15 @@ void getDistributions(
           if (hname.Contains("abs_dPhi_pTboson_pTmiss")) hh->fill(abs_dPhi_pTboson_pTmiss, hwgt);
           if (hname.Contains("abs_dPhi_pTbosonjets_pTmiss")) hh->fill(abs_dPhi_pTbosonjets_pTmiss, hwgt);
           if (hname.Contains("min_abs_dPhi_pTj_pTmiss")) hh->fill(min_abs_dPhi_pTj_pTmiss, hwgt);
+          // Jet quantities
+          if (hname.Contains("mjj") && event_n_ak4jets_pt30>1) hh->fill(p4_dijet.M(), hwgt);
+          if (hname.Contains("Nak4jets")) hh->fill(event_n_ak4jets_pt30, hwgt);
+          if (hname.Contains("Nak4jetsMass60")) hh->fill(out_n_ak4jets_pt30_mass60, hwgt);
+          if (hname.Contains("mJ") && out_n_ak8jets_pt200>0) hh->fill(ak8jets_mass->front(), hwgt);
+          if (hname.Contains("Nak8jets")) hh->fill(out_n_ak8jets_pt200, hwgt);
+          if (hname.Contains("Nak8jetsMass60to110")) hh->fill(out_n_ak8jets_pt200_mass60to110, hwgt);
+          if (hname.Contains("Nak8jetsMass140")) hh->fill(out_n_ak8jets_pt200_mass140, hwgt);
+
           for (auto& KDspec:KDlist){
             // Important to add '_", otherwise we fill DjjVBF into DjjVBFa2 etc. as well.
             if (hname.Contains(Form("_%s_", KDspec.KDname.Data())) && event_n_ak4jets_pt30>=2) hh->fill(*(KDspec.KD), hwgt);
@@ -1177,23 +1263,6 @@ void getDistributions(
 
             tout_data->setVal<float>("pTmiss", event_pTmiss);
             tout_data->setVal<float>("phimiss", event_phimiss);
-
-            unsigned int out_n_ak4jets_pt30_mass60 = 0;
-            ROOT::Math::PtEtaPhiMVector ak4jet_leadingpt, ak4jet_subleadingpt;
-            for (unsigned int ijet=0; ijet<ak4jets_mass->size(); ijet++){
-              if (ak4jets_mass->at(ijet)>=60.f) out_n_ak4jets_pt30_mass60++;
-              if (ijet==0) ak4jet_leadingpt.SetCoordinates(ak4jets_pt->at(ijet), ak4jets_eta->at(ijet), ak4jets_phi->at(ijet), ak4jets_mass->at(ijet));
-              else if (ijet==1) ak4jet_subleadingpt.SetCoordinates(ak4jets_pt->at(ijet), ak4jets_eta->at(ijet), ak4jets_phi->at(ijet), ak4jets_mass->at(ijet));
-            }
-            ROOT::Math::PtEtaPhiMVector p4_dijet = ak4jet_leadingpt + ak4jet_subleadingpt;
-            float dijet_dEta, dijet_dPhi;
-            HelperFunctions::deltaEta(float(ak4jet_leadingpt.Eta()), float(ak4jet_subleadingpt.Eta()), dijet_dEta);
-            if (ak4jet_leadingpt.Pz()>ak4jet_subleadingpt.Pz()){
-              HelperFunctions::deltaPhi(float(ak4jet_leadingpt.Phi()), float(ak4jet_subleadingpt.Phi()), dijet_dPhi);
-            }
-            else{
-              HelperFunctions::deltaPhi(float(ak4jet_subleadingpt.Phi()), float(ak4jet_leadingpt.Phi()), dijet_dPhi);
-            }
 
             tout_data->setVal<unsigned int>("n_ak4jets_pt30", event_n_ak4jets_pt30);
             tout_data->setVal<unsigned int>("n_ak4jets_pt30_mass60", out_n_ak4jets_pt30_mass60);
@@ -1218,13 +1287,6 @@ void getDistributions(
               }
             }
 
-            unsigned int out_n_ak8jets_pt200(0), out_n_ak8jets_pt200_mass60to110(0), out_n_ak8jets_pt200_mass140(0);
-            // Tight ak8 jet selection always ensures pT>=200 GeV, so we only need to look at mass.
-            out_n_ak8jets_pt200 = ak8jets_mass->size();
-            for (auto const& ak8jet_mass:(*ak8jets_mass)){
-              if (ak8jet_mass>=60.f && ak8jet_mass<110.f) out_n_ak8jets_pt200_mass60to110++;
-              else if (ak8jet_mass>=140.f) out_n_ak8jets_pt200_mass140++;
-            }
             tout_data->setVal<unsigned int>("n_ak8jets_pt200", out_n_ak8jets_pt200);
             tout_data->setVal<unsigned int>("n_ak8jets_pt200_mass60to110", out_n_ak8jets_pt200_mass60to110);
             tout_data->setVal<unsigned int>("n_ak8jets_pt200_mass140", out_n_ak8jets_pt200_mass140);
@@ -1506,13 +1568,39 @@ void getDistributions(
   foutput->Close();
   curdir->cd();
 
-  SampleHelpers::addToCondorTransferList(stroutput);
+  for (auto const& fname:transfer_list) SampleHelpers::addToCondorTransferList(fname);
 }
 
 
 #undef BRANCH_COMMANDS
 #undef BRANCH_VECTOR_COMMANDS
 #undef BRANCH_SCALAR_COMMANDS
+
+
+void runDistributionsChain(
+  TString period, TString prodVersion, TString strdate,
+  SystematicsHelpers::SystematicVariationTypes theGlobalSyst,
+  bool fast_mode=false
+){
+  switch (theGlobalSyst){
+  case sNominal:
+    for (unsigned int istep=0;istep<2;istep++) getDistributions(period, prodVersion, strdate, theGlobalSyst, istep, 0, 0, fast_mode);
+    getDistributions(period, prodVersion, strdate, theGlobalSyst, 1, 0, -1, fast_mode);
+    getDistributions(period, prodVersion, strdate, theGlobalSyst, 1, 0, +1, fast_mode);
+    break;
+  case eTriggerEffDn:
+  case eTriggerEffUp:
+    for (unsigned int istep=0; istep<2; istep++){
+      getDistributions(period, prodVersion, strdate, theGlobalSyst, istep, -121, 0, fast_mode);
+      getDistributions(period, prodVersion, strdate, theGlobalSyst, istep, -143, 0, fast_mode);
+      getDistributions(period, prodVersion, strdate, theGlobalSyst, istep, -169, 0, fast_mode);
+    }
+    break;
+  default:
+    for (unsigned int istep=0; istep<2; istep++) getDistributions(period, prodVersion, strdate, theGlobalSyst, istep, 0, 0, fast_mode);
+    break;
+  };
+}
 
 
 void makePlot(
@@ -1967,9 +2055,28 @@ void makePlots(
       "nvtxs",
       "abs_dPhi_pTboson_pTmiss",
       "abs_dPhi_pTbosonjets_pTmiss",
-      "min_abs_dPhi_pTj_pTmiss",
-      "DjjVBF"
+      "min_abs_dPhi_pTj_pTmiss"
     };
+    for (auto const& KDtype:ACHypothesisHelpers::getACHypothesisKDSet(ACHypothesisHelpers::kSM, ACHypothesisHelpers::kVBF, ACHypothesisHelpers::kZZ2l2nu_offshell)){
+      TString KDname = DiscriminantClasses::getKDName(KDtype);
+      if (!HelperFunctions::checkListVariable(varnames, KDname)) varnames.push_back(KDname);
+    }
+    for (auto const& KDtype:ACHypothesisHelpers::getACHypothesisKDSet(ACHypothesisHelpers::kL1, ACHypothesisHelpers::kVBF, ACHypothesisHelpers::kZZ2l2nu_offshell)){
+      TString KDname = DiscriminantClasses::getKDName(KDtype);
+      if (!HelperFunctions::checkListVariable(varnames, KDname)) varnames.push_back(KDname);
+    }
+    for (auto const& KDtype:ACHypothesisHelpers::getACHypothesisKDSet(ACHypothesisHelpers::kA2, ACHypothesisHelpers::kVBF, ACHypothesisHelpers::kZZ2l2nu_offshell)){
+      TString KDname = DiscriminantClasses::getKDName(KDtype);
+      if (!HelperFunctions::checkListVariable(varnames, KDname)) varnames.push_back(KDname);
+    }
+    for (auto const& KDtype:ACHypothesisHelpers::getACHypothesisKDSet(ACHypothesisHelpers::kA3, ACHypothesisHelpers::kVBF, ACHypothesisHelpers::kZZ2l2nu_offshell)){
+      TString KDname = DiscriminantClasses::getKDName(KDtype);
+      if (!HelperFunctions::checkListVariable(varnames, KDname)) varnames.push_back(KDname);
+    }
+    for (auto const& KDtype:ACHypothesisHelpers::getACHypothesisKDSet(ACHypothesisHelpers::kL1ZGs, ACHypothesisHelpers::kVBF, ACHypothesisHelpers::kZZ2l2nu_offshell)){
+      TString KDname = DiscriminantClasses::getKDName(KDtype);
+      if (!HelperFunctions::checkListVariable(varnames, KDname)) varnames.push_back(KDname);
+    }
 
     for (auto const& varname:varnames){
       for (unsigned int ij=0; ij<nbins_njets; ij++){
