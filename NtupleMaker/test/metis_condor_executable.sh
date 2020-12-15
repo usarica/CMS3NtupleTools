@@ -41,37 +41,6 @@ function chirp {
     ret=$?
     echo "[chirp] Chirped $1 => $2 with exit code $ret"
 }
-function stageout {
-    COPY_SRC=$1
-    COPY_DEST=$2
-    retries=0
-    COPY_STATUS=1
-    until [ $retries -ge 3 ]
-    do
-        echo "Stageout attempt $((retries+1)): env -i X509_USER_PROXY=${X509_USER_PROXY} gfal-copy -p -f -t 7200 --verbose --checksum ADLER32 ${COPY_SRC} ${COPY_DEST}"
-        env -i X509_USER_PROXY=${X509_USER_PROXY} gfal-copy -p -f -t 7200 --verbose --checksum ADLER32 ${COPY_SRC} ${COPY_DEST}
-        COPY_STATUS=$?
-        if [ $COPY_STATUS -ne 0 ]; then
-            echo "Failed stageout attempt $((retries+1))"
-        else
-            echo "Successful stageout with $retries retries"
-            break
-        fi
-        retries=$[$retries+1]
-        echo "Sleeping for 30m"
-        sleep 30m
-    done
-    if [ $COPY_STATUS -ne 0 ]; then
-        echo "Removing output file because gfal-copy crashed with code $COPY_STATUS"
-        env -i X509_USER_PROXY=${X509_USER_PROXY} gfal-rm --verbose ${COPY_DEST}
-        REMOVE_STATUS=$?
-        if [ $REMOVE_STATUS -ne 0 ]; then
-            echo "Uhh, gfal-copy crashed and then the gfal-rm also crashed with code $REMOVE_STATUS"
-            echo "You probably have a corrupt file sitting on hadoop now."
-            exit 1
-        fi
-    fi
-}
 
 setup_chirp
 
@@ -189,8 +158,6 @@ fi
 
 echo -e "\n--- end running ---\n" #                             <----- section division
 
-echo -e "\n--- begin copying output ---\n" #                    <----- section division
-
 echo "Sending output file ${OUTPUTNAME}.root"
 
 if [ ! -e "${OUTPUTNAME}.root" ]; then
@@ -201,20 +168,14 @@ fi
 echo "time before copy: $(date +%s)"
 chirp ChirpMetisStatus "before_copy"
 
-COPY_SRC="file://`pwd`/${OUTPUTNAME}.root"
-COPY_DEST="gsiftp://gftp.t2.ucsd.edu${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root"
-stageout $COPY_SRC $COPY_DEST
+copyFromCondorToSite.sh $(pwd) ${OUTPUTNAME}.root t2.ucsd.edu ${OUTPUTDIR} ${OUTPUTNAME}_${IFILE}.root
 
 for OTHEROUTPUT in $(echo "$OTHEROUTPUTS" | sed -n 1'p' | tr ',' '\n'); do
     [ -e ${OTHEROUTPUT} ] && {
         NOROOT=$(echo $OTHEROUTPUT | sed 's/\.root//')
-        COPY_SRC="file://`pwd`/${NOROOT}.root"
-        COPY_DEST="gsiftp://gftp.t2.ucsd.edu${OUTPUTDIR}/${NOROOT}_${IFILE}.root"
-        stageout $COPY_SRC $COPY_DEST
+        copyFromCondorToSite.sh $(pwd) ${NOROOT}.root t2.ucsd.edu ${OUTPUTDIR} ${NOROOT}_${IFILE}.root
     }
 done
-
-echo -e "\n--- end copying output ---\n" #                      <----- section division
 
 echo -e "\n--- begin dstat output ---\n" #                      <----- section division
 # cat dsout.csv
