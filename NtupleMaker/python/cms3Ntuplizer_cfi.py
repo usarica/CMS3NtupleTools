@@ -9,6 +9,10 @@ cms3ntuple = cms.EDAnalyzer(
    isMC = cms.bool(False),
    is80x = cms.bool(False),
 
+   # Note that the two flags below are mutually exclusive:
+   # If applyMETfix=true, enableManualMETfix=false is required.
+   # If enableManualMETfix=true, applyMETfix=false is required.
+   applyMETfix = cms.bool(False),
    enableManualMETfix = cms.bool(False),
 
    prefiringWeightsTag = cms.untracked.string(""),
@@ -34,6 +38,8 @@ cms3ntuple = cms.EDAnalyzer(
    pfmetSrc = cms.InputTag("pfmetMaker"),
    pfmetShiftSrc = cms.InputTag("pfJetMaker","METShifts"),
    pfmetShiftP4PreservedSrc = cms.InputTag("pfJetMaker","METShiftsP4Preserved"),
+   pfmetShiftRevertMETFixSrc = cms.InputTag("pfJetMaker","METShiftsRevertMETFix"),
+   pfmetShiftP4PreservedRevertMETFixSrc = cms.InputTag("pfJetMaker","METShiftsP4PreservedRevertMETFix"),
 
    puppimetSrc = cms.InputTag("pfmetpuppiMaker"),
 

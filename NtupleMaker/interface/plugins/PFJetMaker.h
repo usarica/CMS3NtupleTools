@@ -37,6 +37,8 @@ private:
 protected:
   bool printWarnings;
 
+  int const year;
+
   const std::string aliasprefix_;
   const std::string jetCollection_; // ==JECpayload in main_pset.py
 

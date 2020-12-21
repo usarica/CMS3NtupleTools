@@ -97,12 +97,16 @@ protected:
   SimpleEntry commonEntry;
   bool firstEvent;
 
-  int year;
+  int const year;
   TString treename;
 
   bool isMC;
   bool is80X;
 
+  // Note that the two flags below are mutually exclusive:
+  // If applyMETfix=true, enableManualMETfix=false is required.
+  // If enableManualMETfix=true, applyMETfix=false is required.
+  bool applyMETfix;
   bool enableManualMETfix;
 
   bool processTriggerObjectInfos;
@@ -139,9 +143,13 @@ protected:
   edm::EDGetTokenT< reco::SuperClusterCollection > reducedSuperclusterToken;
 
   edm::EDGetTokenT< METInfo > pfmetToken;
-  edm::EDGetTokenT< METShiftInfo > pfmetshiftToken; // JECDn an Up shifts from this container should be the same as those from PFMET.
+  edm::EDGetTokenT< METShiftInfo > pfmetshiftToken; // JECDn and Up shifts from this container should be the same as those from PFMET.
   edm::EDGetTokenT< METShiftInfo > pfmetshiftP4PreservedToken;
+  edm::EDGetTokenT< METShiftInfo > pfmetshiftRevertMETFixToken;
+  edm::EDGetTokenT< METShiftInfo > pfmetshiftP4PreservedRevertMETFixToken;
+  edm::EDGetTokenT< edm::View<reco::Candidate> > pfmetVetoedPFCandidatesToken;
   edm::EDGetTokenT< METInfo > puppimetToken;
+  edm::EDGetTokenT< edm::View<reco::Candidate> > puppimetVetoedPFCandidatesToken;
 
   edm::EDGetTokenT< reco::VertexCollection > vtxToken;
 

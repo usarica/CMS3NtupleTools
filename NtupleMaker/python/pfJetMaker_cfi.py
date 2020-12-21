@@ -2,6 +2,9 @@ import FWCore.ParameterSet.Config as cms
 
 pfJetMaker = cms.EDProducer(
    "PFJetMaker",
+
+   year = cms.int32(-1), # Must be overriden by main_pset
+
    aliasprefix = cms.untracked.string("ak4pfjets_chs"),
    jetCollection = cms.untracked.string("AK4PFchs"),
 
@@ -22,6 +25,9 @@ pfJetMaker = cms.EDProducer(
 
 pfJetPUPPIMaker = cms.EDProducer(
    "PFJetMaker",
+
+   year = cms.int32(-1), # Must be overriden by main_pset
+
    aliasprefix = cms.untracked.string("ak4pfjets_puppi"),
    jetCollection = cms.untracked.string("AK4PFPuppi"),
 
@@ -42,6 +48,9 @@ pfJetPUPPIMaker = cms.EDProducer(
 
 subJetMaker = cms.EDProducer(
    "PFJetMaker",
+
+   year = cms.int32(-1), # Must be overriden by main_pset
+
    aliasprefix = cms.untracked.string("ak8pfjets"),
    jetCollection = cms.untracked.string("AK8PFPuppi"),
 

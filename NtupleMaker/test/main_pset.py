@@ -393,6 +393,9 @@ finalSlimmedJetsPuppiCollection="selectedFinalJets"+ak4puppijetsTag
 _process_pfJetMakerPreSeq = None
 _process_pfJetPUPPIMakerPreSeq = None
 ## Update the jet collection tags
+process.pfJetMaker.year = cms.int32(opts.year)
+process.pfJetPUPPIMaker.year = cms.int32(opts.year)
+process.subJetMaker.year = cms.int32(opts.year)
 process.pfJetMaker.jetCollection = cms.untracked.string(ak4jetsTag)
 process.pfJetPUPPIMaker.jetCollection = cms.untracked.string(ak4puppijetsTag)
 process.subJetMaker.jetCollection = cms.untracked.string(ak8jetsTag)
@@ -627,6 +630,7 @@ if opts.metrecipe:
       postfix = "ModifiedMET",
       )
 process.pfmetMaker.metSrc = cms.InputTag("slimmedMETsModifiedMET","","CMS3")
+process.pfmetMaker.applyMETfix = cms.bool(opts.metrecipe)
 runMetCorAndUncFromMiniAOD(
    process,
    isData=opts.data,
@@ -649,6 +653,7 @@ if opts.metrecipe:
       postfix = "ModifiedPuppiMET",
       )
 process.pfmetpuppiMaker.metSrc = cms.InputTag("slimmedMETsModifiedPuppiMET","","CMS3")
+process.pfmetpuppiMaker.applyMETfix = cms.bool(opts.metrecipe)
 runMetCorAndUncFromMiniAOD(
    process,
    isData=opts.data,
@@ -658,8 +663,12 @@ runMetCorAndUncFromMiniAOD(
 useExistingWeightsFlag = not opts.recomputePuppiWeights
 process.puppiNoLep.useExistingWeights = useExistingWeightsFlag
 process.puppi.useExistingWeights = useExistingWeightsFlag
+# Some misc. items in puppi need corrections to their source
 from CMS3.NtupleMaker.utils.fixProcessPuppiSources import fixProcessPuppiSources
 fixProcessPuppiSources(process, slimmedJetsPuppiCollection, ak4puppijetsTag)
+# MET significance in 2017 MET recipe v2 uses the wrong PF cands. in default configs.
+from CMS3.NtupleMaker.utils.fixProcessMETSources import fixProcessMETSources
+fixProcessMETSources(process, opts.year, opts.metrecipe)
 ## These variables are somehow dropped
 #process.slimmedCorrectedJets.userData.userFloats.src += ['pileupJetIdUpdated:fullDiscriminant']
 #process.slimmedCorrectedJets.userData.userInts.src += ['pileupJetIdUpdated:fullId']
@@ -983,6 +992,7 @@ else:
    process.cms3ntuple.year = cms.int32(opts.year)
    process.cms3ntuple.isMC = cms.bool((not opts.data))
    process.cms3ntuple.is80X = cms.bool(opts.is80x)
+   process.cms3ntuple.applyMETfix = cms.bool(opts.metrecipe)
    process.cms3ntuple.enableManualMETfix = cms.bool(opts.enableManualMETfix)
    process.cms3ntuple.processTriggerObjectInfos = cms.bool(doProcessTrigObjs)
    process.cms3ntuple.prefiringWeightsTag = cms.untracked.string(prefiringWeightsTag)

@@ -16,6 +16,11 @@ struct METInfo{
   float metPhi_Raw;
   float sumEt_Raw;
 
+  // These are the raw MET variables without any noise fixes
+  float met_Raw_Default;
+  float metPhi_Raw_Default;
+  float sumEt_Raw_Default;
+
   float met_JERUp;
   float metPhi_JERUp;
   float met_JERDn;

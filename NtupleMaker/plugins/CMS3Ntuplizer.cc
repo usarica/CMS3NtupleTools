@@ -21,6 +21,7 @@
 #include "CMS3/NtupleMaker/interface/AK4JetSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/AK8JetSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/IsotrackSelectionHelpers.h"
+#include "CMS3/NtupleMaker/interface/PFCandidateSelectionHelpers.h"
 #include <CMS3/NtupleMaker/interface/CMS3ObjectHelpers.h>
 #include <CMS3/NtupleMaker/interface/MCUtilities.h>
 
@@ -32,6 +33,8 @@
 
 #include "MELAStreamHelpers.hh"
 
+
+typedef math::XYZTLorentzVectorD LorentzVectorD;
 
 using namespace std;
 using namespace edm;
@@ -65,6 +68,7 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
   isMC(pset.getParameter<bool>("isMC")),
   is80X(pset.getParameter<bool>("is80X")),
 
+  applyMETfix(pset.getParameter<bool>("applyMETfix")),
   enableManualMETfix(pset.getParameter<bool>("enableManualMETfix")),
 
   processTriggerObjectInfos(pset.getParameter<bool>("processTriggerObjectInfos")),
@@ -123,6 +127,10 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
 
   pfmetshiftToken = consumes< METShiftInfo >(pset.getParameter<edm::InputTag>("pfmetShiftSrc"));
   pfmetshiftP4PreservedToken = consumes< METShiftInfo >(pset.getParameter<edm::InputTag>("pfmetShiftP4PreservedSrc"));
+  if (applyMETfix){
+    pfmetshiftRevertMETFixToken = consumes< METShiftInfo >(pset.getParameter<edm::InputTag>("pfmetShiftRevertMETFixSrc"));
+    pfmetshiftP4PreservedRevertMETFixToken = consumes< METShiftInfo >(pset.getParameter<edm::InputTag>("pfmetShiftP4PreservedRevertMETFixSrc"));
+  }
 
   if (isMC){
     genInfoToken = consumes< GenInfo >(pset.getParameter<edm::InputTag>("genInfoSrc"));
@@ -254,8 +262,7 @@ void CMS3Ntuplizer::analyze(edm::Event const& iEvent, const edm::EventSetup& iSe
   if (enableManualMETfix){
     for (edm::View<pat::PackedCandidate>::const_iterator obj = pfcandsHandle->begin(); obj != pfcandsHandle->end(); obj++){
       // Only keep candidates for overlaps and EE noise
-      float const obj_abs_eta = std::abs(obj->eta());
-      if (obj_abs_eta>=2.65 && obj_abs_eta<=3.139) filledPFCandAssociations.emplace_back(&(*obj));
+      if (!PFCandidateSelectionHelpers::testMETFixSafety(*obj, this->year)) filledPFCandAssociations.emplace_back(&(*obj));
     }
   }
   this->fillJetOverlapInfo(pfcandsHandle, filledMuons, filledElectrons, filledPhotons, filledFSRInfos, filledAK4Jets, filledAK8Jets, filledPFCandAssociations);
@@ -2174,6 +2181,8 @@ size_t CMS3Ntuplizer::fillAK4Jets(
 
   MAKE_VECTOR_WITH_RESERVE(cms3_metsafety_t, isMETJERCSafe_Bits, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_metsafety_t, isMETJERCSafe_p4Preserved_Bits, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_metsafety_t, isMETJERCSafe_RevertMETFix_Bits, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_metsafety_t, isMETJERCSafe_p4Preserved_RevertMETFix_Bits, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, JECNominal, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, JECL1Nominal, n_objects);
@@ -2193,15 +2202,12 @@ size_t CMS3Ntuplizer::fillAK4Jets(
 
   size_t n_skimmed_objects=0;
   for (edm::View<pat::Jet>::const_iterator obj = ak4jetsHandle->begin(); obj != ak4jetsHandle->end(); obj++){
-    float const jet_eta = obj->eta();
-    float const abs_jet_eta = std::abs(jet_eta);
-
     bool doContinue = AK4JetSelectionHelpers::testSkimAK4Jet(*obj, this->year, jetType);
 
     // If the jet fails skim selection, check if it is MET safe.
     bool isMETSafe = AK4JetSelectionHelpers::testAK4JetMETSafety(*obj);
     if (isMETSafe){
-      if (enableManualMETfix && abs_jet_eta>=2.65 && abs_jet_eta<=3.139) doContinue = true;
+      if (!doContinue && enableManualMETfix && !AK4JetSelectionHelpers::testAK4JetMETFixSafety_NoPt(*obj, this->year)) doContinue = true;
       if (!doContinue){
         for (auto const& part:filledMuons){
           if (reco::deltaR(obj->p4(), part->p4())<ConeRadiusConstant){
@@ -2231,11 +2237,10 @@ size_t CMS3Ntuplizer::fillAK4Jets(
         for (auto it_pfcand_jet = pfcands_jet.cbegin(); it_pfcand_jet != pfcands_jet.cend(); it_pfcand_jet++){
           size_t ipf = it_pfcand_jet->key();
           pat::PackedCandidate const* pfcand_jet = &(pfcandsHandle->at(ipf));
-          float const pfcand_abs_eta = std::abs(pfcand_jet->eta());
           if (
             HelperFunctions::checkListVariable(allParticlePFCandidates, pfcand_jet)
             ||
-            (enableManualMETfix && pfcand_abs_eta>=2.65 && pfcand_abs_eta<=3.139)
+            (enableManualMETfix && !PFCandidateSelectionHelpers::testMETFixSafety(*pfcand_jet, this->year))
             ){
             doContinue = true;
             break;
@@ -2252,7 +2257,7 @@ size_t CMS3Ntuplizer::fillAK4Jets(
     // Core particle quantities
     // These are the uncorrected momentum components!
     pt.push_back(AK4JetSelectionHelpers::getUncorrectedJetPt(*obj));
-    eta.push_back(jet_eta);
+    eta.push_back(obj->eta());
     phi.push_back(obj->phi());
     mass.push_back(AK4JetSelectionHelpers::getUncorrectedJetMass(*obj));
 
@@ -2299,6 +2304,10 @@ size_t CMS3Ntuplizer::fillAK4Jets(
 
     PUSH_USERINT_INTO_VECTOR(isMETJERCSafe_Bits);
     PUSH_USERINT_INTO_VECTOR(isMETJERCSafe_p4Preserved_Bits);
+    if (applyMETfix){
+      PUSH_USERINT_INTO_VECTOR(isMETJERCSafe_RevertMETFix_Bits);
+      PUSH_USERINT_INTO_VECTOR(isMETJERCSafe_p4Preserved_RevertMETFix_Bits);
+    }
 
     PUSH_USERFLOAT_INTO_VECTOR(JECNominal);
     PUSH_USERFLOAT_INTO_VECTOR(JECL1Nominal);
@@ -2371,6 +2380,10 @@ size_t CMS3Ntuplizer::fillAK4Jets(
 
   PUSH_VECTOR_WITH_NAME(colName, isMETJERCSafe_Bits);
   PUSH_VECTOR_WITH_NAME(colName, isMETJERCSafe_p4Preserved_Bits);
+  if (applyMETfix){
+    PUSH_VECTOR_WITH_NAME(colName, isMETJERCSafe_RevertMETFix_Bits);
+    PUSH_VECTOR_WITH_NAME(colName, isMETJERCSafe_p4Preserved_RevertMETFix_Bits);
+  }
 
   PUSH_VECTOR_WITH_NAME(colName, JECNominal);
   PUSH_VECTOR_WITH_NAME(colName, JECL1Nominal);
@@ -2873,8 +2886,7 @@ void CMS3Ntuplizer::fillJetOverlapInfo(
   {
     cms3_listSize_t ijet = 0;
     for (auto const& jet:filledAK4Jets){
-      float const jet_abs_eta = std::abs(jet->eta());
-      bool const checkNoisyPFCands = (enableManualMETfix && jet_abs_eta>=2.65 && jet_abs_eta<=3.139);
+      bool const checkNoisyPFCands = (enableManualMETfix && !AK4JetSelectionHelpers::testAK4JetMETFixSafety_NoPt(*jet, this->year));
 
       auto const& pfcands_jet = jet->daughterPtrVector();
       std::vector<pat::PackedCandidate const*> vec_pfcands; vec_pfcands.reserve(pfcands_jet.size());
@@ -2882,8 +2894,7 @@ void CMS3Ntuplizer::fillJetOverlapInfo(
         pat::PackedCandidate const* pfcand = &(pfcandsHandle->at(it_pfcand_jet->key()));
         vec_pfcands.push_back(pfcand);
 
-        float const pfcand_abs_eta = std::abs(pfcand->eta());
-        if (checkNoisyPFCands || (enableManualMETfix && pfcand_abs_eta>=2.65 && pfcand_abs_eta<=3.139)){
+        if (checkNoisyPFCands || (enableManualMETfix && !PFCandidateSelectionHelpers::testMETFixSafety(*pfcand, this->year))){
           PFCandidateInfo& pfcandInfo = PFCandidateInfo::make_and_get_PFCandidateInfo(filledPFCandAssociations, pfcand);
           pfcandInfo.addAK4JetMatch(ijet);
         }
@@ -3496,38 +3507,38 @@ void CMS3Ntuplizer::fillPFCandidates(
   MAKE_VECTOR_WITH_RESERVE(float, dz_firstPV, n_objects);
 
   // p4 sums of unclustered, omitted PF candidates in the EE noise region
-  reco::Particle::LorentzVector METfix_pfcands_NEM_sump4;
+  reco::Particle::LorentzVector METfix_pfcands_unclustered_sump4;
+  /*
   reco::Particle::LorentzVector METfix_pfcands_CEM_sump4;
   reco::Particle::LorentzVector METfix_pfcands_MU_sump4;
   reco::Particle::LorentzVector METfix_pfcands_NH_sump4;
   reco::Particle::LorentzVector METfix_pfcands_CH_sump4;
   reco::Particle::LorentzVector METfix_pfcands_EMforward_sump4;
   reco::Particle::LorentzVector METfix_pfcands_Hforward_sump4;
+  */
 
   for (auto const& obj:pfcandInfos){
     cms3_listIndex_long_t nImperfectOverlaps, nPerfectOverlaps;
     obj.analyzeParticleOverlaps(filledMuons, filledElectrons, filledPhotons, nImperfectOverlaps, nPerfectOverlaps);
 
-    float const obj_eta = obj.eta();
-    float const obj_abs_eta = std::abs(obj_eta);
-
     bool needForOtherPurposes = false;
     // Only keep candidates for overlaps and EE noise
     // For EE noise, require that the PF candidate is not clustered to a jet.
     if (enableManualMETfix){
-      bool const isInEENoiseRegion = obj_abs_eta>=2.65 && obj_abs_eta<=3.139;
+      bool const isInEENoiseRegion = !PFCandidateSelectionHelpers::testMETFixSafety(obj, this->year);
       bool const isClustered = (!obj.matched_ak4jets.empty() || !obj.matched_muons.empty() || !obj.matched_electrons.empty() || !obj.matched_photons.empty());
       bool isNoisyEEAK4JetClustered = false;
 
       for (auto const& idx_jet:obj.matched_ak4jets){
         auto const& jet = filledAK4Jets.at(idx_jet);
-        float const jet_abs_eta = std::abs(jet->eta());
-        isNoisyEEAK4JetClustered |= (jet_abs_eta>=2.65 && jet_abs_eta<=3.139);
+        isNoisyEEAK4JetClustered |= !AK4JetSelectionHelpers::testAK4JetMETFixSafety_NoPt(*jet, this->year);
         if (isNoisyEEAK4JetClustered) break;
       }
 
       // If the PF candidate is unclustered and is in the noisy EE region, we need to keep track of its totality.
       if (!isClustered && isInEENoiseRegion){
+        METfix_pfcands_unclustered_sump4 += obj.p4();
+        /*
         switch (std::abs(obj.pdgId())){
         case 22:
           METfix_pfcands_NEM_sump4 = METfix_pfcands_NEM_sump4 + obj.p4();
@@ -3553,6 +3564,7 @@ void CMS3Ntuplizer::fillPFCandidates(
         default:
           break;
         }
+        */
       }
 
       // If the PF candidate is not clustered into a noisy jet, we don't really need to store it.
@@ -3568,7 +3580,7 @@ void CMS3Ntuplizer::fillPFCandidates(
     if (PVref.isNonnull()) PVrefkey = PVref.key();
 
     pt.push_back(obj.pt());
-    eta.push_back(obj_eta);
+    eta.push_back(obj.eta());
     phi.push_back(obj.phi());
     mass.push_back(obj.mass());
 
@@ -3618,6 +3630,9 @@ void CMS3Ntuplizer::fillPFCandidates(
 
   // Fill pT and phi of sum of vectors if manual MET fix is being carried out.
   if (enableManualMETfix){
+    commonEntry.setNamedVal<float>("METfix_pfcands_unclustered_sump4_pt", METfix_pfcands_unclustered_sump4.Pt());
+    commonEntry.setNamedVal<float>("METfix_pfcands_unclustered_sump4_phi", METfix_pfcands_unclustered_sump4.Phi());
+    /*
     commonEntry.setNamedVal<float>("METfix_pfcands_NEM_sump4_pt", METfix_pfcands_NEM_sump4.Pt());
     commonEntry.setNamedVal<float>("METfix_pfcands_NEM_sump4_phi", METfix_pfcands_NEM_sump4.Phi());
     commonEntry.setNamedVal<float>("METfix_pfcands_CEM_sump4_pt", METfix_pfcands_CEM_sump4.Pt());
@@ -3632,6 +3647,7 @@ void CMS3Ntuplizer::fillPFCandidates(
     commonEntry.setNamedVal<float>("METfix_pfcands_EMforward_sump4_phi", METfix_pfcands_EMforward_sump4.Phi());
     commonEntry.setNamedVal<float>("METfix_pfcands_Hforward_sump4_pt", METfix_pfcands_Hforward_sump4.Pt());
     commonEntry.setNamedVal<float>("METfix_pfcands_Hforward_sump4_phi", METfix_pfcands_Hforward_sump4.Phi());
+    */
   }
 }
 
@@ -3848,10 +3864,12 @@ bool CMS3Ntuplizer::fillMETVariables(edm::Event const& iEvent){
 
   using namespace JetMETEnums;
 
+  const char pfmetCollName[] = "pfmet";
+  const char puppimetCollName[] = "puppimet";
+
   edm::Handle<METInfo> metHandle;
 
   // PF MET
-  const char pfmetCollName[] = "pfmet";
   iEvent.getByToken(pfmetToken, metHandle);
   if (!metHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillMETVariables: Error getting the PF MET handle from the event...");
 
@@ -3864,6 +3882,12 @@ bool CMS3Ntuplizer::fillMETVariables(edm::Event const& iEvent){
   SET_MET_VARIABLE(metHandle, met_Raw, pfmetCollName);
   SET_MET_VARIABLE(metHandle, metPhi_Raw, pfmetCollName);
   SET_MET_VARIABLE(metHandle, sumEt_Raw, pfmetCollName);
+
+  if (applyMETfix){
+    SET_MET_VARIABLE(metHandle, met_Raw_Default, pfmetCollName);
+    SET_MET_VARIABLE(metHandle, metPhi_Raw_Default, pfmetCollName);
+    SET_MET_VARIABLE(metHandle, sumEt_Raw_Default, pfmetCollName);
+  }
 
   SET_MET_VARIABLE(metHandle, met_JECDn, pfmetCollName);
   SET_MET_VARIABLE(metHandle, metPhi_JECDn, pfmetCollName);
@@ -3883,12 +3907,31 @@ bool CMS3Ntuplizer::fillMETVariables(edm::Event const& iEvent){
   iEvent.getByToken(pfmetshiftP4PreservedToken, pfmetshiftP4PreservedHandle);
   if (!pfmetshiftP4PreservedHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillMETVariables: Error getting the PF MET p4-preserved shifts handle from the event...");
 
+  edm::Handle< METShiftInfo > pfmetshiftRevertMETFixHandle;
+  edm::Handle< METShiftInfo > pfmetshiftP4PreservedRevertMETFixHandle;
+  if (applyMETfix){
+    iEvent.getByToken(pfmetshiftRevertMETFixToken, pfmetshiftRevertMETFixHandle);
+    if (!pfmetshiftRevertMETFixHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillMETVariables: Error getting the PF MET revert MET fix default shifts handle from the event...");
+
+    iEvent.getByToken(pfmetshiftP4PreservedRevertMETFixToken, pfmetshiftP4PreservedRevertMETFixHandle);
+    if (!pfmetshiftP4PreservedRevertMETFixHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillMETVariables: Error getting the PF MET revert MET fix p4-preserved shifts handle from the event...");
+  }
+
+
   SET_MET_SHIFT(metShift_px_JECNominal, pfmetCollName, float(pfmetshiftHandle->metshifts.at(kMETShift_JECNominal).Px()));
   SET_MET_SHIFT(metShift_py_JECNominal, pfmetCollName, float(pfmetshiftHandle->metshifts.at(kMETShift_JECNominal).Py()));
 
   // metShift_p4Preserved[hypo] is relative to metShift[hypo]
   SET_MET_SHIFT(metShift_p4Preserved_px_JECNominal, pfmetCollName, float(pfmetshiftP4PreservedHandle->metshifts.at(kMETShift_JECNominal).Px()));
   SET_MET_SHIFT(metShift_p4Preserved_py_JECNominal, pfmetCollName, float(pfmetshiftP4PreservedHandle->metshifts.at(kMETShift_JECNominal).Py()));
+
+  if (applyMETfix){
+    SET_MET_SHIFT(metShift_RevertMETFix_px_JECNominal, pfmetCollName, float(pfmetshiftRevertMETFixHandle->metshifts.at(kMETShift_JECNominal).Px()));
+    SET_MET_SHIFT(metShift_RevertMETFix_py_JECNominal, pfmetCollName, float(pfmetshiftRevertMETFixHandle->metshifts.at(kMETShift_JECNominal).Py()));
+
+    SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_px_JECNominal, pfmetCollName, float(pfmetshiftP4PreservedRevertMETFixHandle->metshifts.at(kMETShift_JECNominal).Px()));
+    SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_py_JECNominal, pfmetCollName, float(pfmetshiftP4PreservedRevertMETFixHandle->metshifts.at(kMETShift_JECNominal).Py()));
+  }
 
   if (isMC){
     SET_MET_SHIFT(metShift_px_JECDn, pfmetCollName, float(pfmetshiftHandle->metshifts.at(kMETShift_JECDn).Px()));
@@ -3920,6 +3963,38 @@ bool CMS3Ntuplizer::fillMETVariables(edm::Event const& iEvent){
     SET_MET_SHIFT(metShift_p4Preserved_py_JECDn_JERNominal, pfmetCollName, float(pfmetshiftP4PreservedHandle->metshifts.at(kMETShift_JECDn_JERNominal).Py()));
     SET_MET_SHIFT(metShift_p4Preserved_px_JECUp_JERNominal, pfmetCollName, float(pfmetshiftP4PreservedHandle->metshifts.at(kMETShift_JECUp_JERNominal).Px()));
     SET_MET_SHIFT(metShift_p4Preserved_py_JECUp_JERNominal, pfmetCollName, float(pfmetshiftP4PreservedHandle->metshifts.at(kMETShift_JECUp_JERNominal).Py()));
+
+    if (applyMETfix){
+      SET_MET_SHIFT(metShift_RevertMETFix_px_JECDn, pfmetCollName, float(pfmetshiftRevertMETFixHandle->metshifts.at(kMETShift_JECDn).Px()));
+      SET_MET_SHIFT(metShift_RevertMETFix_py_JECDn, pfmetCollName, float(pfmetshiftRevertMETFixHandle->metshifts.at(kMETShift_JECDn).Py()));
+      SET_MET_SHIFT(metShift_RevertMETFix_px_JECUp, pfmetCollName, float(pfmetshiftRevertMETFixHandle->metshifts.at(kMETShift_JECUp).Px()));
+      SET_MET_SHIFT(metShift_RevertMETFix_py_JECUp, pfmetCollName, float(pfmetshiftRevertMETFixHandle->metshifts.at(kMETShift_JECUp).Py()));
+      SET_MET_SHIFT(metShift_RevertMETFix_px_JECNominal_JERNominal, pfmetCollName, float(pfmetshiftRevertMETFixHandle->metshifts.at(kMETShift_JECNominal_JERNominal).Px()));
+      SET_MET_SHIFT(metShift_RevertMETFix_py_JECNominal_JERNominal, pfmetCollName, float(pfmetshiftRevertMETFixHandle->metshifts.at(kMETShift_JECNominal_JERNominal).Py()));
+      SET_MET_SHIFT(metShift_RevertMETFix_px_JECNominal_JERDn, pfmetCollName, float(pfmetshiftRevertMETFixHandle->metshifts.at(kMETShift_JECNominal_JERDn).Px()));
+      SET_MET_SHIFT(metShift_RevertMETFix_py_JECNominal_JERDn, pfmetCollName, float(pfmetshiftRevertMETFixHandle->metshifts.at(kMETShift_JECNominal_JERDn).Py()));
+      SET_MET_SHIFT(metShift_RevertMETFix_px_JECNominal_JERUp, pfmetCollName, float(pfmetshiftRevertMETFixHandle->metshifts.at(kMETShift_JECNominal_JERUp).Px()));
+      SET_MET_SHIFT(metShift_RevertMETFix_py_JECNominal_JERUp, pfmetCollName, float(pfmetshiftRevertMETFixHandle->metshifts.at(kMETShift_JECNominal_JERUp).Py()));
+      SET_MET_SHIFT(metShift_RevertMETFix_px_JECDn_JERNominal, pfmetCollName, float(pfmetshiftRevertMETFixHandle->metshifts.at(kMETShift_JECDn_JERNominal).Px()));
+      SET_MET_SHIFT(metShift_RevertMETFix_py_JECDn_JERNominal, pfmetCollName, float(pfmetshiftRevertMETFixHandle->metshifts.at(kMETShift_JECDn_JERNominal).Py()));
+      SET_MET_SHIFT(metShift_RevertMETFix_px_JECUp_JERNominal, pfmetCollName, float(pfmetshiftRevertMETFixHandle->metshifts.at(kMETShift_JECUp_JERNominal).Px()));
+      SET_MET_SHIFT(metShift_RevertMETFix_py_JECUp_JERNominal, pfmetCollName, float(pfmetshiftRevertMETFixHandle->metshifts.at(kMETShift_JECUp_JERNominal).Py()));
+
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_px_JECDn, pfmetCollName, float(pfmetshiftP4PreservedRevertMETFixHandle->metshifts.at(kMETShift_JECDn).Px()));
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_py_JECDn, pfmetCollName, float(pfmetshiftP4PreservedRevertMETFixHandle->metshifts.at(kMETShift_JECDn).Py()));
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_px_JECUp, pfmetCollName, float(pfmetshiftP4PreservedRevertMETFixHandle->metshifts.at(kMETShift_JECUp).Px()));
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_py_JECUp, pfmetCollName, float(pfmetshiftP4PreservedRevertMETFixHandle->metshifts.at(kMETShift_JECUp).Py()));
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_px_JECNominal_JERNominal, pfmetCollName, float(pfmetshiftP4PreservedRevertMETFixHandle->metshifts.at(kMETShift_JECNominal_JERNominal).Px()));
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_py_JECNominal_JERNominal, pfmetCollName, float(pfmetshiftP4PreservedRevertMETFixHandle->metshifts.at(kMETShift_JECNominal_JERNominal).Py()));
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_px_JECNominal_JERDn, pfmetCollName, float(pfmetshiftP4PreservedRevertMETFixHandle->metshifts.at(kMETShift_JECNominal_JERDn).Px()));
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_py_JECNominal_JERDn, pfmetCollName, float(pfmetshiftP4PreservedRevertMETFixHandle->metshifts.at(kMETShift_JECNominal_JERDn).Py()));
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_px_JECNominal_JERUp, pfmetCollName, float(pfmetshiftP4PreservedRevertMETFixHandle->metshifts.at(kMETShift_JECNominal_JERUp).Px()));
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_py_JECNominal_JERUp, pfmetCollName, float(pfmetshiftP4PreservedRevertMETFixHandle->metshifts.at(kMETShift_JECNominal_JERUp).Py()));
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_px_JECDn_JERNominal, pfmetCollName, float(pfmetshiftP4PreservedRevertMETFixHandle->metshifts.at(kMETShift_JECDn_JERNominal).Px()));
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_py_JECDn_JERNominal, pfmetCollName, float(pfmetshiftP4PreservedRevertMETFixHandle->metshifts.at(kMETShift_JECDn_JERNominal).Py()));
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_px_JECUp_JERNominal, pfmetCollName, float(pfmetshiftP4PreservedRevertMETFixHandle->metshifts.at(kMETShift_JECUp_JERNominal).Px()));
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_py_JECUp_JERNominal, pfmetCollName, float(pfmetshiftP4PreservedRevertMETFixHandle->metshifts.at(kMETShift_JECUp_JERNominal).Py()));
+    }
   }
   else{
     SET_MET_SHIFT(metShift_px_JECDn, pfmetCollName, float(0));
@@ -3951,6 +4026,38 @@ bool CMS3Ntuplizer::fillMETVariables(edm::Event const& iEvent){
     SET_MET_SHIFT(metShift_p4Preserved_py_JECDn_JERNominal, pfmetCollName, float(0));
     SET_MET_SHIFT(metShift_p4Preserved_px_JECUp_JERNominal, pfmetCollName, float(0));
     SET_MET_SHIFT(metShift_p4Preserved_py_JECUp_JERNominal, pfmetCollName, float(0));
+
+    if (applyMETfix){
+      SET_MET_SHIFT(metShift_RevertMETFix_px_JECDn, pfmetCollName, float(0));
+      SET_MET_SHIFT(metShift_RevertMETFix_py_JECDn, pfmetCollName, float(0));
+      SET_MET_SHIFT(metShift_RevertMETFix_px_JECUp, pfmetCollName, float(0));
+      SET_MET_SHIFT(metShift_RevertMETFix_py_JECUp, pfmetCollName, float(0));
+      SET_MET_SHIFT(metShift_RevertMETFix_px_JECNominal_JERNominal, pfmetCollName, float(0));
+      SET_MET_SHIFT(metShift_RevertMETFix_py_JECNominal_JERNominal, pfmetCollName, float(0));
+      SET_MET_SHIFT(metShift_RevertMETFix_px_JECNominal_JERDn, pfmetCollName, float(0));
+      SET_MET_SHIFT(metShift_RevertMETFix_py_JECNominal_JERDn, pfmetCollName, float(0));
+      SET_MET_SHIFT(metShift_RevertMETFix_px_JECNominal_JERUp, pfmetCollName, float(0));
+      SET_MET_SHIFT(metShift_RevertMETFix_py_JECNominal_JERUp, pfmetCollName, float(0));
+      SET_MET_SHIFT(metShift_RevertMETFix_px_JECDn_JERNominal, pfmetCollName, float(0));
+      SET_MET_SHIFT(metShift_RevertMETFix_py_JECDn_JERNominal, pfmetCollName, float(0));
+      SET_MET_SHIFT(metShift_RevertMETFix_px_JECUp_JERNominal, pfmetCollName, float(0));
+      SET_MET_SHIFT(metShift_RevertMETFix_py_JECUp_JERNominal, pfmetCollName, float(0));
+
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_px_JECDn, pfmetCollName, float(0));
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_py_JECDn, pfmetCollName, float(0));
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_px_JECUp, pfmetCollName, float(0));
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_py_JECUp, pfmetCollName, float(0));
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_px_JECNominal_JERNominal, pfmetCollName, float(0));
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_py_JECNominal_JERNominal, pfmetCollName, float(0));
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_px_JECNominal_JERDn, pfmetCollName, float(0));
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_py_JECNominal_JERDn, pfmetCollName, float(0));
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_px_JECNominal_JERUp, pfmetCollName, float(0));
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_py_JECNominal_JERUp, pfmetCollName, float(0));
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_px_JECDn_JERNominal, pfmetCollName, float(0));
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_py_JECDn_JERNominal, pfmetCollName, float(0));
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_px_JECUp_JERNominal, pfmetCollName, float(0));
+      SET_MET_SHIFT(metShift_p4Preserved_RevertMETFix_py_JECUp_JERNominal, pfmetCollName, float(0));
+    }
   }
 
   /*
@@ -3979,7 +4086,6 @@ bool CMS3Ntuplizer::fillMETVariables(edm::Event const& iEvent){
   SET_MET_VARIABLE(metHandle, calo_metPhi, pfmetCollName);
 
   // PUPPI MET
-  const char puppimetCollName[] = "puppimet";
   iEvent.getByToken(puppimetToken, metHandle);
   if (!metHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillMETVariables: Error getting the PUPPI MET handle from the event...");
 
@@ -3992,6 +4098,12 @@ bool CMS3Ntuplizer::fillMETVariables(edm::Event const& iEvent){
   SET_MET_VARIABLE(metHandle, met_Raw, puppimetCollName);
   SET_MET_VARIABLE(metHandle, metPhi_Raw, puppimetCollName);
   SET_MET_VARIABLE(metHandle, sumEt_Raw, puppimetCollName);
+
+  if (applyMETfix){
+    SET_MET_VARIABLE(metHandle, met_Raw_Default, puppimetCollName);
+    SET_MET_VARIABLE(metHandle, metPhi_Raw_Default, puppimetCollName);
+    SET_MET_VARIABLE(metHandle, sumEt_Raw_Default, puppimetCollName);
+  }
 
   SET_MET_VARIABLE(metHandle, met_JECDn, puppimetCollName);
   SET_MET_VARIABLE(metHandle, metPhi_JECDn, puppimetCollName);

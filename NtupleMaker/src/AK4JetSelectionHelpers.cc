@@ -151,10 +151,22 @@ namespace AK4JetSelectionHelpers{
   }
 
   bool testAK4JetMETSafety(pat::Jet const& obj){
-    unsigned char flag = 0;
-    flag += obj.userInt("isMETJERCSafe_Bits");
-    flag += obj.userInt("isMETJERCSafe_p4Preserved_Bits");
-    return flag>0;
+    return obj.userInt("isMETJERCSafe_Any")!=0;
+  }
+
+  bool testAK4JetMETFixSafety_NoPt(double const& eta, int const& year){
+    if (year!=2017) return true;
+    double abs_eta = std::abs(eta);
+    return !(abs_eta>=2.65 && abs_eta<=3.139);
+  }
+  bool testAK4JetMETFixSafety(double const& uncorrected_pt, double const& eta, int const& year){
+    if (year!=2017) return true;
+    return !(!testAK4JetMETFixSafety_NoPt(eta, year) && uncorrected_pt<=50.);
+  }
+  bool testAK4JetMETFixSafety_NoPt(pat::Jet const& obj, int const& year){ return testAK4JetMETFixSafety_NoPt(obj.eta(), year); }
+  bool testAK4JetMETFixSafety(pat::Jet const& obj, int const& year, bool isPFJetMakerOutput){
+    double uncorrected_pt = (isPFJetMakerOutput ? getUncorrectedJetPt(obj) : obj.pt()*obj.jecFactor("Uncorrected"));
+    return testAK4JetMETFixSafety(uncorrected_pt, obj.eta(), year);
   }
 
   bool testSkimAK4Jet(pat::Jet const& obj, int const& /*year*/, AK4JetSelectionHelpers::AK4JetType const& /*type*/){

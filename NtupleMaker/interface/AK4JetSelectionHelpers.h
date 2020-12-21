@@ -30,6 +30,11 @@ namespace AK4JetSelectionHelpers{
 
   bool testAK4JetMETSafety(pat::Jet const& obj);
 
+  bool testAK4JetMETFixSafety_NoPt(double const& eta, int const& year);
+  bool testAK4JetMETFixSafety_NoPt(pat::Jet const& obj, int const& year);
+  bool testAK4JetMETFixSafety(double const& uncorrected_pt, double const& eta, int const& year);
+  bool testAK4JetMETFixSafety(pat::Jet const& obj, int const& year, bool isPFJetMakerOutput);
+
   bool testSkimAK4Jet(pat::Jet const& obj, int const& year, AK4JetSelectionHelpers::AK4JetType const& type);
 
 }

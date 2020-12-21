@@ -29,6 +29,9 @@ protected:
 
   edm::EDGetTokenT< edm::View<pat::MET> > metToken;
 
+  bool applyMETfix;
+  edm::EDGetTokenT< edm::View<pat::MET> > metDefaultToken;
+
 };
 
 

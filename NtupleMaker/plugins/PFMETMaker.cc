@@ -14,9 +14,13 @@ typedef math::XYZTLorentzVectorF LorentzVector;
 
 
 PFMETMaker::PFMETMaker(const edm::ParameterSet& iConfig) :
-  aliasprefix_(iConfig.getUntrackedParameter<std::string>("aliasprefix"))
+  aliasprefix_(iConfig.getUntrackedParameter<std::string>("aliasprefix")),
+  applyMETfix(iConfig.getParameter<bool>("applyMETfix"))
 {
-  metToken = consumes<edm::View<pat::MET> >(iConfig.getParameter<edm::InputTag>("metSrc"));
+  metToken = consumes< edm::View<pat::MET> >(iConfig.getParameter<edm::InputTag>("metSrc"));
+  if (applyMETfix){
+    metDefaultToken = consumes< edm::View<pat::MET> >(iConfig.getParameter<edm::InputTag>("metDefaultSrc"));
+  }
 
   produces<METInfo>().setBranchAlias(aliasprefix_);
 }
@@ -32,7 +36,7 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
   edm::Handle< edm::View<pat::MET> > met_h;
   iEvent.getByToken(metToken, met_h);
-  if (!met_h.isValid()) throw cms::Exception("PFMETMaker::produce: error getting particle-flow MET collection from Event!");
+  if (!met_h.isValid()) throw cms::Exception("PFMETMaker::produce: Error getting the PF MET collection from the event!");
 
   /*
   edm::Handle<edm::View<pat::MET> > genmet_h;
@@ -83,7 +87,51 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   auto const vmet_Raw = (met_h->front()).shiftedP2(pat::MET::METUncertainty::NoShift, pat::MET::METCorrectionLevel::Raw);
   result->met_Raw = vmet_Raw.pt();
   result->metPhi_Raw = vmet_Raw.phi();
-  result->sumEt_Raw  = (met_h->front()).shiftedSumEt(pat::MET::METUncertainty::NoShift, pat::MET::METCorrectionLevel::Raw);
+  result->sumEt_Raw = (met_h->front()).shiftedSumEt(pat::MET::METUncertainty::NoShift, pat::MET::METCorrectionLevel::Raw);
+  if (applyMETfix){
+    /*
+    For PF MET, one could also sum over the PF candidates explicitly to get the same value up to floating-point precision.
+    However, that would be slower because there are hundreds/thousands of PF candidates in a single event.
+    In that case, using the pre-calculated value should avoid the extra step to loop over many objects.
+    The difference of raw_default - raw equals approximately the output of the following code snipped 
+    (approximately because bad candidates also need to clean from muons, electrons, and photons, which is a negligible fraction):
+    {
+      LorentzVectorD pfcands_sump4; // This is 'raw_default'.
+      LorentzVectorD pfcands_sump4_bad;
+      for (auto obj=pfcandsHandle->begin(); obj!=pfcandsHandle->end(); obj++){
+        pfcands_sump4 += -obj->p4();
+        if (!PFCandidateSelectionHelpers::testMETFixSafety(*obj, this->year)) pfcands_sump4_bad += -obj->p4();
+      }
+      for (edm::View<pat::Jet>::const_iterator obj = ak4jetsHandle->begin(); obj != ak4jetsHandle->end(); obj++){
+        if (!AK4JetSelectionHelpers::testAK4JetMETFixSafety(*obj, this->year, true)) pfcands_sump4_bad += -obj->p4();
+        auto const& pfcands_jet = obj->daughterPtrVector();
+        LorentzVectorD pfcands_jet_sump4;
+        for (auto it_pfcand_jet = pfcands_jet.cbegin(); it_pfcand_jet != pfcands_jet.cend(); it_pfcand_jet++){
+          size_t ipf = it_pfcand_jet->key();
+          pat::PackedCandidate const* pfcand_jet = &(pfcandsHandle->at(ipf));
+          pfcands_jet_sump4 += pfcand_jet->p4();
+          // Remove from unclustered collection
+          if (!PFCandidateSelectionHelpers::testMETFixSafety(*pfcand_jet, this->year)) pfcands_sump4_bad += pfcand_jet->p4();
+        }
+      }
+      LorentzVectorD pfcands_sump4_good = pfcands_sump4 - pfcands_sump4_bad; // This is 'raw'.
+    }
+    */
+
+    edm::Handle< edm::View<pat::MET> > met_default_h;
+    iEvent.getByToken(metDefaultToken, met_default_h);
+    if (!met_default_h.isValid()) throw cms::Exception("PFMETMaker::produce: Error getting the default PF MET collection from the event!");
+
+    auto const vmet_Raw_Default = (met_default_h->front()).shiftedP2(pat::MET::METUncertainty::NoShift, pat::MET::METCorrectionLevel::Raw);
+    result->met_Raw_Default = vmet_Raw_Default.pt();
+    result->metPhi_Raw_Default = vmet_Raw_Default.phi();
+    result->sumEt_Raw_Default = (met_default_h->front()).shiftedSumEt(pat::MET::METUncertainty::NoShift, pat::MET::METCorrectionLevel::Raw);
+  }
+  else{
+    result->met_Raw_Default = result->met_Raw;
+    result->metPhi_Raw_Default = result->metPhi_Raw;
+    result->sumEt_Raw_Default = result->sumEt_Raw;
+  }
 
   if (!isData_){
     auto const vmet_JECDn = (met_h->front()).shiftedP2(pat::MET::METUncertainty::JetEnDown);
