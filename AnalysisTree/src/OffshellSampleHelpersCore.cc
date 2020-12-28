@@ -17,7 +17,7 @@ namespace SampleHelpers{
   bool runConfigure=false;
 }
 
-void SampleHelpers::configure(TString period, TString stag){
+void SampleHelpers::configure(TString period, TString stag, HostHelpers::Hosts input_host){
   setDataPeriod(period);
   TString strInputDir = "/home/users/usarica/work/Width_AC_Run2/Samples";
   if (stag.Contains(":")){
@@ -31,6 +31,12 @@ void SampleHelpers::configure(TString period, TString stag){
 
       if (splitstr.size()==3) HelperFunctions::replaceString<TString, const TString>(strInputDir, "usarica", splitstr.at(1));
     }
+  }
+  if (HostHelpers::GetHostLocation() != input_host){
+    TString strRedirector_input = HostHelpers::GetHostLocalRedirector(input_host, true);
+    TString strPathToStore_input = HostHelpers::GetHostPathToStore(input_host);
+    HelperFunctions::replaceString<TString, TString const>(strInputDir, strPathToStore_input, "");
+    strInputDir = strRedirector_input + strInputDir;
   }
 
   theSamplesTag=stag;

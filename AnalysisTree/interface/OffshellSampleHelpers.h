@@ -11,7 +11,7 @@ namespace SampleHelpers{
   extern bool runConfigure;
   extern TString theSamplesTag;
 
-  void configure(TString period, TString stag); // Run this before doing anything else!
+  void configure(TString period, TString stag, HostHelpers::Hosts input_host = HostHelpers::kUCSDT2); // Run this before doing anything else!
 
   std::string getDatasetDirectoryCoreName(std::string sname);
   TString getDatasetDirectoryName(std::string sname, bool ignoreDNE=false);
