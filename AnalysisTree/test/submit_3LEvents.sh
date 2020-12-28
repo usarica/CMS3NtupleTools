@@ -3,13 +3,12 @@
 date=$1
 period=$2
 prodVersion=$3
-script=produceLGEvents.cc
+script=produce3LEvents.cc
 function=getTrees
-jobdate="LGEvents_${date}"
-arguments='"<strSampleSet>","<period>","<prodVersion>","<strdate>",<ichunk>,<nchunks>,<theGlobalSyst>,<computeMEs>,<applyPUIdToAK4Jets>,<applyTightLeptonVetoIdToAK4Jets>,<use_MET_Puppi>,<use_MET_XYCorr>,<use_MET_JERCorr>,<use_MET_ParticleMomCorr>,<use_MET_p4Preservation>,<use_MET_corrections>'
+jobdate="3LEvents_${date}"
+arguments='"<strSampleSet>","<period>","<prodVersion>","<strdate>",<ichunk>,<nchunks>,<theGlobalSyst>,<applyPUIdToAK4Jets>,<applyTightLeptonVetoIdToAK4Jets>,<use_MET_Puppi>,<use_MET_XYCorr>,<use_MET_JERCorr>,<use_MET_ParticleMomCorr>,<use_MET_p4Preservation>,<use_MET_corrections>'
 arguments="${arguments/<strdate>/$date}"
 arguments="${arguments/<prodVersion>/$prodVersion}"
-arguments="${arguments/<computeMEs>/true}"
 arguments="${arguments/<applyPUIdToAK4Jets>/true}"
 arguments="${arguments/<applyTightLeptonVetoIdToAK4Jets>/false}"
 arguments="${arguments/<use_MET_Puppi>/false}"

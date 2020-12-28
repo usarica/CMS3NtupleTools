@@ -104,20 +104,33 @@ for spl in "${DataSampleList[@]}"; do
   for dataperiod in "${dataPeriods[@]}"; do
     sample="${spl}${dataperiod}"
 
-    strargs="${arguments}"
-    strargs="${strargs/<strSampleSet>/${sample}}"
-    strargs="${strargs/<ichunk>/0}"
-    strargs="${strargs/<nchunks>/0}"
-    strargs="${strargs/<theGlobalSyst>/sNominal}"
-    strargs="${strargs/<period>/$dataperiod}"
-
-    REQMEM=2048M
+    let nchunks=4
+    REQMEM=4096M
     JOBFLAV=tomorrow
-    if [[ "${dataperiod}" == "2017E" ]] || [[ "${dataperiod}" == "2017F" ]] || [[ "${dataperiod}" == "2018A" ]] || [[ "${dataperiod}" == "2018D" ]]; then
-      REQMEM=4096M
+    if [[ "${dataperiod}" == "2017E" ]] || [[ "${dataperiod}" == "2017F" ]]; then
       JOBFLAV=testmatch
+      let nchunks=8
+    elif [[ "${dataperiod}" == "2018A" ]]; then
+      JOBFLAV=testmatch
+      let nchunks=10
+    elif [[ "${dataperiod}" == "2018D" ]]; then
+      JOBFLAV=testmatch
+      let nchunks=30
     fi
 
-    submitCMS3AnalysisProduction.sh script="${script}" function="${function}" arguments="${strargs}" date="${jobdate}" memory="${REQMEM}" job_flavor="${JOBFLAV}"
+    let ichunk=0
+    while [[ $ichunk -lt $nchunks ]]; do
+      strargs="${arguments}"
+      strargs="${strargs/<strSampleSet>/${sample}}"
+      strargs="${strargs/<ichunk>/${ichunk}}"
+      strargs="${strargs/<nchunks>/${nchunks}}"
+      strargs="${strargs/<theGlobalSyst>/sNominal}"
+      strargs="${strargs/<period>/$dataperiod}"
+
+      submitCMS3AnalysisProduction.sh script="${script}" function="${function}" arguments="${strargs}" date="${jobdate}" memory="${REQMEM}" job_flavor="${JOBFLAV}"
+
+      let ichunk=$ichunk+1
+    done
+
   done
 done

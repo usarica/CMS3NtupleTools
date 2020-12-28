@@ -351,30 +351,12 @@ void getDistributions(
       TString prevstep = Form("Step%u", jstep);
       HelperFunctions::replaceString<TString, TString const>(strinput_prevstep, ownstep, prevstep);
       HelperFunctions::replaceString<TString, TString const>(strinput_prevstep, strSyst_output, strSyst);
-      if (SampleHelpers::checkRunOnCondor()) strinput_prevstep = Form("/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/%s", strinput_prevstep.Data());
+      if (!HostHelpers::FileReadable(strinput_prevstep.Data())) strinput_prevstep = Form("/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/%s", strinput_prevstep.Data());
       if (!HostHelpers::FileReadable(strinput_prevstep.Data())){
-        if (SampleHelpers::checkRunOnCondor()){
-          MELAerr << "File " << strinput_prevstep << " is not present. Sleeping until the file appears." << endl;
-          unsigned int icounts=0;
-          while (true){
-            if (icounts==8){
-              MELAerr << "File " << strinput_prevstep << " did not appear for 4 hours. Aborting execution..." << endl;
-              return;
-            }
-            std::this_thread::sleep_for(std::chrono::minutes(30));
-            if (HostHelpers::FileReadable(strinput_prevstep.Data())){
-              MELAout << "File " << strinput_prevstep << " is now present. Exiting out of sleep..." << endl;
-              break;
-            }
-            icounts++;
-          }
-        }
-        else{
-          foutput->Close();
-          MELAerr << "File " << strinput_prevstep << " is not present. Please run the corresponding step first." << endl;
-          assert(0);
-          return;
-        }
+        foutput->Close();
+        MELAerr << "File " << strinput_prevstep << " is not present. Please run the corresponding step first." << endl;
+        assert(0);
+        return;
       }
       TFile* ftmp = TFile::Open(strinput_prevstep, "read"); finputs_prevstep.push_back(ftmp);
       ftmp->cd();
@@ -1584,7 +1566,7 @@ void runDistributionsChain(
 ){
   switch (theGlobalSyst){
   case sNominal:
-    for (unsigned int istep=0;istep<2;istep++) getDistributions(period, prodVersion, strdate, theGlobalSyst, istep, 0, 0, fast_mode);
+    for (unsigned int istep=0; istep<2; istep++) getDistributions(period, prodVersion, strdate, theGlobalSyst, istep, 0, 0, fast_mode);
     getDistributions(period, prodVersion, strdate, theGlobalSyst, 1, 0, -1, fast_mode);
     getDistributions(period, prodVersion, strdate, theGlobalSyst, 1, 0, +1, fast_mode);
     break;

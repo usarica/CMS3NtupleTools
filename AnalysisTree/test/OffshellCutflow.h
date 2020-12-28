@@ -82,12 +82,32 @@ namespace OffshellCutflow{
     float thr=-1;
     switch (activeFinalState){
     case fs_ZZ_2l2nu:
-    case fs_ZW_3l1nu:
     case fs_WW_2l2nu:
       thr=25.f;
       break;
+    case fs_ZW_3l1nu:
+      thr=20.f;
+      break;
     default:
       MELAerr << "OffshellCutflow::check_pTl2: The active final state " << activeFinalState << " is not specified." << endl;
+      assert(0);
+      break;
+    }
+    return val>=thr;
+  }
+  bool check_pTl3(float const& val){
+    float thr=-1;
+    switch (activeFinalState){
+    case fs_ZZ_2l2nu:
+    case fs_WW_2l2nu:
+      MELAerr << "OffshellCutflow::check_pTl3: This function should not be called for the active final state " << activeFinalState << "." << endl;
+      return false;
+      break;
+    case fs_ZW_3l1nu:
+      thr=10.f;
+      break;
+    default:
+      MELAerr << "OffshellCutflow::check_pTl3: The active final state " << activeFinalState << " is not specified." << endl;
       assert(0);
       break;
     }

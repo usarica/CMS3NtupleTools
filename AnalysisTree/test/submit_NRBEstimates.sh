@@ -16,10 +16,8 @@ declare -a systs=( \
   sNominal \
   eEleEffStatDn eEleEffStatUp \
   eEleEffSystDn eEleEffSystUp \
-  eEleEffAltMCDn eEleEffAltMCUp \
   eMuEffStatDn eMuEffStatUp \
   eMuEffSystDn eMuEffSystUp \
-  eMuEffAltMCDn eMuEffAltMCUp \
   eTriggerEffDn eTriggerEffUp \
 )
 

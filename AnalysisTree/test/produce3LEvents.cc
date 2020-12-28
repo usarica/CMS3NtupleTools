@@ -220,14 +220,18 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   BRANCH_COMMAND(float, ak4jets_HT) \
   BRANCH_COMMAND(float, ak4jets_MHT) \
   BRANCH_COMMAND(float, event_m3l) \
+  BRANCH_COMMAND(float, dPhi_Z_W) \
+  BRANCH_COMMAND(float, dPhi_lepW_pTmiss) \
+  BRANCH_COMMAND(float, event_mTl) \
+  BRANCH_COMMAND(float, event_mWVis) \
   BRANCH_COMMAND(float, dPhi_pTleptonsjets_pTmiss) \
   BRANCH_COMMAND(float, min_abs_dPhi_pTj_pTmiss)
 #define BRANCH_VECTOR_COMMANDS \
-  BRANCH_COMMAND(float, event_wgt_triggers_SingleLepton) \
   BRANCH_COMMAND(float, event_wgt_triggers_Dilepton_SF) \
   BRANCH_COMMAND(float, event_wgt_triggers_Dilepton_DF) \
   BRANCH_COMMAND(float, event_wgt_triggers_Dilepton_DF_Extra) \
   BRANCH_COMMAND(cms3_listSize_t, dilepton_daughter_indices) \
+  BRANCH_COMMAND(float, event_wgt_triggers_SingleLepton) \
   BRANCH_COMMAND(bool, leptons_is_genMatched_prompt) \
   BRANCH_COMMAND(bool, leptons_is_fakeableBase) \
   BRANCH_COMMAND(std::vector<bool>, leptons_pass_fakeable_ids) \
@@ -505,7 +509,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   for (auto const& part:muons_selected) leptons_selected.push_back(part);
   for (auto const& part:electrons_selected) leptons_selected.push_back(part);
   ParticleObjectHelpers::sortByGreaterPt(leptons_selected);
-  if (leptons_selected.front()->pt()<25.f || leptons_selected.at(1)->pt()<25.f) return false;
+  assert(leptons_selected.size()==3);
+  if (!OffshellCutflow::check_pTl1(leptons_selected.front()->pt()) || !OffshellCutflow::check_pTl2(leptons_selected.at(1)->pt()) || !OffshellCutflow::check_pTl3(leptons_selected.back()->pt())) return false;
   theLooper->incrementSelection("Trigger efficiency plateau veto");
 
   auto const& photons = photonHandler->getProducts();
@@ -582,6 +587,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     }
   }
   assert(dilepton_daughter_indices.size()==2);
+  ParticleObject* lepton_W = leptons_selected.at(3-dilepton_daughter_indices.front()-dilepton_daughter_indices.back());
 
   jetHandler->constructJetMET(theGlobalSyst, &muons, &electrons, &photons, &pfcandidates);
   auto const& ak4jets = jetHandler->getAK4Jets();
@@ -597,21 +603,32 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   event_pTmiss = event_met_p4.Pt();
   event_phimiss = event_met_p4.Phi();
 
-  float event_wgt_Dilepton_Combined = 0.f;
+  float event_wgt_Dilepton_SingleLepton_Combined = 0.f;
   for (auto it_part_i=leptons_selected.begin(); it_part_i!=leptons_selected.end(); it_part_i++){
     ParticleObject* part_i = *it_part_i;
     MuonObject* theMuon_i = dynamic_cast<MuonObject*>(part_i);
     ElectronObject* theElectron_i = dynamic_cast<ElectronObject*>(part_i);
-    if (theMuon_i && theMuon_i->pt()<25.) continue;
-    if (theElectron_i && theElectron_i->pt()<25.) continue;
+
+    {
+      std::vector<MuonObject*> muons_trigger; muons_trigger.reserve(1);
+      std::vector<ElectronObject*> electrons_trigger; electrons_trigger.reserve(1);
+      if (theMuon_i) muons_trigger.push_back(theMuon_i);
+      if (theElectron_i) electrons_trigger.push_back(theElectron_i);
+
+      event_wgt_triggers_SingleLepton.push_back(
+        eventFilter->getTriggerWeight(
+          it_HLTMenuProps_SingleLepton->second,
+          &muons_trigger, &electrons_trigger, nullptr, nullptr, nullptr, nullptr
+        )
+      ); event_wgt_Dilepton_SingleLepton_Combined += event_wgt_triggers_SingleLepton.back();
+    }
+
     for (auto it_part_j=it_part_i; it_part_j!=leptons_selected.end(); it_part_j++){
       if (it_part_i == it_part_j) continue;
 
       ParticleObject* part_j = *it_part_j;
       MuonObject* theMuon_j = dynamic_cast<MuonObject*>(part_j);
       ElectronObject* theElectron_j = dynamic_cast<ElectronObject*>(part_j);
-      if (theMuon_j && theMuon_j->pt()<25.) continue;
-      if (theElectron_j && theElectron_j->pt()<25.) continue;
 
       std::vector<MuonObject*> muons_trigger; muons_trigger.reserve(2);
       std::vector<ElectronObject*> electrons_trigger; electrons_trigger.reserve(2);
@@ -620,37 +637,31 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
       if (theElectron_i) electrons_trigger.push_back(theElectron_i);
       if (theElectron_j) electrons_trigger.push_back(theElectron_j);
 
-      event_wgt_triggers_SingleLepton.push_back(
-        eventFilter->getTriggerWeight(
-          it_HLTMenuProps_SingleLepton->second,
-          &muons_trigger, &electrons_trigger, nullptr, nullptr, nullptr, nullptr
-        )
-      ); event_wgt_Dilepton_Combined += event_wgt_triggers_SingleLepton.back();
       event_wgt_triggers_Dilepton_SF.push_back(
         eventFilter->getTriggerWeight(
           it_HLTMenuProps_Dilepton_SF->second,
           &muons_trigger, &electrons_trigger, nullptr, nullptr, nullptr, nullptr
         )
-      ); event_wgt_Dilepton_Combined += event_wgt_triggers_Dilepton_SF.back();
+      ); event_wgt_Dilepton_SingleLepton_Combined += event_wgt_triggers_Dilepton_SF.back();
       event_wgt_triggers_Dilepton_DF.push_back(
         eventFilter->getTriggerWeight(
           it_HLTMenuProps_Dilepton_DF->second,
           &muons_trigger, &electrons_trigger, nullptr, nullptr, nullptr, nullptr
         )
-      ); event_wgt_Dilepton_Combined += event_wgt_triggers_Dilepton_DF.back();
+      ); event_wgt_Dilepton_SingleLepton_Combined += event_wgt_triggers_Dilepton_DF.back();
       event_wgt_triggers_Dilepton_DF_Extra.push_back(
         eventFilter->getTriggerWeight(
           it_HLTMenuProps_Dilepton_DF_Extra->second,
           &muons_trigger, &electrons_trigger, nullptr, nullptr, nullptr, nullptr
         )
-      ); event_wgt_Dilepton_Combined += event_wgt_triggers_Dilepton_DF_Extra.back();
+      ); event_wgt_Dilepton_SingleLepton_Combined += event_wgt_triggers_Dilepton_DF_Extra.back();
     }
   }
   event_wgt_triggers_Trilepton = eventFilter->getTriggerWeight(
     it_HLTMenuProps_Trilepton->second,
     &muons, &electrons, nullptr, nullptr, nullptr, nullptr
   );
-  if ((event_wgt_Dilepton_Combined + event_wgt_triggers_Trilepton) == 0.f) return false;
+  if ((event_wgt_Dilepton_SingleLepton_Combined + event_wgt_triggers_Trilepton) == 0.f) return false;
   theLooper->incrementSelection("Trigger");
 
   // Test HEM filter
@@ -902,8 +913,13 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   }
   
   ParticleObject::LorentzVector_t sump4_leptons_ak4jets = sump4_leptons + sump4_ak4jets;
+  ParticleObject::LorentzVector_t p4_W = lepton_W->p4() + event_met_p4;
   HelperFunctions::deltaPhi(float(sump4_leptons_ak4jets.Phi()), event_phimiss, dPhi_pTleptonsjets_pTmiss);
+  HelperFunctions::deltaPhi(float(theChosenDilepton->phi()), float(p4_W.Phi()), dPhi_Z_W);
+  HelperFunctions::deltaPhi(float(lepton_W->phi()), event_phimiss, dPhi_lepW_pTmiss);
   event_m3l = sump4_leptons.M();
+  event_mTl = std::sqrt(std::pow(lepton_W->pt() + event_pTmiss, 2) - std::pow(p4_W.Pt(), 2));
+  event_mWVis = p4_W.M();
 
   /*********************/
   /* RECORD THE OUTPUT */
