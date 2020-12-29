@@ -13,6 +13,10 @@ arguments="${arguments/<strdate>/$date}"
 arguments="${arguments/<applyTightLeptonVetoIdToAK4Jets>/false}"
 
 skimdir="/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Skims/${prodVersion}"
+skimdir=$( ExecuteCompiledCommand GetStandardHostPathToStore ${skimdir} t2.ucsd.edu )
+if [[ "$( ExecuteCompiledCommand DirectoryExists ${skimdir} )" == "false" ]]; then
+  exit 1
+fi
 
 MCSysts=( sNominal eJECDn eJECUp eJERDn eJERUp ePUDn ePUUp ePUJetIdEffDn ePUJetIdEffUp )
 
@@ -25,7 +29,7 @@ for d in $(ls $skimdir); do
     sampledir=${skimdir}${sample}
     sample="${sample}/MINIAODSIM"
 
-    let nfiles=$(ls $sampledir | grep -e ".root" | wc -l)
+    let nfiles=$(ExecuteCompiledCommand lsdir $sampledir | grep -e ".root" | wc -l)
     echo "$sampledir has $nfiles files"
 
     nchunks=$((nfiles / 4))

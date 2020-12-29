@@ -49,15 +49,17 @@ for sample in $(readCMS3SkimSamplesFromCSV.py --csv=${csvfile} --sim --tree_req=
   echo "====="
   skimdir="/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Skims/${prodVersion}/${sampleDir}"
   proddir="/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Production/${prodVersion}/${sampleDir}"
-  if [[ ! -d $skimdir ]]; then
+  skimdir=$( ExecuteCompiledCommand GetStandardHostPathToStore ${skimdir} t2.ucsd.edu )
+  proddir=$( ExecuteCompiledCommand GetStandardHostPathToStore ${proddir} t2.ucsd.edu )
+  if [[ "$( ExecuteCompiledCommand DirectoryExists ${skimdir} )" == "false" ]]; then
     echo "$skimdir does not exist"
     skimdir=$proddir
   fi
-  if [[ ! -d $skimdir ]]; then
+  if [[ "$( ExecuteCompiledCommand DirectoryExists ${skimdir} )" == "false" ]]; then
     continue
   fi
 
-  let nfiles=$(ls $skimdir | grep -e ".root" | wc -l)
+  let nfiles=$(ExecuteCompiledCommand lsdir $skimdir | grep -e ".root" | wc -l)
   echo "$sampleDir has $nfiles files"
 
   nchunks=$((nfiles / 4))
