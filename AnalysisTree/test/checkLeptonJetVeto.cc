@@ -382,7 +382,7 @@ void count(int procsel, int ichunk, int nchunks, TString strdate){
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
-  SampleHelpers::configure("2018", "hadoop:200203");
+  SampleHelpers::configure("2018", "store:200203");
 
   BtagHelpers::setBtagWPType(BtagHelpers::kDeepFlav_Loose);
   const float btagvalue_thr = BtagHelpers::getBtagWP(false);
@@ -445,9 +445,9 @@ void count(int procsel, int ichunk, int nchunks, TString strdate){
       sample.name == "VBFZZ_2l2nu_BSI"
       ||
       sample.name == "VBFZZ_2l2nu_Sig"
-      ) SampleHelpers::configure("2018", "hadoop:200101");
+      ) SampleHelpers::configure("2018", "store:200101");
     else{
-      SampleHelpers::configure("2018", "hadoop:200203");
+      SampleHelpers::configure("2018", "store:200203");
       SampleHelpers::setInputDirectory("/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Skims/DileptonSkims/2018");
     }
 

@@ -307,7 +307,7 @@ void produceCorrection(
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
-  SampleHelpers::configure(period, "hadoop_skims:"+prodVersion);
+  SampleHelpers::configure(period, "store_skims:"+prodVersion);
 
   constexpr bool applyPUIdToAK4Jets=true;
   constexpr bool applyTightLeptonVetoIdToAK4Jets=false;
@@ -550,7 +550,7 @@ void produceCorrection(
   SampleHelpers::addToCondorTransferList(stroutput);
 }
 void produceCorrections(TString strperiod, TString prodVersion, TString strdate){
-  SampleHelpers::configure(strperiod, "hadoop_skims:"+prodVersion);
+  SampleHelpers::configure(strperiod, "store_skims:"+prodVersion);
 
   auto periods = SampleHelpers::getValidDataPeriods();
   for (auto const& period:periods){
@@ -625,7 +625,7 @@ void produceFinalFits(
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
-  SampleHelpers::configure(period, "hadoop_skims:"+prodVersion);
+  SampleHelpers::configure(period, "store_skims:"+prodVersion);
   const float lumi = SampleHelpers::getIntegratedLuminosity(SampleHelpers::theDataPeriod);
   std::vector<SystematicsHelpers::SystematicVariationTypes> allowedSysts = getAllowedSysts();
 
@@ -1471,7 +1471,7 @@ void produceFinalFits(
   }
 }
 void produceFinalFitSets(TString strperiod, TString prodVersion, TString strdate){
-  SampleHelpers::configure(strperiod, "hadoop_skims:"+prodVersion);
+  SampleHelpers::configure(strperiod, "store_skims:"+prodVersion);
   const bool isSingleEra = SampleHelpers::testDataPeriodIsLikeData();
 
   auto periods = SampleHelpers::getValidDataPeriods();
@@ -1572,7 +1572,7 @@ void produceFinalFitSets(TString strperiod, TString prodVersion, TString strdate
 }
 
 void testCorrections(TString strperiod, TString prodVersion){
-  SampleHelpers::configure(strperiod, "hadoop_skims:"+prodVersion);
+  SampleHelpers::configure(strperiod, "store_skims:"+prodVersion);
 
   METCorrectionHandler metCorrectionHandler;
   metCorrectionHandler.printParameters();
@@ -1600,7 +1600,7 @@ void getCorrectionValidationHistograms(
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
-  SampleHelpers::configure(period, "hadoop_skims:"+prodVersion);
+  SampleHelpers::configure(period, "store_skims:"+prodVersion);
   const float lumi = SampleHelpers::getIntegratedLuminosity(SampleHelpers::theDataPeriod);
 
   constexpr bool applyPUIdToAK4Jets=true;
@@ -1894,7 +1894,7 @@ void getCorrectionValidationHistograms(
   foutput->Close();
 }
 void getCorrectionValidationHistogramSets(TString strperiod, TString prodVersion, TString strdate){
-  SampleHelpers::configure(strperiod, "hadoop_skims:"+prodVersion);
+  SampleHelpers::configure(strperiod, "store_skims:"+prodVersion);
   const bool isSingleEra = SampleHelpers::testDataPeriodIsLikeData();
   std::vector<SystematicsHelpers::SystematicVariationTypes> allowedSysts = getAllowedSysts();
 
@@ -1930,7 +1930,7 @@ void plotValidationHistograms(
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
-  SampleHelpers::configure(period, "hadoop_skims:"+prodVersion);
+  SampleHelpers::configure(period, "store_skims:"+prodVersion);
   const float lumi = SampleHelpers::getIntegratedLuminosity(SampleHelpers::theDataPeriod);
 
   constexpr bool applyPUIdToAK4Jets=true;
@@ -2151,7 +2151,7 @@ void plotValidationHistograms(
   for(auto& finput:finputlist) finput->Close();
 }
 void plotValidationHistogramSets(TString strperiod, TString prodVersion, TString strdate){
-  SampleHelpers::configure(strperiod, "hadoop_skims:"+prodVersion);
+  SampleHelpers::configure(strperiod, "store_skims:"+prodVersion);
 
   for (auto const& period:SampleHelpers::getValidDataPeriods()){
     plotValidationHistograms(period, prodVersion, strdate, "pfmet", "XY:JER:PartMomShifts:p4Preserved", false);

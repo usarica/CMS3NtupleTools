@@ -411,7 +411,7 @@ void getTrees(int procsel, int do_ee_mumu, TString strdate){
   gSystem->mkdir(coutput_main, true);
 
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
-  SampleHelpers::configure("2018B", "hadoop:200101");
+  SampleHelpers::configure("2018B", "store:200101");
   float lumi = SampleHelpers::getIntegratedLuminosity("2018B");
 
   BtagHelpers::setBtagWPType(BtagHelpers::kDeepFlav_Loose);

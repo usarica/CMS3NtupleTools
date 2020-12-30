@@ -266,7 +266,7 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate, TString yea
   gSystem->mkdir(coutput_main, true);
 
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
-  SampleHelpers::configure(year, "hadoop:200420_"+year);
+  SampleHelpers::configure(year, "store:200420_"+year);
 
   std::vector<TString> const validDataPeriods = SampleHelpers::getValidDataPeriods();
   size_t const nValidDataPeriods = validDataPeriods.size();
@@ -431,7 +431,7 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate, TString yea
     sample.name.find("BSI") != std::string::npos || 
     strdate.Contains("fullsamp")
    ) {
-    SampleHelpers::configure(year, "hadoop:200420_"+year);
+    SampleHelpers::configure(year, "store:200420_"+year);
     SampleHelpers::setInputDirectory("/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Production/");
   } else {
     SampleHelpers::setInputDirectory("/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Skims/");

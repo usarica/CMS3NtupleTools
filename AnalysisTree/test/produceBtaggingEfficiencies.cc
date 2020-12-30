@@ -36,7 +36,7 @@ void produceBtaggingEfficiencies(
   AK4JetSelectionHelpers::setPUIdWP(AK4JetSelectionHelpers::nSelectionBits); // Default is 'tight'
   AK4JetSelectionHelpers::setApplyTightLeptonVetoIdToJets(applyTightLeptonVetoIdToAK4Jets); // Default is 'false'
 
-  SampleHelpers::configure(period, "hadoop_skims:"+prodVersion);
+  SampleHelpers::configure(period, "store_skims:"+prodVersion);
 
   std::vector<TString> const validDataPeriods = SampleHelpers::getValidDataPeriods();
   size_t const nValidDataPeriods = validDataPeriods.size();

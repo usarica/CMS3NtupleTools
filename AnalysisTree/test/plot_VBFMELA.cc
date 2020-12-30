@@ -338,7 +338,7 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
   gSystem->mkdir(coutput_main, true);
 
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
-  SampleHelpers::configure("2018", ((procsel>=13) ? "191212" : "hadoop:200101"));
+  SampleHelpers::configure("2018", ((procsel>=13) ? "191212" : "store:200101"));
 
   BtagHelpers::setBtagWPType(BtagHelpers::kDeepFlav_Loose);
   const float btagvalue_thr = BtagHelpers::getBtagWP(false);

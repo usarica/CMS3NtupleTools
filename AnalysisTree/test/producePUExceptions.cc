@@ -9,7 +9,7 @@ using namespace std;
 void producePUExceptions(TString strSampleSet, TString period, TString prodVersion, TString strdate=""){
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
-  SampleHelpers::configure(period, "hadoop:"+prodVersion);
+  SampleHelpers::configure(period, "store:"+prodVersion);
   MELAout << "Input directory: " << SampleHelpers::theInputDirectory << endl;
   MELAout << "Input tag: " << SampleHelpers::theSamplesTag << endl;
 

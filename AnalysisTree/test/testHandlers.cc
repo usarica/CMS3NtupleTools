@@ -15,7 +15,7 @@ void testHandlers(
 ){
   SystematicsHelpers::SystematicVariationTypes const theGlobalSyst = SystematicsHelpers::sNominal;
 
-  SampleHelpers::configure(period, "hadoop_skims:"+prodVersion);
+  SampleHelpers::configure(period, "store_skims:"+prodVersion);
 
   AK4JetSelectionHelpers::setPUIdWP(applyPUIdToAK4Jets ? AK4JetSelectionHelpers::kTightPUJetId : AK4JetSelectionHelpers::nSelectionBits); // Default is 'tight'
   AK4JetSelectionHelpers::setApplyTightLeptonVetoIdToJets(applyTightLeptonVetoIdToAK4Jets); // Default is 'false'

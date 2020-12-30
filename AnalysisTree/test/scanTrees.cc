@@ -7,7 +7,7 @@ using namespace std;
 
 
 void scanTrees(TString strSampleSet, TString period, TString prodVersion){
-  SampleHelpers::configure(period, "hadoop:"+prodVersion);
+  SampleHelpers::configure(period, "store:"+prodVersion);
 
   std::vector<TString> validDataPeriods = SampleHelpers::getValidDataPeriods();
   size_t nValidDataPeriods = validDataPeriods.size();

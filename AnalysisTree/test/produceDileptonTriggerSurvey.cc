@@ -526,7 +526,7 @@ void getTrees(
     ||
     strSampleSet.Contains("/TT")
     );
-  SampleHelpers::configure(period, Form("%s:%s", (useSkims ? "hadoop_skims" : "hadoop"), prodVersion.Data()));
+  SampleHelpers::configure(period, Form("%s:%s", (useSkims ? "store_skims" : "store"), prodVersion.Data()));
 
   const float lumi = SampleHelpers::getIntegratedLuminosity(SampleHelpers::getDataPeriod());
 

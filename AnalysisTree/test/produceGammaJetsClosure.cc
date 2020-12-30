@@ -45,7 +45,7 @@ void produceGammaJetsClosure(TString strSampleSet, TString period, unsigned int 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
-  SampleHelpers::configure(period, "hadoop:200101");
+  SampleHelpers::configure(period, "store:200101");
 
   BtagHelpers::setBtagWPType(BtagHelpers::kDeepFlav_Loose);
   const float btagvalue_thr = BtagHelpers::getBtagWP(false);

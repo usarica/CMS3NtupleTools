@@ -297,7 +297,7 @@ void getEfficiencyHistograms(
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
-  SampleHelpers::configure(period, Form("hadoop_skims:%s", prodVersion.Data()));
+  SampleHelpers::configure(period, Form("store_skims:%s", prodVersion.Data()));
 
   TString strSyst = SystematicsHelpers::getSystName(theGlobalSyst).data();
   const float lumi = SampleHelpers::getIntegratedLuminosity(SampleHelpers::getDataPeriod());
@@ -1792,7 +1792,7 @@ void collectEfficiencies(
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
-  SampleHelpers::configure(period, Form("hadoop_skims:%s", prodVersion.Data()));
+  SampleHelpers::configure(period, Form("store_skims:%s", prodVersion.Data()));
 
   const float lumi = SampleHelpers::getIntegratedLuminosity(SampleHelpers::getDataPeriod());
   std::vector<TString> const validDataPeriods = SampleHelpers::getValidDataPeriods();

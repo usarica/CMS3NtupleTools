@@ -290,7 +290,7 @@ void getDistributions(
 
   OffshellCutflow::setActiveFinalState(OffshellCutflow::fs_ZZ_2l2nu);
 
-  SampleHelpers::configure(period, Form("%s:%s", "hadoop_skims", prodVersion.Data()));
+  SampleHelpers::configure(period, Form("%s:%s", "store_skims", prodVersion.Data()));
 
   TString strSyst = SystematicsHelpers::getSystName(theGlobalSyst).data();
   if (channel_triggerEff==-169) strSyst += "_mumu";
@@ -1785,7 +1785,7 @@ void makePlots_fcorr(
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
-  SampleHelpers::configure(period, Form("%s:%s", "hadoop_skims", prodVersion.Data()));
+  SampleHelpers::configure(period, Form("%s:%s", "store_skims", prodVersion.Data()));
 
   TString strSyst = SystematicsHelpers::getSystName(theGlobalSyst).data();
   const float lumi = SampleHelpers::getIntegratedLuminosity(SampleHelpers::getDataPeriod());
@@ -1958,7 +1958,7 @@ void makePlots(
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
-  SampleHelpers::configure(period, Form("%s:%s", "hadoop_skims", prodVersion.Data()));
+  SampleHelpers::configure(period, Form("%s:%s", "store_skims", prodVersion.Data()));
 
   TString strSyst = SystematicsHelpers::getSystName(theGlobalSyst).data();
   const float lumi = SampleHelpers::getIntegratedLuminosity(SampleHelpers::getDataPeriod());

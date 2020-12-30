@@ -25,7 +25,7 @@ void produceSkims(
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
-  SampleHelpers::configure(period, "hadoop:"+prodVersion);
+  SampleHelpers::configure(period, "store:"+prodVersion);
 
   BtagHelpers::setBtagWPType(BtagHelpers::kDeepFlav_Loose);
   const float btagvalue_thr = BtagHelpers::getBtagWP(false);

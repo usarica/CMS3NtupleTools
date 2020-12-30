@@ -1286,7 +1286,7 @@ void getEfficiencies(
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
-  SampleHelpers::configure(period, "hadoop_skims:"+prodVersion);
+  SampleHelpers::configure(period, "store_skims:"+prodVersion);
 
   constexpr bool applyPUIdToAK4Jets=true;
   constexpr bool applyTightLeptonVetoIdToAK4Jets=false;
@@ -2998,7 +2998,7 @@ void combineEfficiencies(
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
-  SampleHelpers::configure(period, "hadoop_skims:"+prodVersion);
+  SampleHelpers::configure(period, "store_skims:"+prodVersion);
 
   constexpr bool applyPUIdToAK4Jets=true;
   constexpr bool applyTightLeptonVetoIdToAK4Jets=false;
@@ -3787,7 +3787,7 @@ void replotFitValidations(
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
-  SampleHelpers::configure(period, "hadoop_skims:"+prodVersion);
+  SampleHelpers::configure(period, "store_skims:"+prodVersion);
 
   constexpr bool applyPUIdToAK4Jets=true;
   constexpr bool applyTightLeptonVetoIdToAK4Jets=false;

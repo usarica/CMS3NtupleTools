@@ -35,7 +35,7 @@ void getTrees(
     + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
     + "/" + period;
 
-  SampleHelpers::configure(period, "hadoop_skims:"+prodVersion);
+  SampleHelpers::configure(period, "store_skims:"+prodVersion);
 
   const float lumi = SampleHelpers::getIntegratedLuminosity(SampleHelpers::theDataPeriod);
 

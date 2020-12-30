@@ -41,7 +41,7 @@ bool TriggerPropInfo::isEarlier(TriggerPropInfo const& tpi_first, TriggerPropInf
 
 
 void scanTriggerPrescales(TString period, TString prodVersion){
-  SampleHelpers::configure(period, "hadoop:"+prodVersion);
+  SampleHelpers::configure(period, "store:"+prodVersion);
   if (!SampleHelpers::testDataPeriodIsLikeData()) return;
 
   std::vector<std::string> triggerCheckList;
