@@ -25,19 +25,15 @@ void SampleHelpers::configure(TString period, TString stag, HostHelpers::Hosts i
     HelperFunctions::splitOptionRecursive(stag, splitstr, delimiter);
     assert(splitstr.size()<=3);
     stag = splitstr.back();
-    if (splitstr.size()>=2){ // Order goes as "[hadoop/nfs-7/home]:[user (optional)]:[tag]
-      if (splitstr.front() == "hadoop") strInputDir = "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Production";
-      else if (splitstr.front() == "hadoop_skims") strInputDir = "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Skims";
+    if (splitstr.size()>=2){ // Order goes as "[store/hadoop/nfs-7/home]:[user (optional)]:[tag]
+      TString const& strlocation = splitstr.front();
+      if (strlocation == "hadoop" || strlocation == "store") strInputDir = "/store/user/usarica/Offshell_2L2Nu/Production";
+      else if (strlocation == "hadoop_skims" || strlocation == "store_skims") strInputDir = "/store/user/usarica/Offshell_2L2Nu/Skims";
 
       if (splitstr.size()==3) HelperFunctions::replaceString<TString, const TString>(strInputDir, "usarica", splitstr.at(1));
     }
   }
-  if (HostHelpers::GetHostLocation() != input_host){
-    TString strRedirector_input = HostHelpers::GetHostLocalRedirector(input_host, true);
-    TString strPathToStore_input = HostHelpers::GetHostPathToStore(input_host);
-    HelperFunctions::replaceString<TString, TString const>(strInputDir, strPathToStore_input, "");
-    strInputDir = strRedirector_input + strInputDir;
-  }
+  if (strInputDir.BeginsWith("/store")) strInputDir = HostHelpers::GetStandardHostPathToStore(strInputDir, input_host);
 
   theSamplesTag=stag;
   setInputDirectory(strInputDir);
