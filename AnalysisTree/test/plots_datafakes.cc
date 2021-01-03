@@ -681,7 +681,7 @@ void getHistograms(int procsel, int ichunk, int nchunks, TString strdate){
       float mll = p4_ll.M();
 
       // Now jets
-      jetHandler.constructJetMET(theGlobalSyst, &looseMuons, &looseElectrons, nullptr); // Since events with loose photons are skipped, no longer need to pass photons here
+      jetHandler.constructJetMET(&simEventHandler, theGlobalSyst, &looseMuons, &looseElectrons, nullptr); // Since events with loose photons are skipped, no longer need to pass photons here
       auto const& ak4jets = jetHandler.getAK4Jets();
       auto const& ak8jets = jetHandler.getAK8Jets();
       auto const& pfmet = jetHandler.getPFMET();

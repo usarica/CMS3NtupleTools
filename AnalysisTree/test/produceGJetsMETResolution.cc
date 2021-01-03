@@ -429,7 +429,7 @@ void getTrees(
       if (hasVetoIsotrack) continue;
       n_pass_isotrackVeto++;
 
-      jetHandler.constructJetMET(theGlobalSyst, &muons, &electrons, &photons, nullptr);
+      jetHandler.constructJetMET(&simEventHandler, theGlobalSyst, &muons, &electrons, &photons, nullptr);
       auto const& ak4jets = jetHandler.getAK4Jets();
       auto const& ak8jets = jetHandler.getAK8Jets();
       auto const& pfmet = jetHandler.getPFMET();

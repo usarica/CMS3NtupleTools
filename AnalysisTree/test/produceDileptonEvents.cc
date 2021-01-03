@@ -563,7 +563,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   if (theChosenDilepton->getDaughter_leadingPt()->pt()<25.f || theChosenDilepton->getDaughter_subleadingPt()->pt()<25.f) return false;
   theLooper->incrementSelection("Trigger efficiency plateau veto");
 
-  jetHandler->constructJetMET(theGlobalSyst, &muons, &electrons, &photons, &pfcandidates);
+  jetHandler->constructJetMET(simEventHandler, theGlobalSyst, &muons, &electrons, &photons, &pfcandidates);
   auto const& ak4jets = jetHandler->getAK4Jets();
   auto const& ak8jets = jetHandler->getAK8Jets();
   auto const& eventmet = (use_MET_Puppi ? jetHandler->getPFPUPPIMET() : jetHandler->getPFMET());

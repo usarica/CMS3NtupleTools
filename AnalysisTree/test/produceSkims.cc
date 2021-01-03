@@ -23,6 +23,8 @@ void produceSkims(
   if (nchunks==1) nchunks = 0;
   if (nchunks>0 && (ichunk<0 || ichunk==nchunks)) return;
 
+  if (!SampleHelpers::checkRunOnCondor()) std::signal(SIGINT, SampleHelpers::setSignalInterrupt);
+
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
   SampleHelpers::configure(period, "store:"+prodVersion);
@@ -119,6 +121,8 @@ void produceSkims(
 
   MELAout << "List of samples to process: " << sampleList << endl;
   for (auto const& strSample:sampleList){
+    if (SampleHelpers::doSignalInterrupt==1) break;
+
     bool const isData = SampleHelpers::checkSampleIsData(strSample);
     //if (!isData && nchunks>0) return;
 
@@ -180,6 +184,8 @@ void produceSkims(
 
       MELAout << "Initial MC loop over " << ev_end-ev_start << " / " << nEntries << " events in " << sample_tree.sampleIdentifier << " to determine sample normalization:" << endl;
       for (int ev=ev_start; ev<ev_end; ev++){
+        if (SampleHelpers::doSignalInterrupt==1) break;
+
         HelperFunctions::progressbar(ev, nEntries);
         sample_tree.getEvent(ev);
 
@@ -338,6 +344,8 @@ void produceSkims(
     // Loop over the tree
     std::vector<size_t> n_acc(nFinalStateTypes, 0);
     for (int ev=ev_start; ev<ev_end; ev++){
+      if (SampleHelpers::doSignalInterrupt==1) break;
+
       HelperFunctions::progressbar(ev, nEntries);
       sample_tree.getEvent(ev);
       if (ev%10000==0) MELAout << sample_tree.sampleIdentifier << " events: " << n_acc << " / " << ev << " / " << nEntries << endl;

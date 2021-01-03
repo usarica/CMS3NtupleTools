@@ -782,7 +782,7 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
         n_pass_isotrackVeto[idx_emu]++;
 
         jetHandler.resetCache();
-        jetHandler.constructJetMET(theGlobalSyst, &muons_selected, &electrons_selected, &photons, nullptr);
+        jetHandler.constructJetMET(&simEventHandler, theGlobalSyst, &muons_selected, &electrons_selected, &photons, nullptr);
         auto const& ak4jets = jetHandler.getAK4Jets();
         auto const& ak8jets = jetHandler.getAK8Jets();
 

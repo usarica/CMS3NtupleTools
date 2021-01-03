@@ -18,6 +18,8 @@ namespace AK4JetSelectionHelpers{
 
     kTightLeptonVetoId,
 
+    kNoisyJet,
+
     kLooseId,
     kLooseKin,
 
@@ -28,6 +30,10 @@ namespace AK4JetSelectionHelpers{
     kBtaggable_NoPUJetId,
     kBtaggable,
 
+    // These two flags are distinct. Do not apply a direct AND of them.
+    kMETJERCSafe_Base,
+    kMETFixRecoverySuitable,
+
     kPreselectionLoose,
     kPreselectionTight,
 
@@ -35,6 +41,7 @@ namespace AK4JetSelectionHelpers{
   };
 
   constexpr float ptThr_gen = 15.;
+  constexpr float ptThr_METJERCSafety = 15.; // This is not exactly a cut on the pt of the jet itself, but on the muon-subtracted version.
   constexpr float ptThr_btag = 20.;
   constexpr float ptThr_PUId = 50.; // Upper bound
   constexpr float ptThr_skim_loose = ptThr_btag;

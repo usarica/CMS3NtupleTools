@@ -8,14 +8,15 @@
 
 void testHandlers(
   TString strSampleSet, TString period, TString prodVersion,
+  bool useSkims,
   // Jet ID options
-  bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false, bool useJetOverlapStripping=true,
+  bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false, bool useJetOverlapStripping=false,
   // MET options
   bool use_MET_XYCorr=true, bool use_MET_JERCorr=true, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true
 ){
   SystematicsHelpers::SystematicVariationTypes const theGlobalSyst = SystematicsHelpers::sNominal;
 
-  SampleHelpers::configure(period, "store_skims:"+prodVersion);
+  SampleHelpers::configure(period, Form("%s:%s", (useSkims ? "store_skims" : "store"), prodVersion.Data()));
 
   AK4JetSelectionHelpers::setPUIdWP(applyPUIdToAK4Jets ? AK4JetSelectionHelpers::kTightPUJetId : AK4JetSelectionHelpers::nSelectionBits); // Default is 'tight'
   AK4JetSelectionHelpers::setApplyTightLeptonVetoIdToJets(applyTightLeptonVetoIdToAK4Jets); // Default is 'false'
@@ -31,7 +32,7 @@ void testHandlers(
   SampleHelpers::constructSamplesList(strSampleSet, theGlobalSyst, sampledirs);
   if (sampledirs.size()!=1) return;
 
-  BaseTree sample_tree(SampleHelpers::getDatasetFileName(sampledirs.front()), "cms3ntuple/SinglePhoton", "", "");
+  BaseTree sample_tree(SampleHelpers::getDatasetFileName(sampledirs.front()), (useSkims ? "cms3ntuple/SinglePhoton" : "cms3ntuple/Events"), "", "");
   sample_tree.sampleIdentifier = SampleHelpers::getSampleIdentifier(sampledirs.front());
   bool const isData = SampleHelpers::checkSampleIsData(sample_tree.sampleIdentifier);
 
@@ -48,7 +49,7 @@ void testHandlers(
   PhotonHandler photonHandler;
   SuperclusterHandler superclusterHandler;
   FSRHandler fsrHandler;
-  JetMETHandler jetHandler;
+  JetMETHandler jetHandler; jetHandler.setVerbosity(TVar::DEBUG);
   IsotrackHandler isotrackHandler;
   VertexHandler vertexHandler;
   ParticleDisambiguator particleDisambiguator;
@@ -302,7 +303,7 @@ void testHandlers(
 #undef PHOTON_VARIABLE
     }
 
-    jetHandler.constructJetMET(theGlobalSyst, &muons, &electrons, &photons, &pfcandidates);
+    jetHandler.constructJetMET(&simEventHandler, theGlobalSyst, &muons, &electrons, &photons, &pfcandidates);
     auto const& ak4jets = jetHandler.getAK4Jets();
     auto const& ak8jets = jetHandler.getAK8Jets();
     auto const& pfmet = jetHandler.getPFMET();
@@ -312,7 +313,7 @@ void testHandlers(
 
     MELAout << "ak4 jets:" << endl;
     for (auto const& part:ak4jets){
-      MELAout << "\t- p4 = " << PARTP4PRINTCMD(part) << ", (L, T) = (" << ParticleSelectionHelpers::isLooseJet(part) << ", " << ParticleSelectionHelpers::isTightJet(part) << "), btag value = " << part->getBtagValue() << endl;
+      MELAout << "\t- p4 = " << PARTP4PRINTCMD(part) << ", (L, T) = (" << ParticleSelectionHelpers::isLooseJet(part) << ", " << ParticleSelectionHelpers::isTightJet(part) << "), btag value = " << part->getBtagValue() << ", uncorrected pt = " << part->uncorrected_p4().Pt() << endl;
 #define AK4JET_VARIABLE(TYPE, NAME, DEFVAL) MELAout << "\t\t- " << #NAME << ": " << part->extras.NAME << endl;
       //AK4JET_CORE_VARIABLES;
 #undef AK4JET_VARIABLE
@@ -322,6 +323,7 @@ void testHandlers(
       MELAout << "\t- p4 = " << PARTP4PRINTCMD(part) << ", (L, T) = (" << ParticleSelectionHelpers::isLooseJet(part) << ", " << ParticleSelectionHelpers::isTightJet(part) << ")" << endl;
     }
     MELAout << "PF MET pT, phi = " << p4_pfmet.pt() << ", " << p4_pfmet.phi() << endl;
+    MELAout << "\t- PF MET extra; met_Nominal, metPhi_Nominal = " << pfmet->extras.met_Nominal << ", " << pfmet->extras.metPhi_Nominal << endl;
     MELAout << "PUPPI MET pT, phi = " << p4_puppimet.pt() << ", " << p4_puppimet.phi() << endl;
 
 #undef PARTP4PRINTCMD
@@ -343,7 +345,7 @@ void testHandlers(
     //MELAout << "Triggers:" << endl;
     //for (auto const& strTrigger:triggerCheckList) MELAout << "\t- Trigger weight(" << strTrigger << ") = " << eventFilter.getTriggerWeight({ strTrigger }) << endl;
 
-    MELAout << "Event " << (eventFilter.passMETFilters(EventFilterHandler::kMETFilters_Standard) ? "passes" : "fails") << " MET filters. Available MET filtera are as follows:" << endl;
+    MELAout << "Event " << (eventFilter.passMETFilters(EventFilterHandler::kMETFilters_Standard) ? "passes" : "fails") << " MET filters. Available MET filters are as follows:" << endl;
     for (auto it:eventFilter.getMETFilters()) MELAout << "\t- " << it.first << ": " << it.second << endl;
 
     ev_acc++;

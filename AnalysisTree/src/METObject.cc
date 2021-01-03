@@ -186,5 +186,12 @@ ParticleObject::LorentzVector_t::Scalar METObject::py(bool addXYShifts, bool add
 ParticleObject::LorentzVector_t METObject::p4(bool addXYShifts, bool addJERShifts, bool addParticleShifts, bool preserveP4, float phi_rot) const{
   float pt, phi;
   getPtPhi(pt, phi, addXYShifts, addJERShifts, addParticleShifts, preserveP4);
-  return ParticleObject::LorentzVector_t(pt * std::cos(phi + phi_rot), pt * std::sin(phi + phi_rot), 0., pt);
+  return constructP4FromPtPhi(pt, phi + phi_rot);
+}
+
+ParticleObject::LorentzVector_t METObject::constructP4FromPtPhi(ParticleObject::LorentzVector_t::Scalar pt, ParticleObject::LorentzVector_t::Scalar phi){
+  return ParticleObject::LorentzVector_t(pt * std::cos(phi), pt * std::sin(phi), 0., pt);
+}
+ParticleObject::LorentzVector_t METObject::constructP4FromPxPy(ParticleObject::LorentzVector_t::Scalar px, ParticleObject::LorentzVector_t::Scalar py){
+  return ParticleObject::LorentzVector_t(px, py, 0., std::sqrt(std::pow(px, 2) + std::pow(py, 2)));
 }

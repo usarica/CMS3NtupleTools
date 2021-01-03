@@ -931,7 +931,7 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate, TString yea
       event_wgt_SFs = SF_muons*SF_electrons*SF_photons;
       // MELAout << "Pass line " << __LINE__ << endl;
 
-      jetHandler.constructJetMET(theGlobalSyst, &muons, &electrons, &selphotons);
+      jetHandler.constructJetMET(&simEventHandler, theGlobalSyst, &muons, &electrons, &selphotons);
       auto const& ak4jets = jetHandler.getAK4Jets();
       auto const& ak8jets = jetHandler.getAK8Jets();
       auto const& pfmet = jetHandler.getPFMET();

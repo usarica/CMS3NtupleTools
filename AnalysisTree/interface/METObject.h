@@ -10,11 +10,14 @@ MET_VARIABLE(float, met_Nominal, 0) \
 MET_VARIABLE(float, metPhi_Nominal, 0) \
 MET_VARIABLE(float, met_Raw, 0) \
 MET_VARIABLE(float, metPhi_Raw, 0)
+#define MET_RECORDED_GENINFO_VARIABLES
+/*
 #define MET_RECORDED_GENINFO_VARIABLES \
 MET_VARIABLE(float, met_JECDn, 0) \
 MET_VARIABLE(float, metPhi_JECDn, 0) \
 MET_VARIABLE(float, met_JECUp, 0) \
 MET_VARIABLE(float, metPhi_JECUp, 0)
+*/
 #define MET_RECORDED_VARIABLES \
 MET_RECORDED_CORE_VARIABLES \
 MET_RECORDED_GENINFO_VARIABLES
@@ -23,17 +26,15 @@ MET_RECORDED_GENINFO_VARIABLES
 #define MET_SHIFT_CORE_VARIABLES \
 MET_VARIABLE(float, metShift_px_JECNominal, 0) \
 MET_VARIABLE(float, metShift_py_JECNominal, 0) \
-MET_VARIABLE(float, metShift_px_JECNominal_JERNominal, 0) \
-MET_VARIABLE(float, metShift_py_JECNominal_JERNominal, 0) \
 MET_VARIABLE(float, metShift_p4Preserved_px_JECNominal, 0) \
-MET_VARIABLE(float, metShift_p4Preserved_py_JECNominal, 0) \
-MET_VARIABLE(float, metShift_p4Preserved_px_JECNominal_JERNominal, 0) \
-MET_VARIABLE(float, metShift_p4Preserved_py_JECNominal_JERNominal, 0)
+MET_VARIABLE(float, metShift_p4Preserved_py_JECNominal, 0)
 #define MET_SHIFT_GENINFO_VARIABLES \
 MET_VARIABLE(float, metShift_px_JECDn, 0) \
 MET_VARIABLE(float, metShift_py_JECDn, 0) \
 MET_VARIABLE(float, metShift_px_JECUp, 0) \
 MET_VARIABLE(float, metShift_py_JECUp, 0) \
+MET_VARIABLE(float, metShift_px_JECNominal_JERNominal, 0) \
+MET_VARIABLE(float, metShift_py_JECNominal_JERNominal, 0) \
 MET_VARIABLE(float, metShift_px_JECNominal_JERDn, 0) \
 MET_VARIABLE(float, metShift_py_JECNominal_JERDn, 0) \
 MET_VARIABLE(float, metShift_px_JECNominal_JERUp, 0) \
@@ -46,6 +47,8 @@ MET_VARIABLE(float, metShift_p4Preserved_px_JECDn, 0) \
 MET_VARIABLE(float, metShift_p4Preserved_py_JECDn, 0) \
 MET_VARIABLE(float, metShift_p4Preserved_px_JECUp, 0) \
 MET_VARIABLE(float, metShift_p4Preserved_py_JECUp, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_px_JECNominal_JERNominal, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_py_JECNominal_JERNominal, 0) \
 MET_VARIABLE(float, metShift_p4Preserved_px_JECNominal_JERDn, 0) \
 MET_VARIABLE(float, metShift_p4Preserved_py_JECNominal_JERDn, 0) \
 MET_VARIABLE(float, metShift_p4Preserved_px_JECNominal_JERUp, 0) \
@@ -54,6 +57,44 @@ MET_VARIABLE(float, metShift_p4Preserved_px_JECDn_JERNominal, 0) \
 MET_VARIABLE(float, metShift_p4Preserved_py_JECDn_JERNominal, 0) \
 MET_VARIABLE(float, metShift_p4Preserved_px_JECUp_JERNominal, 0) \
 MET_VARIABLE(float, metShift_p4Preserved_py_JECUp_JERNominal, 0)
+
+#define MET_RECORDED_REVERTMETFIX_VARIABLES \
+MET_VARIABLE(float, met_Raw_Default, 0) \
+MET_VARIABLE(float, metPhi_Raw_Default, 0)
+#define MET_SHIFT_RECORDED_REVERTMETFIX_CORE_VARIABLES \
+MET_VARIABLE(float, metShift_RevertMETFix_px_JECNominal, 0) \
+MET_VARIABLE(float, metShift_RevertMETFix_py_JECNominal, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_RevertMETFix_px_JECNominal, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_RevertMETFix_py_JECNominal, 0)
+#define MET_SHIFT_RECORDED_REVERTMETFIX_GENINFO_VARIABLES \
+MET_VARIABLE(float, metShift_RevertMETFix_px_JECDn, 0) \
+MET_VARIABLE(float, metShift_RevertMETFix_py_JECDn, 0) \
+MET_VARIABLE(float, metShift_RevertMETFix_px_JECUp, 0) \
+MET_VARIABLE(float, metShift_RevertMETFix_py_JECUp, 0) \
+MET_VARIABLE(float, metShift_RevertMETFix_px_JECNominal_JERNominal, 0) \
+MET_VARIABLE(float, metShift_RevertMETFix_py_JECNominal_JERNominal, 0) \
+MET_VARIABLE(float, metShift_RevertMETFix_px_JECNominal_JERDn, 0) \
+MET_VARIABLE(float, metShift_RevertMETFix_py_JECNominal_JERDn, 0) \
+MET_VARIABLE(float, metShift_RevertMETFix_px_JECNominal_JERUp, 0) \
+MET_VARIABLE(float, metShift_RevertMETFix_py_JECNominal_JERUp, 0) \
+MET_VARIABLE(float, metShift_RevertMETFix_px_JECDn_JERNominal, 0) \
+MET_VARIABLE(float, metShift_RevertMETFix_py_JECDn_JERNominal, 0) \
+MET_VARIABLE(float, metShift_RevertMETFix_px_JECUp_JERNominal, 0) \
+MET_VARIABLE(float, metShift_RevertMETFix_py_JECUp_JERNominal, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_RevertMETFix_px_JECDn, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_RevertMETFix_py_JECDn, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_RevertMETFix_px_JECUp, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_RevertMETFix_py_JECUp, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_RevertMETFix_px_JECNominal_JERNominal, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_RevertMETFix_py_JECNominal_JERNominal, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_RevertMETFix_px_JECNominal_JERDn, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_RevertMETFix_py_JECNominal_JERDn, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_RevertMETFix_px_JECNominal_JERUp, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_RevertMETFix_py_JECNominal_JERUp, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_RevertMETFix_px_JECDn_JERNominal, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_RevertMETFix_py_JECDn_JERNominal, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_RevertMETFix_px_JECUp_JERNominal, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_RevertMETFix_py_JECUp_JERNominal, 0)
 
 #define MET_SHIFT_VARIABLES \
 MET_SHIFT_CORE_VARIABLES \
@@ -135,6 +176,9 @@ public:
   ParticleObject::LorentzVector_t::Scalar px(bool addXYShifts, bool addJERShifts, bool addParticleShifts, bool preserveP4, float phi_rot=0) const;
   ParticleObject::LorentzVector_t::Scalar py(bool addXYShifts, bool addJERShifts, bool addParticleShifts, bool preserveP4, float phi_rot=0) const;
   ParticleObject::LorentzVector_t p4(bool addXYShifts, bool addJERShifts, bool addParticleShifts, bool preserveP4, float phi_rot=0) const;
+
+  static ParticleObject::LorentzVector_t constructP4FromPtPhi(ParticleObject::LorentzVector_t::Scalar pt, ParticleObject::LorentzVector_t::Scalar phi);
+  static ParticleObject::LorentzVector_t constructP4FromPxPy(ParticleObject::LorentzVector_t::Scalar px, ParticleObject::LorentzVector_t::Scalar py);
 
 };
 

@@ -11,6 +11,7 @@ import math
 import pprint
 import subprocess
 import csv
+import json
 from datetime import date
 from optparse import OptionParser
 from CMSDataTools.AnalysisTree.TranslateStringBetweenPythonAndShell import *
@@ -32,6 +33,7 @@ class BatchManager:
       self.parser.add_option("--nfilesperjob_data", type="int", default=10, help="Approximate number of input files per data skim job")
       self.parser.add_option("--recreate", action="store_true", default=False, help="Recreate the job directories")
       self.parser.add_option("--recover", action="store_true", default=False, help="Run to recover existing skims")
+      self.parser.add_option("--filter_metis_json", type="string", help="Filter only completed production jobs from metis using a 'web_summary.json' file")
       self.parser.add_option("--dry", action="store_true", default=False, help="Test run without creation of jobs")
 
       (self.opt,self.args) = self.parser.parse_args()
@@ -59,6 +61,16 @@ class BatchManager:
       if self.opt.recreate:
          self.extracmd += " recreate"
 
+      self.json_sample_nfiles_list = []
+      if hasattr(self.opt, "filter_metis_json"):
+         fjson = open(self.opt.filter_metis_json, "r")
+         djs = json.load(fjson)
+         for task in djs["tasks"]:
+            strsf = str(task["general"]["dataset"])
+            nfiles = int(task["general"]["njobs_total"])
+            self.json_sample_nfiles_list.append([strsf,nfiles])
+         fjson.close()
+
       self.run()
 
 
@@ -81,15 +93,6 @@ class BatchManager:
             ffoutcore = ffoutcore.replace('/MINIAODSIM','')
             ffoutcore = ffoutcore.replace('/MINIAOD','')
             ffoutcore = ffoutcore.lstrip('/')
-            cmdline = cmdlinebase
-            cmdline = cmdline.replace("<strSampleSet>",strsample)
-            cmdline = cmdline.replace("<period>",row["Period"])
-            cmdline = cmdline.replace("<prodVersion>",self.opt.production_tag)
-            cmdline = cmdline.replace("<strdate>",self.opt.date)
-            cmdline = cmdline.replace("<doDilepton>",row["doDilepton"])
-            cmdline = cmdline.replace("<doDilepton_Control>",row["doDilepton_Control"])
-            cmdline = cmdline.replace("<doSingleLepton>",row["doSingleLepton"])
-            cmdline = cmdline.replace("<doSinglePhoton>",row["doSinglePhoton"])
 
             spath = self.opt.production_dir+'/'+self.opt.production_tag+'/'+ffoutcore
             print("==========")
@@ -100,6 +103,27 @@ class BatchManager:
                continue
             filelist = [f for f in os.listdir(spath) if (os.path.isfile(os.path.join(spath, f)) and '.root' in f)]
             nfiles = len(filelist)
+
+            strSkimVersion = self.opt.date
+
+            isIncomplete = False
+            for sample_nfiles_pair in self.json_sample_nfiles_list:
+               if strsample == sample_nfiles_pair[0]:
+                  isIncomplete = (nfiles<sample_nfiles_pair[1])
+                  break
+            if isIncomplete:
+               print("Sample is incomplete! Appending '_partial' to skim version...")
+               strSkimVersion += "_partial"
+
+            cmdline = cmdlinebase
+            cmdline = cmdline.replace("<strSampleSet>",strsample)
+            cmdline = cmdline.replace("<period>",row["Period"])
+            cmdline = cmdline.replace("<prodVersion>",self.opt.production_tag)
+            cmdline = cmdline.replace("<strdate>",strSkimVersion)
+            cmdline = cmdline.replace("<doDilepton>",row["doDilepton"])
+            cmdline = cmdline.replace("<doDilepton_Control>",row["doDilepton_Control"])
+            cmdline = cmdline.replace("<doSingleLepton>",row["doSingleLepton"])
+            cmdline = cmdline.replace("<doSinglePhoton>",row["doSinglePhoton"])
             nchunks = 0
             if nfilesperjob > 0:
                nchunks = nfiles/nfilesperjob

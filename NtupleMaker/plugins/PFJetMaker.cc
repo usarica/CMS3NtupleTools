@@ -854,7 +854,7 @@ void PFJetMaker::compute_METShift(
   bool& flag_isGoodMET, reco::Particle::LorentzVector& p4_metShift, double* jec_unc_nomus
 ){
   if (!preserve_corrected_jet_p4){
-    reco::Particle::LorentzVector p4_uncorrected_nomus = p4_jet_uncorrected - p4_mucands;
+    reco::Particle::LorentzVector const p4_uncorrected_nomus = p4_jet_uncorrected - p4_mucands;
     reco::Particle::LorentzVector p4_corrected_nomus_noJER = p4_uncorrected_nomus*JEC_L1L2L3;
     reco::Particle::LorentzVector p4_corrected_nomus = p4_uncorrected_nomus*JEC_L1L2L3*JERval;
     reco::Particle::LorentzVector p4_offsetCorrected_nomus = p4_uncorrected_nomus*JEC_L1;
@@ -880,14 +880,14 @@ void PFJetMaker::compute_METShift(
     }
   }
   else{
-    reco::Particle::LorentzVector p4_corrected = p4_jet_uncorrected*JEC_L1L2L3*JERval;
     reco::Particle::LorentzVector p4_offsetCorrected = p4_jet_uncorrected*JEC_L1;
     reco::Particle::LorentzVector p4_offsetCorrected_nomus = p4_offsetCorrected - p4_mucands;
 
+    reco::Particle::LorentzVector p4_corrected = p4_jet_uncorrected*JEC_L1L2L3*JERval;
     // Take native JEC uncertainty directly
     if (iJECshift!=0) p4_corrected = p4_corrected*(1. + nativeRelJECUnc*(iJECshift<0 ? -1. : 1.));
 
-    reco::Particle::LorentzVector p4_corrected_nomus = p4_corrected - p4_mucands;
+    reco::Particle::LorentzVector const p4_corrected_nomus = p4_corrected - p4_mucands;
 
     if (p4_corrected_nomus.pt()>AK4JetSelectionHelpers::selection_METJERC_pt){
       flag_isGoodMET = true;

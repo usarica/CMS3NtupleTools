@@ -195,12 +195,12 @@ bool AK4JetObject::isMETSafe(SystematicsHelpers::SystematicVariationTypes const&
   }
   return false;
 }
-bool AK4JetObject::getT1METShift(SystematicsHelpers::SystematicVariationTypes const& syst, bool useP4Preserved, bool applyJER, ParticleObject::LorentzVector_t& p4_metShift) const{
+bool AK4JetObject::getT1METShift(SystematicsHelpers::SystematicVariationTypes const& syst, bool useP4Preserved, bool applyJER, ParticleObject::LorentzVector_t& p4_metShift, bool doReselect) const{
   using namespace SystematicsHelpers;
 
   if (syst == sUncorrected) return false;
 
-  bool res = this->isMETSafe(syst, useP4Preserved, applyJER);
+  bool res = doReselect || this->isMETSafe(syst, useP4Preserved, applyJER);
   if (res){
     float const& JEC_L1L2L3 = extras.JECNominal;
     float const& JEC_L1 = extras.JECL1Nominal;
@@ -245,12 +245,25 @@ bool AK4JetObject::getT1METShift(SystematicsHelpers::SystematicVariationTypes co
       }
     }
 
-    p4_metShift += AK4JetObject::compute_METShift(
-      useP4Preserved,
-      mom_original, this->p4_mucands(),
-      JEC_L1L2L3, JEC_L1, JERval,
-      iJECshift, relJECUnc
-    );
+    if (!doReselect){
+      p4_metShift += AK4JetObject::compute_METShift(
+        useP4Preserved,
+        mom_original, this->p4_mucands(),
+        JEC_L1L2L3, JEC_L1, JERval,
+        iJECshift, relJECUnc
+      );
+    }
+    else{
+      bool pass_extra = false;
+      ParticleObject::LorentzVector_t p4_metShift_tmp = AK4JetObject::compute_METShift(
+        useP4Preserved,
+        mom_original, this->p4_mucands(),
+        JEC_L1L2L3, JEC_L1, JERval,
+        iJECshift, relJECUnc,
+        &pass_extra
+      );
+      if (pass_extra) p4_metShift += p4_metShift_tmp;
+    }
   }
   return res;
 }
@@ -259,18 +272,25 @@ ParticleObject::LorentzVector_t AK4JetObject::compute_METShift(
   bool preserve_corrected_jet_p4,
   ParticleObject::LorentzVector_t const& p4_jet_uncorrected, ParticleObject::LorentzVector_t const& p4_mucands,
   float const& JEC_L1L2L3, float const& JEC_L1, float const& JERval,
-  char const& iJECshift, float const& relJECUnc
+  char const& iJECshift, float const& relJECUnc,
+  bool* pass_baseline_kin
 ){
   LorentzVector_t p4_metShift;
 
   if (!preserve_corrected_jet_p4){
-    LorentzVector_t p4_uncorrected_nomus = p4_jet_uncorrected - p4_mucands;
+    LorentzVector_t const p4_uncorrected_nomus = p4_jet_uncorrected - p4_mucands;
     LorentzVector_t p4_offsetCorrected_nomus = p4_uncorrected_nomus*JEC_L1;
 
     LorentzVector_t p4_corrected_nomus = p4_uncorrected_nomus*JEC_L1L2L3*JERval;
     if (iJECshift!=0) p4_corrected_nomus = p4_corrected_nomus*(1. + relJECUnc*(iJECshift<0 ? -1. : 1.));
 
     p4_metShift = -(p4_corrected_nomus - p4_offsetCorrected_nomus);
+
+    if (pass_baseline_kin){
+      // As the main if-statement indicates, this is the unpreserved version of cuts, so they are applied only on the NOMINAL JEC hypothesis.
+      LorentzVector_t p4_corrected_nomus_noJER = p4_uncorrected_nomus*JEC_L1L2L3;
+      *pass_baseline_kin = (p4_corrected_nomus_noJER.pt()>AK4JetSelectionHelpers::ptThr_METJERCSafety);
+    }
   }
   else{
     LorentzVector_t p4_offsetCorrected = p4_jet_uncorrected*JEC_L1;
@@ -279,9 +299,11 @@ ParticleObject::LorentzVector_t AK4JetObject::compute_METShift(
     LorentzVector_t p4_corrected = p4_jet_uncorrected*JEC_L1L2L3*JERval;
     if (iJECshift!=0) p4_corrected = p4_corrected*(1. + relJECUnc*(iJECshift<0 ? -1. : 1.));
 
-    LorentzVector_t p4_corrected_nomus = p4_corrected - p4_mucands;
+    LorentzVector_t const p4_corrected_nomus = p4_corrected - p4_mucands;
 
     p4_metShift = -(p4_corrected_nomus - p4_offsetCorrected_nomus);
+
+    if (pass_baseline_kin) *pass_baseline_kin = (p4_corrected_nomus.pt()>AK4JetSelectionHelpers::ptThr_METJERCSafety);
   }
 
   return p4_metShift;

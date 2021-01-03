@@ -30,6 +30,7 @@ NtupleMaker/test/crabConfig.py
 NtupleMaker/test/xsec_cfg.py
 NtupleMaker/test/crab_projects/*
 NtupleMaker/test/crab_projects/crab_CMS4_from_MINIAOD_test/
+AnalysisTree/test/tmp*
 AnalysisTree/test/output*
 AnalysisTree/test/outputs*
 AnalysisTree/test/*.DAT

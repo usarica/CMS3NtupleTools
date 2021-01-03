@@ -628,7 +628,7 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
       auto const& electrons = electronHandler.getProducts();
       //auto const& photons = photonHandler.getProducts();
 
-      jetHandler.constructJetMET(theGlobalSyst, &muons, &electrons, nullptr/*&photons*/);
+      jetHandler.constructJetMET(&simEventHandler, theGlobalSyst, &muons, &electrons, nullptr/*&photons*/);
       auto const& ak4jets = jetHandler.getAK4Jets();
       auto const& ak8jets = jetHandler.getAK8Jets();
       auto const& puppimet = jetHandler.getPFPUPPIMET();

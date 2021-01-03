@@ -655,7 +655,7 @@ void count(int procsel, int ichunk, int nchunks, TString strdate){
         }
       }
 
-      jetHandler.constructJetMET(theGlobalSyst, &muons_jetclean, &electrons_jetclean, &photons);
+      jetHandler.constructJetMET(&simEventHandler, theGlobalSyst, &muons_jetclean, &electrons_jetclean, &photons);
       auto const& ak4jets = jetHandler.getAK4Jets();
       auto const& ak8jets = jetHandler.getAK8Jets();
       auto const& pfmet = jetHandler.getPFMET();

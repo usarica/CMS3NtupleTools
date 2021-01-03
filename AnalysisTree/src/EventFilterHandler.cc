@@ -352,7 +352,7 @@ bool EventFilterHandler::test2018HEMFilter(
   std::vector<AK4JetObject*> const* ak4jets,
   std::vector<AK8JetObject*> const* ak8jets
 ) const{
-  if (SampleHelpers::theDataYear != 2018) return true;
+  if (SampleHelpers::getDataYear() != 2018) return true;
   if (verbosity>=TVar::DEBUG) MELAerr << "Begin EventFilterHandler::test2018HEMFilter..." << endl;
 
   // Do not run clear because this is a special filter that does not modify the actual class

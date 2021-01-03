@@ -3,7 +3,7 @@
 
 #include <vector>
 #include "IvyBase.h"
-#include "SystematicVariations.h"
+#include "SimEventHandler.h"
 #include "PFCandidateObject.h"
 #include "OverlapMapHandler.h"
 #include "MuonObject.h"
@@ -12,9 +12,17 @@
 #include "AK4JetObject.h"
 #include "AK8JetObject.h"
 #include "METObject.h"
+#include "SystematicVariations.h"
 
 
 class JetMETHandler : public IvyBase{
+protected:
+  enum METFixMode{
+    kMETFix_NoPatch,
+    kMETFix_RevertMETFix,
+    kMETFix_RecoverGoodJets
+  };
+
 public:
   static const std::string colName_ak4jets;
   static const std::string colName_ak8jets;
@@ -23,6 +31,7 @@ public:
   static const std::string colName_vertices;
 
 protected:
+  bool flag_hasRevertMETFixVariables;
   bool hasOverlapMaps;
   OverlapMapHandler<MuonObject, AK4JetObject>* overlapMap_muons_ak4jets;
   OverlapMapHandler<MuonObject, AK8JetObject>* overlapMap_muons_ak8jets;
@@ -43,13 +52,17 @@ protected:
 
   void clear();
 
-  bool constructAK4Jets(SystematicsHelpers::SystematicVariationTypes const& syst);
+  JetMETHandler::METFixMode getMETFixMode(SimEventHandler const* simEventHandler) const;
+
+  bool checkRevertMETFixVariables(BaseTree* tree) const;
+
+  bool constructAK4Jets(SystematicsHelpers::SystematicVariationTypes const& syst, JetMETHandler::METFixMode const& mode_metfix);
   bool constructAK8Jets(SystematicsHelpers::SystematicVariationTypes const& syst);
   bool associatePFCandidates(std::vector<PFCandidateObject*> const* pfcandidates) const;
   bool linkOverlapElements() const;
-  bool applyJetCleaning(bool usePFCandidates, std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons);
+  bool applyJetCleaning(bool usePFCandidates, JetMETHandler::METFixMode const& mode_metfix, std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons);
 
-  bool constructMET(SystematicsHelpers::SystematicVariationTypes const& syst);
+  bool constructMET(SystematicsHelpers::SystematicVariationTypes const& syst, JetMETHandler::METFixMode const& mode_metfix);
   bool assignMETXYShifts(SystematicsHelpers::SystematicVariationTypes const& syst);
   bool applyMETParticleShifts(bool usePFCandidates, std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons);
 
@@ -61,6 +74,7 @@ public:
   ~JetMETHandler(){ clear(); }
 
   bool constructJetMET(
+    SimEventHandler const* simEventHandler,
     SystematicsHelpers::SystematicVariationTypes const& syst,
     std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons,
     std::vector<PFCandidateObject*> const* pfcandidates

@@ -560,7 +560,7 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
       auto const& electrons = electronHandler.getProducts();
       auto const& photons = photonHandler.getProducts();
 
-      jetHandler.constructJetMET(theGlobalSyst, &muons, &electrons, &photons);
+      jetHandler.constructJetMET(&simEventHandler, theGlobalSyst, &muons, &electrons, &photons);
       auto const& ak4jets = jetHandler.getAK4Jets();
       auto const& ak8jets = jetHandler.getAK8Jets();
       auto const& pfpuppimet = jetHandler.getPFPUPPIMET();

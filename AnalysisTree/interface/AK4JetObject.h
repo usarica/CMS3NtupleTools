@@ -46,6 +46,11 @@ AK4JET_VARIABLE(float, deepCSVprobbb, -1) \
 AK4JET_VARIABLE(float, deepCSVprobc, -1) \
 AK4JET_VARIABLE(float, deepCSVprobudsg, -1)
 
+#define AK4JET_REVERTMETFIX_VARIABLES \
+AK4JET_VARIABLE(cms3_metsafety_t, isMETJERCSafe_RevertMETFix_Bits, 0) \
+AK4JET_VARIABLE(cms3_metsafety_t, isMETJERCSafe_p4Preserved_RevertMETFix_Bits, 0)
+
+
 #define AK4JET_RECO_VARIABLES \
 AK4JET_CORE_VARIABLES \
 AK4JET_BTAGGING_VARIABLES
@@ -110,14 +115,15 @@ public:
   bool isMETSafe(SystematicsHelpers::SystematicVariationTypes const& syst, bool useP4Preserved, bool applyJER) const;
   bool isMETSafe(bool useP4Preserved, bool applyJER) const{ return isMETSafe(currentSyst, useP4Preserved, applyJER); }
   // Returns whether a contribution can/should be acquired. Notice p4_metShift=-(corrected - uncorrected)
-  bool getT1METShift(SystematicsHelpers::SystematicVariationTypes const& syst, bool useP4Preserved, bool applyJER, ParticleObject::LorentzVector_t& p4_metShift) const;
-  bool getT1METShift(bool useP4Preserved, bool applyJER, ParticleObject::LorentzVector_t& p4_metShift) const{ return getT1METShift(currentSyst, useP4Preserved, applyJER, p4_metShift); }
+  bool getT1METShift(SystematicsHelpers::SystematicVariationTypes const& syst, bool useP4Preserved, bool applyJER, ParticleObject::LorentzVector_t& p4_metShift, bool doReselect = false) const;
+  bool getT1METShift(bool useP4Preserved, bool applyJER, ParticleObject::LorentzVector_t& p4_metShift, bool doReselect = false) const{ return getT1METShift(currentSyst, useP4Preserved, applyJER, p4_metShift, doReselect); }
 
   static LorentzVector_t compute_METShift(
     bool preserve_corrected_jet_p4,
     ParticleObject::LorentzVector_t const& p4_jet_uncorrected, ParticleObject::LorentzVector_t const& p4_mucands,
     float const& JEC_L1L2L3, float const& JEC_L1, float const& JERval,
-    char const& iJECshift, float const& nativeRelJECUnc
+    char const& iJECshift, float const& nativeRelJECUnc,
+    bool* pass_baseline_kin = nullptr
   );
 
 };
