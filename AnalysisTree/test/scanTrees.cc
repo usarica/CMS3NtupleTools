@@ -6,7 +6,9 @@
 using namespace std;
 
 
-void scanTrees(TString strSampleSet, TString period, TString prodVersion){
+void scanTrees(TString strSampleSet, TString period, TString prodVersion, bool testFileOpenOnly, bool printOnlyFailed=false){
+  if (!testFileOpenOnly) printOnlyFailed = false;
+
   SampleHelpers::configure(period, "store:"+prodVersion);
 
   std::vector<TString> validDataPeriods = SampleHelpers::getValidDataPeriods();
@@ -71,22 +73,52 @@ void scanTrees(TString strSampleSet, TString period, TString prodVersion){
     bool const isData = SampleHelpers::checkSampleIsData(strSample);
 
     TString const cinputcore = SampleHelpers::getDatasetDirectoryName(strSample);
+    TString const sid = SampleHelpers::getSampleIdentifier(strSample);
+    TString sid_noaod = sid;
+    HelperFunctions::replaceString(sid_noaod, "_MINIAODSIM", "");
+    HelperFunctions::replaceString(sid_noaod, "_MINIAOD", "");
+
+    TString const stroutputcore = Form("output/TreeScanResults/%s", prodVersion.Data());
+    gSystem->Exec(Form("mkdir -p %s", stroutputcore.Data()));
+    TString stroutput = stroutputcore + "/" + sid + ".txt";
+    MELAout.open(stroutput.Data());
+
+    MELAout << "Sample: " << strSample << endl;
+    MELAout << "Identifier: " << sid << endl;
+    MELAout << "Metis directory: " << "CMSSWTask_" << sid << "_" << prodVersion << endl;
+    MELAout << "Main directory: " << cinputcore << endl;
+
+    unsigned nfiles_good = 0;
+    unsigned nfiles_bad = 0;
 
     auto sfiles = SampleHelpers::lsdir(cinputcore);
     for (auto const& fname:sfiles){
+      if (!fname.Contains(".root")) continue;
+
       TString cinput = cinputcore + '/' + fname;
-      MELAout << "Extracting input " << cinput << endl;
+      if (!printOnlyFailed) MELAout << "Extracting input " << cinput << endl;
+
+      TString metis_ifile = fname;
+      HelperFunctions::replaceString(metis_ifile, ".root", "");
+      HelperFunctions::replaceString<TString, TString const>(metis_ifile, TString(sid_noaod+"_"), "");
 
       BaseTree sample_tree(cinput, EVENTS_TREE_NAME, "", "");
-      sample_tree.sampleIdentifier = SampleHelpers::getSampleIdentifier(strSample);
+      if (!sample_tree.isValid()){
+        MELAout << "\t- " << fname << " is invalid." << endl;
+        MELAout << "\t\tIFILE: " << metis_ifile << endl;
+        nfiles_bad++;
+      }
+      else nfiles_good++;
+
+      if (testFileOpenOnly) continue;
+
+      sample_tree.sampleIdentifier = sid;
+
+      const int nEntries = sample_tree.getSelectedNEvents();
+      MELAout << "\t- Number of entries: " << nEntries << endl;
 
       std::vector<TString> branchnames;
       sample_tree.getValidBranchNamesWithoutAlias(branchnames, false);
-
-      const int nEntries = sample_tree.getSelectedNEvents();
-      int ev_start = 0;
-      int ev_end = nEntries;
-      MELAout << "Looping over " << nEntries << " events, starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
 
       if (!isData){
         sample_tree.bookBranch<float>("xsec", 0.f);
@@ -160,9 +192,15 @@ void scanTrees(TString strSampleSet, TString period, TString prodVersion){
       eventFilter.bookBranches(&sample_tree);
       eventFilter.wrapTree(&sample_tree);
 
-      MELAout << "Completed getting the rest of the handles..." << endl;
+      MELAout << "\t- Completed getting the rest of the handles..." << endl;
       sample_tree.silenceUnused();
       sample_tree.getSelectedTree()->SetBranchStatus("triggerObjects*", 1); // Needed for trigger matching
     }
+
+    MELAout << "Number of good files: " << nfiles_good << endl;
+    MELAout << "Number of bad files: " << nfiles_bad << endl;
+
+    MELAout.close();
+    SampleHelpers::addToCondorTransferList(stroutput);
   }
 }
