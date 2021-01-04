@@ -51,8 +51,14 @@ TString SampleHelpers::getDatasetDirectoryName(std::string sname, bool ignoreDNE
 
   sname = SampleHelpers::getDatasetDirectoryCoreName(sname);
   TString res = Form("%s/%s/%s", theInputDirectory.Data(), theSamplesTag.Data(), sname.data());
-  if (!HostHelpers::DirectoryExists(res.Data())) MELAerr << "SampleHelpers::getDatasetDirectoryName: Cannot find directory " << res << endl;
-  assert(ignoreDNE || HostHelpers::DirectoryExists(res.Data()));
+  bool dirExists = HostHelpers::DirectoryExists(res.Data());
+  if (!dirExists){
+    MELAerr << "SampleHelpers::getDatasetDirectoryName: Cannot find directory " << res << ". Trying the 'partial' collection tag." << endl;
+    HelperFunctions::replaceString<TString, TString const>(res, theSamplesTag, (theSamplesTag+"_partial"));
+    dirExists = HostHelpers::DirectoryExists(res.Data());
+    if (!dirExists) MELAerr << "SampleHelpers::getDatasetDirectoryName: Directory " << res << " does not exist either." << endl;
+  }
+  assert(ignoreDNE || dirExists);
   return res;
 }
 TString SampleHelpers::getDatasetDirectoryName(TString sname, bool ignoreDNE){ return SampleHelpers::getDatasetDirectoryName(std::string(sname.Data()), ignoreDNE); }

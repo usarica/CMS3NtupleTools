@@ -8,7 +8,7 @@
 
 void testHandlers(
   TString strSampleSet, TString period, TString prodVersion,
-  bool useSkims,
+  bool useSkims, TString skimTreeName="cms3ntuple/SinglePhoton",
   // Jet ID options
   bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false, bool useJetOverlapStripping=false,
   // MET options
@@ -17,6 +17,7 @@ void testHandlers(
   SystematicsHelpers::SystematicVariationTypes const theGlobalSyst = SystematicsHelpers::sNominal;
 
   SampleHelpers::configure(period, Form("%s:%s", (useSkims ? "store_skims" : "store"), prodVersion.Data()));
+  if (useSkims) SampleHelpers::setInputDirectory("/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/Skims/");
 
   AK4JetSelectionHelpers::setPUIdWP(applyPUIdToAK4Jets ? AK4JetSelectionHelpers::kTightPUJetId : AK4JetSelectionHelpers::nSelectionBits); // Default is 'tight'
   AK4JetSelectionHelpers::setApplyTightLeptonVetoIdToJets(applyTightLeptonVetoIdToAK4Jets); // Default is 'false'
@@ -32,7 +33,7 @@ void testHandlers(
   SampleHelpers::constructSamplesList(strSampleSet, theGlobalSyst, sampledirs);
   if (sampledirs.size()!=1) return;
 
-  BaseTree sample_tree(SampleHelpers::getDatasetFileName(sampledirs.front()), (useSkims ? "cms3ntuple/SinglePhoton" : "cms3ntuple/Events"), "", "");
+  BaseTree sample_tree(SampleHelpers::getDatasetFileName(sampledirs.front()), (useSkims ? skimTreeName : TString("cms3ntuple/Events")), "", "");
   sample_tree.sampleIdentifier = SampleHelpers::getSampleIdentifier(sampledirs.front());
   bool const isData = SampleHelpers::checkSampleIsData(sample_tree.sampleIdentifier);
 
@@ -193,7 +194,7 @@ void testHandlers(
 #undef RUNLUMIEVENT_VARIABLE
 
   const int nevents = sample_tree.getNEvents();
-  size_t ev_acc=0, max_ev_acc=10;
+  size_t ev_acc=0, max_ev_acc=20;
   for (int ev=0; ev<nevents; ev++){
     sample_tree.getEvent(ev);
     HelperFunctions::progressbar(ev, nevents);
@@ -274,11 +275,14 @@ void testHandlers(
     photonHandler.constructPhotons(theGlobalSyst, &pfcandidates);
     particleDisambiguator.disambiguateParticles(&muonHandler, &electronHandler, &photonHandler);
 
+    ParticleObject::LorentzVector_t sump4_looseObjects;
+
 #define PARTP4PRINTCMD(PART) PART->pt() << ", " << PART->eta() << ", " << PART->phi() << ", " << PART->mass()
 
     auto const& muons = muonHandler.getProducts();
     MELAout << "Muons:" << endl;
     for (auto const& part:muons){
+      if (ParticleSelectionHelpers::isLooseParticle(part)) sump4_looseObjects += part->p4();
       MELAout << "\t- [" << part->pdgId() << "]: " << PARTP4PRINTCMD(part) << ", (L, T) = (" << ParticleSelectionHelpers::isLooseParticle(part) << ", " << ParticleSelectionHelpers::isTightParticle(part) << ")" << endl;
 #define MUON_VARIABLE(TYPE, NAME, DEFVAL) MELAout << "\t\t- " << #NAME << ": " << part->extras.NAME << endl;
       //MUON_VARIABLES;
@@ -288,6 +292,7 @@ void testHandlers(
     auto const& electrons = electronHandler.getProducts();
     MELAout << "Electrons:" << endl;
     for (auto const& part:electrons){
+      if (ParticleSelectionHelpers::isLooseParticle(part)) sump4_looseObjects += part->p4();
       MELAout << "\t- [" << part->pdgId() << "]: " << PARTP4PRINTCMD(part) << ", (L, T) = (" << ParticleSelectionHelpers::isLooseParticle(part) << ", " << ParticleSelectionHelpers::isTightParticle(part) << ")" << endl;
 #define ELECTRON_VARIABLE(TYPE, NAME, DEFVAL) MELAout << "\t\t- " << #NAME << ": " << part->extras.NAME << endl;
       //ELECTRON_VARIABLES;
@@ -297,6 +302,7 @@ void testHandlers(
     auto const& photons = photonHandler.getProducts();
     MELAout << "Photons:" << endl;
     for (auto const& part:photons){
+      if (ParticleSelectionHelpers::isLooseParticle(part)) sump4_looseObjects += part->p4();
       MELAout << "\t- [" << part->pdgId() << "]: " << PARTP4PRINTCMD(part) << ", (L, T) = (" << ParticleSelectionHelpers::isLooseParticle(part) << ", " << ParticleSelectionHelpers::isTightParticle(part) << ")" << endl;
 #define PHOTON_VARIABLE(TYPE, NAME, DEFVAL) MELAout << "\t\t- " << #NAME << ": " << part->extras.NAME << endl;
       //PHOTON_VARIABLES;
@@ -313,6 +319,7 @@ void testHandlers(
 
     MELAout << "ak4 jets:" << endl;
     for (auto const& part:ak4jets){
+      if (ParticleSelectionHelpers::isTightJet(part)) sump4_looseObjects += part->p4();
       MELAout << "\t- p4 = " << PARTP4PRINTCMD(part) << ", (L, T) = (" << ParticleSelectionHelpers::isLooseJet(part) << ", " << ParticleSelectionHelpers::isTightJet(part) << "), btag value = " << part->getBtagValue() << ", uncorrected pt = " << part->uncorrected_p4().Pt() << endl;
 #define AK4JET_VARIABLE(TYPE, NAME, DEFVAL) MELAout << "\t\t- " << #NAME << ": " << part->extras.NAME << endl;
       //AK4JET_CORE_VARIABLES;
@@ -322,9 +329,13 @@ void testHandlers(
     for (auto const& part:ak8jets){
       MELAout << "\t- p4 = " << PARTP4PRINTCMD(part) << ", (L, T) = (" << ParticleSelectionHelpers::isLooseJet(part) << ", " << ParticleSelectionHelpers::isTightJet(part) << ")" << endl;
     }
+
+    sump4_looseObjects = -sump4_looseObjects;
+
     MELAout << "PF MET pT, phi = " << p4_pfmet.pt() << ", " << p4_pfmet.phi() << endl;
     MELAout << "\t- PF MET extra; met_Nominal, metPhi_Nominal = " << pfmet->extras.met_Nominal << ", " << pfmet->extras.metPhi_Nominal << endl;
     MELAout << "PUPPI MET pT, phi = " << p4_puppimet.pt() << ", " << p4_puppimet.phi() << endl;
+    MELAout << "MET pT, phi calculated from loose objects: " << sump4_looseObjects.Pt() << ", " << sump4_looseObjects.phi() << endl;
 
 #undef PARTP4PRINTCMD
 
@@ -340,7 +351,7 @@ void testHandlers(
     }
     MELAout << "Dileptons:" << endl;
     if (!theChosenDilepton) MELAout << "No valid OS TT dilepton pair is found." << endl;
-    else MELAout << "Found " << dileptons.size() << "dileptons. The chosen dilepton pair has p4 = " << theChosenDilepton->p4() << endl;
+    else MELAout << "Found " << dileptons.size() << " dileptons. The chosen dilepton pair has p4 = " << theChosenDilepton->p4() << endl;
 
     //MELAout << "Triggers:" << endl;
     //for (auto const& strTrigger:triggerCheckList) MELAout << "\t- Trigger weight(" << strTrigger << ") = " << eventFilter.getTriggerWeight({ strTrigger }) << endl;

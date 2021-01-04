@@ -1023,35 +1023,59 @@ bool JetMETHandler::constructMET(SystematicsHelpers::SystematicVariationTypes co
     pfmet->extras.met_Nominal = p4_Nominal_Reverted.Pt(); pfmet->extras.metPhi_Nominal = p4_Nominal_Reverted.Phi();
     pfmet->extras.met_Raw = *pfmet_met_Raw_Default; pfmet->extras.metPhi_Raw = *pfmet_metPhi_Raw_Default;
 
-#define REVERTMETFIX_COMMANDS \
-    REVERTMETFIX_COMMAND(JECNominal) \
-    if (!isData){ \
-      REVERTMETFIX_COMMAND(JECDn) \
-      REVERTMETFIX_COMMAND(JECUp) \
-      REVERTMETFIX_COMMAND(JECNominal_JERNominal) \
-      REVERTMETFIX_COMMAND(JECNominal_JERDn) \
-      REVERTMETFIX_COMMAND(JECNominal_JERUp) \
-      REVERTMETFIX_COMMAND(JECDn_JERNominal) \
-      REVERTMETFIX_COMMAND(JECUp_JERNominal) \
-    }
+#define REVERTMETFIX_COMMON_COMMANDS \
+REVERTMETFIX_COMMAND(JECNominal)
+#define REVERTMETFIX_GENINFO_COMMANDS \
+REVERTMETFIX_COMMAND(JECDn) \
+REVERTMETFIX_COMMAND(JECUp) \
+REVERTMETFIX_COMMAND(JECNominal_JERNominal) \
+REVERTMETFIX_COMMAND(JECNominal_JERDn) \
+REVERTMETFIX_COMMAND(JECNominal_JERUp) \
+REVERTMETFIX_COMMAND(JECDn_JERNominal) \
+REVERTMETFIX_COMMAND(JECUp_JERNominal)
+
 #define REVERTMETFIX_COMMAND(SYST) \
-    if (verbosity>=TVar::DEBUG){ \
-      MELAout \
-        << "\t- metShift p4 default [" << #SYST << "] = (" << pfmet->extras.metShift_px_##SYST << ", " << pfmet->extras.metShift_py_##SYST \
-        << ") -> (" << pfmet->extras.metShift_px_##SYST + *pfmet_metShift_RevertMETFix_px_##SYST << ", " << pfmet->extras.metShift_py_##SYST + *pfmet_metShift_RevertMETFix_py_##SYST << ")" \
-        << endl; \
-      MELAout \
-        << "\t- metShift p4-preserved [" << #SYST << "] = (" << pfmet->extras.metShift_p4Preserved_px_##SYST << ", " << pfmet->extras.metShift_p4Preserved_py_##SYST \
-        << ") -> (" << pfmet->extras.metShift_p4Preserved_px_##SYST + *pfmet_metShift_p4Preserved_RevertMETFix_px_##SYST << ", " << pfmet->extras.metShift_p4Preserved_py_##SYST + *pfmet_metShift_p4Preserved_RevertMETFix_py_##SYST << ")" \
-        << endl; \
-    } \
-    pfmet->extras.metShift_px_##SYST += *pfmet_metShift_RevertMETFix_px_##SYST; \
-    pfmet->extras.metShift_py_##SYST += *pfmet_metShift_RevertMETFix_py_##SYST; \
-    pfmet->extras.metShift_p4Preserved_px_##SYST += *pfmet_metShift_p4Preserved_RevertMETFix_px_##SYST; \
-    pfmet->extras.metShift_p4Preserved_py_##SYST += *pfmet_metShift_p4Preserved_RevertMETFix_py_##SYST;
-    REVERTMETFIX_COMMANDS;
+MELAout << "\t- metShift p4 default before correction [" << #SYST << "] = (" << pfmet->extras.metShift_px_##SYST << ", " << pfmet->extras.metShift_py_##SYST << ")" << endl; \
+MELAout << "\t- metShift p4-preserved before correction [" << #SYST << "] = (" << pfmet->extras.metShift_p4Preserved_px_##SYST << ", " << pfmet->extras.metShift_p4Preserved_py_##SYST << ")" << endl;
+    if (verbosity>=TVar::DEBUG){
+      REVERTMETFIX_COMMON_COMMANDS;
+      if (!isData){
+        REVERTMETFIX_GENINFO_COMMANDS;
+      }
+    }
 #undef REVERTMETFIX_COMMAND
-#undef REVERTMETFIX_COMMANDS
+
+    // Special treatment for the JECNominal case:
+    // extras::metShift_p*_JECNominal are used for bookkeeping. They are not actually added because extras::met*_Nominal already contain them.
+    pfmet->extras.metShift_px_JECNominal += *pfmet_metShift_RevertMETFix_px_JECNominal;
+    pfmet->extras.metShift_py_JECNominal += *pfmet_metShift_RevertMETFix_py_JECNominal;
+    // All other variables need to subtract the MET reversion shift already applied on extras::met*_Nominal.
+    pfmet->extras.metShift_p4Preserved_px_JECNominal += *pfmet_metShift_p4Preserved_RevertMETFix_px_JECNominal - *pfmet_metShift_RevertMETFix_px_JECNominal;
+    pfmet->extras.metShift_p4Preserved_py_JECNominal += *pfmet_metShift_p4Preserved_RevertMETFix_py_JECNominal - *pfmet_metShift_RevertMETFix_py_JECNominal;
+    // COMMON metShift variables (JECNominal) are corrected above, so correct only GENINFO versions as above.
+#define REVERTMETFIX_COMMAND(SYST) \
+pfmet->extras.metShift_px_##SYST += *pfmet_metShift_RevertMETFix_px_##SYST - *pfmet_metShift_RevertMETFix_px_JECNominal; \
+pfmet->extras.metShift_py_##SYST += *pfmet_metShift_RevertMETFix_py_##SYST - *pfmet_metShift_RevertMETFix_py_JECNominal; \
+pfmet->extras.metShift_p4Preserved_px_##SYST += *pfmet_metShift_p4Preserved_RevertMETFix_px_##SYST - *pfmet_metShift_RevertMETFix_px_JECNominal; \
+pfmet->extras.metShift_p4Preserved_py_##SYST += *pfmet_metShift_p4Preserved_RevertMETFix_py_##SYST - *pfmet_metShift_RevertMETFix_py_JECNominal;
+    if (!isData){
+      REVERTMETFIX_GENINFO_COMMANDS;
+    }
+#undef REVERTMETFIX_COMMAND
+
+#define REVERTMETFIX_COMMAND(SYST) \
+MELAout << "\t- metShift p4 default after correction [" << #SYST << "] = (" << pfmet->extras.metShift_px_##SYST << ", " << pfmet->extras.metShift_py_##SYST << ")" << endl; \
+MELAout << "\t- metShift p4-preserved after correction [" << #SYST << "] = (" << pfmet->extras.metShift_p4Preserved_px_##SYST << ", " << pfmet->extras.metShift_p4Preserved_py_##SYST << ")" << endl;
+    if (verbosity>=TVar::DEBUG){
+      REVERTMETFIX_COMMON_COMMANDS;
+      if (!isData){
+        REVERTMETFIX_GENINFO_COMMANDS;
+      }
+    }
+#undef REVERTMETFIX_COMMAND
+
+#undef REVERTMETFIX_GENINFO_COMMANDS
+#undef REVERTMETFIX_COMMON_COMMANDS
   }
 
   // Apply fix to JECNominal_JERNominal variables
