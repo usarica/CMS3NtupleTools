@@ -885,6 +885,7 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
 
           // Test HEM filter
           if (!eventFilter.test2018HEMFilter(&simEventHandler, &electrons_probe, nullptr, &ak4jets, &ak8jets)) continue;
+          if (!eventFilter.testNoisyJetFilter(&simEventHandler, ak4jets)) continue;
           n_pass_HEMfilter[idx_emu]++;
 
           // Test dilepton OS with trigger matching

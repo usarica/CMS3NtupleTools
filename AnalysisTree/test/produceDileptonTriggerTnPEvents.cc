@@ -434,7 +434,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
 
   // Test HEM filter for jets
   if (!eventFilter->test2018HEMFilter(simEventHandler, nullptr, nullptr, &ak4jets, &ak8jets)) return false;
-  theLooper->incrementSelection("HEM15/16 veto");
+  if (!eventFilter->testNoisyJetFilter(simEventHandler, ak4jets)) continue;
+  theLooper->incrementSelection("HEM15/16 and noisy jet vetos");
 
   auto const& eventmet = (use_MET_Puppi ? jetHandler->getPFPUPPIMET() : jetHandler->getPFMET());
   if (!isData && use_MET_corrections) metCorrectionHandler->applyCorrections(

@@ -86,7 +86,8 @@ public:
     std::vector<ParticleObject const*>* outparticles_TOmatched = nullptr
   ) const;
   bool passMETFilters(EventFilterHandler::METFilterCutType const& cuttype) const;
-  // Special event filters for various specific issues
+
+  // Special event filters for various issues
   bool test2018HEMFilter(
     SimEventHandler const* simEventHandler,
     std::vector<ElectronObject*> const* electrons,
@@ -94,6 +95,12 @@ public:
     std::vector<AK4JetObject*> const* ak4jets,
     std::vector<AK8JetObject*> const* ak8jets
   ) const;
+  // The behavior of this function is expected to change depending on the PU jet id application.
+  bool testNoisyJetFilter(
+    SimEventHandler const* simEventHandler,
+    std::vector<AK4JetObject*> const& ak4jets
+  ) const;
+
   bool const& passCommonSkim() const{ return product_passCommonSkim; }
   // For data trees. MC is always true
   bool const& isUniqueDataEvent() const{ return product_uniqueEvent; }

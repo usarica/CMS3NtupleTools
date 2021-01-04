@@ -25,6 +25,8 @@ namespace AK4JetSelectionHelpers{
 
   bool testNoisyJet(AK4JetObject const& part);
 
+  bool testMETJERCSafe_Base(AK4JetObject const& part);
+
   bool testLooseId(AK4JetObject const& part);
   bool testLooseKin(AK4JetObject const& part);
 
@@ -35,7 +37,6 @@ namespace AK4JetSelectionHelpers{
   bool testBtaggable_NoPUJetId(AK4JetObject const& part);
   bool testBtaggable(AK4JetObject const& part);
 
-  bool testMETJERCSafe_Base(AK4JetObject const& part);
   bool testMETFixRecoverySuitable(AK4JetObject const& part);
 
   bool testPreselectionLoose(AK4JetObject const& part);
@@ -77,6 +78,13 @@ bool AK4JetSelectionHelpers::testNoisyJet(AK4JetObject const& part){
   float const abs_eta = std::abs(part.eta());
   float const thr_NEMF = (year==2017 ? 0.5 : 0.7);
   return (abs_eta>=2.65 && abs_eta<=3.139 && part.extras.NEMF>=thr_NEMF);
+}
+
+bool AK4JetSelectionHelpers::testMETJERCSafe_Base(AK4JetObject const& part){
+  bool const hasMETJERCSafeEM = (part.extras.CEMF+part.extras.NEMF<=0.9);
+  // Do not apply pT cut or muon subtraction here; they depend on the p4-preservation and JER application.
+  // eta is safe to apply because the corrections do not change eta.
+  return hasMETJERCSafeEM && std::abs(part.eta())<=9.9;
 }
 
 bool AK4JetSelectionHelpers::testLooseId(AK4JetObject const& part){ return part.extras.pass_looseId; }
@@ -132,14 +140,9 @@ bool AK4JetSelectionHelpers::testBtaggable(AK4JetObject const& part){
     (PUIdWP==nSelectionBits || part.testSelectionBit(PUIdWP))    );
 }
 
-bool AK4JetSelectionHelpers::testMETJERCSafe_Base(AK4JetObject const& part){
-  bool const hasMETJERCSafeEM = (part.extras.CEMF+part.extras.NEMF<=0.9);
-  // Do not apply pT cut here. It depends on the p4-preservation and JER application.
-  // eta is safe to apply because the corrections do not change eta.
-  return hasMETJERCSafeEM && std::abs(part.eta())<=9.9;
-}
 bool AK4JetSelectionHelpers::testMETFixRecoverySuitable(AK4JetObject const& part){
   if (SampleHelpers::getDataYear()!=2017) return false;
+
   bool const useDefaultPUJetId = (PUIdWP>=kLoosePUJetId_default && PUIdWP<=kTightPUJetId_default);
   float const abs_eta = std::abs(part.eta());
   float const uncorrected_pt = part.uncorrected_p4().Pt();
@@ -181,6 +184,8 @@ void AK4JetSelectionHelpers::setSelectionBits(AK4JetObject& part, bool resetIDs,
 
   if (resetIDs) part.setSelectionBit(kNoisyJet, testNoisyJet(part));
 
+  if (resetIDs) part.setSelectionBit(kMETJERCSafe_Base, testMETJERCSafe_Base(part));
+
   if (resetIDs) part.setSelectionBit(kLooseId, testLooseId(part));
   if (resetKinematics) part.setSelectionBit(kLooseKin, testLooseKin(part));
 
@@ -195,9 +200,6 @@ void AK4JetSelectionHelpers::setSelectionBits(AK4JetObject& part, bool resetIDs,
     part.setSelectionBit(kBtaggable_NoPUJetId, testBtaggable_NoPUJetId(part)); // Tests kBtaggableKin
     part.setSelectionBit(kBtaggable, testBtaggable(part)); // Tests kBtaggable_NoPUJetId
   }
-
-  // The function below should also be on default kinematics.
-  if (resetIDs) part.setSelectionBit(kMETJERCSafe_Base, testMETJERCSafe_Base(part));
 
   // This function uses the PU jet id bits above.
   if (resetIDs) part.setSelectionBit(kMETFixRecoverySuitable, testMETFixRecoverySuitable(part));

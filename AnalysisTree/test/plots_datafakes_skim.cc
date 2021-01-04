@@ -669,6 +669,7 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate){
       //MELAout << "Pass b veto" << endl;
 
       if (!eventFilter.test2018HEMFilter(nullptr, &looseElectrons, nullptr, &ak4jets, &ak8jets)) continue; // Since events with loose photons are skipped, no longer need to pass photons here
+      if (!eventFilter.testNoisyJetFilter(nullptr, ak4jets)) continue;
       //MELAout << "Pass HEM filter" << endl;
 
       bool pass_ee_cutbasedLoose = false;

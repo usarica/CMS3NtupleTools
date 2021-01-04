@@ -431,6 +431,58 @@ bool EventFilterHandler::test2018HEMFilter(
   if (verbosity>=TVar::DEBUG) MELAerr << "End EventFilterHandler::test2018HEMFilter successfully." << endl;
   return !doVeto;
 }
+bool EventFilterHandler::testNoisyJetFilter(
+  SimEventHandler const* simEventHandler,
+  std::vector<AK4JetObject*> const& ak4jets
+) const{
+  int const& year = SampleHelpers::getDataYear();
+  if (year != 2017 && year != 2018) return true;
+  if (verbosity>=TVar::DEBUG) MELAerr << "Begin EventFilterHandler::testNoisyJetFilter..." << endl;
+
+  // Do not run clear because this is a special filter that does not modify the actual class
+  if (!currentTree){
+    if (verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::testNoisyJetFilter: Current tree is null!" << endl;
+    return false;
+  }
+
+  // 2017 is partially noisy whereas 2018 is fully noisy. Get out of this function for good 2017 eras (B-D).
+  if (year == 2017){
+    TString effDataPeriod;
+    if (!SampleHelpers::checkSampleIsData(currentTree->sampleIdentifier)){
+      if (!simEventHandler){
+        if (verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::testNoisyJetFilter: MC checks require a SimEventHandler!" << endl;
+        assert(0);
+        return false;
+      }
+      effDataPeriod = simEventHandler->getChosenDataPeriod();
+    }
+    else{
+      bool allVariablesPresent = true;
+#define RUNLUMIEVENT_VARIABLE(TYPE, NAME, DEFVAL) TYPE const* NAME = nullptr; allVariablesPresent &= this->getConsumed(#NAME, NAME);
+      RUNLUMIEVENT_VARIABLES;
+#undef RUNLUMIEVENT_VARIABLE
+      if (!allVariablesPresent){
+        if (this->verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::testNoisyJetFilter: Not all variables of the data case are consumed properly!" << endl;
+        assert(0);
+      }
+      effDataPeriod = SampleHelpers::getDataPeriodFromRunNumber(*RunNumber);
+    }
+    if (effDataPeriod != "2017E" && effDataPeriod != "2017F") return true;
+  }
+
+  // For affected runs, check noisy jet presence.
+  bool doVeto = false;
+  for (auto const& jet:ak4jets){
+    if (ParticleSelectionHelpers::isMaybeNoisyTightJet(jet)){
+      doVeto = true;
+      break;
+    }
+  }
+
+  if (verbosity>=TVar::DEBUG) MELAerr << "End EventFilterHandler::testNoisyJetFilter successfully." << endl;
+  return !doVeto;
+}
+
 
 bool EventFilterHandler::constructCommonSkim(){
   if (!this->getConsumedValue<bool>("passCommonSkim", product_passCommonSkim)){

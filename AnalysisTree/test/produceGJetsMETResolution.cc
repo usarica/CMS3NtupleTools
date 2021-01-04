@@ -490,6 +490,7 @@ void getTrees(
 
       // Test HEM filter
       if (!eventFilter.test2018HEMFilter(&simEventHandler, nullptr, nullptr, &ak4jets, &ak8jets)) continue;
+      if (!eventFilter.testNoisyJetFilter(&simEventHandler, ak4jets)) continue;
       n_pass_HEMfilter++;
 
       HT_jets = 0;
@@ -550,7 +551,7 @@ void getTrees(
       << "\t\t- Common filters: " <<  n_pass_commonFilters << '\n'
       << "\t\t- Good PV filter: " << n_pass_goodPVFilter << '\n'
       << "\t\t- Trigger: " <<  n_pass_triggers << '\n'
-      << "\t\t- HEM15/16 veto: " << n_pass_HEMfilter << '\n'
+      << "\t\t- HEM15/16 and noisy jet vetos: " << n_pass_HEMfilter << '\n'
       << "\t\t- b-tag veto: " <<  n_pass_btagVeto
       << endl;
 

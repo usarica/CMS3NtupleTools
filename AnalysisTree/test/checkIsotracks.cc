@@ -784,6 +784,7 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate){
       //MELAout << "Pass line " << __LINE__ << endl;
 
       if (!eventFilter.test2018HEMFilter(&simEventHandler, &electrons_tight, &photons, &ak4jets, &ak8jets)) continue;
+      if (!eventFilter.testNoisyJetFilter(&simEventHandler, ak4jets)) continue;
       //MELAout << "Pass line " << __LINE__ << endl;
 
       isotrackHandler.constructIsotracks(nullptr, nullptr);

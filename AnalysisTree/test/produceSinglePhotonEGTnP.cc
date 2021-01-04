@@ -678,6 +678,7 @@ BRANCH_COMMAND(float, photon_dR_genMatch)
 
       // Test HEM filter
       if (!eventFilter.test2018HEMFilter(&simEventHandler, nullptr, nullptr, &ak4jets, &ak8jets)) continue;
+      if (!eventFilter.testNoisyJetFilter(&simEventHandler, ak4jets)) continue;
       n_pass_HEMfilter++;
 
       vertexHandler.constructVertices();
@@ -946,7 +947,7 @@ BRANCH_COMMAND(float, photon_dR_genMatch)
       << "\t\t- Isotrack veto: " << n_pass_isotrackVeto << '\n'
       << "\t\t- Unique event: " << n_pass_uniqueEvent << '\n'
       << "\t\t- Common filters: " << n_pass_commonFilters << '\n'
-      << "\t\t- HEM15/16 veto: " << n_pass_HEMfilter << '\n'
+      << "\t\t- HEM15/16 and noisy jet vetos: " << n_pass_HEMfilter << '\n'
       << "\t\t- Good PV filter: " << n_pass_goodPVFilter << '\n'
       << "\t\t- Trigger: " << n_pass_triggers << '\n'
       << "\t\t- min. dR veto: " << n_pass_minDR_veto

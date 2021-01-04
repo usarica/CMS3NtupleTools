@@ -586,6 +586,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
 
   // Test HEM filter
   if (!eventFilter->test2018HEMFilter(simEventHandler, nullptr, nullptr, &ak4jets, &ak8jets)) return false;
+  if (!eventFilter->testNoisyJetFilter(simEventHandler, ak4jets)) continue;
 
   // Fill leptons after trigger checks
   for (auto const& dau:theChosenDilepton->getDaughters()){

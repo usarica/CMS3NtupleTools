@@ -680,6 +680,7 @@ void count(int procsel, int ichunk, int nchunks, TString strdate){
       //if (!ak4jets_tight_btagged.empty()) continue;
 
       if (!eventFilter.test2018HEMFilter(&simEventHandler, &electrons_tight, &photons, &ak4jets, &ak8jets)) continue;
+      if (!eventFilter.testNoisyJetFilter(&simEventHandler, ak4jets)) continue;
 
       isotrackHandler.constructIsotracks(&muons_tight, &electrons_tight);
       auto const& isotracks = isotrackHandler.getProducts();

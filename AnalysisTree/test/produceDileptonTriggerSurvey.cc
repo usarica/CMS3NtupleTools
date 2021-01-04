@@ -353,6 +353,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
 
   // Test HEM filter
   if (!eventFilter->test2018HEMFilter(simEventHandler, nullptr, nullptr, &ak4jets, &ak8jets)) return false;
+  if (!eventFilter->testNoisyJetFilter(simEventHandler, ak4jets)) continue;
 
   ParticleObject::LorentzVector_t sump4_ak4jets(0, 0, 0, 0);
   std::vector<AK4JetObject*> ak4jets_tight; ak4jets_tight.reserve(ak4jets.size());

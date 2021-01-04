@@ -105,6 +105,17 @@ template<> bool ParticleSelectionHelpers::isJetForHEMVeto<AK8JetObject>(AK8JetOb
   return jet->testSelectionBit(AK8JetSelectionHelpers::bit_preselectionTight_id) && jet->pt()>=AK8JetSelectionHelpers::ptThr_skim_HEMcheck;
 }
 
+template<> bool ParticleSelectionHelpers::isMaybeNoisyTightJet<AK4JetObject>(AK4JetObject const* jet){
+  // Check if tight jet and has noisy bit.
+  // Notice that depending on the PU jet id, this selection might change.
+  // Such is life... APPLY PU JET ID THEN!!!
+  return isTightJet(jet) && jet->testSelectionBit(AK4JetSelectionHelpers::kNoisyJet);
+}
+template<> bool ParticleSelectionHelpers::isMaybeNoisyTightJet<AK8JetObject>(AK8JetObject const* jet){
+  // ak8 jets are not noisy.
+  return false;
+}
+
 template<> bool ParticleSelectionHelpers::isJetForPUJetIdSF<AK4JetObject>(AK4JetObject const* jet){
   return (
     jet->testSelectionBit(AK4JetSelectionHelpers::bit_preselectionTight_id)

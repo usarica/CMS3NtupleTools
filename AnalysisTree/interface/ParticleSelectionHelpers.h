@@ -60,6 +60,9 @@ SELECTION_TYPE(Tight)
   template<typename T> bool isJetForHEMVeto(T const*);
   template<> bool isJetForHEMVeto<AK4JetObject>(AK4JetObject const*);
   template<> bool isJetForHEMVeto<AK8JetObject>(AK8JetObject const*);
+  template<typename T> bool isMaybeNoisyTightJet(T const*);
+  template<> bool isMaybeNoisyTightJet<AK4JetObject>(AK4JetObject const*);
+  template<> bool isMaybeNoisyTightJet<AK8JetObject>(AK8JetObject const*);
   template<typename T> bool isJetForPUJetIdSF(T const*);
   template<> bool isJetForPUJetIdSF<AK4JetObject>(AK4JetObject const*);
   template<typename T> bool isJetForBtagSF(T const*);

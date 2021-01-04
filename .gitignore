@@ -24,13 +24,14 @@ NtupleMaker/test/*.dat
 NtupleMaker/test/br.sm*
 NtupleMaker/test/Pdfdata
 NtupleMaker/test/output*
-NtupleMaker/test/outputs*
+NtupleMaker/test/production*
 NtupleMaker/test/manualruns
 NtupleMaker/test/crabConfig.py
 NtupleMaker/test/xsec_cfg.py
 NtupleMaker/test/crab_projects/*
 NtupleMaker/test/crab_projects/crab_CMS4_from_MINIAOD_test/
 AnalysisTree/test/tmp*
+AnalysisTree/test/*tmp.cc
 AnalysisTree/test/output*
 AnalysisTree/test/outputs*
 AnalysisTree/test/*.DAT

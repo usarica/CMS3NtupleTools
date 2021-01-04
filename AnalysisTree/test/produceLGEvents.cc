@@ -533,7 +533,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
 
   // Test HEM filter
   if (!eventFilter->test2018HEMFilter(simEventHandler, nullptr, nullptr, &ak4jets, &ak8jets)) return false;
-  theLooper->incrementSelection("HEM15/16 veto");
+  if (!eventFilter->testNoisyJetFilter(simEventHandler, ak4jets)) continue;
+  theLooper->incrementSelection("HEM15/16 and noisy jet vetos");
 
   if (hasSimpleHLTMenus){
     event_wgt_triggers_SingleLepton = eventFilter->getTriggerWeight(it_HLTMenuSimple_SingleLepton->second);

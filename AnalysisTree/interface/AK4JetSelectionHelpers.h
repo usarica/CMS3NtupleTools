@@ -18,7 +18,12 @@ namespace AK4JetSelectionHelpers{
 
     kTightLeptonVetoId,
 
+    // This flag only checks for geometry and NEMF.
+    // It doesn't check whether the jet is tight etc.
     kNoisyJet,
+
+    // This flag tests the base requirement for JERC propagation safety, part of the MET bit requirements of the jets.
+    kMETJERCSafe_Base,
 
     kLooseId,
     kLooseKin,
@@ -30,8 +35,9 @@ namespace AK4JetSelectionHelpers{
     kBtaggable_NoPUJetId,
     kBtaggable,
 
-    // These two flags are distinct. Do not apply a direct AND of them.
-    kMETJERCSafe_Base,
+    // This flag is specific for 2017 and checks if the jet fails the bits but is recovery-suitable.
+    // This flag also does not check for kMETJERCSafe_Base because a MET fix recovery
+    // also features a recovery of the clustered PF candidates themselves (= uncorrected jet).
     kMETFixRecoverySuitable,
 
     kPreselectionLoose,

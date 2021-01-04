@@ -666,7 +666,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
 
   // Test HEM filter
   if (!eventFilter->test2018HEMFilter(simEventHandler, nullptr, nullptr, &ak4jets, &ak8jets)) return false;
-  theLooper->incrementSelection("HEM15/16 veto");
+  if (!eventFilter->testNoisyJetFilter(simEventHandler, ak4jets)) continue;
+  theLooper->incrementSelection("HEM15/16 and noisy jet vetos");
 
   // Fill leptons after trigger checks
   ParticleObject::LorentzVector_t sump4_leptons;
