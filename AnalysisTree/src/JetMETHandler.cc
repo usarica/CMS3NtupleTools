@@ -1056,8 +1056,8 @@ MELAout << "\t- metShift p4-preserved before correction [" << #SYST << "] = (" <
 #define REVERTMETFIX_COMMAND(SYST) \
 pfmet->extras.metShift_px_##SYST += *pfmet_metShift_RevertMETFix_px_##SYST - *pfmet_metShift_RevertMETFix_px_JECNominal; \
 pfmet->extras.metShift_py_##SYST += *pfmet_metShift_RevertMETFix_py_##SYST - *pfmet_metShift_RevertMETFix_py_JECNominal; \
-pfmet->extras.metShift_p4Preserved_px_##SYST += *pfmet_metShift_p4Preserved_RevertMETFix_px_##SYST - *pfmet_metShift_RevertMETFix_px_JECNominal; \
-pfmet->extras.metShift_p4Preserved_py_##SYST += *pfmet_metShift_p4Preserved_RevertMETFix_py_##SYST - *pfmet_metShift_RevertMETFix_py_JECNominal;
+pfmet->extras.metShift_p4Preserved_px_##SYST += *pfmet_metShift_p4Preserved_RevertMETFix_px_##SYST - *pfmet_metShift_RevertMETFix_px_##SYST; \
+pfmet->extras.metShift_p4Preserved_py_##SYST += *pfmet_metShift_p4Preserved_RevertMETFix_py_##SYST - *pfmet_metShift_RevertMETFix_py_##SYST;
     if (!isData){
       REVERTMETFIX_GENINFO_COMMANDS;
     }
@@ -1121,6 +1121,7 @@ bool JetMETHandler::assignMETXYShifts(SystematicsHelpers::SystematicVariationTyp
   float METxcorr = -(pfmet_XYcorr_xCoeffA*npv + pfmet_XYcorr_xCoeffB);
   float METycorr = -(pfmet_XYcorr_yCoeffA*npv + pfmet_XYcorr_yCoeffB);
   pfmet->setXYShift(METxcorr, METycorr);
+  if (this->verbosity>=TVar::DEBUG) MELAerr << "JetMETHandler::assignMETXYShifts: Applying an additional XY shift of ( " << METxcorr << ", " << METycorr << " )" << endl;
 
   return true;
 }
