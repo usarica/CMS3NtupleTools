@@ -26,6 +26,8 @@ declare -a rese
 declare -a resf
 declare -a ress
 
+declare -a runningjobs=( $(condor_q -af:j '') )
+
 for f in $(find $chkdir -name condor.sub); do
   d=${f//\/condor.sub}
   if [[ ! -d $d ]];then
@@ -43,7 +45,13 @@ for f in $(find $chkdir -name condor.sub); do
 
     jobnumber=${logfilename//log_job.}
     jobnumber=${jobnumber//.txt}
-    runningjob=$(condor_q -constraint "ClusterId==$jobnumber" -af:j '')
+    runningjob=( )
+    for jobid in "${runningjobs[@]}"; do
+      if [[ "${jobid}" == "${jobnumber}" ]]; then
+        runningjob+=( "${jobnumber}" )
+        break
+      fi
+    done
     
     fread="$d/Logs/$logfilename"
 
