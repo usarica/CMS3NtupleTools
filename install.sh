@@ -1,16 +1,48 @@
 #!/bin/bash
 
-#USER INPUTS
+# USER INPUTS
 CMS3Tag=combined
 CMSSW_release=CMSSW_10_2_22
-CMSSW_release_name=    #Leave this blank if you don't know what it is.  It's just a marker in case you have multiple identical directories.  Don't forget the underscore!
-export SCRAM_ARCH=slc7_amd64_gcc700
+CMSSW_release_name=    #Leave this blank if you don't know what it is.  It's just a marker in case you have multiple identical directories. No need for the underscore.
+SCRAM_ARCH_name="amd64_gcc700" # Leave slc6/7 out
+
+
+MACHINESPECS="$(uname -a)"
+echo "Machine specifics: ${MACHINESPECS}"
+declare -i FOUND_EL6=0
+if [[ "${MACHINESPECS}" == *"el6"* ]]; then
+  FOUND_EL6=1
+else
+  for evar in $(env); do
+    if [[ "$evar" == *"SINGULARITY_IMAGE_HUMAN"* ]]; then
+      # This means you are running in a condor job with a singularity image loaded.
+      if [[ "$evar" == *"rhel6"* ]] || [[ "$evar" == *"slc6"* ]]; then
+        FOUND_EL6=1
+      fi
+    fi
+  done
+fi
+
+
+if [[ ${FOUND_EL6} -eq 1 ]]; then
+  SCRAM_ARCH_name="slc6_${SCRAM_ARCH_name}"
+else
+  SCRAM_ARCH_name="slc7_${SCRAM_ARCH_name}"
+fi
+
+export SCRAM_ARCH=${SCRAM_ARCH_name}
+
+if [[ -z ${CMSSW_release_name+x} ]]; then
+  CMSSW_release_name="${CMSSW_release}"
+else
+  CMSSW_release_name="${CMSSW_release}_${CMSSW_release_name}"
+fi
 
 #--Here there be dragons----
 export CMS_PATH=/cvmfs/cms.cern.ch
 source /cvmfs/cms.cern.ch/cmsset_default.sh
-scramv1 p -n ${CMSSW_release}${CMSSW_release_name} CMSSW $CMSSW_release
-cd ${CMSSW_release}${CMSSW_release_name}/src
+scramv1 p -n ${CMSSW_release_name} CMSSW $CMSSW_release
+cd ${CMSSW_release_name}/src
 eval $(scramv1 runtime -sh)
 
 # new upstream-only ignores user's cmssw, but makes cms-init much, much faster
