@@ -36,6 +36,7 @@ protected:
   std::unordered_map< BaseTree*, std::vector< std::vector< std::pair<double, double> > > > sum_wgts_withrewgt;
   std::unordered_map< BaseTree*, std::vector<double> > NeffsPerBin;
   std::unordered_map< BaseTree*, std::vector<double> > sampleNormalization;
+  std::unordered_map< BaseTree*, double > samplePairwiseNormalization;
 
 public:
   BulkReweightingBuilder(
@@ -55,10 +56,13 @@ public:
   );
   void registerTree(BaseTree* tree, float extNorm=1);
 
-  void setup(unsigned int ihypo_Neff, std::vector<std::pair<BaseTree*, BaseTree*>> const* tree_normTree_pairs=nullptr);
+  void setup(
+    int ihypo_Neff, std::vector<std::pair<BaseTree*, BaseTree*>> const* tree_normTree_pairs=nullptr,
+    float thr_wgt=0.9995, float tol_wgt=5.
+  );
 
   double getOverallReweightingNormalization(BaseTree* tree) const;
-
+  double getSamplePairwiseNormalization(BaseTree* tree) const;
   bool checkWeightsBelowThreshold(BaseTree* tree) const;
 
 };

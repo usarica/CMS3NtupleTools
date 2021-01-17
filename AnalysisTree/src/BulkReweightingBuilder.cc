@@ -58,23 +58,28 @@ void BulkReweightingBuilder::registerTree(BaseTree* tree, float extNorm){
   registeredTrees.push_back(tree);
 }
 
-void BulkReweightingBuilder::setup(unsigned int ihypo_Neff, std::vector<std::pair<BaseTree*, BaseTree*>> const* tree_normTree_pairs){
+void BulkReweightingBuilder::setup(
+  int ihypo_Neff, std::vector<std::pair<BaseTree*, BaseTree*>> const* tree_normTree_pairs,
+  float thr_wgt, float tol_wgt
+){
   unsigned int const nhypos = strReweightingWeightsList.size();
-  assert(ihypo_Neff<nhypos);
+  assert(ihypo_Neff<(int) nhypos);
   unsigned int const nbins = (binning.isValid() ? binning.getNbins() : static_cast<unsigned int>(1));
   for (auto const& tree:registeredTrees){
     MELAout << "BulkReweightingBuilder::setup: Processing " << tree->sampleIdentifier << "..." << endl;
 
     MELAout << "\t- Obtaining weight thresholds..." << endl;
-    absWeightThresholdsPerBinList[tree] = std::vector<std::vector<float>>(nhypos, std::vector<float>());
-    for (unsigned int ihypo=0; ihypo<nhypos; ihypo++) absWeightThresholdsPerBinList[tree].at(ihypo) = ReweightingFunctions::getAbsWeightThresholdsPerBinByFixedFractionalThreshold(
+    absWeightThresholdsPerBinList[tree] = ReweightingFunctions::getAbsWeightThresholdsPerBinByFixedFractionalThreshold(
       tree,
-      componentRefsList_reweightingweights[tree].at(ihypo), rule_reweightingweights_list.at(ihypo),
+      componentRefsList_reweightingweights[tree], rule_reweightingweights_list,
       binning, binningVarRefs[tree], rule_binningVar,
-      0.9999, 5.
+      thr_wgt, tol_wgt
     );
 
+    // Initialize normalization variables
     NeffsPerBin[tree] = std::vector<double>(nbins, 0);
+    sampleNormalization[tree] = std::vector<double>(nbins, 1);
+    samplePairwiseNormalization[tree] = 1;
 
     // Get sum of weights
     int nEntries = tree->getNEvents();
@@ -94,18 +99,23 @@ void BulkReweightingBuilder::setup(unsigned int ihypo_Neff, std::vector<std::pai
       double wgt_xsec = rule_xsecweights(tree, componentRefs_xsecweights[tree]);
       double wgt_nominal_xsec = wgt_nominal*wgt_xsec;
       sum_normwgts_all_tree.at(ibin) += wgt_nominal_xsec;
+
       bool allHyposFine = true;
       std::vector<double> wgt_rewgt_list; wgt_rewgt_list.reserve(nhypos);
       for (unsigned int ihypo=0; ihypo<nhypos; ihypo++){
         float const& wgt_thr = absWeightThresholdsPerBinList[tree].at(ihypo).at(ibin);
         float wgt_rewgt = rule_reweightingweights_list.at(ihypo)(tree, componentRefsList_reweightingweights[tree].at(ihypo));
         if (wgt_thr>0.f && std::abs(wgt_rewgt)>wgt_thr) wgt_rewgt = 0.f;
-        if (wgt_rewgt==0.f) allHyposFine = false;
+        if (wgt_rewgt==0.f){
+          allHyposFine = false;
+          break; // We can break because the following statement only proceeds if allHyposFine==true
+        }
         wgt_rewgt_list.push_back(wgt_rewgt);
       }
       if (allHyposFine){
         for (unsigned int ihypo=0; ihypo<nhypos; ihypo++){
           sum_normwgts_nonzerorewgt_tree.at(ibin) += wgt_nominal_xsec;
+
           auto& sum_wgts_pair = sum_wgts_withrewgt_tree.at(ihypo).at(ibin);
           double wgt_product = wgt_nominal_xsec*wgt_rewgt_list.at(ihypo);
           sum_wgts_pair.first += wgt_product;
@@ -119,14 +129,23 @@ void BulkReweightingBuilder::setup(unsigned int ihypo_Neff, std::vector<std::pai
     sum_normwgts_nonzerorewgt[tree] = sum_normwgts_nonzerorewgt_tree;
     sum_wgts_withrewgt[tree] = sum_wgts_withrewgt_tree;
 
-    // Will be filled after all trees are done, but there is no harm in assigning here.
-    sampleNormalization[tree] = std::vector<double>(nbins, 1);
-
     // Compute Neff to be able to combine the trees ultimately
     for (unsigned int ibin=0; ibin<nbins; ibin++){
-      auto& sum_wgts_pair = sum_wgts_withrewgt_tree.at(ihypo_Neff).at(ibin);
-      if (sum_wgts_pair.second==0.) continue;
-      NeffsPerBin[tree].at(ibin) = std::pow(sum_wgts_pair.first, 2)/sum_wgts_pair.second;
+      if (ihypo_Neff>=0){
+        auto& sum_wgts_pair = sum_wgts_withrewgt_tree.at(ihypo_Neff).at(ibin);
+        if (sum_wgts_pair.second==0.) continue;
+        NeffsPerBin[tree].at(ibin) = std::pow(sum_wgts_pair.first, 2)/sum_wgts_pair.second;
+      }
+      else{
+        double Neff_bin_worst = -1;
+        for (auto const& sum_wgts_withrewgt_tree_hypo:sum_wgts_withrewgt_tree){
+          auto& sum_wgts_pair = sum_wgts_withrewgt_tree_hypo.at(ibin);
+          if (sum_wgts_pair.second==0.) continue;
+          double Neff_hypo_bin = std::pow(sum_wgts_pair.first, 2)/sum_wgts_pair.second;
+          if (Neff_bin_worst<0. || Neff_bin_worst>Neff_hypo_bin) Neff_bin_worst = Neff_hypo_bin;
+        }
+        NeffsPerBin[tree].at(ibin) = std::max(0., Neff_bin_worst);
+      }
     }
   }
 
@@ -140,7 +159,7 @@ void BulkReweightingBuilder::setup(unsigned int ihypo_Neff, std::vector<std::pai
     }
     MELAout << "\t- Sample normalizations before extra normalization for tree " << tree->sampleIdentifier << ": " << sampleNormalization[tree] << endl;
   }
-  if (tree_normTree_pairs){
+  if (tree_normTree_pairs && ihypo_Neff>=0){
     std::unordered_map<BaseTree*, double> extraNormFactors;
     // Determine the pairwise normalizations first
     for (auto const& tree_normTree_pair:(*tree_normTree_pairs)){
@@ -175,6 +194,7 @@ void BulkReweightingBuilder::setup(unsigned int ihypo_Neff, std::vector<std::pai
       while (normTree!=nullptr){
         MELAout << "\t- Normalizing " << tree->sampleIdentifier << " by the normalization factor (=" << extraNormFactors[baseTree] << ") of " << baseTree->sampleIdentifier << endl;
         for (auto& v:sampleNormalization[tree]) v *= extraNormFactors[baseTree];
+        samplePairwiseNormalization[tree] *= extraNormFactors[baseTree];
         baseTree = normTree; normTree = nullptr;
         for (auto const& pp:(*tree_normTree_pairs)){
           if (pp.first == baseTree){
@@ -209,6 +229,14 @@ double BulkReweightingBuilder::getOverallReweightingNormalization(BaseTree* tree
     return 1;
   }
 }
+double BulkReweightingBuilder::getSamplePairwiseNormalization(BaseTree* tree) const{
+  auto it = samplePairwiseNormalization.find(tree);
+  if (it!=samplePairwiseNormalization.cend()) return it->second;
+  else{
+    MELAerr << "BulkReweightingBuilder::getSamplePairwiseNormalization: No normalization factor is found for tree " << tree->sampleIdentifier << "." << endl;
+    return 1;
+  }
+}
 bool BulkReweightingBuilder::checkWeightsBelowThreshold(BaseTree* tree) const{
   auto it_binningVarRefs = binningVarRefs.find(tree);
   if (it_binningVarRefs == binningVarRefs.cend()){
@@ -236,4 +264,3 @@ bool BulkReweightingBuilder::checkWeightsBelowThreshold(BaseTree* tree) const{
 
   return res;
 }
-
