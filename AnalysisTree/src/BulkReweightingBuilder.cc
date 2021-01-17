@@ -85,6 +85,7 @@ void BulkReweightingBuilder::setup(
     int nEntries = tree->getNEvents();
     std::vector<double> sum_normwgts_all_tree(nbins, 0);
     std::vector<double> sum_normwgts_nonzerorewgt_tree(nbins, 0);
+    std::vector<double> sampleZeroMECompensation_tree(nbins, 1);
     std::vector<std::vector<std::pair<double, double>>> sum_wgts_withrewgt_tree(nhypos, std::vector<std::pair<double, double>>(nbins, std::pair<double, double>(0, 0)));
     MELAout << "\t- Obtaining weight sums..." << endl;
     for (int ev=0; ev<nEntries; ev++){
@@ -113,9 +114,9 @@ void BulkReweightingBuilder::setup(
         wgt_rewgt_list.push_back(wgt_rewgt);
       }
       if (allHyposFine){
-        for (unsigned int ihypo=0; ihypo<nhypos; ihypo++){
-          sum_normwgts_nonzerorewgt_tree.at(ibin) += wgt_nominal_xsec;
+        sum_normwgts_nonzerorewgt_tree.at(ibin) += wgt_nominal_xsec;
 
+        for (unsigned int ihypo=0; ihypo<nhypos; ihypo++){
           auto& sum_wgts_pair = sum_wgts_withrewgt_tree.at(ihypo).at(ibin);
           double wgt_product = wgt_nominal_xsec*wgt_rewgt_list.at(ihypo);
           sum_wgts_pair.first += wgt_product;
@@ -124,13 +125,16 @@ void BulkReweightingBuilder::setup(
       }
     }
 
-    // Assign the vectors to the maps
-    sum_normwgts_all[tree] = sum_normwgts_all_tree;
-    sum_normwgts_nonzerorewgt[tree] = sum_normwgts_nonzerorewgt_tree;
-    sum_wgts_withrewgt[tree] = sum_wgts_withrewgt_tree;
-
     // Compute Neff to be able to combine the trees ultimately
     for (unsigned int ibin=0; ibin<nbins; ibin++){
+      if (sum_normwgts_all_tree.at(ibin)<0. || sum_normwgts_nonzerorewgt_tree.at(ibin)<0.){
+        MELAout << "\t\t- Bin " << ibin << " has a negative sum of norm. weights before or after threshold applications. The contribution of this sample from this bin will be set to 0." << endl;
+        sum_normwgts_all_tree.at(ibin) = 0;
+        sum_normwgts_nonzerorewgt_tree.at(ibin) = 0;
+        for (auto& sum_wgts_withrewgt_tree_hypo:sum_wgts_withrewgt_tree){ sum_wgts_withrewgt_tree_hypo.at(ibin).first = sum_wgts_withrewgt_tree_hypo.at(ibin).second = 0; }
+        sampleZeroMECompensation_tree.at(ibin) = 0;
+      }
+      else if (sum_normwgts_nonzerorewgt_tree.at(ibin)>0.) sampleZeroMECompensation_tree.at(ibin) = sum_normwgts_all_tree.at(ibin) / sum_normwgts_nonzerorewgt_tree.at(ibin);
       if (ihypo_Neff>=0){
         auto& sum_wgts_pair = sum_wgts_withrewgt_tree.at(ihypo_Neff).at(ibin);
         if (sum_wgts_pair.second==0.) continue;
@@ -147,19 +151,32 @@ void BulkReweightingBuilder::setup(
         NeffsPerBin[tree].at(ibin) = std::max(0., Neff_bin_worst);
       }
     }
+
+    // Assign the vectors to the maps
+    sum_normwgts_all[tree] = sum_normwgts_all_tree;
+    sum_normwgts_nonzerorewgt[tree] = sum_normwgts_nonzerorewgt_tree;
+    sum_wgts_withrewgt[tree] = sum_wgts_withrewgt_tree;
+    sampleZeroMECompensation[tree] = sampleZeroMECompensation_tree;
   }
 
-  // Once all trees are complete, compute final normalization factors
+  // Once all trees are complete, compute final normalization factors based on the chosen values of Neff.
+  MELAout << "\t- Sample normalizations before extra normalizations:" << endl;
   for (auto const& tree:registeredTrees){
+    auto& sampleNormalization_tree = sampleNormalization.find(tree)->second;
+    auto const& NeffsPerBin_tree = NeffsPerBin.find(tree)->second;
     for (unsigned int ibin=0; ibin<nbins; ibin++){
-      double& sampleNormalization_bin = sampleNormalization[tree].at(ibin);
+      double& sampleNormalization_bin = sampleNormalization_tree.at(ibin);
+      double const& NeffsPerBin_bin = NeffsPerBin_tree.at(ibin);
       double sum_Neff_bin = 0;
       for (auto const& it:NeffsPerBin) sum_Neff_bin += it.second.at(ibin);
-      if (sum_Neff_bin>0.) sampleNormalization_bin = NeffsPerBin[tree].at(ibin) / sum_Neff_bin;
+      if (sum_Neff_bin>0.) sampleNormalization_bin = NeffsPerBin_bin / sum_Neff_bin;
     }
-    MELAout << "\t- Sample normalizations before extra normalization for tree " << tree->sampleIdentifier << ": " << sampleNormalization[tree] << endl;
+    MELAout << "[" << tree->sampleIdentifier << "]: " << sampleNormalization_tree << endl;
   }
+
+  // Pairwise normalizations
   if (tree_normTree_pairs && ihypo_Neff>=0){
+    MELAout << "\t- Computing the pairwise normalization factors..." << endl;
     std::unordered_map<BaseTree*, double> extraNormFactors;
     // Determine the pairwise normalizations first
     for (auto const& tree_normTree_pair:(*tree_normTree_pairs)){
@@ -168,31 +185,38 @@ void BulkReweightingBuilder::setup(
       auto const& sum_wgts_withrewgt_basetree = sum_wgts_withrewgt[tree].at(ihypo_Neff);
       auto const& sum_wgts_withrewgt_normtree = sum_wgts_withrewgt[normTree].at(ihypo_Neff);
 
+      // 0-MEs compensation factors need to be accounted for in the 
+      auto const& sampleZeroMECompensation_basetree = sampleZeroMECompensation.find(tree)->second;
+      auto const& sampleZeroMECompensation_normtree = sampleZeroMECompensation.find(normTree)->second;
+
       double sum_wgts_common_basetree = 0;
       double sum_wgts_common_normtree = 0;
       for (unsigned int ibin=0; ibin<nbins; ibin++){
         double const& sum_wgts_common_basetree_bin = sum_wgts_withrewgt_basetree.at(ibin).first;
         double const& sum_wgts_common_normtree_bin = sum_wgts_withrewgt_normtree.at(ibin).first;
         if (sum_wgts_common_basetree_bin!=0. && sum_wgts_common_normtree_bin!=0.){
-          sum_wgts_common_basetree += sum_wgts_common_basetree_bin;
-          sum_wgts_common_normtree += sum_wgts_common_normtree_bin;
+          double const& nonzeroNorm_basetree = sampleZeroMECompensation_basetree.at(ibin);
+          double const& nonzeroNorm_normtree = sampleZeroMECompensation_normtree.at(ibin);
+          sum_wgts_common_basetree += sum_wgts_common_basetree_bin * nonzeroNorm_basetree;
+          sum_wgts_common_normtree += sum_wgts_common_normtree_bin * nonzeroNorm_normtree;
         }
       }
-      if (sum_wgts_common_basetree==0.) MELAerr << "BulkReweightingBuilder::setup: Base tree " << tree->sampleIdentifier << " has no overlap with its norm tree " << normTree->sampleIdentifier << endl;
-      if (sum_wgts_common_normtree==0.) MELAerr << "BulkReweightingBuilder::setup: Norm tree " << tree->sampleIdentifier << " has no overlap with its base tree " << normTree->sampleIdentifier << endl;
+      if (sum_wgts_common_basetree==0.) MELAerr << "\t\t- Base tree " << tree->sampleIdentifier << " has no overlap with its norm tree " << normTree->sampleIdentifier << endl;
+      if (sum_wgts_common_normtree==0.) MELAerr << "\t\t- Norm tree " << tree->sampleIdentifier << " has no overlap with its base tree " << normTree->sampleIdentifier << endl;
 
       double extra_norm = 1;
       if (sum_wgts_common_basetree!=0.) extra_norm = sum_wgts_common_normtree / sum_wgts_common_basetree;
-      MELAout << "\t- Base tree " << tree->sampleIdentifier << " has an extra normalization of " << extra_norm << endl;
+      MELAout << "\t\t- Base tree " << tree->sampleIdentifier << " has an extra normalization of " << extra_norm << endl;
       extraNormFactors[tree] = extra_norm;
     }
     // Multiply all relevant ones
+    MELAout << "\t- Applying the computed pairwise normalization factors..." << endl;
     for (auto const& tree_normTree_pair:(*tree_normTree_pairs)){
       BaseTree* tree = tree_normTree_pair.first;
       BaseTree* baseTree = tree;
       BaseTree* normTree = tree_normTree_pair.second;
       while (normTree!=nullptr){
-        MELAout << "\t- Normalizing " << tree->sampleIdentifier << " by the normalization factor (=" << extraNormFactors[baseTree] << ") of " << baseTree->sampleIdentifier << endl;
+        MELAout << "\t\t- Normalizing " << tree->sampleIdentifier << " by the normalization factor (=" << extraNormFactors[baseTree] << ") of " << baseTree->sampleIdentifier << endl;
         for (auto& v:sampleNormalization[tree]) v *= extraNormFactors[baseTree];
         samplePairwiseNormalization[tree] *= extraNormFactors[baseTree];
         baseTree = normTree; normTree = nullptr;
@@ -204,10 +228,20 @@ void BulkReweightingBuilder::setup(
         }
       }
     }
-    for (auto const& tree:registeredTrees){
-      MELAout << "\t- Sample normalizations after extra normalization for tree " << tree->sampleIdentifier << ": " << sampleNormalization[tree] << endl;
-    }
+    MELAout << "\t- Sample normalizations after pairwise normalizations:" << endl;
+    for (auto const& tree:registeredTrees) MELAout << "[" << tree->sampleIdentifier << "]: " << sampleNormalization[tree] << endl;
   }
+
+  // Finally, add the 0-ME compensation factors
+  MELAout << "\t- Sample normalizations after 0-ME compensation factors:" << endl;
+  for (auto const& tree:registeredTrees){
+    auto& sampleNormalization_tree = sampleNormalization.find(tree)->second;
+    auto const& sampleZeroMECompensation_tree = sampleZeroMECompensation.find(tree)->second;
+    for (unsigned int ibin=0; ibin<nbins; ibin++) sampleNormalization_tree.at(ibin) *= sampleZeroMECompensation_tree.at(ibin);
+    MELAout << "[" << tree->sampleIdentifier << "]: " << sampleNormalization_tree << endl;
+  }
+
+  MELAout << "BulkReweightingBuilder::setup has completed successfully." << endl;
 }
 
 double BulkReweightingBuilder::getOverallReweightingNormalization(BaseTree* tree) const{

@@ -36,6 +36,7 @@ protected:
   std::unordered_map< BaseTree*, std::vector< std::vector< std::pair<double, double> > > > sum_wgts_withrewgt;
   std::unordered_map< BaseTree*, std::vector<double> > NeffsPerBin;
   std::unordered_map< BaseTree*, std::vector<double> > sampleNormalization;
+  std::unordered_map< BaseTree*, std::vector<double> > sampleZeroMECompensation;
   std::unordered_map< BaseTree*, double > samplePairwiseNormalization;
 
 public:
