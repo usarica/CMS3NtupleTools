@@ -86,7 +86,9 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
 #define BRANCH_SCALAR_COMMANDS \
   BRANCH_COMMAND(float, event_wgt) \
   BRANCH_COMMAND(float, event_wgt_adjustment_NNPDF30) \
+  BRANCH_COMMAND(bool, invalidReweightingWgts) \
   BRANCH_COMMAND(float, sample_wgt) \
+  BRANCH_COMMAND(float, sample_pairwiseNorm_wgt) \
   BRANCH_COMMAND(float, genmet_pTmiss) \
   BRANCH_COMMAND(float, genmet_phimiss)
 #define BRANCH_COMMANDS \
@@ -153,17 +155,12 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
 
     if (event_wgt==0.f) return false;
 
-    sample_wgt = 1;
     sample_wgt = rewgtBuilder->getOverallReweightingNormalization(currentTree);
-    bool invalidWgts = !rewgtBuilder->checkWeightsBelowThreshold(currentTree);
+    sample_pairwiseNorm_wgt = rewgtBuilder->getSamplePairwiseNormalization(currentTree);
+    invalidReweightingWgts = !rewgtBuilder->checkWeightsBelowThreshold(currentTree);
 
     // Record LHE MEs and K factors
-    for (auto const& it:genInfo->extras.LHE_ME_weights){
-      auto const& strME = it.first;
-      float valME = it.second;
-      if (invalidWgts && strME!="LHECandMass") valME = 0;
-      commonEntry.setNamedVal(strME, valME);
-    }
+    for (auto const& it:genInfo->extras.LHE_ME_weights) commonEntry.setNamedVal<float>(it.first, it.second);
     for (auto const& it:genInfo->extras.Kfactors) commonEntry.setNamedVal(it.first, it.second);
   }
 
@@ -193,8 +190,7 @@ void getTrees(
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
-  constexpr bool useSkims = false;
-  SampleHelpers::configure(period, Form("%s:%s", (useSkims ? "store_skims" : "store"), prodVersion.Data()));
+  SampleHelpers::configure(period, Form("%s:%s", "store", prodVersion.Data()));
 
   const float lumi = SampleHelpers::getIntegratedLuminosity(SampleHelpers::getDataPeriod());
 
@@ -206,7 +202,8 @@ void getTrees(
 
   // Get sample specifications
   std::vector<TString> sampledirs;
-  //SampleHelpers::constructSamplesList(strSampleSet, theGlobalSyst, sampledirs);
+  SampleHelpers::constructSamplesList(strSampleSet, theGlobalSyst, sampledirs);
+  /*
   if (isGG){
     SampleHelpers::constructSamplesList("GGH_ZZ2L2Nu_M200_POWHEG", theGlobalSyst, sampledirs);
     SampleHelpers::constructSamplesList("GGH_ZZ2L2Nu_M300_POWHEG", theGlobalSyst, sampledirs);
@@ -217,6 +214,7 @@ void getTrees(
     SampleHelpers::constructSamplesList("VBF_ZZ2L2Nu_M300_POWHEG", theGlobalSyst, sampledirs);
     SampleHelpers::constructSamplesList("VBF_ZZ2L2Nu_M500_POWHEG", theGlobalSyst, sampledirs);
   }
+  */
   if (sampledirs.empty()) return;
   bool isData = SampleHelpers::checkSampleIsData(sampledirs.front());
   if (isData) return;
@@ -265,6 +263,8 @@ void getTrees(
   // Set output tree
   theLooper.addOutputTree(tout);
 
+  float thr_wgt=0.9999;
+  float tol_wgt=5;
   ExtendedBinning binning_rewgt;
   binning_rewgt.addBinBoundary(70);
   binning_rewgt.addBinBoundary(13000);
@@ -288,28 +288,34 @@ void getTrees(
   );
   theLooper.addReweightingBuilder("MERewgt", &rewgtBuilder);
   if (isGG){
+    thr_wgt=0.9999;
     rewgtBuilder.addReweightingWeights(
       { "p_Gen_GG_SIG_kappaTopBot_1_ghz1_1_MCFM", "p_Gen_CPStoBWPropRewgt" },
       ReweightingFunctions::getSimpleWeight
     );
+    /*
     rewgtBuilder.addReweightingWeights(
       { "p_Gen_GG_BSI_kappaTopBot_1_ghz1_1_MCFM", "p_Gen_CPStoBWPropRewgt" },
       ReweightingFunctions::getSimpleWeight
     );
+    */
     rewgtBuilder.addReweightingWeights(
       { "p_Gen_GG_BKG_MCFM", "p_Gen_CPStoBWPropRewgt" },
       ReweightingFunctions::getSimpleWeight
     );
   }
-  if (isVBF){
+  else if (isVBF){
+    thr_wgt=0.9995;
     rewgtBuilder.addReweightingWeights(
       { "p_Gen_JJEW_SIG_ghv1_1_MCFM", "p_Gen_CPStoBWPropRewgt" },
       ReweightingFunctions::getSimpleWeight
     );
+    /*
     rewgtBuilder.addReweightingWeights(
       { "p_Gen_JJEW_BSI_ghv1_1_MCFM", "p_Gen_CPStoBWPropRewgt" },
       ReweightingFunctions::getSimpleWeight
     );
+    */
     rewgtBuilder.addReweightingWeights(
       { "p_Gen_JJEW_BKG_MCFM", "p_Gen_CPStoBWPropRewgt" },
       ReweightingFunctions::getSimpleWeight
@@ -318,10 +324,15 @@ void getTrees(
 
   curdir->cd();
 
+  BaseTree* tree_MH125 = nullptr;
+  BaseTree* tree_MHLowestOffshell = nullptr;
   std::vector<BaseTree*> sample_trees; sample_trees.reserve(sampledirs.size());
   for (auto const& sname:sampledirs){
-    BaseTree* sample_tree = new BaseTree(SampleHelpers::getDatasetFileName(sname), (useSkims ? "cms3ntuple/Dilepton" : "cms3ntuple/Events"), "", ""); sample_trees.push_back(sample_tree);
+    BaseTree* sample_tree = new BaseTree(SampleHelpers::getDatasetFileName(sname), "cms3ntuple/Events", "", ""); sample_trees.push_back(sample_tree);
     sample_tree->sampleIdentifier = SampleHelpers::getSampleIdentifier(sname);
+    float const sampleMH = SampleHelpers::findPoleMass(sample_tree->sampleIdentifier);
+    if (std::abs(sampleMH-125.f)<0.8f) tree_MH125 = sample_tree;
+    else if (!tree_MHLowestOffshell && sampleMH>=200.f) tree_MHLowestOffshell = sample_tree;
 
     std::vector<TString> allbranchnames; sample_tree->getValidBranchNamesWithoutAlias(allbranchnames, false);
 
@@ -329,6 +340,8 @@ void getTrees(
     double sum_wgts = (isData ? 1.f : 0.f);
     double sum_wgts_PUDn = sum_wgts;
     double sum_wgts_PUUp = sum_wgts;
+    double sum_wgts_raw_noveto = sum_wgts;
+    double sum_wgts_raw_withveto = sum_wgts;
     float xsec = 1;
     float xsec_scale = 1;
     if (!isData){
@@ -336,32 +349,20 @@ void getTrees(
       sample_tree->bookBranch<float>("xsec", 0.f);
       sample_tree->getSelectedEvent(0);
       sample_tree->getVal("xsec", xsec);
-      //sample_tree->releaseBranch("xsec");
       xsec *= 1000.;
-
-      // Reset gen. and lHE particle settings
-      {
-        bool has_lheMEweights = false;
-        bool has_lheparticles = false;
-        bool has_genparticles = false;
-        for (auto const& bname:allbranchnames){
-          if (bname.Contains("p_Gen") || bname.Contains("LHECandMass")) has_lheMEweights=true;
-          else if (bname.Contains(GenInfoHandler::colName_lheparticles)) has_lheparticles = true;
-          else if (bname.Contains(GenInfoHandler::colName_genparticles)) has_genparticles = true;
-        }
-        genInfoHandler.setAcquireLHEMEWeights(has_lheMEweights);
-        genInfoHandler.setAcquireLHEParticles(has_lheparticles);
-        genInfoHandler.setAcquireGenParticles(has_genparticles);
-      }
 
       // Book branches
       simEventHandler.bookBranches(sample_tree);
+
+      genInfoHandler.setAcquireLHEMEWeights(false);
+      genInfoHandler.setAcquireLHEParticles(false);
+      genInfoHandler.setAcquireGenParticles(false);
       genInfoHandler.bookBranches(sample_tree);
+
+      sample_tree->silenceUnused();
 
       // Get sum of weights
       std::vector<TString> inputfilenames = SampleHelpers::getDatasetFileNames(sname);
-      double sum_wgts_raw_noveto = 0;
-      double sum_wgts_raw_withveto = 0;
       bool hasCounters = true;
       {
         int bin_syst = 1 + 1*(theGlobalSyst==SystematicsHelpers::ePUDn) + 2*(theGlobalSyst==SystematicsHelpers::ePUUp);
@@ -387,10 +388,6 @@ void getTrees(
           ftmp->Close();
         }
         if (hasCounters) MELAout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
-      }
-      if (!hasCounters && useSkims){
-        MELAerr << "Skims should have contained counters histograms!" << endl;
-        assert(0);
       }
       if (!hasCounters){
         MELAout << "No counters histograms are found. Initiation loop over " << nEntries << " events to determine the sample normalization:" << endl;
@@ -434,7 +431,24 @@ void getTrees(
     MELAout << "\t- Global weight (PU dn) = " << globalWeight_PUDn << endl;
     MELAout << "\t- Global weight (PU up) = " << globalWeight_PUUp << endl;
 
-    rewgtBuilder.registerTree(sample_tree, 1./sum_wgts);
+    // Reset gen. and LHE particle settings, and book those branches as well
+    {
+      bool has_lheMEweights = false;
+      bool has_lheparticles = false;
+      bool has_genparticles = false;
+      for (auto const& bname:allbranchnames){
+        if (bname.Contains("p_Gen") || bname.Contains("LHECandMass")) has_lheMEweights=true;
+        else if (bname.Contains(GenInfoHandler::colName_lheparticles)) has_lheparticles = true;
+        else if (bname.Contains(GenInfoHandler::colName_genparticles)) has_genparticles = true;
+      }
+      genInfoHandler.setAcquireLHEMEWeights(has_lheMEweights);
+      genInfoHandler.setAcquireLHEParticles(has_lheparticles);
+      genInfoHandler.setAcquireGenParticles(has_genparticles);
+      genInfoHandler.bookBranches(sample_tree);
+    }
+
+    // Register tree
+    rewgtBuilder.registerTree(sample_tree, 1./sum_wgts_raw_noveto);
 
     sample_tree->silenceUnused();
 
@@ -443,8 +457,20 @@ void getTrees(
   }
 
   std::vector< std::pair<BaseTree*, BaseTree*> > tree_normTree_pairs; tree_normTree_pairs.reserve(sample_trees.size()-1);
-  for (unsigned int itree=1; itree<sample_trees.size(); itree++) tree_normTree_pairs.emplace_back(sample_trees.at(itree), sample_trees.at(itree-1));
-  rewgtBuilder.setup(0, &tree_normTree_pairs);
+  for (unsigned int itree=0; itree<sample_trees.size(); itree++){
+    BaseTree* const& sample_tree = sample_trees.at(itree);
+    if (sample_tree==tree_MH125 || sample_tree==tree_MHLowestOffshell) continue;
+    float const sampleMH = SampleHelpers::findPoleMass(sample_tree->sampleIdentifier);
+    if (sampleMH<160.f || sampleMH>SampleHelpers::findPoleMass(tree_MHLowestOffshell->sampleIdentifier)){
+      tree_normTree_pairs.emplace_back(sample_trees.at(itree), sample_trees.at(itree-1));
+      MELAout << "Normalizing mass " << sampleMH << " to mass " << SampleHelpers::findPoleMass(sample_trees.at(itree-1)->sampleIdentifier) << endl;
+    }
+    else{
+      tree_normTree_pairs.emplace_back(sample_trees.at(itree), sample_trees.at(itree+1));
+      MELAout << "Normalizing mass " << sampleMH << " to mass " << SampleHelpers::findPoleMass(sample_trees.at(itree+1)->sampleIdentifier) << endl;
+    }
+  }
+  rewgtBuilder.setup(0, &tree_normTree_pairs, thr_wgt, tol_wgt);
 
   // Loop over all events
   theLooper.loop(true);
