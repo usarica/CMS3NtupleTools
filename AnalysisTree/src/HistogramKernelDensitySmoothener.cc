@@ -20,18 +20,18 @@ using namespace MELAStreamHelpers;
 using namespace FunctionHelpers;
 
 
-HistogramKernelDensitySmoothener::TreeHistogramAssociation_1D::TreeHistogramAssociation_1D(TString const hname_, TString const htitle_, TTree* tree_, float& xvar_, float& weight_, bool& flag_) :
+HistogramKernelDensitySmoothener::TreeHistogramAssociation_1D::TreeHistogramAssociation_1D(TString const& hname_, TString const& htitle_, TTree* tree_, float& xvar_, float& weight_, bool& flag_) :
   hname(hname_), htitle(htitle_),
   tree(tree_), xvar(xvar_),
   weight(weight_), flag(flag_)
 {
   assert(tree);
 }
-HistogramKernelDensitySmoothener::TreeHistogramAssociation_2D::TreeHistogramAssociation_2D(TString const hname_, TString const htitle_, TTree* tree_, float& xvar_, float& yvar_, float& weight_, bool& flag_) :
+HistogramKernelDensitySmoothener::TreeHistogramAssociation_2D::TreeHistogramAssociation_2D(TString const& hname_, TString const& htitle_, TTree* tree_, float& xvar_, float& yvar_, float& weight_, bool& flag_) :
   TreeHistogramAssociation_1D(hname_, htitle_, tree_, xvar_, weight_, flag_),
   yvar(yvar_)
 {}
-HistogramKernelDensitySmoothener::TreeHistogramAssociation_3D::TreeHistogramAssociation_3D(TString const hname_, TString const htitle_, TTree* tree_, float& xvar_, float& yvar_, float& zvar_, float& weight_, bool& flag_) :
+HistogramKernelDensitySmoothener::TreeHistogramAssociation_3D::TreeHistogramAssociation_3D(TString const& hname_, TString const& htitle_, TTree* tree_, float& xvar_, float& yvar_, float& zvar_, float& weight_, bool& flag_) :
   TreeHistogramAssociation_2D(hname_, htitle_, tree_, xvar_, yvar_, weight_, flag_),
   zvar(zvar_)
 {}
@@ -489,7 +489,7 @@ void HistogramKernelDensitySmoothener::getSmoothHistogram(
 
 
 TH1F* HistogramKernelDensitySmoothener::getSmoothHistogram(
-  TString const hname, TString const htitle, ExtendedBinning const& finalXBinning,
+  TString const& hname, TString const& htitle, ExtendedBinning const& finalXBinning,
   TTree* tree, float& xvar, float& weight, bool& selflag,
   double sigmaXmult,
   TH1F** hRawPtr
@@ -568,7 +568,7 @@ TH1F* HistogramKernelDensitySmoothener::getSmoothHistogram(
 }
 
 TH2F* HistogramKernelDensitySmoothener::getSmoothHistogram(
-  TString const hname, TString const htitle, ExtendedBinning const& finalXBinning, ExtendedBinning const& finalYBinning,
+  TString const& hname, TString const& htitle, ExtendedBinning const& finalXBinning, ExtendedBinning const& finalYBinning,
   TTree* tree, float& xvar, float& yvar, float& weight, bool& selflag,
   double sigmaXmult, double sigmaYmult,
   TH2F** hRawPtr
@@ -672,7 +672,7 @@ TH2F* HistogramKernelDensitySmoothener::getSmoothHistogram(
 }
 
 TH3F* HistogramKernelDensitySmoothener::getSmoothHistogram(
-  TString const hname, TString const htitle, ExtendedBinning const& finalXBinning, ExtendedBinning const& finalYBinning, ExtendedBinning const& finalZBinning,
+  TString const& hname, TString const& htitle, ExtendedBinning const& finalXBinning, ExtendedBinning const& finalYBinning, ExtendedBinning const& finalZBinning,
   TTree* tree, float& xvar, float& yvar, float& zvar, float& weight, bool& selflag,
   double sigmaXmult, double sigmaYmult, double sigmaZmult,
   TH3F** hRawPtr

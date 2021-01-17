@@ -136,7 +136,7 @@ namespace OffshellCutflow{
     bool res = true;
     switch (activeFinalState){
     case fs_ZW_3l1nu:
-      res = (val>=4.f);
+      res = (val>4.f);
       break;
     case fs_ZZ_2l2nu:
     case fs_WW_2l2nu:

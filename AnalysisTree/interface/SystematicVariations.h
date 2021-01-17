@@ -16,6 +16,7 @@ namespace SystematicsHelpers{
     tPythiaScaleDn, tPythiaScaleUp,
     tPythiaTuneDn, tPythiaTuneUp,
     tEWDn, tEWUp,
+    tHardJetsDn, tHardJetsUp, // e.g. MiNLO
 
     eEleEffDn, eEleEffUp,
     eEleEffStatDn, eEleEffStatUp,
