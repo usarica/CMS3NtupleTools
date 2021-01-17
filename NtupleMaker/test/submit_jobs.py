@@ -115,7 +115,8 @@ if __name__ == "__main__":
     for i in range(10000):
 
         for task in tasks:
-            task.process(optimizer=optimizer)
+            #task.process(optimizer=optimizer)
+            task.process()
             total_summary[task.get_sample().get_datasetname()] = task.get_task_summary()
 
         StatsParser(data=total_summary, webdir="~/public_html/dump/metis_offshell/").do()
