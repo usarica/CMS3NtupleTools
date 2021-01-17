@@ -150,9 +150,16 @@ void getTrees(
   TString prodVersion, TString strdate,
   int ichunk, int nchunks,
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal,
-  bool hardProcessFallback=false
+  bool hardProcessFallback=false,
+  // Jet ID options
+  bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false,
+  // MET options
+  bool use_MET_Puppi=false,
+  bool use_MET_XYCorr=true, bool use_MET_JERCorr=true, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true
 ){
   if (!SampleHelpers::checkRunOnCondor()) std::signal(SIGINT, SampleHelpers::setSignalInterrupt);
+
+  constexpr bool useJetOverlapStripping = false; // Keep overlap removal turned off
 
   if (nchunks==1) nchunks = 0;
   if (nchunks>0 && (ichunk<0 || ichunk==nchunks)) return;
@@ -162,24 +169,8 @@ void getTrees(
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
   // Set flags for ak4jet tight id
-  // These could be options passed to the function, but no need for that right now...
-  constexpr bool applyPUIdToAK4Jets = true;
-  constexpr bool applyTightLeptonVetoIdToAK4Jets = false;
   AK4JetSelectionHelpers::setPUIdWP(applyPUIdToAK4Jets ? AK4JetSelectionHelpers::kTightPUJetId : AK4JetSelectionHelpers::nSelectionBits); // Default is 'tight'
   AK4JetSelectionHelpers::setApplyTightLeptonVetoIdToJets(applyTightLeptonVetoIdToAK4Jets); // Default is 'false'
-
-  // Set the flags for MET treatments
-  // These could be options passed to the function, but no need for that right now...
-  constexpr bool use_MET_Puppi = false;
-  constexpr bool use_MET_XYCorr = true;
-  constexpr bool use_MET_JERCorr = true;
-  constexpr bool use_MET_ParticleMomCorr = true;
-  constexpr bool use_MET_p4Preservation = true;
-  constexpr bool use_MET_corrections =true;
-
-  TString const coutput_main =
-    "output/SinglePhotonEGTnP/SkimTrees/" + strdate
-    + "/" + period;
 
   SampleHelpers::configure(period, "store_skims:"+prodVersion);
 
@@ -231,8 +222,24 @@ void getTrees(
   haspTGRange = pTG_true_range[0]!=pTG_true_range[1];
   constexpr bool needGenParticleChecks = true; // Always turned on because we need to do gen. matching
 
+  TString coutput_main =
+    "output/SinglePhotonEGTnP/SkimTrees/" + strdate
+    + "/AK4Jets"
+    + "_" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
+    + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
+    + "_" + (useJetOverlapStripping ? "ParticleStripped" : "ParticleCleaned")
+    + "/" + (use_MET_Puppi ? "PUPPIMET" : "PFMET")
+    + "_" + (use_MET_XYCorr ? "WithXY" : "NoXY");
+  if (!isData) coutput_main = coutput_main + "_" + (use_MET_JERCorr ? "WithJER" : "NoJER");
+  coutput_main = coutput_main
+    + "_" + (use_MET_ParticleMomCorr ? "WithPartMomCorr" : "NoPartMomCorr")
+    + "_" + (use_MET_p4Preservation ? "P4Preserved" : "P4Default");
+  if (!isData) coutput_main = coutput_main + "_" + (use_MET_corrections ? "ResolutionCorrected" : "ResolutionUncorrected");
+  coutput_main = coutput_main + "/" + period;
+
   TDirectory* curdir = gDirectory;
   gSystem->mkdir(coutput_main, true);
+
   curdir->cd();
 
   // Get handlers

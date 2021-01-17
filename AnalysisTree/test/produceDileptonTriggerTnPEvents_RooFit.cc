@@ -75,7 +75,15 @@ CONTROL_TRIGGER_COMMAND(PFMET_MHT_Control) \
 CONTROL_TRIGGER_COMMAND(PFHT_PFMET_MHT_Control)
 
 
-void getDataSampleDirs(std::vector<TString>& strsamples){
+constexpr bool useJetOverlapStripping = false;
+
+
+void getDataSampleDirs(
+  std::vector<TString>& strsamples,
+  bool applyPUIdToAK4Jets, bool applyTightLeptonVetoIdToAK4Jets,
+  bool use_MET_Puppi,
+  bool use_MET_XYCorr, bool use_MET_JERCorr, bool use_MET_ParticleMomCorr, bool use_MET_p4Preservation, bool use_MET_corrections
+){
   SystematicsHelpers::SystematicVariationTypes const syst = SystematicsHelpers::sNominal;
   TString strSyst = SystematicsHelpers::getSystName(syst).data();
 
@@ -84,12 +92,30 @@ void getDataSampleDirs(std::vector<TString>& strsamples){
 
   for (auto const& period:validDataPeriods){
     if (isDataLikePeriod && period!=SampleHelpers::getDataPeriod()) continue;
-    strsamples.push_back(Form("%s/Run%s_%s*%s", period.Data(), period.Data(), strSyst.Data(), ".root"));
+
+    TString cinput_main =
+      TString("AK4Jets")
+      + "_" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
+      + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
+      + "_" + (useJetOverlapStripping ? "ParticleStripped" : "ParticleCleaned")
+      + "/" + (use_MET_Puppi ? "PUPPIMET" : "PFMET")
+      + "_" + (use_MET_XYCorr ? "WithXY" : "NoXY");
+    cinput_main = cinput_main
+      + "_" + (use_MET_ParticleMomCorr ? "WithPartMomCorr" : "NoPartMomCorr")
+      + "_" + (use_MET_p4Preservation ? "P4Preserved" : "P4Default");
+    cinput_main = cinput_main + "/" + period;
+
+    strsamples.push_back(Form("%s/Run%s_%s*%s", cinput_main.Data(), period.Data(), strSyst.Data(), ".root"));
   }
 }
-void getMCSampleDirs(std::vector< std::pair<TString, std::vector<std::pair<TString, TString>>> >& strsamples, SystematicsHelpers::SystematicVariationTypes const& theGlobalSyst){
+void getMCSampleDirs(
+  std::vector< std::pair<TString, std::vector<std::pair<TString, TString>>> >& strsamples, SystematicsHelpers::SystematicVariationTypes const& theGlobalSyst,
+  bool applyPUIdToAK4Jets, bool applyTightLeptonVetoIdToAK4Jets,
+  bool use_MET_Puppi,
+  bool use_MET_XYCorr, bool use_MET_JERCorr, bool use_MET_ParticleMomCorr, bool use_MET_p4Preservation, bool use_MET_corrections
+){
   TString strSyst = SystematicsHelpers::getSystName(theGlobalSyst).data();
-  TString strPeriod = SampleHelpers::getDataPeriod();
+  TString period = SampleHelpers::getDataPeriod();
 
   std::vector< std::pair< TString, std::vector<TString> > > sampleSpecs;
   switch (SampleHelpers::getDataYear()){
@@ -133,6 +159,21 @@ void getMCSampleDirs(std::vector< std::pair<TString, std::vector<std::pair<TStri
     };
     break;
   }
+
+  TString cinput_main =
+    TString("AK4Jets")
+    + "_" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
+    + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
+    + "_" + (useJetOverlapStripping ? "ParticleStripped" : "ParticleCleaned")
+    + "/" + (use_MET_Puppi ? "PUPPIMET" : "PFMET")
+    + "_" + (use_MET_XYCorr ? "WithXY" : "NoXY");
+  cinput_main = cinput_main + "_" + (use_MET_JERCorr ? "WithJER" : "NoJER");
+  cinput_main = cinput_main
+    + "_" + (use_MET_ParticleMomCorr ? "WithPartMomCorr" : "NoPartMomCorr")
+    + "_" + (use_MET_p4Preservation ? "P4Preserved" : "P4Default");
+  cinput_main = cinput_main + "_" + (use_MET_corrections ? "ResolutionCorrected" : "ResolutionUncorrected");
+  cinput_main = cinput_main + "/" + period;
+
   for (auto const& s:sampleSpecs){
     std::vector<TString> sdirs;
     std::vector<std::pair<TString, TString>> sname_dir_pairs;
@@ -143,7 +184,7 @@ void getMCSampleDirs(std::vector< std::pair<TString, std::vector<std::pair<TStri
       HelperFunctions::replaceString(cinput, "_MINIAODSIM", "");
       HelperFunctions::replaceString(cinput, "_MINIAOD", "");
       cinput = cinput + "_" + strSyst + "*.root";
-      cinput = strPeriod + "/" + cinput;
+      cinput = cinput_main + "/" + cinput;
       sname_dir_pairs.emplace_back(sname, cinput);
     }
     strsamples.emplace_back(s.first, sname_dir_pairs);
@@ -289,7 +330,12 @@ bool checkOrthogonalTrigger(TriggerHelpers::TriggerType const& type, float const
 using namespace SystematicsHelpers;
 void getEfficiencyHistograms(
   TString period, TString prodVersion, TString strdate,
-  SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal
+  SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal,
+  // Jet ID options
+  bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false,
+  // MET options
+  bool use_MET_Puppi=false,
+  bool use_MET_XYCorr=true, bool use_MET_JERCorr=true, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true
 ){
   if (!SampleHelpers::checkRunOnCondor()) std::signal(SIGINT, SampleHelpers::setSignalInterrupt);
 
@@ -369,7 +415,12 @@ void getEfficiencyHistograms(
 
   // Get data
   std::vector<TString> sfnames_data;
-  getDataSampleDirs(sfnames_data);
+  getDataSampleDirs(
+    sfnames_data,
+    applyPUIdToAK4Jets, applyTightLeptonVetoIdToAK4Jets,
+    use_MET_Puppi,
+    use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr, use_MET_p4Preservation, use_MET_corrections
+  );
   sgroups.push_back("Data");
   for (auto const& sfname:sfnames_data){
     TString cinput = cinput_main + "/" + sfname;
@@ -384,7 +435,12 @@ void getEfficiencyHistograms(
 
   // Get MC
   std::vector< std::pair<TString, std::vector<std::pair<TString, TString>>> > sgroup_sname_sfname_pairs_MC;
-  getMCSampleDirs(sgroup_sname_sfname_pairs_MC, theGlobalSyst);
+  getMCSampleDirs(
+    sgroup_sname_sfname_pairs_MC, theGlobalSyst,
+    applyPUIdToAK4Jets, applyTightLeptonVetoIdToAK4Jets,
+    use_MET_Puppi,
+    use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr, use_MET_p4Preservation, use_MET_corrections
+  );
   for (auto const& sgroup_sname_sfname_pair:sgroup_sname_sfname_pairs_MC){
     auto const& sgroup = sgroup_sname_sfname_pair.first;
     auto const& sname_sfname_pairs = sgroup_sname_sfname_pair.second;

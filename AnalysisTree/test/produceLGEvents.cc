@@ -159,7 +159,24 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   BRANCH_COMMAND(float, event_wgt_L1PrefiringUp) \
   BRANCH_COMMAND(float, event_wgt_PUDn) \
   BRANCH_COMMAND(float, event_wgt_PUUp) \
+  /* Pythia weight adjustments are independent of PDF choice */ \
+  BRANCH_COMMAND(float, event_wgt_adjustment_PythiaScaleDn) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_PythiaScaleUp) \
+  /* Factorization and renormalization scale weight adjustments are independent of PDF choice (because they are only done for the default PDF set) */ \
+  BRANCH_COMMAND(float, event_wgt_adjustment_PDFScaleDn) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_PDFScaleUp) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_QCDScaleDn) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_QCDScaleUp) \
+  /* a_s(mZ) and PDF replica weight adjustments come from the specific PDF set, so they are split between 'default' vs 'NNPDF3.0'. */ \
+  BRANCH_COMMAND(float, event_wgt_adjustment_AsMZDn) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_AsMZUp) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_PDFReplicaDn) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_PDFReplicaUp) \
   BRANCH_COMMAND(float, event_wgt_adjustment_NNPDF30) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_NNPDF30_AsMZDn) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_NNPDF30_AsMZUp) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_NNPDF30_PDFReplicaDn) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_NNPDF30_PDFReplicaUp) \
   BRANCH_COMMAND(float, event_wgt_triggers_SingleLepton) \
   BRANCH_COMMAND(float, event_wgt_triggers_SinglePhoton) \
   BRANCH_COMMAND(float, event_wgt_SFs_muons) \
@@ -304,8 +321,38 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     event_wgt *= genwgt_default;
     event_wgt_PUDn *= genwgt_default;
     event_wgt_PUUp *= genwgt_default;
-    genmet_pTmiss = genInfo->extras.genmet_met;
-    genmet_phimiss = genInfo->extras.genmet_metPhi;
+
+    auto const& genInfoExtras = genInfo->extras;
+    event_wgt_adjustment_PythiaScaleDn = genInfoExtras.PythiaWeight_isr_muR0p25 * genInfoExtras.PythiaWeight_fsr_muR0p25;
+    event_wgt_adjustment_PythiaScaleUp = genInfoExtras.PythiaWeight_isr_muR4 * genInfoExtras.PythiaWeight_fsr_muR4;
+    event_wgt_adjustment_PDFScaleDn = genInfoExtras.LHEweight_QCDscale_muR1_muF0p5;
+    event_wgt_adjustment_PDFScaleUp = genInfoExtras.LHEweight_QCDscale_muR1_muF2;
+    event_wgt_adjustment_QCDScaleDn = genInfoExtras.LHEweight_QCDscale_muR0p5_muF1;
+    event_wgt_adjustment_QCDScaleUp = genInfoExtras.LHEweight_QCDscale_muR2_muF1;
+    event_wgt_adjustment_AsMZDn = genInfoExtras.LHEweight_AsMZ_Dn_default;
+    event_wgt_adjustment_AsMZUp = genInfoExtras.LHEweight_AsMZ_Up_default;
+    event_wgt_adjustment_NNPDF30_AsMZDn = genInfoExtras.LHEweight_AsMZ_Dn_NNPDF30;
+    event_wgt_adjustment_NNPDF30_AsMZUp = genInfoExtras.LHEweight_AsMZ_Up_NNPDF30;
+    event_wgt_adjustment_PDFReplicaDn = genInfoExtras.LHEweight_PDFVariation_Dn_default;
+    event_wgt_adjustment_PDFReplicaUp = genInfoExtras.LHEweight_PDFVariation_Up_default;
+    event_wgt_adjustment_NNPDF30_PDFReplicaDn = genInfoExtras.LHEweight_PDFVariation_Dn_NNPDF30;
+    event_wgt_adjustment_NNPDF30_PDFReplicaUp = genInfoExtras.LHEweight_PDFVariation_Up_NNPDF30;
+    // Adjust for cases where NNPDF 3.0 does not exist.
+    if (
+      event_wgt_adjustment_NNPDF30==1.f
+      &&
+      event_wgt_adjustment_NNPDF30_AsMZDn==1.f && event_wgt_adjustment_NNPDF30_AsMZUp==1.f
+      &&
+      event_wgt_adjustment_NNPDF30_PDFReplicaDn==1.f && event_wgt_adjustment_NNPDF30_PDFReplicaUp==1.f
+      ){
+      event_wgt_adjustment_NNPDF30_AsMZDn = event_wgt_adjustment_AsMZDn;
+      event_wgt_adjustment_NNPDF30_AsMZUp = event_wgt_adjustment_AsMZUp;
+      event_wgt_adjustment_NNPDF30_PDFReplicaDn = event_wgt_adjustment_PDFReplicaDn;
+      event_wgt_adjustment_NNPDF30_PDFReplicaUp = event_wgt_adjustment_PDFReplicaUp;
+    }
+
+    genmet_pTmiss = genInfoExtras.genmet_met;
+    genmet_phimiss = genInfoExtras.genmet_metPhi;
     auto const& genparticles = genInfoHandler->getGenParticles();
 
     if (needGenParticleChecks){
@@ -533,7 +580,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
 
   // Test HEM filter
   if (!eventFilter->test2018HEMFilter(simEventHandler, nullptr, nullptr, &ak4jets, &ak8jets)) return false;
-  if (!eventFilter->testNoisyJetFilter(simEventHandler, ak4jets)) continue;
+  if (!eventFilter->testNoisyJetFilter(simEventHandler, ak4jets)) return false;
   theLooper->incrementSelection("HEM15/16 and noisy jet vetos");
 
   if (hasSimpleHLTMenus){
@@ -920,7 +967,7 @@ void getTrees(
   SampleHelpers::constructSamplesList(strSampleSet, theGlobalSyst, sampledirs);
   if (sampledirs.empty()) return;
   bool isData = SampleHelpers::checkSampleIsData(sampledirs.front());
-  if (isData && (nchunks>0 || theGlobalSyst!=sNominal)) return;
+  if (isData && theGlobalSyst!=sNominal) return;
 
   // Set flags for ak4jet tight id
   AK4JetSelectionHelpers::setPUIdWP(applyPUIdToAK4Jets ? AK4JetSelectionHelpers::kTightPUJetId : AK4JetSelectionHelpers::nSelectionBits); // Default is 'tight'

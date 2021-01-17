@@ -343,7 +343,8 @@ void producePUJetIdEfficiencies(
       auto const& ak8jets = jetHandler.getAK8Jets();
 
       if (!eventFilter.test2018HEMFilter(&simEventHandler, nullptr, nullptr, &ak4jets, &ak8jets)) continue;
-      if (!eventFilter.testNoisyJetFilter(&simEventHandler, ak4jets)) continue;
+      // Do not veto noisy jets because the efficiency in data is measured over all jets
+      //if (!eventFilter.testNoisyJetFilter(&simEventHandler, ak4jets)) continue;
 
       std::vector<AK4JetObject*> ak4jets_tight; ak4jets_tight.reserve(ak4jets.size());
       for (auto const& jet:ak4jets){

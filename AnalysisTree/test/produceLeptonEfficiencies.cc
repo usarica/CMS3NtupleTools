@@ -169,10 +169,15 @@ void getTrees(
   TString prodVersion, TString strdate,
   int ichunk, int nchunks,
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal,
-  bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false,
   bool vetoExtraNonOverlappingLeptons=true,
-  bool hardProcessFallback=false
+  bool hardProcessFallback=false,
+  // Jet ID options
+  bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false,
+  // MET options
+  bool use_MET_XYCorr=true, bool use_MET_JERCorr=true, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true
 ){
+  constexpr bool useJetOverlapStripping = false;
+
   if (nchunks==1) nchunks = 0;
   if (nchunks>0 && (ichunk<0 || ichunk==nchunks)) return;
 
@@ -183,14 +188,6 @@ void getTrees(
   // Set flags for ak4jet tight id
   AK4JetSelectionHelpers::setPUIdWP(applyPUIdToAK4Jets ? AK4JetSelectionHelpers::kTightPUJetId : AK4JetSelectionHelpers::nSelectionBits); // Default is 'tight'
   AK4JetSelectionHelpers::setApplyTightLeptonVetoIdToJets(applyTightLeptonVetoIdToAK4Jets); // Default is 'false'
-
-  TString const coutput_main =
-    "output/LeptonEfficiencies/SkimTrees/" + strdate
-    + "/"
-    + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
-    + "_"
-    + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
-    + "/" + period;
 
   SampleHelpers::configure(period, "store_skims:"+prodVersion);
   ParticleSelectionHelpers::setUseProbeLeptonsInLooseSelection(true);
@@ -270,7 +267,24 @@ void getTrees(
   haspTGRange = pTG_true_range[0]!=pTG_true_range[1];
   constexpr bool needGenParticleChecks = true; // Always turned on because we need to do gen. matching
 
+  TString coutput_main =
+    "output/LeptonEfficiencies/SkimTrees/" + strdate
+    + "/AK4Jets"
+    + "_" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
+    + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
+    + "_" + (useJetOverlapStripping ? "ParticleStripped" : "ParticleCleaned")
+    + "/MET_" + (use_MET_XYCorr ? "WithXY" : "NoXY");
+  if (!isData) coutput_main = coutput_main + "_" + (use_MET_JERCorr ? "WithJER" : "NoJER");
+  coutput_main = coutput_main
+    + "_" + (use_MET_ParticleMomCorr ? "WithPartMomCorr" : "NoPartMomCorr")
+    + "_" + (use_MET_p4Preservation ? "P4Preserved" : "P4Default");
+  if (!isData) coutput_main = coutput_main + "_" + (use_MET_corrections ? "ResolutionCorrected" : "ResolutionUncorrected");
+  coutput_main = coutput_main + "/" + period;
+
+  TDirectory* curdir = gDirectory;
   gSystem->mkdir(coutput_main, true);
+
+  curdir->cd();
 
   // Get handlers
   SimEventHandler simEventHandler;
@@ -817,24 +831,24 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
         event_wgt_SFs *= SF_btagging;
 
         auto const& pfmet = jetHandler.getPFMET();
-        if (!isData) metCorrectionHandler.applyCorrections(
+        if (!isData && use_MET_corrections) metCorrectionHandler.applyCorrections(
           simEventHandler.getChosenDataPeriod(),
           genmet_pTmiss, genmet_phimiss,
           pfmet, true,
           &(simEventHandler.getRandomNumber(SimEventHandler::kGenMETSmear))
         );
-        auto pfmet_p4 = pfmet->p4(true, true, true, true);
+        auto pfmet_p4 = pfmet->p4(use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr, use_MET_p4Preservation);
         pfmet_pTmiss = pfmet_p4.Pt();
         pfmet_phimiss = pfmet_p4.Phi();
 
         auto const& puppimet = jetHandler.getPFPUPPIMET();
-        if (!isData) metCorrectionHandler.applyCorrections(
+        if (!isData && use_MET_corrections) metCorrectionHandler.applyCorrections(
           simEventHandler.getChosenDataPeriod(),
           genmet_pTmiss, genmet_phimiss,
           puppimet, false,
           &(simEventHandler.getRandomNumber(SimEventHandler::kGenMETSmear))
         );
-        auto puppimet_p4 = puppimet->p4(true, true, true, true);
+        auto puppimet_p4 = puppimet->p4(use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr, use_MET_p4Preservation);
         puppimet_pTmiss = puppimet_p4.Pt();
         puppimet_phimiss = puppimet_p4.Phi();
 

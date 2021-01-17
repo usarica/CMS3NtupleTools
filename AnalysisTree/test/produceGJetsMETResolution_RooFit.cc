@@ -317,7 +317,9 @@ void produceCorrection(
   AK4JetSelectionHelpers::setApplyTightLeptonVetoIdToJets(applyTightLeptonVetoIdToAK4Jets); // Default is 'false'
 
   TString const cinput_main =
-    "output/GJetsMETResolution/SkimTrees/" + strdate
+    "output/GJetsMETResolution/SkimTrees/"
+    //"/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/GJetsMETResolution/SkimTrees/"
+    + strdate
     + "/" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
     + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
     + "/" + period;
@@ -551,9 +553,11 @@ void produceCorrection(
 }
 void produceCorrections(TString strperiod, TString prodVersion, TString strdate){
   SampleHelpers::configure(strperiod, "store_skims:"+prodVersion);
+  const bool isSingleEra = SampleHelpers::testDataPeriodIsLikeData();
 
   auto periods = SampleHelpers::getValidDataPeriods();
   for (auto const& period:periods){
+    if (isSingleEra && period!=strperiod) continue;
     for (auto const& syst:getAllowedSysts()){
       for (unsigned int istep=0; istep<4; istep++) produceCorrection(period, prodVersion, strdate, istep+1, syst);
     }
@@ -637,7 +641,9 @@ void produceFinalFits(
   AK4JetSelectionHelpers::setApplyTightLeptonVetoIdToJets(applyTightLeptonVetoIdToAK4Jets); // Default is 'false'
 
   TString const cinput_main =
-    "output/GJetsMETResolution/SkimTrees/" + strdate
+    "output/GJetsMETResolution/SkimTrees/"
+    //"/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/GJetsMETResolution/SkimTrees/"
+    + strdate
     + "/" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
     + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
     + "/" + period;
@@ -742,7 +748,6 @@ void produceFinalFits(
       fixG1ToNull_prev = fixG1ToNull;
       it=0;
     }
-
 
     std::string strSystName = SystematicsHelpers::getSystName(it==0 ? SystematicsHelpers::sNominal : allowedSysts.at(it-1));
     TString systname = strSystName.data();
@@ -1618,7 +1623,9 @@ void getCorrectionValidationHistograms(
   AK4JetSelectionHelpers::setApplyTightLeptonVetoIdToJets(applyTightLeptonVetoIdToAK4Jets); // Default is 'false'
 
   TString const cinput_main =
-    "output/GJetsMETResolution/SkimTrees/" + strdate
+    "output/GJetsMETResolution/SkimTrees/"
+    //"/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/GJetsMETResolution/SkimTrees/"
+    + strdate
     + "/" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
     + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
     + "/" + period;
@@ -1741,8 +1748,7 @@ void getCorrectionValidationHistograms(
       strinput += Form("*_%s", strSystName.data());
       strinput += ".root";
       MELAout << "Adding " << strinput << " to the " << (it==0 ? "data" : "MC") << " tree chain..." << endl;
-
-      tin->Add(strinput);
+      MELAout << "\t- Added " << tin->Add(strinput) << " files..." << endl;
     }
 
     tin->SetBranchStatus("*", 0);
@@ -1842,8 +1848,8 @@ void getCorrectionValidationHistograms(
             hlist.at(2).Fill(pTmiss, wgt*wgt_corrs);
 
             METObject metobj;
-            metobj.extras.met_Nominal = metobj.extras.met_JECUp = metobj.extras.met_JECDn = pTmiss;
-            metobj.extras.metPhi_Nominal = metobj.extras.metPhi_JECUp = metobj.extras.metPhi_JECDn = phimiss;
+            metobj.extras.met_Nominal = pTmiss;
+            metobj.extras.metPhi_Nominal = phimiss;
             metobj.setSystematic(theGlobalSyst);
             metCorrectionHandler.applyCorrections(
               SampleHelpers::theDataPeriod,
@@ -1904,6 +1910,9 @@ void getCorrectionValidationHistogramSets(TString strperiod, TString prodVersion
     for (auto const& syst:allowedSysts){
       getCorrectionValidationHistograms(period, prodVersion, strdate, "pfmet", "XY:JER:PartMomShifts:p4Preserved", syst);
       getCorrectionValidationHistograms(period, prodVersion, strdate, "pfmet", "XY:JER:PartMomShifts", syst);
+
+      getCorrectionValidationHistograms(period, prodVersion, strdate, "pfmet", "XY:PartMomShifts:p4Preserved", syst);
+      getCorrectionValidationHistograms(period, prodVersion, strdate, "pfmet", "XY:PartMomShifts", syst);
     }
   }
 }
@@ -2158,6 +2167,11 @@ void plotValidationHistogramSets(TString strperiod, TString prodVersion, TString
     plotValidationHistograms(period, prodVersion, strdate, "pfmet", "XY:JER:PartMomShifts:p4Preserved", true);
     plotValidationHistograms(period, prodVersion, strdate, "pfmet", "XY:JER:PartMomShifts", false);
     plotValidationHistograms(period, prodVersion, strdate, "pfmet", "XY:JER:PartMomShifts", true);
+
+    plotValidationHistograms(period, prodVersion, strdate, "pfmet", "XY:PartMomShifts:p4Preserved", false);
+    plotValidationHistograms(period, prodVersion, strdate, "pfmet", "XY:PartMomShifts:p4Preserved", true);
+    plotValidationHistograms(period, prodVersion, strdate, "pfmet", "XY:PartMomShifts", false);
+    plotValidationHistograms(period, prodVersion, strdate, "pfmet", "XY:PartMomShifts", true);
   }
 }
 

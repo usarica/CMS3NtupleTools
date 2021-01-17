@@ -490,6 +490,8 @@ void getTrees(
 
       // Test HEM filter
       if (!eventFilter.test2018HEMFilter(&simEventHandler, nullptr, nullptr, &ak4jets, &ak8jets)) continue;
+      // Apply the noisy jet filter as well because it is supposed to change MET resolution
+      // It also makes more sense to remain closer to selection requirements.
       if (!eventFilter.testNoisyJetFilter(&simEventHandler, ak4jets)) continue;
       n_pass_HEMfilter++;
 

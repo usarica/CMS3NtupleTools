@@ -434,7 +434,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
 
   // Test HEM filter for jets
   if (!eventFilter->test2018HEMFilter(simEventHandler, nullptr, nullptr, &ak4jets, &ak8jets)) return false;
-  if (!eventFilter->testNoisyJetFilter(simEventHandler, ak4jets)) continue;
+  if (!eventFilter->testNoisyJetFilter(simEventHandler, ak4jets)) return false;
   theLooper->incrementSelection("HEM15/16 and noisy jet vetos");
 
   auto const& eventmet = (use_MET_Puppi ? jetHandler->getPFPUPPIMET() : jetHandler->getPFMET());
@@ -561,7 +561,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   theLooper->incrementSelection("Has tight dilepton OS pairs with mass window reqs.");
 
   // Check main ZW veto
-  event_pass_ZWVeto = !(event_n_leptons_tight==3 && event_pass_isotrackVeto && dilepton_bestZ && min_mll_nosign>4.f && event_pTmiss>25.f);
+  event_pass_ZWVeto = !(event_n_leptons_tight==3 && event_pass_isotrackVeto && dilepton_bestZ && std::abs(dilepton_bestZ->mass() - 91.2f)<30.f && min_mll_nosign>4.f && event_pTmiss>=20.f && event_n_ak4jets_pt30_btagged_loose==0);
   theLooper->incrementSelection("Has 3 tight dileptons", event_n_leptons_tight==3);
   theLooper->incrementSelection("Has 3 tight dileptons passing ZW vetoes", event_n_leptons_tight==3 && event_pass_ZWVeto);
 
@@ -947,22 +947,16 @@ void getTrees(
   TString strSampleSet, TString period,
   TString prodVersion, TString strdate,
   int ichunk, int nchunks,
-  SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal
+  SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal,
+  // Jet ID options
+  bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false,
+  // MET options
+  bool use_MET_Puppi=false,
+  bool use_MET_XYCorr=true, bool use_MET_JERCorr=true, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true
 ){
   if (!SampleHelpers::checkRunOnCondor()) std::signal(SIGINT, SampleHelpers::setSignalInterrupt);
 
   constexpr bool useJetOverlapStripping = false; // Keep overlap removal turned off
-
-  // Jet ID options
-  constexpr bool applyPUIdToAK4Jets=true;
-  constexpr bool applyTightLeptonVetoIdToAK4Jets=false;
-  // MET options
-  constexpr bool use_MET_Puppi=false;
-  constexpr bool use_MET_XYCorr=true;
-  constexpr bool use_MET_JERCorr=true;
-  constexpr bool use_MET_ParticleMomCorr=true;
-  constexpr bool use_MET_p4Preservation=true;
-  constexpr bool use_MET_corrections=true;
 
   if (nchunks==1){ nchunks = 0; ichunk=0; }
   if (nchunks>0 && (ichunk<0 || ichunk==nchunks)) return;
@@ -1030,7 +1024,7 @@ void getTrees(
   SampleHelpers::constructSamplesList(strSampleSet, theGlobalSyst, sampledirs);
   if (sampledirs.empty()) return;
   bool isData = SampleHelpers::checkSampleIsData(sampledirs.front());
-  if (isData && (nchunks>0 || theGlobalSyst!=sNominal)) return;
+  if (isData && theGlobalSyst!=sNominal) return;
 
   // Set flags for ak4jet tight id
   AK4JetSelectionHelpers::setPUIdWP(applyPUIdToAK4Jets ? AK4JetSelectionHelpers::kTightPUJetId : AK4JetSelectionHelpers::nSelectionBits); // Default is 'tight'
@@ -1041,7 +1035,20 @@ void getTrees(
   LooperFunctionHelpers::setMETOptions(use_MET_Puppi, use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr, use_MET_p4Preservation, use_MET_corrections);
 
   // Set output directory
-  TString coutput_main = "output/DileptonTriggerTnPEvents/SkimTrees/" + strdate + "/" + period;
+  TString coutput_main =
+    "output/DileptonTriggerTnPEvents/SkimTrees/" + strdate
+    + "/AK4Jets"
+    + "_" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
+    + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
+    + "_" + (useJetOverlapStripping ? "ParticleStripped" : "ParticleCleaned")
+    + "/" + (use_MET_Puppi ? "PUPPIMET" : "PFMET")
+    + "_" + (use_MET_XYCorr ? "WithXY" : "NoXY");
+  if (!isData) coutput_main = coutput_main + "_" + (use_MET_JERCorr ? "WithJER" : "NoJER");
+  coutput_main = coutput_main
+    + "_" + (use_MET_ParticleMomCorr ? "WithPartMomCorr" : "NoPartMomCorr")
+    + "_" + (use_MET_p4Preservation ? "P4Preserved" : "P4Default");
+  if (!isData) coutput_main = coutput_main + "_" + (use_MET_corrections ? "ResolutionCorrected" : "ResolutionUncorrected");
+  coutput_main = coutput_main + "/" + period;
 
   TDirectory* curdir = gDirectory;
   gSystem->mkdir(coutput_main, true);
