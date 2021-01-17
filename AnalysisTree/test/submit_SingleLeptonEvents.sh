@@ -3,9 +3,34 @@
 date=$1
 period=$2
 prodVersion=$3
+
+useMETJERCorr=true
+declare -i doSim=1
+declare -i doData=1
+declare -i doAllSysts=0 # Do all systematics
+declare -i doImpSysts=0 # Only do important systematics
+for arg in "$@"; do
+  if [[ "$arg" == "only_data" ]]; then
+    doSim=0
+    doData=1
+  elif [[ "$arg" == "only_sim" ]]; then
+    doSim=1
+    doData=0
+  elif [[ "$arg" == "all_systs" ]]; then
+    doAllSysts=1
+  elif [[ "$arg" == "all_imp_systs" ]]; then
+    doImpSysts=1
+  elif [[ "$arg" == "useMETJERCorr="* ]]; then
+    useMETJERCorr=${arg#*=}
+  fi
+done
+if [[ "${useMETJERCorr}" != "true" ]] && [[ "${useMETJERCorr}" != "false" ]]; then
+  echo "useMETJERCorr must be 'true' or 'false'"
+fi
+
 script=produceSingleLeptonEvents.cc
 function=getTrees
-jobdate="SingleLeptonEvents_${date}"
+jobdate="${date}_SingleLeptonEvents"
 arguments='"<strSampleSet>","<period>","<prodVersion>","<strdate>",<ichunk>,<nchunks>,<theGlobalSyst>,<computeMEs>,<useFakeables>,<applyPUIdToAK4Jets>,<applyTightLeptonVetoIdToAK4Jets>,<use_MET_Puppi>,<use_MET_XYCorr>,<use_MET_JERCorr>,<use_MET_ParticleMomCorr>,<use_MET_p4Preservation>,<use_MET_corrections>'
 arguments="${arguments/<strdate>/$date}"
 arguments="${arguments/<prodVersion>/$prodVersion}"
@@ -14,7 +39,7 @@ arguments="${arguments/<applyPUIdToAK4Jets>/true}"
 arguments="${arguments/<applyTightLeptonVetoIdToAK4Jets>/false}"
 arguments="${arguments/<use_MET_Puppi>/false}"
 arguments="${arguments/<use_MET_XYCorr>/true}"
-arguments="${arguments/<use_MET_JERCorr>/true}"
+arguments="${arguments/<use_MET_JERCorr>/$useMETJERCorr}"
 arguments="${arguments/<use_MET_ParticleMomCorr>/true}"
 arguments="${arguments/<use_MET_p4Preservation>/true}"
 arguments="${arguments/<use_MET_corrections>/true}"
@@ -23,6 +48,25 @@ declare -a dataPeriods=( $period )
 declare -a DataSampleList=( )
 declare -a MCDataPeriods=( $period )
 declare -a MCSysts=( sNominal )
+if [[ $doAllSysts -eq 1 ]]; then
+  MCSysts+=( \
+    eEleScaleDn eEleScaleUp \
+    eEleResDn eEleResUp \
+    eMuScaleDn eMuScaleUp \
+    eMuResDn eMuResUp \
+    ePhoScaleDn ePhoScaleUp \
+    ePhoResDn ePhoResUp \
+    eMETDn eMETUp \
+    eJECDn eJECUp \
+    eJERDn eJERUp \
+  )
+elif [[ $doImpSysts -eq 1 ]]; then
+  MCSysts+=( \
+    eMETDn eMETUp \
+    eJECDn eJECUp \
+    eJERDn eJERUp \
+  )
+fi
 declare -i dataYear
 
 DataSampleList=( SingleLepton )
@@ -46,16 +90,22 @@ fi
 
 MCDataPeriods=( $period )
 
-
 csvfile="skimSamples_${dataYear}.csv"
+maindir="/store/user/usarica/Offshell_2L2Nu"
+maindir=$( ExecuteCompiledCommand GetStandardHostPathToStore ${maindir} t2.ucsd.edu )
+
+if [[ $doSim -eq 1 ]]; then
+
 for sample in $(readCMS3SkimSamplesFromCSV.py --csv=${csvfile} --sim --tree_req="Dilepton,Dilepton_Control,SingleLepton"); do
   sampleDir=${sample//MINIAODSIM}
 
   echo "====="
-  skimdir="/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Skims/${prodVersion}/${sampleDir}"
-  proddir="/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Production/${prodVersion}/${sampleDir}"
-  skimdir=$( ExecuteCompiledCommand GetStandardHostPathToStore ${skimdir} t2.ucsd.edu )
-  proddir=$( ExecuteCompiledCommand GetStandardHostPathToStore ${proddir} t2.ucsd.edu )
+  skimdir="${maindir}/Skims/${prodVersion}/${sampleDir}"
+  proddir="${maindir}/Production/${prodVersion}/${sampleDir}"
+  if [[ "$( ExecuteCompiledCommand DirectoryExists ${skimdir} )" == "false" ]]; then
+    echo "$skimdir does not exist"
+    skimdir="${maindir}/Skims/${prodVersion}_partial/${sampleDir}"
+  fi
   if [[ "$( ExecuteCompiledCommand DirectoryExists ${skimdir} )" == "false" ]]; then
     echo "$skimdir does not exist"
     skimdir=$proddir
@@ -105,6 +155,10 @@ for sample in $(readCMS3SkimSamplesFromCSV.py --csv=${csvfile} --sim --tree_req=
   echo "====="
 done
 
+fi
+
+if [[ $doData -eq 1 ]]; then
+
 for spl in "${DataSampleList[@]}"; do
   for dataperiod in "${dataPeriods[@]}"; do
     for fakeid in false true; do
@@ -146,3 +200,5 @@ for spl in "${DataSampleList[@]}"; do
     done
   done
 done
+
+fi

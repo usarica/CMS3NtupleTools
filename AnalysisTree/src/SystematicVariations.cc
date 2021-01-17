@@ -33,6 +33,9 @@ std::string SystematicsHelpers::getSystCoreName(SystematicsHelpers::SystematicVa
   case tEWDn:
   case tEWUp:
     return "EW";
+  case tHardJetsDn:
+  case tHardJetsUp:
+    return "HardJets";
 
   case eEleEffDn:
   case eEleEffUp:

@@ -28,8 +28,13 @@ for sample in $(readCMS3SkimSamplesFromCSV.py --csv=${csvfile} --sim --tree_req=
   sampleDir=${sample//MINIAODSIM}
 
   echo "====="
-  skimdir="/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Skims/${prodVersion}/${sampleDir}"
+  skimdir="/store/user/usarica/Offshell_2L2Nu/Skims/${prodVersion}/${sampleDir}"
   skimdir=$( ExecuteCompiledCommand GetStandardHostPathToStore ${skimdir} t2.ucsd.edu )
+  if [[ "$( ExecuteCompiledCommand DirectoryExists ${skimdir} )" == "false" ]]; then
+    echo "Checking the partial collection for ${sample}..."
+    skimdir="/store/user/usarica/Offshell_2L2Nu/Skims/${prodVersion}_partial/${sampleDir}"
+    skimdir=$( ExecuteCompiledCommand GetStandardHostPathToStore ${skimdir} t2.ucsd.edu )
+  fi
   if [[ "$( ExecuteCompiledCommand DirectoryExists ${skimdir} )" == "false" ]]; then
     echo "$skimdir does not exist"
     continue

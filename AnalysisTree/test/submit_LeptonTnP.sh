@@ -3,14 +3,38 @@
 date=$1
 period=$2
 prodVersion=$3
+
+useMETJERCorr=true
+declare -i doSim=1
+declare -i doData=1
+for arg in "$@"; do
+  if [[ "$arg" == "only_data" ]]; then
+    doSim=0
+    doData=1
+  elif [[ "$arg" == "only_sim" ]]; then
+    doSim=1
+    doData=0
+  elif [[ "$arg" == "useMETJERCorr="* ]]; then
+    useMETJERCorr=${arg#*=}
+  fi
+done
+if [[ "${useMETJERCorr}" != "true" ]] && [[ "${useMETJERCorr}" != "false" ]]; then
+  echo "useMETJERCorr must be 'true' or 'false'"
+fi
+
 script=produceLeptonEfficiencies.cc
 function=getTrees
-jobdate="LeptonTnP_${date}"
-arguments='"<strSampleSet>","<period>","<prodVersion>","<strdate>",<ichunk>,<nchunks>,<theGlobalSyst>,<applyPUIdToAK4Jets>,<applyTightLeptonVetoIdToAK4Jets>,<vetoExtraNonOverlappingLeptons>,<hardProcessFallback>'
+jobdate="${date}_LeptonTnP"
+arguments='"<strSampleSet>","<period>","<prodVersion>","<strdate>",<ichunk>,<nchunks>,<theGlobalSyst>,<vetoExtraNonOverlappingLeptons>,<hardProcessFallback>,<applyPUIdToAK4Jets>,<applyTightLeptonVetoIdToAK4Jets>,<use_MET_XYCorr>,<use_MET_JERCorr>,<use_MET_ParticleMomCorr>,<use_MET_p4Preservation>,<use_MET_corrections>'
 arguments="${arguments/<strdate>/$date}"
 arguments="${arguments/<prodVersion>/$prodVersion}"
 arguments="${arguments/<applyPUIdToAK4Jets>/true}"
 arguments="${arguments/<applyTightLeptonVetoIdToAK4Jets>/false}"
+arguments="${arguments/<use_MET_XYCorr>/true}"
+arguments="${arguments/<use_MET_JERCorr>/$useMETJERCorr}"
+arguments="${arguments/<use_MET_ParticleMomCorr>/true}"
+arguments="${arguments/<use_MET_p4Preservation>/true}"
+arguments="${arguments/<use_MET_corrections>/true}"
 
 declare -a csvList
 
@@ -55,6 +79,7 @@ fi
 #MCDataPeriods=("${dataPeriods[@]}")
 MCDataPeriods=( $period )
 
+if [[ $doSim -eq 1 ]]; then
 
 for sample in "${MCSampleList[@]}"; do
   sampleDir=${sample//MINIAODSIM}
@@ -104,6 +129,10 @@ for sample in "${MCSampleList[@]}"; do
   echo "====="
 done
 
+fi
+
+if [[ $doData -eq 1 ]]; then
+
 for spl in "${DataSampleList[@]}"; do
   for dataperiod in "${dataPeriods[@]}"; do
     sample="${spl}_${dataperiod}"
@@ -120,3 +149,5 @@ for spl in "${DataSampleList[@]}"; do
     submitCMS3AnalysisProduction.sh script="${script}" function="${function}" arguments="${strargs}" date="${jobdate}"
   done
 done
+
+fi
