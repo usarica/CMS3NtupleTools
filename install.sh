@@ -4,7 +4,7 @@
 CMS3Tag=combined
 CMSSW_release=CMSSW_10_2_22
 CMSSW_release_name=    #Leave this blank if you don't know what it is.  It's just a marker in case you have multiple identical directories.  Don't forget the underscore!
-export SCRAM_ARCH=slc6_amd64_gcc700
+export SCRAM_ARCH=slc7_amd64_gcc700
 
 #--Here there be dragons----
 export CMS_PATH=/cvmfs/cms.cern.ch
@@ -83,7 +83,11 @@ git clone git@github.com:usarica/CMSDataTools.git
 # and thus, the user must either configure ssh keys or manually type their password.
 # the latter ruins the whole "run this install script, get a coffee, use the ntuplemaker" workflow.
 # git clone ssh://git@gitlab.cern.ch:7999/DeepAK8/NNKit.git -b ver_2018-03-08_for94X
-cp -r /nfs-7/userdata/NtupleModules/NNKit_ver_2018-03-08_for94X NNKit
+if [[ -d /nfs-7/userdata/NtupleModules/NNKit_ver_2018-03-08_for94X ]]; then
+  cp -r /nfs-7/userdata/NtupleModules/NNKit_ver_2018-03-08_for94X NNKit
+elif [[ $(readlink -f ~)/CMS3/NNKit_ver_2018-03-08_for94X ]]; then
+  cp -r $(readlink -f ~)/CMS3/NNKit_ver_2018-03-08_for94X NNKit
+fi
 # setup mxnet library
 # cp /cvmfs/cms.cern.ch/$SCRAM_ARCH/cms/cmssw/CMSSW_10_2_0/config/toolbox/$SCRAM_ARCH/tools/selected/mxnet-predict.xml $CMSSW_BASE/config/toolbox/$SCRAM_ARCH/tools/selected
 scram setup mxnet-predict
