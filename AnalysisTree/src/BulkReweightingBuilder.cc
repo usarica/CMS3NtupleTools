@@ -60,10 +60,12 @@ void BulkReweightingBuilder::registerTree(BaseTree* tree, float extNorm){
 
 void BulkReweightingBuilder::setup(
   int ihypo_Neff, std::vector<std::pair<BaseTree*, BaseTree*>> const* tree_normTree_pairs,
-  float thr_wgt, float tol_wgt
+  float thr_wgt, float tol_wgt,
+  float thr_frac_Neff
 ){
   unsigned int const nhypos = strReweightingWeightsList.size();
   assert(ihypo_Neff<(int) nhypos);
+  assert(thr_wgt<=1.f && tol_wgt>=1.f && thr_frac_Neff<=1.f);
   unsigned int const nbins = (binning.isValid() ? binning.getNbins() : static_cast<unsigned int>(1));
   for (auto const& tree:registeredTrees){
     MELAout << "BulkReweightingBuilder::setup: Processing " << tree->sampleIdentifier << "..." << endl;
@@ -77,7 +79,6 @@ void BulkReweightingBuilder::setup(
     );
 
     // Initialize normalization variables
-    NeffsPerBin[tree] = std::vector<double>(nbins, 0);
     sampleNormalization[tree] = std::vector<double>(nbins, 1);
     samplePairwiseNormalization[tree] = 1;
 
@@ -85,6 +86,7 @@ void BulkReweightingBuilder::setup(
     int nEntries = tree->getNEvents();
     std::vector<double> sum_normwgts_all_tree(nbins, 0);
     std::vector<double> sum_normwgts_nonzerorewgt_tree(nbins, 0);
+    std::vector<double> NeffsPerBin_tree(nbins, 0);
     std::vector<double> sampleZeroMECompensation_tree(nbins, 1);
     std::vector<std::vector<std::pair<double, double>>> sum_wgts_withrewgt_tree(nhypos, std::vector<std::pair<double, double>>(nbins, std::pair<double, double>(0, 0)));
     MELAout << "\t- Obtaining weight sums..." << endl;
@@ -138,7 +140,7 @@ void BulkReweightingBuilder::setup(
       if (ihypo_Neff>=0){
         auto& sum_wgts_pair = sum_wgts_withrewgt_tree.at(ihypo_Neff).at(ibin);
         if (sum_wgts_pair.second==0.) continue;
-        NeffsPerBin[tree].at(ibin) = std::pow(sum_wgts_pair.first, 2)/sum_wgts_pair.second;
+        NeffsPerBin_tree.at(ibin) = std::pow(sum_wgts_pair.first, 2)/sum_wgts_pair.second;
       }
       else{
         double Neff_bin_worst = -1;
@@ -148,11 +150,12 @@ void BulkReweightingBuilder::setup(
           double Neff_hypo_bin = std::pow(sum_wgts_pair.first, 2)/sum_wgts_pair.second;
           if (Neff_bin_worst<0. || Neff_bin_worst>Neff_hypo_bin) Neff_bin_worst = Neff_hypo_bin;
         }
-        NeffsPerBin[tree].at(ibin) = std::max(0., Neff_bin_worst);
+        NeffsPerBin_tree.at(ibin) = std::max(0., Neff_bin_worst);
       }
     }
 
     // Assign the vectors to the maps
+    NeffsPerBin[tree] = NeffsPerBin_tree;
     sum_normwgts_all[tree] = sum_normwgts_all_tree;
     sum_normwgts_nonzerorewgt[tree] = sum_normwgts_nonzerorewgt_tree;
     sum_wgts_withrewgt[tree] = sum_wgts_withrewgt_tree;
@@ -160,6 +163,39 @@ void BulkReweightingBuilder::setup(
   }
 
   // Once all trees are complete, compute final normalization factors based on the chosen values of Neff.
+
+  // First pass on relative normalizations
+  if (thr_frac_Neff>0.){
+    MELAout << "\t- Adjusting Neff values for Neff threshold " << thr_frac_Neff << ":" << endl;
+    for (unsigned int ibin=0; ibin<nbins; ibin++){
+      double Neff_total = 0;
+      for (auto const& tree:registeredTrees){
+        auto const& NeffsPerBin_tree = NeffsPerBin.find(tree)->second;
+        double const& NeffsPerBin_bin = NeffsPerBin_tree.at(ibin);
+        Neff_total += NeffsPerBin_bin;
+      }
+      for (auto const& tree:registeredTrees){
+        auto& NeffsPerBin_tree = NeffsPerBin.find(tree)->second;
+        auto& sum_normwgts_all_tree = sum_normwgts_all.find(tree)->second;
+        auto& sum_normwgts_nonzerorewgt_tree = sum_normwgts_nonzerorewgt.find(tree)->second;
+        auto& sum_wgts_withrewgt_tree = sum_wgts_withrewgt.find(tree)->second;
+        auto& sampleZeroMECompensation_tree = sampleZeroMECompensation.find(tree)->second;
+
+        double& NeffsPerBin_bin = NeffsPerBin_tree.at(ibin);
+        double const frac_Neff = NeffsPerBin_bin/Neff_total;
+        if (frac_Neff<thr_frac_Neff){
+          MELAout << "\t\t- Bin " << ibin << " in sample " << tree->sampleIdentifier << " has a fractional Neff=" << frac_Neff << " < " << thr_frac_Neff << ". Removing this bin from reweighting considerations." << endl;
+          NeffsPerBin_bin = 0;
+          sum_normwgts_all_tree.at(ibin) = 0;
+          sum_normwgts_nonzerorewgt_tree.at(ibin) = 0;
+          for (auto& sum_wgts_withrewgt_tree_hypo:sum_wgts_withrewgt_tree){ sum_wgts_withrewgt_tree_hypo.at(ibin).first = sum_wgts_withrewgt_tree_hypo.at(ibin).second = 0; }
+          sampleZeroMECompensation_tree.at(ibin) = 0;
+        }
+      }
+    }
+  }
+
+  // Second pass on relative normalizations
   MELAout << "\t- Sample normalizations before extra normalizations:" << endl;
   for (auto const& tree:registeredTrees){
     auto& sampleNormalization_tree = sampleNormalization.find(tree)->second;

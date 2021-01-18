@@ -57,9 +57,14 @@ public:
   );
   void registerTree(BaseTree* tree, float extNorm=1);
 
+  // thr_wgt and tol_wgt adjust the large weight removal threshold and tolerance.
+  // thr_wgt=-1 defaults to the default of ReweightingFunctions::getAbsWeightThresholdsPerBinByFixedFractionalThreshold.
+  // thr_frac_Neff with value >0 sets the contribution of samples with Neff fraction<thr_frac_Neff to 0.
+  // This is primarily to ensure that narrow-width samples cannot enter into bins far away from their pole.
   void setup(
     int ihypo_Neff, std::vector<std::pair<BaseTree*, BaseTree*>> const* tree_normTree_pairs=nullptr,
-    float thr_wgt=0.9995, float tol_wgt=5.
+    float thr_wgt=0.9995, float tol_wgt=5.,
+    float thr_frac_Neff=-1.
   );
 
   double getOverallReweightingNormalization(BaseTree* tree) const;
