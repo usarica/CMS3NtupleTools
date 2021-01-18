@@ -63,6 +63,9 @@ opts.register('applyKFactorQCDNLOtoNNLOqqWWBkg', False, mytype=vpbool)
 opts.register('applyKFactorEWLOtoNLOqqZZBkg', False, mytype=vpbool)
 opts.register('applyKFactorEWLOtoNLOqqWZBkg', False, mytype=vpbool)
 opts.register('applyKFactorEWLOtoNLOqqWWBkg', False, mytype=vpbool)
+# Private MC options
+opts.register('LHEInputTag', "externalLHEProducer", mytype=vpstring) # Default is what CMS full sim. uses
+opts.register('disableDuplicateCheck', False, mytype=vpbool) # Disable the checking of duplicates
 ###
 opts.parseArguments()
 
@@ -207,6 +210,7 @@ if not opts.data:
    process.genMaker.year = cms.int32(opts.year)
    process.genMaker.xsec = cms.double(opts.xsec)
    process.genMaker.BR = cms.double(opts.BR)
+   process.genMaker.LHEInputTag = cms.InputTag(opts.LHEInputTag)
    if opts.applyKFactorQCDLOtoNNLOggVVSig or opts.applyKFactorQCDNLOtoNNLOggVVSig:
       strnumerator = "kfactor_qcd_nnlo_ggvv_sig"
       strdenominator = "" if opts.applyKFactorQCDLOtoNNLOggVVSig else "kfactor_qcd_nlo_ggvv_sig"
@@ -244,7 +248,7 @@ if not opts.data:
 
 
 
-#Options for Input
+# Options for Input
 process.source = cms.Source(
    "PoolSource",
    fileNames = cms.untracked.vstring(
@@ -253,6 +257,8 @@ process.source = cms.Source(
    )
 if opts.skipevents > 0:
    process.source.skipEvents = cms.untracked.uint32( opts.skipevents )
+if not opts.data and opts.disableDuplicateCheck:
+   process.source.duplicateCheckMode = cms.untracked.string("noDuplicateCheck")
 
 import os
 def find_up(fname):
