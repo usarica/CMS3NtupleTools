@@ -14,7 +14,14 @@ from metis.Optimizer import Optimizer
 
 # To make tarfile use command:  mtarfile tarball_v1.tar.xz --xz --xz_level 3 -x "JHUGenMELA/MELA/data/Pdfdata" "*JHUGenMELA/MELA/data/*.root"
 
-def get_tasks(csvs, tarfile, tag, doTestRun):
+def get_tasks(args):
+    csvs=args.csvs
+    tarfile=args.tarfile
+    tag=args.tag
+    doTestRun=args.testrun
+    localSearchDir=None
+    if hasattr(args, "localSearchDir"):
+       localSearchDir=args.localSearchDir
 
     if not os.path.exists(tarfile):
         raise RuntimeError("{} doesn't exist!".format(tarfile))
@@ -31,7 +38,23 @@ def get_tasks(csvs, tarfile, tag, doTestRun):
                 dataset = row["#Dataset"]
                 if dataset.strip().startswith("#"):
                     continue
-                sample = DBSSample(dataset=dataset, xsec=row["xsec"], efact=row["BR"])
+                sample = None
+                if 'private' in dataset:
+                    if localSearchDir is None:
+                         raise RuntimeError("The collection of samples contains a private sample {}, but no local search directory is specified.".format(dataset))
+
+                    dset_local_input_dir = None
+                    for search_dir in localSearchDir:
+                         if os.path.exists(search_dir+dataset):
+                             dset_local_input_dir = search_dir+dataset
+                    if dset_local_input_dir is None:
+                         raise RuntimeError("Cannot find {} in the specified local search directories.".format(dataset))
+                    else:
+                         print("Files for {} are found under {}".format(dataset, dset_local_input_dir))
+
+                    sample = DirectorySample(dataset=dataset, xsec=row["xsec"], efact=row["BR"], location=dset_local_input_dir)
+                else:
+                    sample = DBSSample(dataset=dataset, xsec=row["xsec"], efact=row["BR"])
                 opts=row["options"]
                 for key in row:
                     if "condoroutdir" in key or "Dataset" in key or "options" in key:
@@ -61,10 +84,6 @@ def get_tasks(csvs, tarfile, tag, doTestRun):
         events_per_output = (150e3 if isdata else 150e3)
         pset_args = sample.info["options"]
         global_tag = re.search("globaltag=(\w+)",pset_args).groups()[0]
-        extra = dict()
-        if doTestRun:
-            extra["max_jobs"] = 2 # 2 condor jobs per sample... FIXME delete this after testing
-            extra["max_nevents_per_job"] = 200 # 200 events per job... FIXME delete this after testing
 
         # build output directory
         hadoop_user = os.environ.get("GRIDUSER","").strip()  # Set by Metis. Can be different from $USER for some people.
@@ -76,24 +95,30 @@ def get_tasks(csvs, tarfile, tag, doTestRun):
                 hadoop_user, tag, part1, part2
                 )
 
-        task = CMSSWTask(
-                sample=sample,
-                tarfile=tarfile,
-                tag=tag,
-                global_tag=global_tag,
-                pset_args=pset_args,
-                scram_arch=scram_arch,
-                cmssw_version=cmssw_version,
-                output_name=outputfilename,
-                output_dir=output_dir,
-                events_per_output=events_per_output,
-                executable="metis_condor_executable.sh",
-                pset="main_pset.py",
-                is_tree_output=False,
-                dont_check_tree=True,
-                # no_load_from_backup=True,
-                **extra
-                )
+        taskArgs = dict()
+        taskArgs["sample"]=sample
+        taskArgs["tarfile"]=tarfile
+        taskArgs["tag"]=tag
+        taskArgs["global_tag"]=global_tag
+        taskArgs["pset_args"]=pset_args
+        taskArgs["scram_arch"]=scram_arch
+        taskArgs["cmssw_version"]=cmssw_version
+        taskArgs["output_name"]=outputfilename
+        taskArgs["output_dir"]=output_dir
+        taskArgs["executable"]="metis_condor_executable.sh"
+        taskArgs["pset"]="main_pset.py"
+        taskArgs["is_tree_output"]=False
+        taskArgs["dont_check_tree"]=True
+        #taskArgs["no_load_from_backup"]=True
+        if 'private' in sample.get_datasetname():
+            taskArgs["files_per_output"]=20
+        else:
+            taskArgs["events_per_output"]=events_per_output
+        if doTestRun:
+            taskArgs["max_jobs"] = 2 # 2 condor jobs per sample... FIXME delete this after testing
+            taskArgs["max_nevents_per_job"] = 200 # 200 events per job... FIXME delete this after testing
+
+        task = CMSSWTask(**taskArgs)
         tasks.append(task)
 
     return tasks
@@ -105,15 +130,15 @@ if __name__ == "__main__":
     parser.add_argument("--tarfile", help="path to tarball", type=str, required=True)
     parser.add_argument("--tag", help="production tag", type=str, required=True)
     parser.add_argument("--testrun", help="flag for test run", action='store_true', required=False, default=False)
+    parser.add_argument("--localSearchDir", help="Search directory for local files. Can specify multiple.", action='append', required=False)
     args = parser.parse_args()
 
-    tasks = get_tasks(csvs=args.csvs, tarfile=args.tarfile, tag=args.tag, doTestRun=args.testrun)
+    tasks = get_tasks(args)
 
     total_summary = {}
     optimizer = Optimizer()
 
     for i in range(10000):
-
         for task in tasks:
             #task.process(optimizer=optimizer)
             task.process()

@@ -139,6 +139,17 @@ chirp ChirpMetisExpectedNevents $EXPECTEDNEVTS
 
 chirp ChirpMetisStatus "before_cmsRun"
 
+# Change file names to standard paths
+if [[ "${INPUTFILENAMES}" == *"/hadoop/cms"* ]]; then
+  echo "Need to change input file names for local files on UCSD. Old list of input files: ${INPUTFILENAMES}"
+  if [[ "$(hostname)" != *"t2.ucsd.edu"* ]]; then
+    INPUTFILENAMES=${INPUTFILENAMES//'/hadoop/cms'/'davs://redirector.t2.ucsd.edu:1094/'}
+  else
+    INPUTFILENAMES=${INPUTFILENAMES//'/hadoop/cms'}
+  fi
+  echo "New list of input files: ${INPUTFILENAMES}"
+fi
+
 cmdRun="cmsRun pset.py inputs=${INPUTFILENAMES} output=${OUTPUTNAME}.root ${PSETARGS}"
 echo "Running: ${cmdRun}"
 ${cmdRun}
