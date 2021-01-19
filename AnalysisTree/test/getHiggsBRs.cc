@@ -115,8 +115,25 @@ float HiggsXSBRReader::eval_total_width(float const& mass) const{
   }
 }
 
+enum DecayMode{
+  kZZTo2L2Nu,
+  kZZTo4L,
+  kZZTo2Nu2X,
+  kZZTo2L2Q,
+  kZZTo4Q,
+  nDecayModes
+};
 
-void getHiggsBRs(TString strSampleSet, TString period, TString hypo){
+DecayMode getDecayMode(TString const& strSampleSet){
+  if (strSampleSet.Contains("ZZTo2L2Nu")) return kZZTo2L2Nu;
+  else if (strSampleSet.Contains("ZZTo4L")) return kZZTo4L;
+  else if (strSampleSet.Contains("ZZTo2Nu2X")) return kZZTo2Nu2X;
+  else if (strSampleSet.Contains("ZZTo2L2Q")) return kZZTo2L2Q;
+  else if (strSampleSet.Contains("ZZTo4Q")) return kZZTo4Q;
+  else return nDecayModes;
+}
+
+void getHiggsBRs(TString strSampleSet, TString period, TString prodVersion){
   constexpr double xw = 0.23119;
   constexpr double T3lL = -0.5;
   constexpr double T3lR =  0;
@@ -144,17 +161,15 @@ void getHiggsBRs(TString strSampleSet, TString period, TString hypo){
   constexpr double aR_QDn = 2.*(T3dR-QdR*xw);
   constexpr double aL_QDn = 2.*(T3dL-QdL*xw);
 
-  constexpr bool checkME = false;
+  DecayMode dkmode = getDecayMode(strSampleSet);
+  if (dkmode==nDecayModes) return;
 
-  HiggsXSBRReader hxsbrReader("../data/HiggsXSBR/YR3.csv", hypo);
-
-  SampleHelpers::configure(period, "191212");
+  SampleHelpers::configure(period, Form("store:%s", prodVersion.Data()));
 
   GenInfoHandler genInfoHandler;
   genInfoHandler.setAcquireGenParticles(false);
-  genInfoHandler.setAcquireLHEMEWeights(checkME);
-  //genInfoHandler.setAcquireLHEParticles(true);
   genInfoHandler.setAcquireLHEParticles(true);
+  genInfoHandler.setAcquireLHEMEWeights(false);
 
   std::vector<TString> sampleList;
   SampleHelpers::constructSamplesList(strSampleSet, SystematicsHelpers::sNominal, sampleList);
@@ -168,19 +183,16 @@ void getHiggsBRs(TString strSampleSet, TString period, TString hypo){
 
     BaseTree sample_tree(cinput, EVENTS_TREE_NAME, "", "");
     sample_tree.sampleIdentifier = SampleHelpers::getSampleIdentifier(strSample);
+    double sampleMH = SampleHelpers::findPoleMass(sample_tree.sampleIdentifier);
+    MELAout << "Pole mass of the sample: " << sampleMH << endl;
 
     const int nEntries = sample_tree.getSelectedNEvents();
 
-    float sum_wgts=0;
-    float sum_me_wgts=0;
-    float sum_br_wgts=0;
-    float sum_br_alt_wgts=0;
+    double count=0;
+    double sum_wgts[3]={ 0 };
 
     genInfoHandler.bookBranches(&sample_tree);
     genInfoHandler.wrapTree(&sample_tree);
-
-    const bool hasLHECandMass = SampleHelpers::branchExists(sample_tree.getSelectedTree(), "LHECandMass");
-    if (hasLHECandMass) sample_tree.bookBranch<float>("LHECandMass", 0.f);
 
     bool hasTaus=false;
     MELAout << "Initial MC loop over " << nEntries << " events in " << sample_tree.sampleIdentifier << " to determine sample normalization:" << endl;
@@ -191,8 +203,12 @@ void getHiggsBRs(TString strSampleSet, TString period, TString hypo){
       genInfoHandler.constructGenInfo(SystematicsHelpers::sNominal); // Use sNominal here in order to get the weight that corresponds to xsec
       auto const& genInfo = genInfoHandler.getGenInfo();
 
-      float genwgt = genInfo->getGenWeight(true);
-      sum_wgts += genwgt;
+      double genwgt_default = genInfo->getGenWeight(true);
+      double genwgt_noBRrewgt = genInfo->extras.LHEweight_defaultMemberZero;
+      if (genwgt_noBRrewgt!=0.) count += 1;
+      sum_wgts[0] += genwgt_noBRrewgt;
+      sum_wgts[1] += genwgt_default;
+      sum_wgts[2] += std::pow(genwgt_default, 2)/genwgt_noBRrewgt;
 
       auto const& lheparticles = genInfoHandler.getLHEParticles();
       if (!hasTaus){
@@ -200,29 +216,91 @@ void getHiggsBRs(TString strSampleSet, TString period, TString hypo){
           if (part->status()==1 && std::abs(part->pdgId())==15){ hasTaus=true; break; }
         }
       }
-      float LHECandMass;
-      if (hasLHECandMass) sample_tree.getVal("LHECandMass", LHECandMass);
-      else{
-        for (auto const& part:lheparticles){
-          if (!hasLHECandMass && part->pdgId()==25){ LHECandMass = part->m(); break; }
-        }
-      }
 
-      float br = hxsbrReader.eval_br(LHECandMass);
-      sum_br_wgts += br*genwgt;
-
-      float br_alt = br * (pow(aL_neu, 2)+pow(aR_neu, 2)) / (pow(aL_lep, 2)+pow(aR_lep, 2)) * 3.;
-      sum_br_alt_wgts += br_alt*genwgt;
-
-      if (checkME){
-        float me_wgt = genInfo->extras.LHE_ME_weights["p_Gen_GG_SIG_kappaTopBot_1_ghz1_1_MCFM"];
-        float cps_wgt = genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"];
-        sum_me_wgts += me_wgt*cps_wgt*genwgt;
-      }
     }
 
+    std::vector<TString> hypos;
+    std::vector<double> BRcorrs;
+    switch (dkmode){
+    case kZZTo2L2Nu:
+      hypos.push_back("2e2mu");
+      BRcorrs.push_back((std::pow(aL_neu, 2)+std::pow(aR_neu, 2)) / (std::pow(aL_lep, 2)+std::pow(aR_lep, 2)) * 3. * (hasTaus ? 3. : 2.));
+      break;
+    case kZZTo4L:
+      hypos.push_back((hasTaus ? "4l_l_any" : "4l_l_e_mu"));
+      BRcorrs.push_back(1);
+      break;
+    case kZZTo2Nu2X:
+      // 2l2nu
+      hypos.push_back("2e2mu");
+      BRcorrs.push_back((std::pow(aL_neu, 2)+std::pow(aR_neu, 2)) / (std::pow(aL_lep, 2)+std::pow(aR_lep, 2)) * 3. * (hasTaus ? 3. : 2.));
+      // 2q2nu
+      hypos.push_back("2e2mu");
+      BRcorrs.push_back(
+        ((std::pow(aL_QUp, 2)+std::pow(aR_QUp, 2))*2.+ (std::pow(aL_QDn, 2)+std::pow(aR_QDn, 2))*3.) *3. / (std::pow(aL_lep, 2)+std::pow(aR_lep, 2)) // Reweighting of 2e->2q
+        *
+        (std::pow(aL_neu, 2)+std::pow(aR_neu, 2)) / (std::pow(aL_lep, 2)+std::pow(aR_lep, 2)) * 3. // Reweighting of 2mu->2nu
+      );
+      // 4nu, different flavors
+      hypos.push_back("2e2mu");
+      BRcorrs.push_back(
+        std::pow((std::pow(aL_neu, 2)+std::pow(aR_neu, 2)) / (std::pow(aL_lep, 2)+std::pow(aR_lep, 2)), 2)*6.
+      );
+      // 4nu, same flavors
+      hypos.push_back("4e");
+      BRcorrs.push_back(
+        std::pow((std::pow(aL_neu, 2)+std::pow(aR_neu, 2)) / (std::pow(aL_lep, 2)+std::pow(aR_lep, 2)), 2)*3.
+      );
+      break;
+    case kZZTo2L2Q:
+      hypos.push_back("2e2mu");
+      BRcorrs.push_back(
+        ((std::pow(aL_QUp, 2)+std::pow(aR_QUp, 2))*2.+ (std::pow(aL_QDn, 2)+std::pow(aR_QDn, 2))*3.) *3. / (std::pow(aL_lep, 2)+std::pow(aR_lep, 2)) * (hasTaus ? 3. : 2.)
+      );
+      break;
+    case kZZTo4Q:
+      // 4q, different flavors
+      hypos.push_back("2e2mu");
+      BRcorrs.push_back(
+        (
+          (std::pow(aL_QUp, 2)+std::pow(aR_QUp, 2))*(std::pow(aL_QUp, 2)+std::pow(aR_QUp, 2)) // uucc
+          +
+          (std::pow(aL_QDn, 2)+std::pow(aR_QDn, 2))*(std::pow(aL_QDn, 2)+std::pow(aR_QDn, 2))*3. // ddss + ddbb + ssbb
+          +
+          (std::pow(aL_QUp, 2)+std::pow(aR_QUp, 2))*(std::pow(aL_QDn, 2)+std::pow(aR_QDn, 2))*6. // uudd + uuss + uubb + ccdd + ccss + ccbb
+          ) / std::pow((std::pow(aL_lep, 2)+std::pow(aR_lep, 2)), 2)
+      );
+      // 4q, same flavors
+      hypos.push_back("4e");
+      BRcorrs.push_back(
+        (
+          (std::pow(aL_QUp, 2)+std::pow(aR_QUp, 2))*(std::pow(aL_QUp, 2)+std::pow(aR_QUp, 2))*2. // 4u+4c
+          +
+          (std::pow(aL_QDn, 2)+std::pow(aR_QDn, 2))*(std::pow(aL_QDn, 2)+std::pow(aR_QDn, 2))*3. // 4d+4s+4b
+          ) / std::pow((std::pow(aL_lep, 2)+std::pow(aR_lep, 2)), 2)
+      );
+      break;
+    default:
+      return;
+    }
+
+    double br_sum = 0;
+    for (unsigned int ih=0; ih<hypos.size(); ih++){
+      HiggsXSBRReader hxsbrReader("../data/HiggsXSBR/YR3.csv", hypos.at(ih));
+      double br_MH = hxsbrReader.eval_br(sampleMH);
+      double br_MH_corr = br_MH * BRcorrs.at(ih);
+      br_sum += br_MH_corr;
+      MELAout << "BR[" << hypos.at(ih) << "] before / after correction: " << br_MH << " / " << br_MH_corr << endl;
+    }
+
+    double avg_br = sum_wgts[1]/sum_wgts[0];
+    double avg_br_err = sum_wgts[2]/sum_wgts[0];
+    avg_br_err = std::sqrt((avg_br_err - std::pow(avg_br, 2))/(count-1.));
+
     MELAout << "Events have taus ? " << hasTaus << endl;
-    MELAout << "Average BR[" << strSample << "]: " << sum_br_wgts / sum_wgts * (strSampleSet.Contains("WW") ? (hasTaus ? 9. : 4.) : 1.) << " (alt=" << sum_br_alt_wgts / sum_wgts * (hasTaus ? 3. : 2.) << ")" << endl;
-    if (checkME) MELAout << "ME rewgt[" << strSample << "]: " << sum_me_wgts / sum_wgts << endl;
+    //MELAout << "Average BR[" << strSample << "]: " << sum_br_wgts / sum_wgts * (strSampleSet.Contains("WW") ? (hasTaus ? 9. : 4.) : 1.) << " (alt=" << sum_br_alt_wgts / sum_wgts * (hasTaus ? 3. : 2.) << ")" << endl;
+    MELAout << "BR(MH): " << br_sum << endl;
+    MELAout << "Average BR(MH) adjustment: " << avg_br << " +- " << avg_br_err << endl;
+    MELAout << "Average BR: " << avg_br*br_sum << " +- " << avg_br_err*br_sum << endl;
   }
 }
