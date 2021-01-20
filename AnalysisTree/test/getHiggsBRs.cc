@@ -134,6 +134,10 @@ DecayMode getDecayMode(TString const& strSampleSet){
 }
 
 void getHiggsBRs(TString strSampleSet, TString period, TString prodVersion){
+  // POWHEG parameters
+  constexpr double BR_Z_ll_POWHEG = 0.1004;
+  constexpr double BR_W_lnu_POWHEG = 0.3243;
+
   constexpr double xw = 0.23119;
   constexpr double T3lL = -0.5;
   constexpr double T3lR =  0;
@@ -152,14 +156,46 @@ void getHiggsBRs(TString strSampleSet, TString period, TString prodVersion){
   constexpr double QdL = -1./3.;
   constexpr double QdR = -1./3.;
 
+  // NLO K factors
+  constexpr double scale_alpha_Z_qq = 1.03756;
+  constexpr double scale_alpha_W_qq = 1.0382;
+
   constexpr double aR_lep = 2.*(T3lR-QlR*xw);
   constexpr double aL_lep = 2.*(T3lL-QlL*xw);
   constexpr double aR_neu = 2.*(T3nR-QnR*xw);
   constexpr double aL_neu = 2.*(T3nL-QnL*xw);
-  constexpr double aR_QUp = 2.*(T3uR-QuR*xw);
-  constexpr double aL_QUp = 2.*(T3uL-QuL*xw);
-  constexpr double aR_QDn = 2.*(T3dR-QdR*xw);
-  constexpr double aL_QDn = 2.*(T3dL-QdL*xw);
+  const double aR_QUp = 2.*(T3uR-QuR*xw)*std::sqrt(scale_alpha_Z_qq);
+  const double aL_QUp = 2.*(T3uL-QuL*xw)*std::sqrt(scale_alpha_Z_qq);
+  const double aR_QDn = 2.*(T3dR-QdR*xw)*std::sqrt(scale_alpha_Z_qq);
+  const double aL_QDn = 2.*(T3dL-QdL*xw)*std::sqrt(scale_alpha_Z_qq);
+
+  // No color of flavor factors
+  const double BR_Z_ll_single = (std::pow(aL_lep, 2)+std::pow(aR_lep, 2));
+  const double BR_Z_nunu_single = (std::pow(aL_neu, 2)+std::pow(aR_neu, 2));
+  const double BR_Z_uu_single = (std::pow(aL_QUp, 2)+std::pow(aR_QUp, 2));
+  const double BR_Z_dd_single = (std::pow(aL_QDn, 2)+std::pow(aR_QDn, 2));
+
+  constexpr double BR_Z_ll_ratio = 1;
+  const double BR_Z_nunu_ratio = BR_Z_nunu_single / BR_Z_ll_single;
+  const double BR_Z_uu_ratio = BR_Z_uu_single / BR_Z_ll_single;
+  const double BR_Z_dd_ratio = BR_Z_dd_single / BR_Z_ll_single;
+
+  // Cross-check
+  {
+    MELAout << "Z->ff BRs:" << endl;
+    double BR_Z_ll = BR_Z_ll_single*3.;
+    double BR_Z_nunu = BR_Z_nunu_single*3.;
+    double BR_Z_qq = (BR_Z_uu_single*2.+ BR_Z_dd_single*3.) *3.;
+    double BR_Z_tot = BR_Z_ll + BR_Z_nunu + BR_Z_qq;
+    MELAout << "\t- BR Z->ll: " << BR_Z_ll/BR_Z_tot << endl;
+    MELAout << "\t- BR Z->nunu: " << BR_Z_nunu/BR_Z_tot << endl;
+    MELAout << "\t- BR Z->qq: " << BR_Z_qq/BR_Z_tot << endl;
+    MELAout << "Individual Z->ff BR double-ratios:" << endl;
+    MELAout << "\t- BR Z->ll: " << BR_Z_ll_ratio << endl;
+    MELAout << "\t- BR Z->nunu: " << BR_Z_nunu_ratio << endl;
+    MELAout << "\t- BR Z->uu: " << BR_Z_uu_ratio << endl;
+    MELAout << "\t- BR Z->dd: " << BR_Z_dd_ratio << endl;
+  }
 
   DecayMode dkmode = getDecayMode(strSampleSet);
   if (dkmode==nDecayModes) return;
@@ -185,6 +221,8 @@ void getHiggsBRs(TString strSampleSet, TString period, TString prodVersion){
     sample_tree.sampleIdentifier = SampleHelpers::getSampleIdentifier(strSample);
     double sampleMH = SampleHelpers::findPoleMass(sample_tree.sampleIdentifier);
     MELAout << "Pole mass of the sample: " << sampleMH << endl;
+    bool has2LFilter = sample_tree.sampleIdentifier.Contains("2LFilter");
+    MELAout << "Sample has 2l filter ? " << has2LFilter << endl;
 
     const int nEntries = sample_tree.getSelectedNEvents();
 
@@ -221,76 +259,80 @@ void getHiggsBRs(TString strSampleSet, TString period, TString prodVersion){
 
     std::vector<TString> hypos;
     std::vector<double> BRcorrs;
+    std::vector<double> filter_corrs;
     switch (dkmode){
     case kZZTo2L2Nu:
       hypos.push_back("2e2mu");
-      BRcorrs.push_back((std::pow(aL_neu, 2)+std::pow(aR_neu, 2)) / (std::pow(aL_lep, 2)+std::pow(aR_lep, 2)) * 3. * (hasTaus ? 3. : 2.));
+      BRcorrs.push_back(BR_Z_nunu_ratio*3. * BR_Z_ll_ratio*(hasTaus ? 3. : 2.));
+      filter_corrs.push_back(1);
       break;
     case kZZTo4L:
       hypos.push_back((hasTaus ? "4l_l_any" : "4l_l_e_mu"));
-      BRcorrs.push_back(1);
+      BRcorrs.push_back(BR_Z_ll_ratio);
+      filter_corrs.push_back(1);
       break;
     case kZZTo2Nu2X:
       // 2nu2l
       hypos.push_back("2e2mu");
-      BRcorrs.push_back((std::pow(aL_neu, 2)+std::pow(aR_neu, 2)) / (std::pow(aL_lep, 2)+std::pow(aR_lep, 2)) * 3. * (hasTaus ? 3. : 2.));
+      BRcorrs.push_back(BR_Z_nunu_ratio*3. * BR_Z_ll_ratio*(hasTaus ? 3. : 2.));
+      filter_corrs.push_back((!has2LFilter ? 1. : (1.-BR_Z_ll_POWHEG))); // 4l veto
       // 2nu2q
       hypos.push_back("2e2mu");
       BRcorrs.push_back(
-        ((std::pow(aL_QUp, 2)+std::pow(aR_QUp, 2))*2.+ (std::pow(aL_QDn, 2)+std::pow(aR_QDn, 2))*3.) *3. / (std::pow(aL_lep, 2)+std::pow(aR_lep, 2)) // Reweighting of 2e->2q
+        (BR_Z_uu_ratio*2.+ BR_Z_dd_ratio*3.)*3. // Reweighting of 2e->2q
         *
-        (std::pow(aL_neu, 2)+std::pow(aR_neu, 2)) / (std::pow(aL_lep, 2)+std::pow(aR_lep, 2)) * 3. // Reweighting of 2mu->2nu
+        BR_Z_nunu_ratio*3. // Reweighting of 2mu->2nu
       );
+      filter_corrs.push_back((!has2LFilter ? 1. : BR_Z_ll_POWHEG));
       // 4nu, different flavors
       hypos.push_back("2e2mu");
-      BRcorrs.push_back(
-        std::pow((std::pow(aL_neu, 2)+std::pow(aR_neu, 2)) / (std::pow(aL_lep, 2)+std::pow(aR_lep, 2)), 2)*3.
-      );
+      BRcorrs.push_back(std::pow(BR_Z_nunu_ratio, 2)*3.);
+      filter_corrs.push_back((!has2LFilter ? 1. : BR_Z_ll_POWHEG));
       // 4nu, same flavors
       hypos.push_back("4e");
-      BRcorrs.push_back(
-        std::pow((std::pow(aL_neu, 2)+std::pow(aR_neu, 2)) / (std::pow(aL_lep, 2)+std::pow(aR_lep, 2)), 2)*3.
-      );
+      BRcorrs.push_back(std::pow(BR_Z_nunu_ratio, 2)*3.);
+      filter_corrs.push_back((!has2LFilter ? 1. : BR_Z_ll_POWHEG));
       break;
     case kZZTo2L2Q:
       hypos.push_back("2e2mu");
-      BRcorrs.push_back(
-        ((std::pow(aL_QUp, 2)+std::pow(aR_QUp, 2))*2.+ (std::pow(aL_QDn, 2)+std::pow(aR_QDn, 2))*3.) *3. / (std::pow(aL_lep, 2)+std::pow(aR_lep, 2)) * (hasTaus ? 3. : 2.)
-      );
+      BRcorrs.push_back((BR_Z_uu_ratio*2.+ BR_Z_dd_ratio*3.)*3. * BR_Z_ll_ratio*(hasTaus ? 3. : 2.));
+      filter_corrs.push_back((!has2LFilter ? 1. : (1.-BR_Z_ll_POWHEG))); // 4l veto
       break;
     case kZZTo4Q:
-      // 4q, different flavors or different colors
+      // (A) 4q, different flavors or different colors
       hypos.push_back("2e2mu");
       BRcorrs.push_back(
-        (
-          (std::pow(aL_QUp, 2)+std::pow(aR_QUp, 2))*(std::pow(aL_QUp, 2)+std::pow(aR_QUp, 2))*(9.*1. + 6.*2./2.) // (uucc)xNc^2 + (4u+4c)xNcx(Nc-1)(/2 bc. we are using 2e2mu)
-          +
-          (std::pow(aL_QDn, 2)+std::pow(aR_QDn, 2))*(std::pow(aL_QDn, 2)+std::pow(aR_QDn, 2))*(9.*3. + 6.*3./2.) // (ddss + ddbb + ssbb)xNc^2 + (4d+4s+4b)xNcx(Nc-1)(/2 bc. we are using 2e2mu)
-          +
-          (std::pow(aL_QUp, 2)+std::pow(aR_QUp, 2))*(std::pow(aL_QDn, 2)+std::pow(aR_QDn, 2))*(9.*6.) // (uudd + uuss + uubb + ccdd + ccss + ccbb)xNc^2
-          ) / std::pow((std::pow(aL_lep, 2)+std::pow(aR_lep, 2)), 2)
+        BR_Z_uu_ratio*BR_Z_uu_ratio * (9.*1. + 6.*2./2.) // (uucc)xNc^2 + (4u+4c)xNcx(Nc-1)(/2 bc. we are using 2e2mu)
+        +
+        BR_Z_dd_ratio*BR_Z_dd_ratio * (9.*3. + 6.*3./2.) // (ddss + ddbb + ssbb)xNc^2 + (4d+4s+4b)xNcx(Nc-1)(/2 bc. we are using 2e2mu)
+        +
+        BR_Z_uu_ratio*BR_Z_dd_ratio * (9.*6.) // (uudd + uuss + uubb + ccdd + ccss + ccbb)xNc^2
       );
-      // 4q, same flavors
+      filter_corrs.push_back((!has2LFilter ? 1. : BR_Z_ll_POWHEG));
+      // (B) 4q, same flavors
       hypos.push_back("4e");
       BRcorrs.push_back(
-        (
-          (std::pow(aL_QUp, 2)+std::pow(aR_QUp, 2))*(std::pow(aL_QUp, 2)+std::pow(aR_QUp, 2))*2. // 4u+4c
-          +
-          (std::pow(aL_QDn, 2)+std::pow(aR_QDn, 2))*(std::pow(aL_QDn, 2)+std::pow(aR_QDn, 2))*3. // 4d+4s+4b
-          )*3. / std::pow((std::pow(aL_lep, 2)+std::pow(aR_lep, 2)), 2) // Color factor = 3 on this line
+        BR_Z_uu_ratio*BR_Z_uu_ratio * (3.*2.) // 4u+4c
+        +
+        BR_Z_dd_ratio*BR_Z_dd_ratio * (3.*3.) // 4d+4s+4b
       );
+      filter_corrs.push_back((!has2LFilter ? 1. : BR_Z_ll_POWHEG));
+      // Sum of coefficients (ignoring couplings) (A)*2+(B) = 225 = (5*3)^2
       break;
     default:
       return;
     }
 
     double br_sum = 0;
+    double br_sum_unfiltered = 0;
     for (unsigned int ih=0; ih<hypos.size(); ih++){
       HiggsXSBRReader hxsbrReader("../data/HiggsXSBR/YR3.csv", hypos.at(ih));
       double br_MH = hxsbrReader.eval_br(sampleMH);
       double br_MH_corr = br_MH * BRcorrs.at(ih);
-      br_sum += br_MH_corr;
-      MELAout << "BR[" << hypos.at(ih) << "] before / after correction: " << br_MH << " / " << br_MH_corr << endl;
+      double br_MH_corr_filtered = br_MH_corr * filter_corrs.at(ih);
+      br_sum += br_MH_corr_filtered;
+      br_sum_unfiltered += br_MH_corr;
+      MELAout << "BR[" << hypos.at(ih) << "] before / after correction / after filter: " << br_MH << " / " << br_MH_corr << " / " << br_MH_corr_filtered << endl;
     }
 
     double avg_br = sum_wgts[1]/sum_wgts[0];
@@ -298,8 +340,9 @@ void getHiggsBRs(TString strSampleSet, TString period, TString prodVersion){
     avg_br_err = std::sqrt((avg_br_err - std::pow(avg_br, 2))/(count-1.));
 
     MELAout << "Events have taus ? " << hasTaus << endl;
-    //MELAout << "Average BR[" << strSample << "]: " << sum_br_wgts / sum_wgts * (strSampleSet.Contains("WW") ? (hasTaus ? 9. : 4.) : 1.) << " (alt=" << sum_br_alt_wgts / sum_wgts * (hasTaus ? 3. : 2.) << ")" << endl;
-    MELAout << "BR(MH): " << br_sum << endl;
+    MELAout << "BR(MH) before filter: " << br_sum_unfiltered << endl;
+    MELAout << "BR(MH) after filter: " << br_sum << endl;
+    MELAout << "Filter eff.: " << br_sum/br_sum_unfiltered << endl;
     MELAout << "Average BR(MH) adjustment: " << avg_br << " +- " << avg_br_err << endl;
     MELAout << "Average BR: " << avg_br*br_sum << " +- " << avg_br_err*br_sum << endl;
   }
