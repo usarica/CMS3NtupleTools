@@ -231,10 +231,10 @@ void getHiggsBRs(TString strSampleSet, TString period, TString prodVersion){
       BRcorrs.push_back(1);
       break;
     case kZZTo2Nu2X:
-      // 2l2nu
+      // 2nu2l
       hypos.push_back("2e2mu");
       BRcorrs.push_back((std::pow(aL_neu, 2)+std::pow(aR_neu, 2)) / (std::pow(aL_lep, 2)+std::pow(aR_lep, 2)) * 3. * (hasTaus ? 3. : 2.));
-      // 2q2nu
+      // 2nu2q
       hypos.push_back("2e2mu");
       BRcorrs.push_back(
         ((std::pow(aL_QUp, 2)+std::pow(aR_QUp, 2))*2.+ (std::pow(aL_QDn, 2)+std::pow(aR_QDn, 2))*3.) *3. / (std::pow(aL_lep, 2)+std::pow(aR_lep, 2)) // Reweighting of 2e->2q
@@ -244,7 +244,7 @@ void getHiggsBRs(TString strSampleSet, TString period, TString prodVersion){
       // 4nu, different flavors
       hypos.push_back("2e2mu");
       BRcorrs.push_back(
-        std::pow((std::pow(aL_neu, 2)+std::pow(aR_neu, 2)) / (std::pow(aL_lep, 2)+std::pow(aR_lep, 2)), 2)*6.
+        std::pow((std::pow(aL_neu, 2)+std::pow(aR_neu, 2)) / (std::pow(aL_lep, 2)+std::pow(aR_lep, 2)), 2)*3.
       );
       // 4nu, same flavors
       hypos.push_back("4e");
@@ -259,15 +259,15 @@ void getHiggsBRs(TString strSampleSet, TString period, TString prodVersion){
       );
       break;
     case kZZTo4Q:
-      // 4q, different flavors
+      // 4q, different flavors or different colors
       hypos.push_back("2e2mu");
       BRcorrs.push_back(
         (
-          (std::pow(aL_QUp, 2)+std::pow(aR_QUp, 2))*(std::pow(aL_QUp, 2)+std::pow(aR_QUp, 2)) // uucc
+          (std::pow(aL_QUp, 2)+std::pow(aR_QUp, 2))*(std::pow(aL_QUp, 2)+std::pow(aR_QUp, 2))*(9.*1. + 6.*2./2.) // (uucc)xNc^2 + (4u+4c)xNcx(Nc-1)(/2 bc. we are using 2e2mu)
           +
-          (std::pow(aL_QDn, 2)+std::pow(aR_QDn, 2))*(std::pow(aL_QDn, 2)+std::pow(aR_QDn, 2))*3. // ddss + ddbb + ssbb
+          (std::pow(aL_QDn, 2)+std::pow(aR_QDn, 2))*(std::pow(aL_QDn, 2)+std::pow(aR_QDn, 2))*(9.*3. + 6.*3./2.) // (ddss + ddbb + ssbb)xNc^2 + (4d+4s+4b)xNcx(Nc-1)(/2 bc. we are using 2e2mu)
           +
-          (std::pow(aL_QUp, 2)+std::pow(aR_QUp, 2))*(std::pow(aL_QDn, 2)+std::pow(aR_QDn, 2))*6. // uudd + uuss + uubb + ccdd + ccss + ccbb
+          (std::pow(aL_QUp, 2)+std::pow(aR_QUp, 2))*(std::pow(aL_QDn, 2)+std::pow(aR_QDn, 2))*(9.*6.) // (uudd + uuss + uubb + ccdd + ccss + ccbb)xNc^2
           ) / std::pow((std::pow(aL_lep, 2)+std::pow(aR_lep, 2)), 2)
       );
       // 4q, same flavors
@@ -277,7 +277,7 @@ void getHiggsBRs(TString strSampleSet, TString period, TString prodVersion){
           (std::pow(aL_QUp, 2)+std::pow(aR_QUp, 2))*(std::pow(aL_QUp, 2)+std::pow(aR_QUp, 2))*2. // 4u+4c
           +
           (std::pow(aL_QDn, 2)+std::pow(aR_QDn, 2))*(std::pow(aL_QDn, 2)+std::pow(aR_QDn, 2))*3. // 4d+4s+4b
-          ) / std::pow((std::pow(aL_lep, 2)+std::pow(aR_lep, 2)), 2)
+          )*3. / std::pow((std::pow(aL_lep, 2)+std::pow(aR_lep, 2)), 2) // Color factor = 3 on this line
       );
       break;
     default:
