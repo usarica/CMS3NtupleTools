@@ -26,11 +26,9 @@ declare -a systs=( \
     tAsMZDn tAsMZUp \
     tPDFReplicaDn tPDFReplicaUp \
     tEWDn tEWUp \
-    eEleEffDn eEleEffUp \
     eEleEffStatDn eEleEffStatUp \
     eEleEffSystDn eEleEffSystUp \
     eEleEffAltMCDn eEleEffAltMCUp \
-    eMuEffDn eMuEffUp \
     eMuEffStatDn eMuEffStatUp \
     eMuEffSystDn eMuEffSystUp \
     eMuEffAltMCDn eMuEffAltMCUp \
