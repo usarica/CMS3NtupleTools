@@ -52,7 +52,9 @@ void getMCSampleDirs(
     eBTagSFDn, eBTagSFUp,
 
     ePUDn, ePUUp,
-    eL1PrefiringDn, eL1PrefiringUp
+    eL1PrefiringDn, eL1PrefiringUp,
+
+    eTriggerEffDn, eTriggerEffUp
   };
   if (HelperFunctions::checkListVariable(disallowedSysts, theGlobalSyst)) theGlobalSyst = sNominal;
 
