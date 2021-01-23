@@ -27,6 +27,35 @@ void getMCSampleDirs(
 ){
   using namespace SystematicsHelpers;
 
+  std::vector<SystematicsHelpers::SystematicVariationTypes> const disallowedSysts{
+    tPDFScaleDn, tPDFScaleUp,
+    tQCDScaleDn, tQCDScaleUp,
+    tAsMZDn, tAsMZUp,
+    tPDFReplicaDn, tPDFReplicaUp,
+    tPythiaScaleDn, tPythiaScaleUp,
+    tPythiaTuneDn, tPythiaTuneUp,
+    tEWDn, tEWUp,
+
+    eEleEffDn, eEleEffUp,
+    eEleEffStatDn, eEleEffStatUp,
+    eEleEffSystDn, eEleEffSystUp,
+    eEleEffAltMCDn, eEleEffAltMCUp,
+
+    eMuEffDn, eMuEffUp,
+    eMuEffStatDn, eMuEffStatUp,
+    eMuEffSystDn, eMuEffSystUp,
+    eMuEffAltMCDn, eMuEffAltMCUp,
+
+    ePhoEffDn, ePhoEffUp,
+
+    ePUJetIdEffDn, ePUJetIdEffUp,
+    eBTagSFDn, eBTagSFUp,
+
+    ePUDn, ePUUp,
+    eL1PrefiringDn, eL1PrefiringUp
+  };
+  if (HelperFunctions::checkListVariable(disallowedSysts, theGlobalSyst)) theGlobalSyst = sNominal;
+
   TString strSyst = SystematicsHelpers::getSystName(theGlobalSyst).data();
   TString period = SampleHelpers::getDataPeriod();
 
@@ -38,7 +67,22 @@ void getMCSampleDirs(
         "qqZZ_2l2nu",{ "qqZZ_2l2nu", "qqZZ_2l2nu_ext" }
       },
       {
+        "qqZZ_2l2q",{ "qqZZ_2l2q" }
+      },
+      {
+        "qqZZ_4l",{ "qqZZ_4l", "qqZZ_4l_ext" }
+      },
+      {
         "qqWZ_3lnu",{ "qqWZ_3lnu_POWHEG" }
+      },
+      {
+        "qqWZ_2l2q",{ "qqWZ_2l2q" }
+      },
+      {
+        "TTZ_2l2nu",{ "TTZ_2l2nu_M_10" }
+      },
+      {
+        "TZ_2l_4f",{ "TZ_2l_4f" }
       }
     };
     break;
@@ -48,7 +92,22 @@ void getMCSampleDirs(
         "qqZZ_2l2nu",{ "qqZZ_2l2nu" }
       },
       {
+        "qqZZ_2l2q",{ "qqZZ_2l2q" }
+      },
+      {
+        "qqZZ_4l",{ "qqZZ_4l", "qqZZ_4l_ext" }
+      },
+      {
         "qqWZ_3lnu",{ "qqWZ_3lnu_POWHEG" }
+      },
+      {
+        "qqWZ_2l2q",{ "qqWZ_2l2q" }
+      },
+      {
+        "TTZ_2l2nu",{ "TTZ_2l2nu" }
+      },
+      {
+        "TZ_2l_4f",{ "TZ_2l_4f" }
       }
     };
     break;
@@ -58,7 +117,22 @@ void getMCSampleDirs(
         "qqZZ_2l2nu",{ "qqZZ_2l2nu", "qqZZ_2l2nu_ext" }
       },
       {
+        "qqZZ_2l2q",{ "qqZZ_2l2q" }
+      },
+      {
+        "qqZZ_4l",{ "qqZZ_4l" }
+      },
+      {
         "qqWZ_3lnu",{ "qqWZ_3lnu_POWHEG" }
+      },
+      {
+        "qqWZ_2l2q",{ "qqWZ_2l2q" }
+      },
+      {
+        "TTZ_2l2nu",{ "TTZ_2l2nu" }
+      },
+      {
+        "TZ_2l_4f",{ "TZ_2l_4f" }
       }
     };
     break;
@@ -187,7 +261,7 @@ void getMCSampleDirs(
 
 
 using namespace SystematicsHelpers;
-void getDistributions(
+void getTrees_ZZTo2L2Nu(
   TString period, TString prodVersion, TString strdate,
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst,
   // Jet ID options
@@ -213,7 +287,7 @@ void getDistributions(
   std::vector<TString> const validDataPeriods = SampleHelpers::getValidDataPeriods();
   size_t const nValidDataPeriods = validDataPeriods.size();
 
-  TString const coutput_main = "output/SimBkgEstimates/" + strdate + "/FinalTrees/" + period;
+  TString const coutput_main = "output/SimBkgEstimates_ZZTo2L2Nu/" + strdate + "/FinalTrees/" + period;
 
   TDirectory* curdir = gDirectory;
   gSystem->mkdir(coutput_main, true);
@@ -447,11 +521,12 @@ void getDistributions(
 
     // Reset ME and K factor values
     for (auto& it:ME_Kfactor_values) it.second = -1;
-    bool is_qqVV = sgroup.Contains("qqZZ") || sgroup.Contains("qqWZ") || sgroup.Contains("qqWW");
-    bool is_ggVV = sgroup.Contains("ggZZ") || sgroup.Contains("ggWW") || sgroup.Contains("GGH");
-    bool isData = (sgroup == "Data");
+    bool const is_qqVV = sgroup.Contains("qqZZ") || sgroup.Contains("qqWZ") || sgroup.Contains("qqWW");
+    bool const is_ggVV = sgroup.Contains("ggZZ") || sgroup.Contains("ggWW") || sgroup.Contains("GGH");
+    bool const isData = (sgroup == "Data");
 
-    bool useNNPDF30 = !isData;
+    bool const useNNPDF30 = !isData && sgroup.Contains("TZ_2l");
+    bool const requireGenMatchedLeptons = (sgroup.Contains("TTZ_2l2nu") || sgroup.Contains("TZ_2l"));
 
     float* val_Kfactor_QCD = nullptr;
     float* val_Kfactor_EW = nullptr;
@@ -640,8 +715,8 @@ void getDistributions(
       if (!check_pTl1(pTl1)) continue;
       if (!check_pTl2(pTl2)) continue;
 
-
       bool const hasGenMatchedPair = isData || (leptons_is_genMatched_prompt->front() && leptons_is_genMatched_prompt->back());
+      if (requireGenMatchedLeptons && !hasGenMatchedPair) continue;
 
       *ptr_event_wgt_SFs_PUJetId = std::min(*ptr_event_wgt_SFs_PUJetId, 3.f);
       float wgt =
@@ -784,6 +859,6 @@ void runDistributionsChain(
   bool use_MET_XYCorr=true, bool use_MET_JERCorr=true, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true
 ){
 #define _JETMETARGS_ applyPUIdToAK4Jets, applyTightLeptonVetoIdToAK4Jets, use_MET_Puppi, use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr, use_MET_p4Preservation, use_MET_corrections
-  getDistributions(period, prodVersion, strdate, theGlobalSyst, _JETMETARGS_);
+  getTrees_ZZTo2L2Nu(period, prodVersion, strdate, theGlobalSyst, _JETMETARGS_);
 #undef _JETMETARGS_
 }
