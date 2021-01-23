@@ -6,10 +6,18 @@ prodVersion=$3
 script=produceNRBEstimates.cc
 function=runDistributionsChain
 jobdate="NRBEstimates_${date}"
-arguments='"<period>","<prodVersion>","<strdate>",<theGlobalSyst>'
+arguments='"<period>","<prodVersion>","<strdate>",<theGlobalSyst>,<applyPUIdToAK4Jets>,<applyTightLeptonVetoIdToAK4Jets>,<use_MET_Puppi>,<use_MET_XYCorr>,<use_MET_JERCorr>,<use_MET_ParticleMomCorr>,<use_MET_p4Preservation>,<use_MET_corrections>'
 arguments="${arguments/<period>/$period}"
 arguments="${arguments/<strdate>/$date}"
 arguments="${arguments/<prodVersion>/$prodVersion}"
+arguments="${arguments/<applyPUIdToAK4Jets>/true}"
+arguments="${arguments/<applyTightLeptonVetoIdToAK4Jets>/false}"
+arguments="${arguments/<use_MET_Puppi>/false}"
+arguments="${arguments/<use_MET_XYCorr>/true}"
+arguments="${arguments/<use_MET_JERCorr>/false}"
+arguments="${arguments/<use_MET_ParticleMomCorr>/true}"
+arguments="${arguments/<use_MET_p4Preservation>/true}"
+arguments="${arguments/<use_MET_corrections>/true}"
 
 # Run only on those that change data and MC alike
 declare -a systs=( \

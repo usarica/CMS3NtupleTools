@@ -327,6 +327,10 @@ bool checkOrthogonalTrigger(TriggerHelpers::TriggerType const& type, float const
   return res;
 }
 
+std::vector<SystematicsHelpers::SystematicVariationTypes> const getAllowedSysts(){
+  return std::vector<SystematicsHelpers::SystematicVariationTypes>{ SystematicsHelpers::sNominal, SystematicsHelpers::ePUDn, SystematicsHelpers::ePUUp };
+}
+
 using namespace SystematicsHelpers;
 void getEfficiencyHistograms(
   TString period, TString prodVersion, TString strdate,
@@ -1871,12 +1875,12 @@ void collectEfficiencies(
 
   TString stroutput = coutput_main + "/trigger_efficiencies_leptons.root";
   TFile* foutput = TFile::Open(stroutput, "recreate");
+
   foutput->cd();
   TDirectory* outdir_Dilepton_Combined = foutput->mkdir("Dilepton_Combined"); foutput->cd();
   TDirectory* outdir_SingleLepton_Combined = foutput->mkdir("SingleLepton_Combined"); foutput->cd();
 
-  std::vector<SystematicsHelpers::SystematicVariationTypes> const allowedSysts{ SystematicsHelpers::sNominal, SystematicsHelpers::ePUDn, SystematicsHelpers::ePUUp };
-  for (auto const& syst:allowedSysts){
+  for (auto const& syst:getAllowedSysts()){
     TString strSyst = SystematicsHelpers::getSystName(syst).data();
     TString cinput_main = "output/DileptonTriggerTnPEvents/Efficiencies/" + strdate + "/" + period + "/Combined";
     TString strinput = cinput_main + Form("/histograms_%s.root", strSyst.Data());
@@ -2332,5 +2336,23 @@ void collectEfficiencies(
   }
   outdir_SingleLepton_Combined->Close();
   outdir_Dilepton_Combined->Close();
+
   foutput->Close();
+
+  SampleHelpers::addToCondorTransferList(stroutput);
+}
+
+void runChain(
+  TString period, TString prodVersion, TString strdate
+){
+  for (auto const& syst:getAllowedSysts()) getEfficiencyHistograms(
+    period, prodVersion, strdate,
+    syst,
+    // Jet ID options
+    true, false,
+    // MET options
+    false,
+    true, false, true, true, true
+  );
+  collectEfficiencies(period, prodVersion, strdate);
 }

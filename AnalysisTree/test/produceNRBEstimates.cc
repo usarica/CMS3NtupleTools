@@ -11,6 +11,9 @@
 #include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
 
 
+constexpr bool useJetOverlapStripping=false;
+
+
 void makePlot(
   TString const& coutput_main,
   float const& lumi,
@@ -23,7 +26,12 @@ void makePlot(
   float factorYHigh=-1
 );
 
-void getDataSampleDirs(std::vector<TString>& strsamples){
+void getDataSampleDirs(
+  std::vector<TString>& strsamples,
+  bool applyPUIdToAK4Jets, bool applyTightLeptonVetoIdToAK4Jets,
+  bool use_MET_Puppi,
+  bool use_MET_XYCorr, bool use_MET_JERCorr, bool use_MET_ParticleMomCorr, bool use_MET_p4Preservation, bool use_MET_corrections
+){
   SystematicsHelpers::SystematicVariationTypes const syst = SystematicsHelpers::sNominal;
   TString strSyst = SystematicsHelpers::getSystName(syst).data();
 
@@ -32,12 +40,29 @@ void getDataSampleDirs(std::vector<TString>& strsamples){
 
   for (auto const& period:validDataPeriods){
     if (isDataLikePeriod && period!=SampleHelpers::getDataPeriod()) continue;
-    strsamples.push_back(Form("%s/Run%s_%s*%s", period.Data(), period.Data(), strSyst.Data(), ".root"));
+
+    TString cinput_main =
+      TString("AK4Jets")
+      + "_" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
+      + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
+      + "_" + (useJetOverlapStripping ? "ParticleStripped" : "ParticleCleaned")
+      + "/" + (use_MET_Puppi ? "PUPPIMET" : "PFMET")
+      + "_" + (use_MET_XYCorr ? "WithXY" : "NoXY");
+    cinput_main = cinput_main
+      + "_" + (use_MET_ParticleMomCorr ? "WithPartMomCorr" : "NoPartMomCorr")
+      + "_" + (use_MET_p4Preservation ? "P4Preserved" : "P4Default");
+    cinput_main = cinput_main + "/" + period;
+
+    strsamples.push_back(Form("%s/Run%s_%s*%s", cinput_main.Data(), period.Data(), strSyst.Data(), ".root"));
   }
 }
-void getMCSampleDirs(std::vector< std::pair<TString, std::vector<std::pair<TString, TString>>> >& strsamples, SystematicsHelpers::SystematicVariationTypes const& theGlobalSyst_in){
+void getMCSampleDirs(
+  std::vector< std::pair<TString, std::vector<std::pair<TString, TString>>> >& strsamples, SystematicsHelpers::SystematicVariationTypes theGlobalSyst,
+  bool applyPUIdToAK4Jets, bool applyTightLeptonVetoIdToAK4Jets,
+  bool use_MET_Puppi,
+  bool use_MET_XYCorr, bool use_MET_JERCorr, bool use_MET_ParticleMomCorr, bool use_MET_p4Preservation, bool use_MET_corrections
+){
   using namespace SystematicsHelpers;
-  SystematicVariationTypes theGlobalSyst = theGlobalSyst_in;
   std::vector<SystematicsHelpers::SystematicVariationTypes> const disallowedSysts{
     eEleEffDn, eEleEffUp,
     eEleEffStatDn, eEleEffStatUp,
@@ -60,7 +85,7 @@ void getMCSampleDirs(std::vector< std::pair<TString, std::vector<std::pair<TStri
   if (HelperFunctions::checkListVariable(disallowedSysts, theGlobalSyst)) theGlobalSyst = sNominal;
 
   TString strSyst = SystematicsHelpers::getSystName(theGlobalSyst).data();
-  TString strPeriod = SampleHelpers::getDataPeriod();
+  TString period = SampleHelpers::getDataPeriod();
 
   std::vector< std::pair< TString, std::vector<TString> > > sampleSpecs;
   switch (SampleHelpers::getDataYear()){
@@ -152,6 +177,21 @@ void getMCSampleDirs(std::vector< std::pair<TString, std::vector<std::pair<TStri
     };
     break;
   }
+
+  TString cinput_main =
+    TString("AK4Jets")
+    + "_" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
+    + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
+    + "_" + (useJetOverlapStripping ? "ParticleStripped" : "ParticleCleaned")
+    + "/" + (use_MET_Puppi ? "PUPPIMET" : "PFMET")
+    + "_" + (use_MET_XYCorr ? "WithXY" : "NoXY");
+  cinput_main = cinput_main + "_" + (use_MET_JERCorr ? "WithJER" : "NoJER");
+  cinput_main = cinput_main
+    + "_" + (use_MET_ParticleMomCorr ? "WithPartMomCorr" : "NoPartMomCorr")
+    + "_" + (use_MET_p4Preservation ? "P4Preserved" : "P4Default");
+  cinput_main = cinput_main + "_" + (use_MET_corrections ? "ResolutionCorrected" : "ResolutionUncorrected");
+  cinput_main = cinput_main + "/" + period;
+
   for (auto const& s:sampleSpecs){
     std::vector<TString> sdirs;
     std::vector<std::pair<TString, TString>> sname_dir_pairs;
@@ -162,7 +202,7 @@ void getMCSampleDirs(std::vector< std::pair<TString, std::vector<std::pair<TStri
       HelperFunctions::replaceString(cinput, "_MINIAODSIM", "");
       HelperFunctions::replaceString(cinput, "_MINIAOD", "");
       cinput = cinput + "_" + strSyst + "*.root";
-      cinput = strPeriod + "/" + cinput;
+      cinput = cinput_main + "/" + cinput;
       sname_dir_pairs.emplace_back(sname, cinput);
     }
     strsamples.emplace_back(s.first, sname_dir_pairs);
@@ -209,8 +249,6 @@ void getMCSampleDirs(std::vector< std::pair<TString, std::vector<std::pair<TStri
   BRANCH_COMMAND(float, event_mTZZ) \
   BRANCH_COMMAND(float, event_mZZ) \
   BRANCH_COMMAND(bool, event_pass_tightMETFilters) \
-  BRANCH_COMMAND(float, genmet_pTmiss) \
-  BRANCH_COMMAND(float, genmet_phimiss) \
   BRANCH_COMMAND(unsigned int, event_n_vtxs_good) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt30) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt30_btagged_loose) \
@@ -262,20 +300,16 @@ void getDistributions(
   unsigned int istep,
   int channel_triggerEff=0, // 0 to disable, id1*id2 to mark mumu/mue/ee
   int idx_sidebandEff=0, // Sign of sideband stat. unc. on fcorr, only for istep=1
-  bool fast_mode=false // No SR histograms
-){
-  using namespace OffshellCutflow;
-
-  constexpr bool useJetOverlapStripping=false;
-  constexpr bool applyPUIdToAK4Jets=true;
-  constexpr bool applyTightLeptonVetoIdToAK4Jets=false;
+  bool fast_mode=false, // No SR histograms
+  // Jet ID options
+  bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false,
   // MET options
-  constexpr bool use_MET_Puppi=false;
-  constexpr bool use_MET_XYCorr=true;
-  constexpr bool use_MET_JERCorr=true;
-  constexpr bool use_MET_ParticleMomCorr=true;
-  constexpr bool use_MET_p4Preservation=true;
-  constexpr bool use_MET_corrections=true;
+  bool use_MET_Puppi=false,
+  bool use_MET_XYCorr=true, bool use_MET_JERCorr=true, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true
+){
+#define _JETMETARGS_ applyPUIdToAK4Jets, applyTightLeptonVetoIdToAK4Jets, use_MET_Puppi, use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr, use_MET_p4Preservation, use_MET_corrections
+
+  using namespace OffshellCutflow;
 
   constexpr unsigned int maxSteps = 2;
 
@@ -320,7 +354,9 @@ void getDistributions(
   constexpr float thr_corr_mll = 201.2f;
 
   std::vector<TString> transfer_list;
+  TString const cinput_main = "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/DileptonEvents/SkimTrees/" + strdate;
   TString const coutput_main = "output/NRBEstimates/" + strdate + "/Histograms/" + period;
+
   TDirectory* curdir = gDirectory;
   gSystem->mkdir(coutput_main, true);
 
@@ -382,21 +418,9 @@ void getDistributions(
     }
   }
 
-  TString const cinput_main_MC =
-    "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/DileptonEvents/SkimTrees/" + strdate
-    + "/AK4Jets"
-    + "_" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
-    + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
-    + "_" + (useJetOverlapStripping ? "ParticleStripped" : "ParticleCleaned")
-    + "/" + (use_MET_Puppi ? "PUPPIMET" : "PFMET")
-    + "_" + (use_MET_XYCorr ? "WithXY" : "NoXY")
-    + "_" + (use_MET_JERCorr ? "WithJER" : "NoJER")
-    + "_" + (use_MET_ParticleMomCorr ? "WithPartMomCorr" : "NoPartMomCorr")
-    + "_" + (use_MET_p4Preservation ? "P4Preserved" : "P4Default")
-    + "_" + (use_MET_corrections ? "ResolutionCorrected" : "ResolutionUncorrected");
   std::unordered_map<TChain*, double> norm_map;
   std::vector< std::pair<TString, std::vector<std::pair<TString, TString>>> > sgroup_sname_sfname_pairs_MC;
-  if (!fast_mode) getMCSampleDirs(sgroup_sname_sfname_pairs_MC, theGlobalSyst);
+  if (!fast_mode) getMCSampleDirs(sgroup_sname_sfname_pairs_MC, theGlobalSyst, _JETMETARGS_);
   std::vector<std::pair<TString, TChain*>> samples_all;
   std::vector<TString> sgroups;
   for (auto const& sgroup_sname_sfname_pair:sgroup_sname_sfname_pairs_MC){
@@ -407,7 +431,7 @@ void getDistributions(
     for (auto const& sname_sfname_pair:sname_sfname_pairs){
       auto const& sname = sname_sfname_pair.first;
       auto const& sfname = sname_sfname_pair.second;
-      TString cinput = cinput_main_MC + "/" + sfname;
+      TString cinput = cinput_main + "/" + sfname;
       foutput->cd();
       TChain* tin = new TChain("SkimTree");
       int nfiles = tin->Add(cinput);
@@ -454,21 +478,11 @@ void getDistributions(
     << "Relative normalization for sample in group " << sgroup_tin_pair.first << " = " << norm_map[sgroup_tin_pair.second]
     << endl;
 
-  TString const cinput_main_data =
-    "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/DileptonEvents/SkimTrees/" + strdate
-    + "/AK4Jets"
-    + "_" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
-    + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
-    + "_" + (useJetOverlapStripping ? "ParticleStripped" : "ParticleCleaned")
-    + "/" + (use_MET_Puppi ? "PUPPIMET" : "PFMET")
-    + "_" + (use_MET_XYCorr ? "WithXY" : "NoXY")
-    + "_" + (use_MET_ParticleMomCorr ? "WithPartMomCorr" : "NoPartMomCorr")
-    + "_" + (use_MET_p4Preservation ? "P4Preserved" : "P4Default");
   std::vector<TString> sfnames_data;
-  getDataSampleDirs(sfnames_data);
+  getDataSampleDirs(sfnames_data, _JETMETARGS_);
   sgroups.push_back("Data");
   for (auto const& sfname:sfnames_data){
-    TString cinput = cinput_main_data + "/" + sfname;
+    TString cinput = cinput_main + "/" + sfname;
     foutput->cd();
     TChain* tin = new TChain("SkimTree");
     int nfiles = tin->Add(cinput);
@@ -927,7 +941,7 @@ void getDistributions(
       if (dilepton_mass>=thr_corr_mll) continue;
       if (!check_dPhi_pTll_pTmiss(dPhi_pTboson_pTmiss)) continue;
       if (!check_dPhi_pTlljets_pTmiss(dPhi_pTbosonjets_pTmiss)) continue;
-      if (!check_min_abs_dPhi_pTj_pTmiss(min_abs_dPhi_pTj_pTmiss)) continue;
+      if (!check_min_abs_dPhi_pTj_pTmiss(min_abs_dPhi_pTj_pTmiss, event_n_ak4jets_pt30)) continue;
 
       bool const hasGenMatchedPair = isData || (leptons_is_genMatched_prompt->front() && leptons_is_genMatched_prompt->back());
       float const pTl1 = std::max(leptons_pt->front(), leptons_pt->back());
@@ -939,7 +953,7 @@ void getDistributions(
       bool const is_mumu = (dilepton_id==-169);
       bool const is_ee = (dilepton_id==-121);
 
-      bool const pass_SR_pTmiss = check_pTmiss(event_pTmiss);
+      bool const pass_SR_pTmiss = check_pTmiss(event_pTmiss, event_n_ak4jets_pt30);
       bool const pass_SR_pTboson = check_pTboson(dilepton_pt);
 
       *ptr_event_wgt_SFs_PUJetId = std::min(*ptr_event_wgt_SFs_PUJetId, 3.f);
@@ -1562,26 +1576,35 @@ void getDistributions(
 void runDistributionsChain(
   TString period, TString prodVersion, TString strdate,
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst,
-  bool fast_mode=false
+  bool fast_mode=false,
+  // Jet ID options
+  bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false,
+  // MET options
+  bool use_MET_Puppi=false,
+  bool use_MET_XYCorr=true, bool use_MET_JERCorr=true, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true
 ){
+#define _JETMETARGS_ applyPUIdToAK4Jets, applyTightLeptonVetoIdToAK4Jets, use_MET_Puppi, use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr, use_MET_p4Preservation, use_MET_corrections
+
   switch (theGlobalSyst){
   case sNominal:
-    for (unsigned int istep=0; istep<2; istep++) getDistributions(period, prodVersion, strdate, theGlobalSyst, istep, 0, 0, fast_mode);
-    getDistributions(period, prodVersion, strdate, theGlobalSyst, 1, 0, -1, fast_mode);
-    getDistributions(period, prodVersion, strdate, theGlobalSyst, 1, 0, +1, fast_mode);
+    for (unsigned int istep=0; istep<2; istep++) getDistributions(period, prodVersion, strdate, theGlobalSyst, istep, 0, 0, fast_mode, _JETMETARGS_);
+    getDistributions(period, prodVersion, strdate, theGlobalSyst, 1, 0, -1, fast_mode, _JETMETARGS_);
+    getDistributions(period, prodVersion, strdate, theGlobalSyst, 1, 0, +1, fast_mode, _JETMETARGS_);
     break;
   case eTriggerEffDn:
   case eTriggerEffUp:
     for (unsigned int istep=0; istep<2; istep++){
-      getDistributions(period, prodVersion, strdate, theGlobalSyst, istep, -121, 0, fast_mode);
-      getDistributions(period, prodVersion, strdate, theGlobalSyst, istep, -143, 0, fast_mode);
-      getDistributions(period, prodVersion, strdate, theGlobalSyst, istep, -169, 0, fast_mode);
+      getDistributions(period, prodVersion, strdate, theGlobalSyst, istep, -121, 0, fast_mode, _JETMETARGS_);
+      getDistributions(period, prodVersion, strdate, theGlobalSyst, istep, -143, 0, fast_mode, _JETMETARGS_);
+      getDistributions(period, prodVersion, strdate, theGlobalSyst, istep, -169, 0, fast_mode, _JETMETARGS_);
     }
     break;
   default:
-    for (unsigned int istep=0; istep<2; istep++) getDistributions(period, prodVersion, strdate, theGlobalSyst, istep, 0, 0, fast_mode);
+    for (unsigned int istep=0; istep<2; istep++) getDistributions(period, prodVersion, strdate, theGlobalSyst, istep, 0, 0, fast_mode, _JETMETARGS_);
     break;
   };
+
+#undef _JETMETARGS_
 }
 
 

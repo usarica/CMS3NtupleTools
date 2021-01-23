@@ -33,16 +33,16 @@ namespace OffshellCutflow{
     return std::abs(val)>=thr;
   }
 
-  bool check_min_abs_dPhi_pTj_pTmiss(float const& val){
-    constexpr float thr=0.25f;
+  bool check_min_abs_dPhi_pTj_pTmiss(float const& val, int njets=-1){
+    const float thr = (njets<2 ? 0.25f : 0.5f);
     return std::abs(val)>=thr;
   }
 
-  bool check_pTmiss(float const& val){
+  bool check_pTmiss(float const& val, int njets=-1){
     float thr=-1;
     switch (activeFinalState){
     case fs_ZZ_2l2nu:
-      thr=125.f;
+      thr=(njets<2 ? 125.f : 140.f);
       break;
     case fs_WW_2l2nu:
       thr=20.f;
@@ -95,6 +95,7 @@ namespace OffshellCutflow{
     }
     return val>=thr;
   }
+
   bool check_pTl3(float const& val){
     float thr=-1;
     switch (activeFinalState){
