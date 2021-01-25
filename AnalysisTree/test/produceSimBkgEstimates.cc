@@ -16,7 +16,14 @@ constexpr bool useJetOverlapStripping=false;
 
 // Dummy for now, but can be extended to veto certain samples for certain systematics
 bool checkSystematicForSampleGroup(TString const& sgroup, SystematicsHelpers::SystematicVariationTypes const& syst){
-  return true;
+  using namespace SystematicsHelpers;
+  switch (syst){
+  case tEWDn:
+  case tEWUp:
+    return (sgroup.Contains("qqZZ") || sgroup.Contains("qqWZ") || sgroup.Contains("qqWW"));
+  default:
+    return true;
+  }
 }
 
 void getMCSampleDirs(
@@ -78,6 +85,9 @@ void getMCSampleDirs(
         "qqWZ_3lnu",{ "qqWZ_3lnu_POWHEG" }
       },
       {
+        "qqWZ_3lnu_ext",{ "qqWZ_3lnu_POWHEG_mll_0p1-inf" }
+      },
+      {
         "qqWZ_2l2q",{ "qqWZ_2l2q" }
       },
       {
@@ -91,7 +101,10 @@ void getMCSampleDirs(
   case 2017:
     sampleSpecs = std::vector< std::pair< TString, std::vector<TString> > >{
       {
-        "qqZZ_2l2nu",{ "qqZZ_2l2nu" }
+        "qqZZ_2l2nu",{ "qqZZ_2l2nu_mZ_18-inf" }
+      },
+      {
+        "qqZZ_2l2nu_ext",{ "qqZZ_2l2nu" }
       },
       {
         "qqZZ_2l2q",{ "qqZZ_2l2q" }
@@ -100,7 +113,10 @@ void getMCSampleDirs(
         "qqZZ_4l",{ "qqZZ_4l", "qqZZ_4l_ext" }
       },
       {
-        "qqWZ_3lnu",{ "qqWZ_3lnu_POWHEG" }
+        "qqWZ_3lnu",{ "qqWZ_3lnu_POWHEG_mll_0p1-inf" }
+      },
+      {
+        "qqWZ_3lnu_ext",{ "qqWZ_3lnu_POWHEG" }
       },
       {
         "qqWZ_2l2q",{ "qqWZ_2l2q" }
@@ -119,6 +135,9 @@ void getMCSampleDirs(
         "qqZZ_2l2nu",{ "qqZZ_2l2nu", "qqZZ_2l2nu_ext" }
       },
       {
+        "qqZZ_2l2nu_ext",{ "qqZZ_2l2nu_mZ_18-inf" }
+      },
+      {
         "qqZZ_2l2q",{ "qqZZ_2l2q" }
       },
       {
@@ -126,6 +145,9 @@ void getMCSampleDirs(
       },
       {
         "qqWZ_3lnu",{ "qqWZ_3lnu_POWHEG" }
+      },
+      {
+        "qqWZ_3lnu_ext",{ "qqWZ_3lnu_POWHEG_mll_0p1-inf" }
       },
       {
         "qqWZ_2l2q",{ "qqWZ_2l2q" }
@@ -264,7 +286,7 @@ void getMCSampleDirs(
 
 using namespace SystematicsHelpers;
 void getTrees_ZZTo2L2Nu(
-  TString period, TString prodVersion, TString strdate,
+  TString period, TString prodVersion, TString ntupleVersion, TString strdate,
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst,
   // Jet ID options
   bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false,
@@ -335,12 +357,11 @@ void getTrees_ZZTo2L2Nu(
   // Construct the discriminants
   DiscriminantClasses::constructDiscriminants(KDlist, 0, "JJVBFTagged");
 
-
   // Get output files and trees
   std::unordered_map<TString, TFile*> sgroup_foutput_map;
   std::unordered_map<TString, BaseTree*> sgroup_tout_map;
   for (auto const& sgroup:sgroups){
-    TString stroutput = coutput_main + Form("/%s_%s", sgroup.Data(), strSyst.Data());
+    TString stroutput = coutput_main + Form("/finaltree_%s_%s", sgroup.Data(), strSyst.Data());
     stroutput = stroutput + ".root";
     TFile* foutput = TFile::Open(stroutput, "recreate");
 
@@ -398,8 +419,9 @@ void getTrees_ZZTo2L2Nu(
   }
 
   // Get input trees
-  TString const cinput_main = "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/DileptonEvents/SkimTrees/" + strdate;
+  TString const cinput_main = "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/DileptonEvents/SkimTrees/" + ntupleVersion;
   std::unordered_map<TChain*, double> norm_map;
+  std::unordered_map<TChain*, double> xsec_scale_map;
   std::vector<std::pair<TString, TChain*>> samples_all;
   for (auto const& sgroup_sname_sfname_pair:sgroup_sname_sfname_pairs_MC){
     auto const& sgroup = sgroup_sname_sfname_pair.first;
@@ -408,10 +430,17 @@ void getTrees_ZZTo2L2Nu(
     for (auto const& sname_sfname_pair:sname_sfname_pairs){
       auto const& sname = sname_sfname_pair.first;
       auto const& sfname = sname_sfname_pair.second;
+
+      TString sid = SampleHelpers::getSampleIdentifier(sname);
+      float xsec_scale = 1;
+      SampleHelpers::hasXSecException(sid, SampleHelpers::getDataYear(), &xsec_scale);
+      if (xsec_scale!=1.f) MELAout << "\t- Sample " << sname << " has a cross section exception with scale " << xsec_scale << "." << endl;
+
       TString cinput = cinput_main + "/" + sfname;
       curdir->cd();
       TChain* tin = new TChain("SkimTree");
       int nfiles = tin->Add(cinput);
+      xsec_scale_map[tin] = xsec_scale;
       MELAout << "\t- Successfully added " << nfiles << " files for " << sname << " from " << cinput << "..." << endl;
       samples_all.emplace_back(sgroup, tin);
       tins_collected.push_back(tin);
@@ -510,14 +539,26 @@ void getTrees_ZZTo2L2Nu(
     }
   }
 
+  // Keep track of sums of predicted number of events
+  std::unordered_map<TString, std::vector<double> > sgroup_sumwgts_all_map;
+  std::unordered_map<TString, std::vector<double> > sgroup_sumwgts_mTZZ350_map;
+  for (auto const& sgroup:sgroups){
+    sgroup_sumwgts_all_map[sgroup] = std::vector<double>(2, 0);
+    sgroup_sumwgts_mTZZ350_map[sgroup] = std::vector<double>(2, 0);
+  }
 
   // Loop over the samples
   for (auto const& spair:samples_all){
     auto const& sgroup = spair.first;
     auto const& tin = spair.second;
+    double const& xsec_scale = xsec_scale_map.find(tin)->second;
+    double const& norm_scale = norm_map.find(tin)->second;
 
     TFile* foutput = sgroup_foutput_map[sgroup];
     BaseTree* tout = sgroup_tout_map[sgroup];
+
+    auto& sum_wgts_all = sgroup_sumwgts_all_map[sgroup];
+    auto& sum_wgts_mTZZ350 = sgroup_sumwgts_mTZZ350_map[sgroup];
 
     foutput->cd();
 
@@ -726,7 +767,7 @@ void getTrees_ZZTo2L2Nu(
         * (val_Kfactor_QCD ? *val_Kfactor_QCD : 1.f)
         * (val_Kfactor_EW ? *val_Kfactor_EW : 1.f)
         * (*ptr_event_wgt_SFs_muons) * (*ptr_event_wgt_SFs_electrons) * (*ptr_event_wgt_SFs_photons) * (*ptr_event_wgt_SFs_PUJetId) * (*ptr_event_wgt_SFs_btagging)
-        * norm_map[tin];
+        * norm_scale * xsec_scale;
 
       if (!isData){
         float SFself=1, effself=1;
@@ -738,6 +779,15 @@ void getTrees_ZZTo2L2Nu(
           SFself, &effself
         );
         wgt *= SFself;
+      }
+
+      // NO MORE MODIFICATION TO wgt BEYOND THIS POINT!
+      float const wgtsq = std::pow(wgt, 2);
+      sum_wgts_all.front() += wgt;
+      sum_wgts_all.back() += wgtsq;
+      if (event_mTZZ>=350.f){
+        sum_wgts_mTZZ350.front() += wgt;
+        sum_wgts_mTZZ350.back() += wgtsq;
       }
 
       unsigned int out_n_ak4jets_pt30_mass60 = 0;
@@ -765,13 +815,14 @@ void getTrees_ZZTo2L2Nu(
         else if (ak8jet_mass>=140.f) out_n_ak8jets_pt200_mass140++;
       }
 
-
       // Update discriminants
       for (auto& KDspec:KDlist){
         std::vector<float> KDvars; KDvars.reserve(KDspec.KDvars.size());
         for (auto const& strKDvar:KDspec.KDvars) KDvars.push_back(ME_Kfactor_values[strKDvar]);
         KDspec.KD->update(KDvars, event_mZZ); // Use mZZ!
       }
+
+      // Record the event to the output tree
       tout->setVal<float>("weight", wgt);
 
       tout->setVal<float>("mTZZ", event_mTZZ);
@@ -829,8 +880,14 @@ void getTrees_ZZTo2L2Nu(
   for (auto& KDspec:KDlist) KDspec.resetKD();
 
   for (auto const& sgroup:sgroups){
+    MELAout << "Finalizing " << sgroup << ":" << endl;
     TFile* foutput = sgroup_foutput_map[sgroup];
     BaseTree* tout = sgroup_tout_map[sgroup];
+
+    auto const& sum_wgts_all = sgroup_sumwgts_all_map[sgroup];
+    auto const& sum_wgts_mTZZ350 = sgroup_sumwgts_mTZZ350_map[sgroup];
+    MELAout << "\t- Number of events predicted after selection requirements: " << sum_wgts_all.front() << " +- " << std::sqrt(sum_wgts_all.back()) << endl;
+    MELAout << "\t- Number of events predicted after selection requirements and mTZZ>=350 GeV: " << sum_wgts_mTZZ350.front() << " +- " << std::sqrt(sum_wgts_mTZZ350.back()) << endl;
 
     foutput->cd();
     tout->writeToFile(foutput);
@@ -850,9 +907,12 @@ void getTrees_ZZTo2L2Nu(
 #undef BRANCH_VECTOR_COMMANDS
 #undef BRANCH_SCALAR_COMMANDS
 
-
+// period: The data period (i.e. "[year]")
+// prodVersion: SkimTrees directory version (e.g. "201221_[year]")
+// ntupleVersion: Version of trimmed DileptonEvents ntuples, which is separate from the SkimTrees version (e.g. "210107").
+// strdate: Tag for the output
 void runDistributionsChain(
-  TString period, TString prodVersion, TString strdate,
+  TString period, TString prodVersion, TString ntupleVersion, TString strdate,
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst,
   // Jet ID options
   bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false,
@@ -860,7 +920,9 @@ void runDistributionsChain(
   bool use_MET_Puppi=false,
   bool use_MET_XYCorr=true, bool use_MET_JERCorr=true, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true
 ){
+#define _VERSIONARGS_ period, prodVersion, ntupleVersion, strdate
 #define _JETMETARGS_ applyPUIdToAK4Jets, applyTightLeptonVetoIdToAK4Jets, use_MET_Puppi, use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr, use_MET_p4Preservation, use_MET_corrections
-  getTrees_ZZTo2L2Nu(period, prodVersion, strdate, theGlobalSyst, _JETMETARGS_);
+  getTrees_ZZTo2L2Nu(_VERSIONARGS_, theGlobalSyst, _JETMETARGS_);
 #undef _JETMETARGS_
+#undef _VERSIONARGS_
 }

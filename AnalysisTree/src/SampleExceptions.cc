@@ -25,7 +25,6 @@ std::vector<TString> SampleHelpers::getPUExceptions(int const& year){
   for (auto const& sname:slist) res.push_back(getSampleIdentifier(sname));
   return res;
 }
-
 bool SampleHelpers::hasPUException(TString const& sampleIdentifier, int const& year){
   std::vector<TString> const exceptionlist = SampleHelpers::getPUExceptions(year);
   return HelperFunctions::checkListVariable(exceptionlist, sampleIdentifier);
@@ -39,7 +38,6 @@ std::vector< std::pair<TString, SampleHelpers::GenWeightExceptionType> > SampleH
   for (auto& s:res) s.first = getSampleIdentifier(s.first);
   return res;
 }
-
 bool SampleHelpers::hasGenWeightException(TString const& sampleIdentifier, int const& year, SampleHelpers::GenWeightExceptionType& type){
   std::vector< std::pair<TString, SampleHelpers::GenWeightExceptionType> > exceptionlist = getGenWeightExceptions(year);
   for (auto const& s:exceptionlist){
@@ -58,5 +56,48 @@ bool SampleHelpers::hasGenWeightException(TString const& sampleIdentifier, int c
   }
 
   type = nGenWeightExceptionType;
+  return false;
+}
+
+std::vector< std::pair<TString, float> > SampleHelpers::getXSecExceptions(int const& year){
+  std::vector< std::pair<TString, float> > res;
+  switch (year){
+  case 2016:
+  {
+    res.reserve(2);
+    res.emplace_back("/WZTo3LNu_mllmin01_13TeV-powheg-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM", 0.6);
+    res.emplace_back("/WZTo3LNu_mllmin01_13TeV-powheg-pythia8_ext1/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext1-v2/MINIAODSIM", 0.6);
+    break;
+  }
+  case 2017:
+  {
+    res.reserve(2);
+    res.emplace_back("/ZZTo2L2Nu_mZMin-18_TuneCP5_13TeV-powheg-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", 1.078882);
+    res.emplace_back("/WZTo3LNu_mllmin01_NNPDF31_TuneCP5_13TeV_powheg_pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v4/MINIAODSIM", 0.6);
+    break;
+  }
+  case 2018:
+  {
+    res.reserve(2);
+    res.emplace_back("/ZZTo2L2Nu_mZMin-18_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM", 1.078882);
+    res.emplace_back("/WZTo3LNu_mllmin01_NNPDF31_TuneCP5_13TeV_powheg_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM", 0.6);
+    break;
+  }
+  default:
+    break;
+  }
+
+  for (auto& pp:res) pp.first = getSampleIdentifier(pp.first);
+  return res;
+}
+bool SampleHelpers::hasXSecException(TString const& sampleIdentifier, int const& year, float* xsec_mult){
+  auto const exceptionlist = SampleHelpers::getXSecExceptions(year);
+  for (auto const& pp:exceptionlist){
+    if (sampleIdentifier==pp.first){
+      if (xsec_mult) *xsec_mult = pp.second;
+      return true;
+    }
+  }
+  if (xsec_mult) *xsec_mult = 1;
   return false;
 }

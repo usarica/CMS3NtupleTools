@@ -18,6 +18,9 @@ namespace SampleHelpers{
   std::vector< std::pair<TString, SampleHelpers::GenWeightExceptionType> > getGenWeightExceptions(int const& year);
   bool hasGenWeightException(TString const& sampleIdentifier, int const& year, SampleHelpers::GenWeightExceptionType& type);
 
+  std::vector< std::pair<TString, float> > getXSecExceptions(int const& year);
+  bool hasXSecException(TString const& sampleIdentifier, int const& year, float* xsec_mult=nullptr);
+
 }
 
 #endif

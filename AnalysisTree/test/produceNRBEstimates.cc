@@ -295,7 +295,7 @@ void getMCSampleDirs(
 
 using namespace SystematicsHelpers;
 void getDistributions(
-  TString period, TString prodVersion, TString strdate,
+  TString period, TString prodVersion, TString ntupleVersion, TString strdate,
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst,
   unsigned int istep,
   int channel_triggerEff=0, // 0 to disable, id1*id2 to mark mumu/mue/ee
@@ -354,8 +354,8 @@ void getDistributions(
   constexpr float thr_corr_mll = 201.2f;
 
   std::vector<TString> transfer_list;
-  TString const cinput_main = "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/DileptonEvents/SkimTrees/" + strdate;
-  TString const coutput_main = "output/NRBEstimates/" + strdate + "/Histograms/" + period;
+  TString const cinput_main = "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/DileptonEvents/SkimTrees/" + ntupleVersion;
+  TString const coutput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Histograms/" + period;
 
   TDirectory* curdir = gDirectory;
   gSystem->mkdir(coutput_main, true);
@@ -419,6 +419,7 @@ void getDistributions(
   }
 
   std::unordered_map<TChain*, double> norm_map;
+  std::unordered_map<TChain*, double> xsec_scale_map;
   std::vector< std::pair<TString, std::vector<std::pair<TString, TString>>> > sgroup_sname_sfname_pairs_MC;
   if (!fast_mode) getMCSampleDirs(sgroup_sname_sfname_pairs_MC, theGlobalSyst, _JETMETARGS_);
   std::vector<std::pair<TString, TChain*>> samples_all;
@@ -431,10 +432,17 @@ void getDistributions(
     for (auto const& sname_sfname_pair:sname_sfname_pairs){
       auto const& sname = sname_sfname_pair.first;
       auto const& sfname = sname_sfname_pair.second;
+
+      TString sid = SampleHelpers::getSampleIdentifier(sname);
+      float xsec_scale = 1;
+      SampleHelpers::hasXSecException(sid, SampleHelpers::getDataYear(), &xsec_scale);
+      if (xsec_scale!=1.f) MELAout << "\t- Sample " << sname << " has a cross section exception with scale " << xsec_scale << "." << endl;
+
       TString cinput = cinput_main + "/" + sfname;
       foutput->cd();
       TChain* tin = new TChain("SkimTree");
       int nfiles = tin->Add(cinput);
+      xsec_scale_map[tin] = xsec_scale;
       MELAout << "\t- Successfully added " << nfiles << " files for " << sname << " from " << cinput << "..." << endl;
       samples_all.emplace_back(sgroup, tin);
       tins_collected.push_back(tin);
@@ -489,6 +497,7 @@ void getDistributions(
     MELAout << "\t- Successfully added " << nfiles << " files for data from " << cinput << "..." << endl;
     samples_all.emplace_back("Data", tin);
     norm_map[tin] = 1;
+    xsec_scale_map[tin] = 1;
     foutput->cd();
   }
 
@@ -581,9 +590,9 @@ void getDistributions(
   if (istep==maxSteps-1){
     foutput->cd();
 
-    TString const coutput_tree = "output/NRBEstimates/" + strdate + "/FinalTrees/" + period;
+    TString const coutput_tree = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/FinalTrees/" + period;
     gSystem->mkdir(coutput_tree, true);
-    TString stroutput_tree = coutput_tree + Form("/finaltree_data_%s%s", strSyst_output.Data(), ".root");
+    TString stroutput_tree = coutput_tree + Form("/finaltree_NRB_%s%s", strSyst_output.Data(), ".root");
     foutput_tree = TFile::Open(stroutput_tree, "recreate");
     transfer_list.push_back(stroutput_tree);
 
@@ -690,8 +699,8 @@ void getDistributions(
           ExtendedBinning binning_pTll(30, 55., 105, "p_{T}^{ll} (GeV)");
           ExtendedBinning binning_pTl1(19, 25, 500, "p_{T}^{l1} (GeV)");
           ExtendedBinning binning_pTl2(30, 25, 325, "p_{T}^{l2} (GeV)");
-          ExtendedBinning binning_pTmiss(35, 125, 1000, "p_{T}^{miss} (GeV)");
-          ExtendedBinning binning_pTmiss_vbin({ thr_corr_pTmiss, 70, 80, 90, 100, 110, 125, 150, 200, 250 }, "pTmiss", "p_{T}^{miss} (GeV)");
+          ExtendedBinning binning_pTmiss(59, 125, 1010, "p_{T}^{miss} (GeV)");
+          ExtendedBinning binning_pTmiss_vbin({ thr_corr_pTmiss, 70, 80, 90, 100, 110, 125, 140, 190, 250 }, "pTmiss", "p_{T}^{miss} (GeV)");
           ExtendedBinning binning_nvtxs(50, 0, 100, "N_{vtx}");
           ExtendedBinning binning_abs_dPhi_pTboson_pTmiss(32, 0, 3.2, "|#phi_{ll}-#phi_{miss}|");
           ExtendedBinning binning_abs_dPhi_pTbosonjets_pTmiss(32, 0, 3.2, "|#phi_{ll+jets}-#phi_{miss}|");
@@ -789,6 +798,8 @@ void getDistributions(
   for (auto const& spair:samples_all){
     auto const& sgroup = spair.first;
     auto const& tin = spair.second;
+    double const& xsec_scale = xsec_scale_map.find(tin)->second;
+    double const& norm_scale = norm_map.find(tin)->second;
 
     // Reset ME and K factor values
     for (auto& it:ME_Kfactor_values) it.second = -1;
@@ -957,9 +968,11 @@ void getDistributions(
       bool const pass_SR_pTboson = check_pTboson(dilepton_pt);
 
       *ptr_event_wgt_SFs_PUJetId = std::min(*ptr_event_wgt_SFs_PUJetId, 3.f);
-      float wgt = (*ptr_event_wgt) * (*ptr_event_wgt_SFs_muons) * (*ptr_event_wgt_SFs_electrons) * (*ptr_event_wgt_SFs_photons) * (*ptr_event_wgt_SFs_PUJetId) * (*ptr_event_wgt_SFs_btagging) * norm_map[tin];
-      if (val_Kfactor_QCD) wgt *= *val_Kfactor_QCD;
-      if (val_Kfactor_EW) wgt *= *val_Kfactor_EW;
+      float wgt =
+        (*ptr_event_wgt) * (*ptr_event_wgt_SFs_muons) * (*ptr_event_wgt_SFs_electrons) * (*ptr_event_wgt_SFs_photons) * (*ptr_event_wgt_SFs_PUJetId) * (*ptr_event_wgt_SFs_btagging)
+        * (val_Kfactor_QCD ? *val_Kfactor_QCD : 1.f)
+        * (val_Kfactor_EW ? *val_Kfactor_EW : 1.f)
+        * norm_scale * xsec_scale;
 
       float wgt_emu_rewgt_ee = 1;
       float wgt_emu_rewgt_mumu = 1;
@@ -1573,8 +1586,12 @@ void getDistributions(
 #undef BRANCH_SCALAR_COMMANDS
 
 
+// period: The data period (i.e. "[year]")
+// prodVersion: SkimTrees directory version (e.g. "201221_[year]")
+// ntupleVersion: Version of trimmed DileptonEvents ntuples, which is separate from the SkimTrees version (e.g. "210107").
+// strdate: Tag for the output
 void runDistributionsChain(
-  TString period, TString prodVersion, TString strdate,
+  TString period, TString prodVersion, TString ntupleVersion, TString strdate,
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst,
   bool fast_mode=false,
   // Jet ID options
@@ -1583,28 +1600,30 @@ void runDistributionsChain(
   bool use_MET_Puppi=false,
   bool use_MET_XYCorr=true, bool use_MET_JERCorr=true, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true
 ){
+#define _VERSIONARGS_ period, prodVersion, ntupleVersion, strdate
 #define _JETMETARGS_ applyPUIdToAK4Jets, applyTightLeptonVetoIdToAK4Jets, use_MET_Puppi, use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr, use_MET_p4Preservation, use_MET_corrections
 
   switch (theGlobalSyst){
   case sNominal:
-    for (unsigned int istep=0; istep<2; istep++) getDistributions(period, prodVersion, strdate, theGlobalSyst, istep, 0, 0, fast_mode, _JETMETARGS_);
-    getDistributions(period, prodVersion, strdate, theGlobalSyst, 1, 0, -1, fast_mode, _JETMETARGS_);
-    getDistributions(period, prodVersion, strdate, theGlobalSyst, 1, 0, +1, fast_mode, _JETMETARGS_);
+    for (unsigned int istep=0; istep<2; istep++) getDistributions(_VERSIONARGS_, theGlobalSyst, istep, 0, 0, fast_mode, _JETMETARGS_);
+    getDistributions(_VERSIONARGS_, theGlobalSyst, 1, 0, -1, fast_mode, _JETMETARGS_);
+    getDistributions(_VERSIONARGS_, theGlobalSyst, 1, 0, +1, fast_mode, _JETMETARGS_);
     break;
   case eTriggerEffDn:
   case eTriggerEffUp:
     for (unsigned int istep=0; istep<2; istep++){
-      getDistributions(period, prodVersion, strdate, theGlobalSyst, istep, -121, 0, fast_mode, _JETMETARGS_);
-      getDistributions(period, prodVersion, strdate, theGlobalSyst, istep, -143, 0, fast_mode, _JETMETARGS_);
-      getDistributions(period, prodVersion, strdate, theGlobalSyst, istep, -169, 0, fast_mode, _JETMETARGS_);
+      getDistributions(_VERSIONARGS_, theGlobalSyst, istep, -121, 0, fast_mode, _JETMETARGS_);
+      getDistributions(_VERSIONARGS_, theGlobalSyst, istep, -143, 0, fast_mode, _JETMETARGS_);
+      getDistributions(_VERSIONARGS_, theGlobalSyst, istep, -169, 0, fast_mode, _JETMETARGS_);
     }
     break;
   default:
-    for (unsigned int istep=0; istep<2; istep++) getDistributions(period, prodVersion, strdate, theGlobalSyst, istep, 0, 0, fast_mode, _JETMETARGS_);
+    for (unsigned int istep=0; istep<2; istep++) getDistributions(_VERSIONARGS_, theGlobalSyst, istep, 0, 0, fast_mode, _JETMETARGS_);
     break;
   };
 
 #undef _JETMETARGS_
+#undef _VERSIONARGS_
 }
 
 
@@ -1829,8 +1848,8 @@ void makePlots_fcorr(
 
   TDirectory* curdir = gDirectory;
 
-  TString const cinput_main = "output/NRBEstimates/" + strdate + "/Histograms/" + period;
-  TString const coutput_main = "output/NRBEstimates/" + strdate + "/Plots/" + period + "/fcorr";
+  TString const cinput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Histograms/" + period;
+  TString const coutput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Plots/" + period + "/fcorr";
   gSystem->mkdir(coutput_main, true);
 
   TString stroutput = coutput_main + Form("/plots_%s", strSyst.Data());
@@ -2004,8 +2023,8 @@ void makePlots(
 
   TDirectory* curdir = gDirectory;
 
-  TString const cinput_main = "output/NRBEstimates/" + strdate + "/Histograms/" + period;
-  TString const coutput_main = "output/NRBEstimates/" + strdate + "/Plots/" + period;
+  TString const cinput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Histograms/" + period;
+  TString const coutput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Plots/" + period;
   gSystem->mkdir(coutput_main, true);
 
   TString stroutput = coutput_main + Form("/plots_%s", strSyst.Data());
