@@ -32,10 +32,12 @@ BulkReweightingBuilder::BulkReweightingBuilder(
 
 void BulkReweightingBuilder::addReweightingWeights(
   std::vector<TString> const& strReweightingWeights_,
-  ReweightingFunctions::ReweightingFunction_t rule_reweightingweights_
+  ReweightingFunctions::ReweightingFunction_t rule_reweightingweights_,
+  double thr_wgt, double tolerance
 ){
   strReweightingWeightsList.push_back(strReweightingWeights_);
   rule_reweightingweights_list.push_back(rule_reweightingweights_);
+  reweightingweights_frac_tolerance_pair_list.emplace_back(thr_wgt, tolerance);
 }
 
 void BulkReweightingBuilder::registerTree(BaseTree* tree, float extNorm){
@@ -60,22 +62,40 @@ void BulkReweightingBuilder::registerTree(BaseTree* tree, float extNorm){
 
 void BulkReweightingBuilder::setup(
   int ihypo_Neff, std::vector<std::pair<BaseTree*, BaseTree*>> const* tree_normTree_pairs,
-  float thr_wgt, float tol_wgt,
   float thr_frac_Neff
 ){
   unsigned int const nhypos = strReweightingWeightsList.size();
   assert(ihypo_Neff<(int) nhypos);
-  assert(thr_wgt<=1.f && tol_wgt>=1.f && thr_frac_Neff<=1.f);
+  assert(thr_frac_Neff<=1.f);
   unsigned int const nbins = (binning.isValid() ? binning.getNbins() : static_cast<unsigned int>(1));
   for (auto const& tree:registeredTrees){
     MELAout << "BulkReweightingBuilder::setup: Processing " << tree->sampleIdentifier << "..." << endl;
 
+    // Mute all branches except the ones of interest in order to speed up the process
+    {
+      std::vector<TString> bnames_preserved;
+      for (auto const& strReweightingWeights:strReweightingWeightsList){
+        for (auto const& bname:strReweightingWeights){
+          if (!HelperFunctions::checkListVariable(bnames_preserved, bname)) bnames_preserved.push_back(bname);
+        }
+      }
+      for (auto const& bname:strBinningVars){
+        if (!HelperFunctions::checkListVariable(bnames_preserved, bname)) bnames_preserved.push_back(bname);
+      }
+      for (auto const& bname:strNominalWeights){
+        if (!HelperFunctions::checkListVariable(bnames_preserved, bname)) bnames_preserved.push_back(bname);
+      }
+      for (auto const& bname:strCrossSectionWeights){
+        if (!HelperFunctions::checkListVariable(bnames_preserved, bname)) bnames_preserved.push_back(bname);
+      }
+      tree->muteAllBranchesExcept(bnames_preserved);
+    }
+
     MELAout << "\t- Obtaining weight thresholds..." << endl;
     absWeightThresholdsPerBinList[tree] = ReweightingFunctions::getAbsWeightThresholdsPerBinByFixedFractionalThreshold(
       tree,
-      componentRefsList_reweightingweights[tree], rule_reweightingweights_list,
-      binning, binningVarRefs[tree], rule_binningVar,
-      thr_wgt, tol_wgt
+      componentRefsList_reweightingweights[tree], rule_reweightingweights_list, reweightingweights_frac_tolerance_pair_list,
+      binning, binningVarRefs[tree], rule_binningVar
     );
 
     // Initialize normalization variables
@@ -160,6 +180,8 @@ void BulkReweightingBuilder::setup(
     sum_normwgts_nonzerorewgt[tree] = sum_normwgts_nonzerorewgt_tree;
     sum_wgts_withrewgt[tree] = sum_wgts_withrewgt_tree;
     sampleZeroMECompensation[tree] = sampleZeroMECompensation_tree;
+
+    tree->recoverMutedBranches();
   }
 
   // Once all trees are complete, compute final normalization factors based on the chosen values of Neff.
@@ -167,6 +189,24 @@ void BulkReweightingBuilder::setup(
   // First pass on relative normalizations
   if (thr_frac_Neff>0.){
     MELAout << "\t- Adjusting Neff values for Neff threshold " << thr_frac_Neff << ":" << endl;
+    std::unordered_map<BaseTree*, unsigned int> tree_bestBin_map;
+    if (strBinningVars.size()==1){
+      for (auto const& tree:registeredTrees){
+        auto const& NeffsPerBin_tree = NeffsPerBin.find(tree)->second;
+        double best_Neff_val = -1;
+        int best_bin_index = -1;
+        for (unsigned int ibin=0; ibin<nbins; ibin++){
+          double const& NeffsPerBin_bin = NeffsPerBin_tree.at(ibin);
+          if (NeffsPerBin_bin==0.) continue;
+          if (best_Neff_val<0. || best_Neff_val<NeffsPerBin_bin){
+            best_Neff_val = NeffsPerBin_bin;
+            best_bin_index = ibin;
+          }
+        }
+        if (best_bin_index>=0) tree_bestBin_map[tree] = best_bin_index;
+      }
+    }
+
     for (unsigned int ibin=0; ibin<nbins; ibin++){
       double Neff_total = 0;
       for (auto const& tree:registeredTrees){
@@ -180,10 +220,13 @@ void BulkReweightingBuilder::setup(
         auto& sum_normwgts_nonzerorewgt_tree = sum_normwgts_nonzerorewgt.find(tree)->second;
         auto& sum_wgts_withrewgt_tree = sum_wgts_withrewgt.find(tree)->second;
         auto& sampleZeroMECompensation_tree = sampleZeroMECompensation.find(tree)->second;
+        int tree_bin_best = -1;
+        auto it_tree_bestBin = tree_bestBin_map.find(tree);
+        if (it_tree_bestBin!=tree_bestBin_map.cend()) tree_bin_best = it_tree_bestBin->second;
 
         double& NeffsPerBin_bin = NeffsPerBin_tree.at(ibin);
         double const frac_Neff = NeffsPerBin_bin/Neff_total;
-        if (frac_Neff<thr_frac_Neff){
+        if (frac_Neff<thr_frac_Neff && (tree_bin_best<0 || std::abs(tree_bin_best-static_cast<int>(ibin))>1)){
           MELAout << "\t\t- Bin " << ibin << " in sample " << tree->sampleIdentifier << " has a fractional Neff=" << frac_Neff << " < " << thr_frac_Neff << ". Removing this bin from reweighting considerations." << endl;
           NeffsPerBin_bin = 0;
           sum_normwgts_all_tree.at(ibin) = 0;

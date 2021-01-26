@@ -25,6 +25,7 @@ protected:
 
   std::vector<std::vector<TString>> strReweightingWeightsList;
   std::vector<ReweightingFunctions::ReweightingFunction_t> rule_reweightingweights_list;
+  std::vector< std::pair<double, double> > reweightingweights_frac_tolerance_pair_list;
   std::unordered_map< BaseTree*, std::vector<std::vector<float*> > > componentRefsList_reweightingweights;
 
   std::unordered_map<BaseTree*, float> normWeights;
@@ -53,7 +54,8 @@ public:
 
   void addReweightingWeights(
     std::vector<TString> const& strReweightingWeights_,
-    ReweightingFunctions::ReweightingFunction_t rule_reweightingweights_
+    ReweightingFunctions::ReweightingFunction_t rule_reweightingweights_,
+    double thr_wgt=0.9995, double tolerance=5.
   );
   void registerTree(BaseTree* tree, float extNorm=1);
 
@@ -63,13 +65,18 @@ public:
   // This is primarily to ensure that narrow-width samples cannot enter into bins far away from their pole.
   void setup(
     int ihypo_Neff, std::vector<std::pair<BaseTree*, BaseTree*>> const* tree_normTree_pairs=nullptr,
-    float thr_wgt=0.9995, float tol_wgt=5.,
     float thr_frac_Neff=-1.
   );
 
   double getOverallReweightingNormalization(BaseTree* tree) const;
   double getSamplePairwiseNormalization(BaseTree* tree) const;
   bool checkWeightsBelowThreshold(BaseTree* tree) const;
+
+  // A few get functions to acquire the actual set of variables used
+  std::vector<TString> const& getBinningVars() const{ return strBinningVars; }
+  std::vector<TString> const& getNominalWeightVars() const{ return strNominalWeights; }
+  std::vector<TString> const& getCrossSectionWeightVars() const{ return strCrossSectionWeights; }
+  std::vector<std::vector<TString>> const& getReweightingWeightVarList() const{ return strReweightingWeightsList; }
 
 };
 

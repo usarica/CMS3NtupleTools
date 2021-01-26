@@ -10,6 +10,8 @@ namespace LooperFunctionHelpers{
   using namespace MELAStreamHelpers;
   using namespace OffshellCutflow;
 
+  std::vector<TString> selectedMEs;
+
   bool looperRule(BaseTreeLooper*, std::unordered_map<SystematicsHelpers::SystematicVariationTypes, double> const&, SimpleEntry&);
 
 }
@@ -34,7 +36,6 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
 
   // Acquire global variables
   SystematicsHelpers::SystematicVariationTypes const& theGlobalSyst = theLooper->getSystematic();
-  ParticleDisambiguator& particleDisambiguator = theLooper->getParticleDisambiguator();
 
   // Acquire sample flags
   bool const& isData = theLooper->getCurrentTreeFlag_IsData();
@@ -160,7 +161,9 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     invalidReweightingWgts = !rewgtBuilder->checkWeightsBelowThreshold(currentTree);
 
     // Record LHE MEs and K factors
-    for (auto const& it:genInfo->extras.LHE_ME_weights) commonEntry.setNamedVal<float>(it.first, it.second);
+    for (auto const& it:genInfo->extras.LHE_ME_weights){
+      if (HelperFunctions::checkListVariable(selectedMEs, it.first)) commonEntry.setNamedVal(it.first, it.second);
+    }
     for (auto const& it:genInfo->extras.Kfactors) commonEntry.setNamedVal(it.first, it.second);
   }
 
@@ -180,7 +183,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
 
 void getTrees(
   TString strSampleSet, TString period,
-  TString prodVersion, TString strdate
+  TString prodVersion, TString strdate,
+  double thr_frac=-1
 ){
   SystematicsHelpers::SystematicVariationTypes const theGlobalSyst = SystematicsHelpers::sNominal;
 
@@ -202,19 +206,59 @@ void getTrees(
 
   // Get sample specifications
   std::vector<TString> sampledirs;
-  SampleHelpers::constructSamplesList(strSampleSet, theGlobalSyst, sampledirs);
-  /*
+  //SampleHelpers::constructSamplesList(strSampleSet, theGlobalSyst, sampledirs);
+
   if (isGG){
-    SampleHelpers::constructSamplesList("GGH_ZZ2L2Nu_M200_POWHEG", theGlobalSyst, sampledirs);
-    SampleHelpers::constructSamplesList("GGH_ZZ2L2Nu_M300_POWHEG", theGlobalSyst, sampledirs);
-    SampleHelpers::constructSamplesList("GGH_ZZ2L2Nu_M500_POWHEG", theGlobalSyst, sampledirs);
+    /*
+    SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M160_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M170_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M180_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M190_POWHEG", theGlobalSyst, sampledirs);
+    */
+    SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M210_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M230_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M250_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M300_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M350_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M400_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M450_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M500_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M550_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M600_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M700_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M800_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M900_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M1000_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M1500_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M2000_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M2500_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M3000_POWHEG", theGlobalSyst, sampledirs);
   }
   if (isVBF){
-    SampleHelpers::constructSamplesList("VBF_ZZ2L2Nu_M200_POWHEG", theGlobalSyst, sampledirs);
-    SampleHelpers::constructSamplesList("VBF_ZZ2L2Nu_M300_POWHEG", theGlobalSyst, sampledirs);
-    SampleHelpers::constructSamplesList("VBF_ZZ2L2Nu_M500_POWHEG", theGlobalSyst, sampledirs);
+    //SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M160_POWHEG", theGlobalSyst, sampledirs);
+    //SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M170_POWHEG", theGlobalSyst, sampledirs);
+    //SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M180_POWHEG", theGlobalSyst, sampledirs);
+    //SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M190_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M210_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M230_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M250_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M300_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M350_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M400_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M450_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M500_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M550_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M600_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M700_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M800_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M900_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M1000_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M1500_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M2000_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M2500_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M3000_POWHEG", theGlobalSyst, sampledirs);
   }
-  */
+
   if (sampledirs.empty()) return;
   bool isData = SampleHelpers::checkSampleIsData(sampledirs.front());
   if (isData) return;
@@ -233,7 +277,10 @@ void getTrees(
   HelperFunctions::replaceString(coutput, "_MINIAOD", "");
   TString stroutput = Form("%s/%s", coutput_main.Data(), coutput.Data());
   stroutput += Form("_%s", SystematicsHelpers::getSystName(theGlobalSyst).data());
+  if (thr_frac>0.f) stroutput += Form("_thr_%.5f", thr_frac);
   stroutput += ".root";
+  TString stroutput_txt = stroutput;
+  HelperFunctions::replaceString<TString, TString const>(stroutput_txt, ".root", ".txt");
   TFile* foutput = TFile::Open(stroutput, "recreate");
   foutput->cd();
   BaseTree* tout = new BaseTree("SkimTree");
@@ -263,8 +310,8 @@ void getTrees(
   // Set output tree
   theLooper.addOutputTree(tout);
 
-  float thr_wgt=0.9999;
-  float tol_wgt=5;
+  double tol_wgt=5;
+  float thr_frac_Neff=0.005;
   ExtendedBinning binning_rewgt;
   binning_rewgt.addBinBoundary(70);
   binning_rewgt.addBinBoundary(13000);
@@ -288,38 +335,53 @@ void getTrees(
   );
   theLooper.addReweightingBuilder("MERewgt", &rewgtBuilder);
   if (isGG){
-    thr_wgt=0.9999;
     rewgtBuilder.addReweightingWeights(
       { "p_Gen_GG_SIG_kappaTopBot_1_ghz1_1_MCFM", "p_Gen_CPStoBWPropRewgt" },
-      ReweightingFunctions::getSimpleWeight
+      ReweightingFunctions::getSimpleWeight,
+      (thr_frac>0. ? thr_frac : 0.9995), tol_wgt
     );
     /*
     rewgtBuilder.addReweightingWeights(
       { "p_Gen_GG_BSI_kappaTopBot_1_ghz1_1_MCFM", "p_Gen_CPStoBWPropRewgt" },
-      ReweightingFunctions::getSimpleWeight
+      ReweightingFunctions::getSimpleWeight,
+      (thr_frac>0. ? thr_frac : 0.9995), tol_wgt
     );
     */
     rewgtBuilder.addReweightingWeights(
       { "p_Gen_GG_BKG_MCFM", "p_Gen_CPStoBWPropRewgt" },
-      ReweightingFunctions::getSimpleWeight
+      ReweightingFunctions::getSimpleWeight,
+      (thr_frac>0. ? thr_frac : 0.9995), tol_wgt
     );
   }
   else if (isVBF){
-    thr_wgt=0.9995;
+    thr_frac_Neff = 0.01;
     rewgtBuilder.addReweightingWeights(
       { "p_Gen_JJEW_SIG_ghv1_1_MCFM", "p_Gen_CPStoBWPropRewgt" },
-      ReweightingFunctions::getSimpleWeight
+      ReweightingFunctions::getSimpleWeight,
+      (thr_frac>0. ? thr_frac : 0.9995), tol_wgt
     );
     /*
     rewgtBuilder.addReweightingWeights(
       { "p_Gen_JJEW_BSI_ghv1_1_MCFM", "p_Gen_CPStoBWPropRewgt" },
-      ReweightingFunctions::getSimpleWeight
+      ReweightingFunctions::getSimpleWeight,
+      (thr_frac>0. ? thr_frac : 0.995), tol_wgt
     );
     */
     rewgtBuilder.addReweightingWeights(
       { "p_Gen_JJEW_BKG_MCFM", "p_Gen_CPStoBWPropRewgt" },
-      ReweightingFunctions::getSimpleWeight
+      ReweightingFunctions::getSimpleWeight,
+      (thr_frac>0. ? thr_frac : 0.9995), tol_wgt
     );
+  }
+
+  // Add the list of ME weights and LHECandMass to LooperFunctionHelpers::selectedMEs so that we record them.
+  for (auto const& strvar:rewgtBuilder.getBinningVars()){
+    if (!HelperFunctions::checkListVariable(LooperFunctionHelpers::selectedMEs, strvar)) LooperFunctionHelpers::selectedMEs.push_back(strvar);
+  }
+  for (auto const& strReweightingWeightVars:rewgtBuilder.getReweightingWeightVarList()){
+    for (auto const& strvar:strReweightingWeightVars){
+      if (!HelperFunctions::checkListVariable(LooperFunctionHelpers::selectedMEs, strvar)) LooperFunctionHelpers::selectedMEs.push_back(strvar);
+    }
   }
 
   curdir->cd();
@@ -328,7 +390,9 @@ void getTrees(
   BaseTree* tree_MHLowestOffshell = nullptr;
   std::vector<BaseTree*> sample_trees; sample_trees.reserve(sampledirs.size());
   for (auto const& sname:sampledirs){
-    BaseTree* sample_tree = new BaseTree(SampleHelpers::getDatasetFileName(sname), "cms3ntuple/Events", "", ""); sample_trees.push_back(sample_tree);
+    TString strinput = SampleHelpers::getDatasetFileName(sname);
+    MELAout << "Acquiring " << sname << " from input file(s) " << strinput << "..." << endl;
+    BaseTree* sample_tree = new BaseTree(strinput, "cms3ntuple/Events", "", ""); sample_trees.push_back(sample_tree);
     sample_tree->sampleIdentifier = SampleHelpers::getSampleIdentifier(sname);
     float const sampleMH = SampleHelpers::findPoleMass(sample_tree->sampleIdentifier);
     if (std::abs(sampleMH-125.f)<0.8f) tree_MH125 = sample_tree;
@@ -426,7 +490,9 @@ void getTrees(
     double globalWeight_PUDn = xsec * xsec_scale * (isData ? 1.f : lumi) / sum_wgts_PUDn; globalWeights[SystematicsHelpers::ePUDn] = globalWeight_PUDn;
     double globalWeight_PUUp = xsec * xsec_scale * (isData ? 1.f : lumi) / sum_wgts_PUUp; globalWeights[SystematicsHelpers::ePUUp] = globalWeight_PUUp;
     MELAout << "Sample " << sample_tree->sampleIdentifier << " has a gen. weight sum of " << sum_wgts << " (PU dn: " << sum_wgts_PUDn << ", PU up: " << sum_wgts_PUUp << ")." << endl;
+    MELAout << "\t- Raw xsec = " << xsec << endl;
     MELAout << "\t- xsec scale = " << xsec_scale << endl;
+    MELAout << "\t- xsec * lumi = " << xsec * xsec_scale * (isData ? 1.f : lumi) << endl;
     MELAout << "\t- Global weight = " << globalWeight << endl;
     MELAout << "\t- Global weight (PU dn) = " << globalWeight_PUDn << endl;
     MELAout << "\t- Global weight (PU up) = " << globalWeight_PUUp << endl;
@@ -442,8 +508,8 @@ void getTrees(
         else if (bname.Contains(GenInfoHandler::colName_genparticles)) has_genparticles = true;
       }
       genInfoHandler.setAcquireLHEMEWeights(has_lheMEweights);
-      genInfoHandler.setAcquireLHEParticles(has_lheparticles);
-      genInfoHandler.setAcquireGenParticles(has_genparticles);
+      //genInfoHandler.setAcquireLHEParticles(has_lheparticles);
+      //genInfoHandler.setAcquireGenParticles(has_genparticles);
       genInfoHandler.bookBranches(sample_tree);
     }
 
@@ -470,7 +536,10 @@ void getTrees(
       MELAout << "Normalizing mass " << sampleMH << " to mass " << SampleHelpers::findPoleMass(sample_trees.at(itree+1)->sampleIdentifier) << endl;
     }
   }
-  rewgtBuilder.setup(0, &tree_normTree_pairs, thr_wgt, tol_wgt);
+
+  MELAout.open(stroutput_txt.Data());
+  rewgtBuilder.setup(0, &tree_normTree_pairs, thr_frac_Neff);
+  MELAout.close();
 
   // Loop over all events
   theLooper.loop(true);
@@ -487,4 +556,6 @@ void getTrees(
   curdir->cd();
 
   SampleHelpers::addToCondorTransferList(stroutput);
+
+  LooperFunctionHelpers::selectedMEs.clear();
 }
