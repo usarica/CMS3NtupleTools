@@ -1,119 +1,11 @@
 #include "SamplesCore.h"
 #include "common_includes.h"
+#include "HiggsXSBRReader.h"
 #include "Mela.h"
 
 
 using namespace std;
 
-
-struct HiggsXSBRReader{
-  std::vector<double> masses;
-  std::vector<double> total_widths;
-  std::vector<double> partial_widths;
-
-  TSpline3 sp_partial_width;
-  TSpline3 sp_total_width;
-
-  HiggsXSBRReader(TString fname, TString partial_width_type);
-  float eval_partial_width(float const& mass) const;
-  float eval_total_width(float const& mass) const;
-  float eval_br(float const& mass) const{ return eval_partial_width(mass) / eval_total_width(mass); }
-};
-
-HiggsXSBRReader::HiggsXSBRReader(TString fname, TString partial_width_type){
-  std::unordered_map<TString, std::vector<double>> type_vallist_map;
-  std::vector<TString> column_list;
-
-  ifstream file;
-  file.open(fname.Data());
-  bool firstLine=true;
-  while (!file.eof()){
-    std::string line;
-    std::getline(file, line);
-    if (line.empty()) continue;
-    std::vector<std::string> splitline;
-    HelperFunctions::splitOptionRecursive(line, splitline, ',', false);
-    //MELAout << "Processing line '" << splitline << "'" << endl;
-    if (firstLine){
-      for (auto const& str:splitline){
-        TString tstr = str.data();
-        /*
-        MELAout << "Column '";
-        for (Ssiz_t i=0; i<tstr.Length(); i++) MELAout << "[" << tstr[i] << "]";
-        MELAout << "' (length, size =" << tstr.Length() << ", " << tstr.Sizeof() << ") is found." << endl;
-        if (tstr=="mass") MELAout << "\t- THIS IS MASS!" << endl;
-        */
-        column_list.push_back(tstr);
-        type_vallist_map[tstr] = std::vector<double>();
-      }
-      /*
-      MELAout << "Found the following columns:" << endl;
-      for (auto const& strc:column_list) MELAout << "'" << strc << "'" << endl;
-      */
-      if (std::find(column_list.begin(), column_list.end(), partial_width_type)==column_list.end()){
-        MELAerr << "HiggsXSBRReader::HiggsXSBRReader: Type '" << partial_width_type << "' does not exist." << endl;
-      }
-      if (std::find(column_list.begin(), column_list.end(), "mass")==column_list.end()){
-        MELAerr << "HiggsXSBRReader::HiggsXSBRReader: Type 'mass' does not exist." << endl;
-      }
-      if (std::find(column_list.begin(), column_list.end(), "total_width")==column_list.end()){
-        MELAerr << "HiggsXSBRReader::HiggsXSBRReader: Type 'total_width' does not exist." << endl;
-      }
-      firstLine=false;
-    }
-    else{
-      if (column_list.size()!=splitline.size()){
-        MELAerr << "HiggsXSBRReader::HiggsXSBRReader: ERROR! column_list.size() (" << column_list.size() << ") != splitline.size() (" << splitline.size() << ")" << endl;
-      }
-      for (size_t ic=0; ic<column_list.size(); ic++){
-        type_vallist_map[column_list.at(ic)].push_back(std::stod(splitline.at(ic)));
-      }
-    }
-  }
-  file.close();
-
-  masses = type_vallist_map["mass"];
-  total_widths = type_vallist_map["total_width"];
-  partial_widths = type_vallist_map[partial_width_type];
-  size_t nmasses = masses.size();
-  /*
-  MELAout << "Size of masses: " << nmasses << endl;
-  MELAout << "Size of total_widths: " << total_widths.size() << endl;
-  MELAout << "Size of partial_widths: " << partial_widths.size() << endl;
-  */
-  if (partial_width_type!="total_width"){ for (size_t irow=0; irow<nmasses; irow++) partial_widths.at(irow) *= total_widths.at(irow); }
-  {
-    double dbegin = (partial_widths.at(1)-partial_widths.front())/(masses.at(1)-masses.front());
-    double cB = (partial_widths.at(nmasses-1)-partial_widths.at(nmasses-2))/(pow(masses.at(nmasses-1), 3)-pow(masses.at(nmasses-2), 3));
-    double dend = 3.*cB*pow(masses.at(nmasses-1), 2);
-    sp_partial_width = TSpline3("sp", masses.data(), partial_widths.data(), nmasses, "b1e1", dbegin, dend);
-  }
-  {
-    double dbegin = (total_widths.at(1)-total_widths.front())/(masses.at(1)-masses.front());
-    double cB = (total_widths.at(nmasses-1)-total_widths.at(nmasses-2))/(pow(masses.at(nmasses-1), 3)-pow(masses.at(nmasses-2), 3));
-    double dend = 3.*cB*pow(masses.at(nmasses-1), 2);
-    sp_total_width = TSpline3("sp", masses.data(), total_widths.data(), nmasses, "b1e1", dbegin, dend);
-  }
-}
-
-float HiggsXSBRReader::eval_partial_width(float const& mass) const{
-  if (mass<=masses.back()) return sp_partial_width.Eval(mass);
-  else{
-    size_t npoints = masses.size();
-    double cB = (partial_widths.at(npoints-1)-partial_widths.at(npoints-2))/(pow(masses.at(npoints-1), 3)-pow(masses.at(npoints-2), 3));
-    double cA = partial_widths.at(npoints-1) - cB*pow(masses.at(npoints-1), 3);
-    return cA + cB*pow(mass, 3);
-  }
-}
-float HiggsXSBRReader::eval_total_width(float const& mass) const{
-  if (mass<=masses.back()) return sp_total_width.Eval(mass);
-  else{
-    size_t npoints = masses.size();
-    double cB = (total_widths.at(npoints-1)-total_widths.at(npoints-2))/(pow(masses.at(npoints-1), 3)-pow(masses.at(npoints-2), 3));
-    double cA = total_widths.at(npoints-1) - cB*pow(masses.at(npoints-1), 3);
-    return cA + cB*pow(mass, 3);
-  }
-}
 
 enum DecayMode{
   // 4l samples
@@ -410,7 +302,7 @@ void getHiggsBRs(TString strSampleSet, TString period, TString prodVersion){
     double br_sum = 0;
     double br_sum_unfiltered = 0;
     for (unsigned int ih=0; ih<hypos.size(); ih++){
-      HiggsXSBRReader hxsbrReader("../data/HiggsXSBR/YR3.csv", hypos.at(ih));
+      HiggsXSBRReader hxsbrReader("${CMSSW_BASE}/src/CMSDataTools/AnalysisTree/data/HiggsXSBR/YR3.csv", hypos.at(ih));
       double br_MH = hxsbrReader.eval_br(sampleMH);
       double br_MH_corr = br_MH * BRcorrs.at(ih);
       double br_MH_corr_filtered = br_MH_corr * filter_corrs.at(ih);
