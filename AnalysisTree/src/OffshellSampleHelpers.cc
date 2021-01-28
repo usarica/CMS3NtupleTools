@@ -1778,7 +1778,6 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
               "/GluGluHToZZTo2L2Nu_M250_TuneCUETP8M1_13TeV_powheg2_JHUGenV735_pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v1/MINIAODSIM",
               "/GluGluHToZZTo2L2Nu_M270_TuneCUETP8M1_13TeV_powheg2_JHUGenV735_pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2_private/MINIAODSIM",
               "/GluGluHToZZTo2L2Nu_M300_13TeV_powheg2_JHUgenV698_pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM",
-              "/GluGluHToZZTo2L2Nu_M300_TuneCUETP8M1_13TeV_powheg2_minloHJJ_JHUGenV735_pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v1/MINIAODSIM",
               "/GluGluHToZZTo2L2Nu_M350_TuneCUETP8M1_13TeV_powheg2_JHUGenV735_pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v1/MINIAODSIM",
               "/GluGluHToZZTo2L2Nu_M400_13TeV_powheg2_JHUgenV698_pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM",
               "/GluGluHToZZTo2L2Nu_M450_TuneCUETP8M1_13TeV_powheg2_JHUGenV735_pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v1/MINIAODSIM",
