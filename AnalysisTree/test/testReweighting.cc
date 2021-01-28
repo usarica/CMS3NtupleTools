@@ -209,12 +209,11 @@ void getTrees(
   //SampleHelpers::constructSamplesList(strSampleSet, theGlobalSyst, sampledirs);
 
   if (isGG){
-    /*
+    SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M125_POWHEG", theGlobalSyst, sampledirs);
     SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M160_POWHEG", theGlobalSyst, sampledirs);
     SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M170_POWHEG", theGlobalSyst, sampledirs);
     SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M180_POWHEG", theGlobalSyst, sampledirs);
     SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M190_POWHEG", theGlobalSyst, sampledirs);
-    */
     SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M210_POWHEG", theGlobalSyst, sampledirs);
     SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M230_POWHEG", theGlobalSyst, sampledirs);
     SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M250_POWHEG", theGlobalSyst, sampledirs);
@@ -235,10 +234,11 @@ void getTrees(
     SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M3000_POWHEG", theGlobalSyst, sampledirs);
   }
   if (isVBF){
-    //SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M160_POWHEG", theGlobalSyst, sampledirs);
-    //SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M170_POWHEG", theGlobalSyst, sampledirs);
-    //SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M180_POWHEG", theGlobalSyst, sampledirs);
-    //SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M190_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M125_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M160_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M170_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M180_POWHEG", theGlobalSyst, sampledirs);
+    SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M190_POWHEG", theGlobalSyst, sampledirs);
     SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M210_POWHEG", theGlobalSyst, sampledirs);
     SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M230_POWHEG", theGlobalSyst, sampledirs);
     SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M250_POWHEG", theGlobalSyst, sampledirs);
@@ -321,7 +321,20 @@ void getTrees(
       TString sid = SampleHelpers::getSampleIdentifier(sname);
       sample_masses.push_back(SampleHelpers::findPoleMass(sid));
     }
-    if (sample_masses.size()>1){ for (unsigned int im=0; im<sample_masses.size()-1; im++) binning_rewgt.addBinBoundary((sample_masses.at(im) + sample_masses.at(im+1))/2.); }
+    if (sample_masses.size()>1){
+      for (unsigned int im=0; im<sample_masses.size()-1; im++){
+        double const& thisMass = sample_masses.at(im);
+        double const& nextMass = sample_masses.at(im+1);
+
+        // Special treatment for mH=125 GeV
+        // Need to account for the relatively large gap with the next mass point
+        if (std::abs(thisMass-125.)<0.8 && std::abs(nextMass-125.)>0.8){
+          binning_rewgt.addBinBoundary(thisMass + (nextMass - thisMass)/3.);
+          binning_rewgt.addBinBoundary(thisMass + (nextMass - thisMass)*2./3.);
+        }
+        else binning_rewgt.addBinBoundary((thisMass + nextMass)/2.);
+      }
+    }
   }
   MELAout << "Reweighting bin boundaries: " << binning_rewgt.getBinningVector() << endl;
   BulkReweightingBuilder rewgtBuilder(
@@ -401,13 +414,16 @@ void getTrees(
     std::vector<TString> allbranchnames; sample_tree->getValidBranchNamesWithoutAlias(allbranchnames, false);
 
     const int nEntries = sample_tree->getSelectedNEvents();
+    bool hasTaus = false;
     double sum_wgts = (isData ? 1.f : 0.f);
     double sum_wgts_PUDn = sum_wgts;
     double sum_wgts_PUUp = sum_wgts;
     double sum_wgts_raw_noveto = sum_wgts;
     double sum_wgts_raw_withveto = sum_wgts;
+    double sum_wgts_raw_withveto_defaultMemberZero = sum_wgts;
     float xsec = 1;
     float xsec_scale = 1;
+    float BR_scale = 1;
     if (!isData){
       // Get cross section
       sample_tree->bookBranch<float>("xsec", 0.f);
@@ -419,7 +435,7 @@ void getTrees(
       simEventHandler.bookBranches(sample_tree);
 
       genInfoHandler.setAcquireLHEMEWeights(false);
-      genInfoHandler.setAcquireLHEParticles(false);
+      genInfoHandler.setAcquireLHEParticles(sampleMH>0.f);
       genInfoHandler.setAcquireGenParticles(false);
       genInfoHandler.bookBranches(sample_tree);
 
@@ -467,7 +483,20 @@ void getTrees(
 
           genInfoHandler.constructGenInfo(SystematicsHelpers::sNominal); // Use sNominal here in order to get the weight that corresponds to xsec
           auto const& genInfo = genInfoHandler.getGenInfo();
+
+          auto const& lheparticles = genInfoHandler.getLHEParticles();
+          if (!hasTaus){
+            for (auto const& part:lheparticles){
+              if (part->status()==1 && std::abs(part->pdgId())==15){
+                hasTaus = true;
+                genInfoHandler.setAcquireLHEParticles(false);
+                break;
+              }
+            }
+          }
+
           double genwgt = genInfo->getGenWeight(true);
+          double genwgt_defaultMemberZero = genInfo->extras.LHEweight_defaultMemberZero;
           if (genwgt==0.){
             n_zero_genwgts++;
             continue;
@@ -475,6 +504,7 @@ void getTrees(
 
           simEventHandler.constructSimEvent();
 
+          sum_wgts_raw_withveto_defaultMemberZero += genwgt_defaultMemberZero;
           sum_wgts_raw_withveto += genwgt;
           sum_wgts += genwgt * simEventHandler.getPileUpWeight(theGlobalSyst);
           sum_wgts_PUDn += genwgt * simEventHandler.getPileUpWeight(SystematicsHelpers::ePUDn);
@@ -484,15 +514,16 @@ void getTrees(
         sum_wgts_raw_noveto = sum_wgts_raw_withveto / (1. - frac_zero_genwgts);
       }
       xsec_scale = sum_wgts_raw_withveto / sum_wgts_raw_noveto;
+      if (sampleMH>0.f) BR_scale = SampleHelpers::calculateAdjustedHiggsBREff(sname, sum_wgts_raw_withveto_defaultMemberZero, sum_wgts_raw_withveto, hasTaus);
     }
     std::unordered_map<SystematicsHelpers::SystematicVariationTypes, double> globalWeights;
-    double globalWeight = xsec * xsec_scale * (isData ? 1.f : lumi) / sum_wgts; globalWeights[theGlobalSyst] = globalWeight;
-    double globalWeight_PUDn = xsec * xsec_scale * (isData ? 1.f : lumi) / sum_wgts_PUDn; globalWeights[SystematicsHelpers::ePUDn] = globalWeight_PUDn;
-    double globalWeight_PUUp = xsec * xsec_scale * (isData ? 1.f : lumi) / sum_wgts_PUUp; globalWeights[SystematicsHelpers::ePUUp] = globalWeight_PUUp;
+    double globalWeight = xsec * xsec_scale * BR_scale * (isData ? 1.f : lumi) / sum_wgts; globalWeights[theGlobalSyst] = globalWeight;
+    double globalWeight_PUDn = xsec * xsec_scale * BR_scale * (isData ? 1.f : lumi) / sum_wgts_PUDn; globalWeights[SystematicsHelpers::ePUDn] = globalWeight_PUDn;
+    double globalWeight_PUUp = xsec * xsec_scale * BR_scale * (isData ? 1.f : lumi) / sum_wgts_PUUp; globalWeights[SystematicsHelpers::ePUUp] = globalWeight_PUUp;
     MELAout << "Sample " << sample_tree->sampleIdentifier << " has a gen. weight sum of " << sum_wgts << " (PU dn: " << sum_wgts_PUDn << ", PU up: " << sum_wgts_PUUp << ")." << endl;
     MELAout << "\t- Raw xsec = " << xsec << endl;
-    MELAout << "\t- xsec scale = " << xsec_scale << endl;
-    MELAout << "\t- xsec * lumi = " << xsec * xsec_scale * (isData ? 1.f : lumi) << endl;
+    MELAout << "\t- xsec * BR scale = " << xsec_scale * BR_scale << endl;
+    MELAout << "\t- xsec * BR * lumi = " << xsec * xsec_scale * BR_scale * (isData ? 1.f : lumi) << endl;
     MELAout << "\t- Global weight = " << globalWeight << endl;
     MELAout << "\t- Global weight (PU dn) = " << globalWeight_PUDn << endl;
     MELAout << "\t- Global weight (PU up) = " << globalWeight_PUUp << endl;
@@ -508,13 +539,14 @@ void getTrees(
         else if (bname.Contains(GenInfoHandler::colName_genparticles)) has_genparticles = true;
       }
       genInfoHandler.setAcquireLHEMEWeights(has_lheMEweights);
+      genInfoHandler.setAcquireLHEParticles(false);
       //genInfoHandler.setAcquireLHEParticles(has_lheparticles);
       //genInfoHandler.setAcquireGenParticles(has_genparticles);
       genInfoHandler.bookBranches(sample_tree);
     }
 
     // Register tree
-    rewgtBuilder.registerTree(sample_tree, 1./sum_wgts_raw_noveto);
+    rewgtBuilder.registerTree(sample_tree, BR_scale/sum_wgts_raw_noveto);
 
     sample_tree->silenceUnused();
 

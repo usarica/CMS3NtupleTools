@@ -190,7 +190,8 @@ void BulkReweightingBuilder::setup(
   if (thr_frac_Neff>0.){
     MELAout << "\t- Adjusting Neff values for Neff threshold " << thr_frac_Neff << ":" << endl;
     std::unordered_map<BaseTree*, unsigned int> tree_bestBin_map;
-    if (strBinningVars.size()==1){
+    bool useBestBins = (strBinningVars.size()==1);
+    if (useBestBins){
       for (auto const& tree:registeredTrees){
         auto const& NeffsPerBin_tree = NeffsPerBin.find(tree)->second;
         double best_Neff_val = -1;
@@ -233,6 +234,53 @@ void BulkReweightingBuilder::setup(
           sum_normwgts_nonzerorewgt_tree.at(ibin) = 0;
           for (auto& sum_wgts_withrewgt_tree_hypo:sum_wgts_withrewgt_tree){ sum_wgts_withrewgt_tree_hypo.at(ibin).first = sum_wgts_withrewgt_tree_hypo.at(ibin).second = 0; }
           sampleZeroMECompensation_tree.at(ibin) = 0;
+        }
+      }
+    }
+
+    // If best bins are used, ensure that the sample sets bins to 0 beyond the first encounter of 0.
+    if (useBestBins){
+      for (auto const& tree:registeredTrees){
+        auto& NeffsPerBin_tree = NeffsPerBin.find(tree)->second;
+        auto& sum_normwgts_all_tree = sum_normwgts_all.find(tree)->second;
+        auto& sum_normwgts_nonzerorewgt_tree = sum_normwgts_nonzerorewgt.find(tree)->second;
+        auto& sum_wgts_withrewgt_tree = sum_wgts_withrewgt.find(tree)->second;
+        auto& sampleZeroMECompensation_tree = sampleZeroMECompensation.find(tree)->second;
+        int tree_bin_best = -1;
+        auto it_tree_bestBin = tree_bestBin_map.find(tree);
+        if (it_tree_bestBin!=tree_bestBin_map.cend()) tree_bin_best = it_tree_bestBin->second;
+
+        // Move to the right
+        {
+          bool seeZero = false;
+          for (unsigned int ibin = tree_bin_best; ibin<nbins; ibin++){
+            double& NeffsPerBin_bin = NeffsPerBin_tree.at(ibin);
+            if (NeffsPerBin_bin==0.) seeZero = true;
+            if (seeZero){
+              MELAout << "\t\t- Bin " << ibin << " in sample " << tree->sampleIdentifier << " has acceptable Neff, but it is beyond the first occurence of 0s from the right. Removing this bin from reweighting considerations." << endl;
+              NeffsPerBin_bin = 0;
+              sum_normwgts_all_tree.at(ibin) = 0;
+              sum_normwgts_nonzerorewgt_tree.at(ibin) = 0;
+              for (auto& sum_wgts_withrewgt_tree_hypo:sum_wgts_withrewgt_tree){ sum_wgts_withrewgt_tree_hypo.at(ibin).first = sum_wgts_withrewgt_tree_hypo.at(ibin).second = 0; }
+              sampleZeroMECompensation_tree.at(ibin) = 0;
+            }
+          }
+        }
+        // Move to the left
+        {
+          bool seeZero = false;
+          for (int ibin = tree_bin_best; ibin>=0; ibin--){
+            double& NeffsPerBin_bin = NeffsPerBin_tree.at(ibin);
+            if (NeffsPerBin_bin==0.) seeZero = true;
+            if (seeZero){
+              MELAout << "\t\t- Bin " << ibin << " in sample " << tree->sampleIdentifier << " has acceptable Neff, but it is beyond the first occurence of 0s from the left. Removing this bin from reweighting considerations." << endl;
+              NeffsPerBin_bin = 0;
+              sum_normwgts_all_tree.at(ibin) = 0;
+              sum_normwgts_nonzerorewgt_tree.at(ibin) = 0;
+              for (auto& sum_wgts_withrewgt_tree_hypo:sum_wgts_withrewgt_tree){ sum_wgts_withrewgt_tree_hypo.at(ibin).first = sum_wgts_withrewgt_tree_hypo.at(ibin).second = 0; }
+              sampleZeroMECompensation_tree.at(ibin) = 0;
+            }
+          }
         }
       }
     }
