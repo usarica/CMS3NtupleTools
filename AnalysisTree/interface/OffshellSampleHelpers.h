@@ -32,6 +32,27 @@ namespace SampleHelpers{
   void constructSamplesList(TString const& sname, SystematicsHelpers::SystematicVariationTypes syst, std::vector<TString>& samples);
   void getSamplesList(std::vector<TString> const& s, std::vector<TString>& vs, SystematicsHelpers::SystematicVariationTypes syst, std::vector<size_t>* ns=nullptr);
 
+  enum HiggsSampleDecayMode{
+    // 4l samples
+    kZZTo4L,
+    kZZTo2L2X,
+
+    // ZZ 2l2nu samples
+    kZZTo2L2Nu,
+    kZZTo2Nu2X,
+    kZZTo2L2Q,
+    kZZTo4Q,
+
+    // WW 2l2nu samples
+    kWWTo2L2Nu,
+    kWWToLNuQQ,
+    kWWToLNuXX,
+
+    nHiggsSampleDecayModes
+  };
+  HiggsSampleDecayMode getHiggsSampleDecayMode(TString const& sname);
+
+  double calculateAdjustedHiggsBREff(TString const& sname, double const& sum_wgts_defaultMemberZero, double const& sum_wgts_defaultLHEEventWeight, bool hasTaus);
 }
 
 #endif
