@@ -250,6 +250,7 @@ void getMCSampleDirs(
   BRANCH_COMMAND(float, event_mZZ) \
   BRANCH_COMMAND(bool, event_pass_tightMETFilters) \
   BRANCH_COMMAND(unsigned int, event_n_vtxs_good) \
+  BRANCH_COMMAND(unsigned int, event_n_leptons_fakeableBase) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt30) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt30_btagged_loose) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt30_btagged_medium) \
@@ -946,6 +947,7 @@ void getDistributions(
       tin->GetEntry(ev);
       HelperFunctions::progressbar(ev, nEntries);
 
+      if (event_n_leptons_fakeableBase!=0) continue;
       if (event_wgt_triggers_SingleLepton!=1.f && event_wgt_triggers_Dilepton!=1.f) continue;
       if (event_pTmiss<thr_corr_pTmiss) continue;
       if (dilepton_pt<thr_corr_pTboson) continue;

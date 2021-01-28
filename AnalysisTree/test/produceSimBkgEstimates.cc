@@ -255,6 +255,7 @@ void getMCSampleDirs(
   BRANCH_COMMAND(float, event_mZZ) \
   BRANCH_COMMAND(bool, event_pass_tightMETFilters) \
   BRANCH_COMMAND(unsigned int, event_n_vtxs_good) \
+  BRANCH_COMMAND(unsigned int, event_n_leptons_fakeableBase) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt30) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt30_btagged_loose) \
   BRANCH_COMMAND(unsigned int, event_n_ak4jets_pt30_btagged_medium) \
@@ -749,6 +750,7 @@ void getTrees_ZZTo2L2Nu(
       if (!check_dPhi_pTlljets_pTmiss(dPhi_pTbosonjets_pTmiss)) continue;
       if (!check_min_abs_dPhi_pTj_pTmiss(min_abs_dPhi_pTj_pTmiss, event_n_ak4jets_pt30)) continue;
       if (dilepton_id==-143) continue;
+      if (event_n_leptons_fakeableBase!=0) continue;
       if (event_wgt_triggers_SingleLepton!=1.f && event_wgt_triggers_Dilepton!=1.f) continue;
       if (!check_mll(dilepton_mass, true)) continue;
       if (!check_Nb_veto(event_n_ak4jets_pt30_btagged_loose)) continue;
