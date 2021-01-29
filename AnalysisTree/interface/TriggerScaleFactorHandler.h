@@ -17,20 +17,20 @@ public:
   };
 
 protected:
-  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, std::vector<ExtendedHistogram_2D> > syst_eff_mc_Dilepton_SingleLepton_mumu_map;
-  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, std::vector<ExtendedHistogram_2D> > syst_eff_mc_Dilepton_SingleLepton_ee_map;
-  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, std::vector<ExtendedHistogram_2D> > syst_eff_mc_Dilepton_SingleLepton_mue_map;
-  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D > syst_eff_mc_SingleMuon_map;
-  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D > syst_eff_mc_SingleElectron_map;
+  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, std::vector<ExtendedHistogram_2D_f> > syst_eff_mc_Dilepton_SingleLepton_mumu_map;
+  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, std::vector<ExtendedHistogram_2D_f> > syst_eff_mc_Dilepton_SingleLepton_ee_map;
+  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, std::vector<ExtendedHistogram_2D_f> > syst_eff_mc_Dilepton_SingleLepton_mue_map;
+  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D_f > syst_eff_mc_SingleMuon_map;
+  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D_f > syst_eff_mc_SingleElectron_map;
 
-  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, std::vector<ExtendedHistogram_2D> > syst_SF_Dilepton_SingleLepton_mumu_map;
-  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, std::vector<ExtendedHistogram_2D> > syst_SF_Dilepton_SingleLepton_ee_map;
-  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, std::vector<ExtendedHistogram_2D> > syst_SF_Dilepton_SingleLepton_mue_map;
-  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D > syst_SF_SingleMuon_map;
-  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D > syst_SF_SingleElectron_map;
+  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, std::vector<ExtendedHistogram_2D_f> > syst_SF_Dilepton_SingleLepton_mumu_map;
+  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, std::vector<ExtendedHistogram_2D_f> > syst_SF_Dilepton_SingleLepton_ee_map;
+  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, std::vector<ExtendedHistogram_2D_f> > syst_SF_Dilepton_SingleLepton_mue_map;
+  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D_f > syst_SF_SingleMuon_map;
+  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D_f > syst_SF_SingleElectron_map;
 
-  void evalScaleFactorFromHistogram_PtEta(float& theSF, float const& pt, float const& eta, ExtendedHistogram_2D const& hist, bool etaOnY, bool useAbsEta) const;
-  void evalScaleFactorFromHistogram_PtPt(float& theSF, float const& pt1, float const& pt2, ExtendedHistogram_2D const& hist) const;
+  void evalScaleFactorFromHistogram_PtEta(float& theSF, float const& pt, float const& eta, ExtendedHistogram_2D_f const& hist, bool etaOnY, bool useAbsEta) const;
+  void evalScaleFactorFromHistogram_PtPt(float& theSF, float const& pt1, float const& pt2, ExtendedHistogram_2D_f const& hist) const;
 
 public:
   TriggerScaleFactorHandler();

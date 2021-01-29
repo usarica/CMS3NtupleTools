@@ -50,7 +50,7 @@ bool MuonScaleFactorHandler::setup(){
   };
 
   for (auto const& syst:allowedSysts){
-    ExtendedHistogram_2D tmphist;
+    ExtendedHistogram_2D_f tmphist;
 
     syst_SF_id_map[syst] = tmphist;
     syst_SF_iso_loose_map[syst] = tmphist;
@@ -106,17 +106,17 @@ bool MuonScaleFactorHandler::setup(){
       TString str_SF_id = Form("SF_%s_passId", systname.Data());
       TString str_SF_iso_loose = Form("SF_%s_passId_passLooseIso", systname.Data());
       TString str_SF_iso_tight = Form("SF_%s_passId_passTightIso", systname.Data());
-      res &= getHistogram<TH2D, ExtendedHistogram_2D>(syst_SF_id_map[syst], finput, str_SF_id);
-      res &= getHistogram<TH2D, ExtendedHistogram_2D>(syst_SF_iso_loose_map[syst], finput, str_SF_iso_loose);
-      res &= getHistogram<TH2D, ExtendedHistogram_2D>(syst_SF_iso_tight_map[syst], finput, str_SF_iso_tight);
+      res &= getHistogram<TH2D, ExtendedHistogram_2D_f>(syst_SF_id_map[syst], finput, str_SF_id);
+      res &= getHistogram<TH2D, ExtendedHistogram_2D_f>(syst_SF_iso_loose_map[syst], finput, str_SF_iso_loose);
+      res &= getHistogram<TH2D, ExtendedHistogram_2D_f>(syst_SF_iso_tight_map[syst], finput, str_SF_iso_tight);
 
       if (HelperFunctions::checkListVariable(allowedSysts_eff, syst)){
         TString str_eff_mc_id = Form("eff_MC_%s_passId", systname.Data());
         TString str_eff_mc_iso_loose = Form("eff_MC_%s_passId_passLooseIso", systname.Data());
         TString str_eff_mc_iso_tight = Form("eff_MC_%s_passId_passTightIso", systname.Data());
-        res &= getHistogram<TH2D, ExtendedHistogram_2D>(syst_eff_mc_id_map[syst], finput, str_eff_mc_id);
-        res &= getHistogram<TH2D, ExtendedHistogram_2D>(syst_eff_mc_iso_loose_map[syst], finput, str_eff_mc_iso_loose);
-        res &= getHistogram<TH2D, ExtendedHistogram_2D>(syst_eff_mc_iso_tight_map[syst], finput, str_eff_mc_iso_tight);
+        res &= getHistogram<TH2D, ExtendedHistogram_2D_f>(syst_eff_mc_id_map[syst], finput, str_eff_mc_id);
+        res &= getHistogram<TH2D, ExtendedHistogram_2D_f>(syst_eff_mc_iso_loose_map[syst], finput, str_eff_mc_iso_loose);
+        res &= getHistogram<TH2D, ExtendedHistogram_2D_f>(syst_eff_mc_iso_tight_map[syst], finput, str_eff_mc_iso_tight);
       }
     }
     ScaleFactorHandlerBase::closeFile(finput); curdir->cd();
@@ -134,7 +134,7 @@ void MuonScaleFactorHandler::reset(){
   syst_SF_iso_tight_map.clear();
 }
 
-void MuonScaleFactorHandler::evalScaleFactorFromHistogram(float& theSF, float& theSFRelErr, float const& pt, float const& eta, ExtendedHistogram_2D const& hist, bool etaOnY, bool useAbsEta) const{
+void MuonScaleFactorHandler::evalScaleFactorFromHistogram(float& theSF, float& theSFRelErr, float const& pt, float const& eta, ExtendedHistogram_2D_f const& hist, bool etaOnY, bool useAbsEta) const{
   TH2F const* hh = hist.getHistogram();
   if (!hh) return;
 
@@ -208,8 +208,8 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
   if (verbosity>=TVar::DEBUG) MELAout << "\t- Active systematics: " << activeSysts << endl;
 
   // Obtain nominal histograms
-  std::vector<ExtendedHistogram_2D const*> hlist_eff_mc; hlist_eff_mc.reserve(n_ID_iso_types);
-  std::vector<ExtendedHistogram_2D const*> hlist_SF_nominal; hlist_SF_nominal.reserve(n_ID_iso_types);
+  std::vector<ExtendedHistogram_2D_f const*> hlist_eff_mc; hlist_eff_mc.reserve(n_ID_iso_types);
+  std::vector<ExtendedHistogram_2D_f const*> hlist_SF_nominal; hlist_SF_nominal.reserve(n_ID_iso_types);
   {
     auto it_syst_eff_mc_id_map = syst_eff_mc_id_map.find(activeSyst_eff_nominal);
     auto it_syst_eff_mc_iso_loose_map = syst_eff_mc_iso_loose_map.find(activeSyst_eff_nominal);
@@ -332,7 +332,7 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
         std::vector<float>& eff_syst_scaled_list = eff_syst_scaled_lists.at(ias);
         std::vector<float>& eff_syst_scaled_complement_list = eff_syst_scaled_complement_lists.at(ias);
 
-        std::vector<ExtendedHistogram_2D const*> hlist_SF; hlist_SF.reserve(n_ID_iso_types);
+        std::vector<ExtendedHistogram_2D_f const*> hlist_SF; hlist_SF.reserve(n_ID_iso_types);
         {
           auto it_syst_SF_id_map = syst_SF_id_map.find(asyst);
           auto it_syst_SF_iso_loose_map = syst_SF_iso_loose_map.find(asyst);
@@ -347,7 +347,7 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
         }
 
         // Get complementary syst
-        std::vector<ExtendedHistogram_2D const*> hlist_SF_cpl; hlist_SF_cpl.reserve(n_ID_iso_types);
+        std::vector<ExtendedHistogram_2D_f const*> hlist_SF_cpl; hlist_SF_cpl.reserve(n_ID_iso_types);
         if (activeSysts.size() > 1){
           SystematicVariationTypes asyst_cpl = getSystComplement(asyst);
           auto it_syst_SF_id_map = syst_SF_id_map.find(asyst_cpl);

@@ -50,7 +50,7 @@ bool ElectronScaleFactorHandler::setup(){
 
   constexpr unsigned int n_non_gap_gap = 3;
   for (auto const& syst:allowedSysts){
-    std::vector<ExtendedHistogram_2D> tmpvec(n_non_gap_gap, ExtendedHistogram_2D());
+    std::vector<ExtendedHistogram_2D_f> tmpvec(n_non_gap_gap, ExtendedHistogram_2D_f());
 
     if (HelperFunctions::checkListVariable(allowedSysts_eff, syst)){
       syst_eff_mc_reco_map[syst] = tmpvec;
@@ -80,8 +80,8 @@ bool ElectronScaleFactorHandler::setup(){
     }
     TFile* finput = TFile::Open(cinput, "read"); uppermostdir->cd();
     for (unsigned int igap=0; igap<n_non_gap_gap; igap++){
-      res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_SF_reco_map[sNominal].at(igap), finput, "EGamma_SF2D");
-      res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_eff_mc_reco_map[sNominal].at(igap), finput, "EGamma_EffMC2D");
+      res &= getHistogram<TH2F, ExtendedHistogram_2D_f>(syst_SF_reco_map[sNominal].at(igap), finput, "EGamma_SF2D");
+      res &= getHistogram<TH2F, ExtendedHistogram_2D_f>(syst_eff_mc_reco_map[sNominal].at(igap), finput, "EGamma_EffMC2D");
     }
     ScaleFactorHandlerBase::closeFile(finput); curdir->cd();
   }
@@ -130,17 +130,17 @@ bool ElectronScaleFactorHandler::setup(){
       TString str_SF_id = Form("SF_%s_passId", systname.Data());
       TString str_SF_iso_loose = Form("SF_%s_passId_passLooseIso", systname.Data());
       TString str_SF_iso_tight = Form("SF_%s_passId_passTightIso", systname.Data());
-      res &= getHistogram<TH2D, ExtendedHistogram_2D>(syst_SF_id_map[syst].at(igap), finput, str_SF_id);
-      res &= getHistogram<TH2D, ExtendedHistogram_2D>(syst_SF_iso_loose_map[syst].at(igap), finput, str_SF_iso_loose);
-      res &= getHistogram<TH2D, ExtendedHistogram_2D>(syst_SF_iso_tight_map[syst].at(igap), finput, str_SF_iso_tight);
+      res &= getHistogram<TH2D, ExtendedHistogram_2D_f>(syst_SF_id_map[syst].at(igap), finput, str_SF_id);
+      res &= getHistogram<TH2D, ExtendedHistogram_2D_f>(syst_SF_iso_loose_map[syst].at(igap), finput, str_SF_iso_loose);
+      res &= getHistogram<TH2D, ExtendedHistogram_2D_f>(syst_SF_iso_tight_map[syst].at(igap), finput, str_SF_iso_tight);
 
       if (HelperFunctions::checkListVariable(allowedSysts_eff, syst)){
         TString str_eff_mc_id = Form("eff_MC_%s_passId", systname.Data());
         TString str_eff_mc_iso_loose = Form("eff_MC_%s_passId_passLooseIso", systname.Data());
         TString str_eff_mc_iso_tight = Form("eff_MC_%s_passId_passTightIso", systname.Data());
-        res &= getHistogram<TH2D, ExtendedHistogram_2D>(syst_eff_mc_id_map[syst].at(igap), finput, str_eff_mc_id);
-        res &= getHistogram<TH2D, ExtendedHistogram_2D>(syst_eff_mc_iso_loose_map[syst].at(igap), finput, str_eff_mc_iso_loose);
-        res &= getHistogram<TH2D, ExtendedHistogram_2D>(syst_eff_mc_iso_tight_map[syst].at(igap), finput, str_eff_mc_iso_tight);
+        res &= getHistogram<TH2D, ExtendedHistogram_2D_f>(syst_eff_mc_id_map[syst].at(igap), finput, str_eff_mc_id);
+        res &= getHistogram<TH2D, ExtendedHistogram_2D_f>(syst_eff_mc_iso_loose_map[syst].at(igap), finput, str_eff_mc_iso_loose);
+        res &= getHistogram<TH2D, ExtendedHistogram_2D_f>(syst_eff_mc_iso_tight_map[syst].at(igap), finput, str_eff_mc_iso_tight);
       }
     }
     ScaleFactorHandlerBase::closeFile(finput); curdir->cd();
@@ -160,7 +160,7 @@ void ElectronScaleFactorHandler::reset(){
   syst_SF_iso_tight_map.clear();
 }
 
-void ElectronScaleFactorHandler::evalScaleFactorFromHistogram(float& theSF, float& theSFRelErr, float const& pt, float const& etaSC, ExtendedHistogram_2D const& hist, bool etaOnY, bool useAbsEta) const{
+void ElectronScaleFactorHandler::evalScaleFactorFromHistogram(float& theSF, float& theSFRelErr, float const& pt, float const& etaSC, ExtendedHistogram_2D_f const& hist, bool etaOnY, bool useAbsEta) const{
   TH2F const* hh = hist.getHistogram();
   if (!hh) return;
 
@@ -234,8 +234,8 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
   else if (HelperFunctions::checkListVariable(allowedSysts, syst)) activeSysts = std::vector<SystematicVariationTypes>{ syst };
   if (verbosity>=TVar::DEBUG) MELAout << "\t- Active systematics: " << activeSysts << endl;
 
-  std::vector<ExtendedHistogram_2D const*> hlist_eff_mc; hlist_eff_mc.reserve(kAllEffs);
-  std::vector<ExtendedHistogram_2D const*> hlist_SF_nominal; hlist_SF_nominal.reserve(kAllEffs);
+  std::vector<ExtendedHistogram_2D_f const*> hlist_eff_mc; hlist_eff_mc.reserve(kAllEffs);
+  std::vector<ExtendedHistogram_2D_f const*> hlist_SF_nominal; hlist_SF_nominal.reserve(kAllEffs);
   {
     auto it_syst_eff_mc_reco_map = syst_eff_mc_reco_map.find(sNominal); // FIXME: NEEDS TO BE REVISED IF TRACKING eff_mc IMPLEMENTATION CHANGES.
     auto it_syst_eff_mc_id_map = syst_eff_mc_id_map.find(activeSyst_eff_nominal);
@@ -373,8 +373,8 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
         std::vector<float>& eff_syst_scaled_list = eff_syst_scaled_lists.at(ias);
         std::vector<float>& eff_syst_scaled_complement_list = eff_syst_scaled_complement_lists.at(ias);
 
-        std::vector<ExtendedHistogram_2D const*> hlist_SF; hlist_SF.reserve(n_ID_iso_types+1);
-        std::vector<ExtendedHistogram_2D const*> hlist_SF_cpl; hlist_SF_cpl.reserve(n_ID_iso_types+1);
+        std::vector<ExtendedHistogram_2D_f const*> hlist_SF; hlist_SF.reserve(n_ID_iso_types+1);
+        std::vector<ExtendedHistogram_2D_f const*> hlist_SF_cpl; hlist_SF_cpl.reserve(n_ID_iso_types+1);
         {
           auto it_syst_SF_reco_map = syst_SF_reco_map.find(sNominal);
           auto it_syst_SF_id_map = syst_SF_id_map.find(asyst);

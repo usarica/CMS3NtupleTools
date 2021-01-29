@@ -12,14 +12,14 @@
 
 class BtagScaleFactorHandler : public ScaleFactorHandlerBase{
 protected:
-  std::unordered_map< SystematicsHelpers::SystematicVariationTypes, std::unordered_map< BTagEntry::JetFlavor, std::vector<std::vector<ExtendedHistogram_2D>> > > syst_flav_pujetid_WP_mceffhist_map;
+  std::unordered_map< SystematicsHelpers::SystematicVariationTypes, std::unordered_map< BTagEntry::JetFlavor, std::vector<std::vector<ExtendedHistogram_2D_f>> > > syst_flav_pujetid_WP_mceffhist_map;
 
   std::unordered_map<BtagHelpers::BtagWPType, BTagCalibration*> WP_calib_map;
   std::unordered_map<BtagHelpers::BtagWPType, BTagCalibrationReader*> WP_calibreader_map_nominal;
   std::unordered_map<BtagHelpers::BtagWPType, BTagCalibrationReader*> WP_calibreader_map_dn;
   std::unordered_map<BtagHelpers::BtagWPType, BTagCalibrationReader*> WP_calibreader_map_up;
 
-  void evalEfficiencyFromHistogram(float& val, float const& pt, float const& eta, ExtendedHistogram_2D const& hist, bool etaOnY, bool useAbsEta) const;
+  void evalEfficiencyFromHistogram(float& val, float const& pt, float const& eta, ExtendedHistogram_2D_f const& hist, bool etaOnY, bool useAbsEta) const;
 
   static void loadBTagCalibrations(BTagCalibrationReader* const& reader, BTagCalibration* const& calibration);
 

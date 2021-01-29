@@ -80,15 +80,15 @@ bool PhotonScaleFactorHandler::setup(){
   // Get tampon SFs
   {
     TFile* finput = TFile::Open(getScaleFactorFileName(bit_SFTampon_id, SampleHelpers::getDataYear()), "read"); uppermostdir->cd();
-    res &= getHistogram<TH2F, ExtendedHistogram_2D>(h_eff_mc_tampon, finput, "EGamma_EffMC2D");
-    res &= getHistogram<TH2F, ExtendedHistogram_2D>(h_SF_tampon, finput, "EGamma_SF2D");
+    res &= getHistogram<TH2F, ExtendedHistogram_2D_f>(h_eff_mc_tampon, finput, "EGamma_EffMC2D");
+    res &= getHistogram<TH2F, ExtendedHistogram_2D_f>(h_SF_tampon, finput, "EGamma_SF2D");
     ScaleFactorHandlerBase::closeFile(finput); curdir->cd();
   }
   // Get tight SFs
   {
     TFile* finput = TFile::Open(getScaleFactorFileName(bit_preselectionTight_id, SampleHelpers::getDataYear()), "read"); uppermostdir->cd();
-    res &= getHistogram<TH2F, ExtendedHistogram_2D>(h_eff_mc_tight, finput, "EGamma_EffMC2D");
-    res &= getHistogram<TH2F, ExtendedHistogram_2D>(h_SF_tight, finput, "EGamma_SF2D");
+    res &= getHistogram<TH2F, ExtendedHistogram_2D_f>(h_eff_mc_tight, finput, "EGamma_EffMC2D");
+    res &= getHistogram<TH2F, ExtendedHistogram_2D_f>(h_SF_tight, finput, "EGamma_SF2D");
     ScaleFactorHandlerBase::closeFile(finput); curdir->cd();
   }
 
@@ -102,7 +102,7 @@ void PhotonScaleFactorHandler::reset(){
   h_SF_tight.reset();
 }
 
-void PhotonScaleFactorHandler::evalScaleFactorFromHistogram(float& theSF, float& theSFRelErr, float const& pt, float const& etaSC, ExtendedHistogram_2D const& hist, bool etaOnY, bool useAbsEta) const{
+void PhotonScaleFactorHandler::evalScaleFactorFromHistogram(float& theSF, float& theSFRelErr, float const& pt, float const& etaSC, ExtendedHistogram_2D_f const& hist, bool etaOnY, bool useAbsEta) const{
   TH2F const* hh = hist.getHistogram();
   if (!hh){
     MELAerr << "PhotonScaleFactorHandler::evalScaleFactorFromHistogram: Histogram is null." << endl;

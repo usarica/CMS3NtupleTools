@@ -20,7 +20,7 @@ BtagScaleFactorHandler::BtagScaleFactorHandler() : ScaleFactorHandlerBase()
 
 BtagScaleFactorHandler::~BtagScaleFactorHandler(){ this->reset(); }
 
-void BtagScaleFactorHandler::evalEfficiencyFromHistogram(float& theSF, float const& pt, float const& eta, ExtendedHistogram_2D const& hist, bool etaOnY, bool useAbsEta) const{
+void BtagScaleFactorHandler::evalEfficiencyFromHistogram(float& theSF, float const& pt, float const& eta, ExtendedHistogram_2D_f const& hist, bool etaOnY, bool useAbsEta) const{
   TH2F const* hh = hist.getHistogram();
   if (!hh){
     MELAerr << "BtagScaleFactorHandler::evalScaleFactorFromHistogram: Histogram is null." << endl;
@@ -124,22 +124,22 @@ bool BtagScaleFactorHandler::setup(){
   TFile* finput_eff = TFile::Open(BtagHelpers::getBtagEffFileName(), "read"); uppermostdir->cd();
   if (verbosity>=TVar::INFO) MELAout << "BtagScaleFactorHandler::setup: Reading " << finput_eff->GetName() << " to acquire efficiency histograms..." << endl;
   {
-    ExtendedHistogram_2D empty_hist; empty_hist.reset();
+    ExtendedHistogram_2D_f empty_hist; empty_hist.reset();
     TString hname;
     for (auto const& syst:allowedSysts){
       TString systname = SystematicsHelpers::getSystName(syst).data();
-      syst_flav_pujetid_WP_mceffhist_map[syst] = std::unordered_map< BTagEntry::JetFlavor, std::vector<std::vector<ExtendedHistogram_2D>> >();
+      syst_flav_pujetid_WP_mceffhist_map[syst] = std::unordered_map< BTagEntry::JetFlavor, std::vector<std::vector<ExtendedHistogram_2D_f>> >();
       for (auto const& flavpair:flavpairs){
         BTagEntry::JetFlavor jflav = flavpair.first;
         TString const& strflav = flavpair.second;
-        syst_flav_pujetid_WP_mceffhist_map[syst][jflav] = std::vector<std::vector<ExtendedHistogram_2D>>(strpujetidcats.size(), std::vector<ExtendedHistogram_2D>(nBtagWPTypes, empty_hist));
+        syst_flav_pujetid_WP_mceffhist_map[syst][jflav] = std::vector<std::vector<ExtendedHistogram_2D_f>>(strpujetidcats.size(), std::vector<ExtendedHistogram_2D_f>(nBtagWPTypes, empty_hist));
         for (unsigned short ipujetidwp=0; ipujetidwp<strpujetidcats.size(); ipujetidwp++){
           TString const& strpujetidcat = strpujetidcats.at(ipujetidwp);
           for (int iwp=0; iwp<(int) nBtagWPTypes; iwp++){
             BtagWPType wptype = (BtagWPType) iwp;
             hname = BtagHelpers::getBtagEffHistName(wptype, strflav.Data()); hname = hname + "_PUJetId_" + strpujetidcat + "_" + systname;
             if (verbosity>=TVar::DEBUG) MELAout << "\t- Extracting MC efficiency histogram " << hname << "..." << endl;
-            bool tmpres = getHistogram<TH2F, ExtendedHistogram_2D>(syst_flav_pujetid_WP_mceffhist_map[syst][jflav].at(ipujetidwp).at(iwp), finput_eff, hname);
+            bool tmpres = getHistogram<TH2F, ExtendedHistogram_2D_f>(syst_flav_pujetid_WP_mceffhist_map[syst][jflav].at(ipujetidwp).at(iwp), finput_eff, hname);
             if (!tmpres && verbosity>=TVar::DEBUG) MELAerr << "\t\t- FAILED!" << endl;
             res &= tmpres;
           }
@@ -234,7 +234,7 @@ void BtagScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariation
   std::vector<BTagCalibrationReader const*> calibReaders;
   std::vector<BTagCalibrationReader const*> calibReaders_Nominal;
   std::vector<float> const btagwps = BtagHelpers::getBtagWPs(false);
-  std::vector<ExtendedHistogram_2D> const& effhists = syst_flav_pujetid_WP_mceffhist_map.find(jetsyst)->second.find(flav)->second.at(pujetidcat);
+  std::vector<ExtendedHistogram_2D_f> const& effhists = syst_flav_pujetid_WP_mceffhist_map.find(jetsyst)->second.find(flav)->second.at(pujetidcat);
   unsigned short idx_offset_effmc = 0;
   switch (BtagHelpers::btagWPType){
   case kDeepCSV_Loose:

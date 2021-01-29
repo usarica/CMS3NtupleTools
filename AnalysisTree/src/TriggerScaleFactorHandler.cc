@@ -70,7 +70,7 @@ bool TriggerScaleFactorHandler::setup(){
       }
 
       uppermostdir->cd();
-      std::vector<ExtendedHistogram_2D> tmpvec(4, ExtendedHistogram_2D());
+      std::vector<ExtendedHistogram_2D_f> tmpvec(4, ExtendedHistogram_2D_f());
       syst_SF_Dilepton_SingleLepton_mumu_map[syst] = tmpvec;
       syst_SF_Dilepton_SingleLepton_ee_map[syst] = tmpvec;
       syst_SF_Dilepton_SingleLepton_mue_map[syst] = tmpvec;
@@ -93,23 +93,23 @@ bool TriggerScaleFactorHandler::setup(){
           TString hname;
 
           hname = Form("h_Combined_SF_pt25avg_%s_wcuts_mumu_%s_%s_%s", systname.Data(), benames.at(ibe).Data(), benames.at(jbe).Data(), strSyst.Data());
-          res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_SF_Dilepton_SingleLepton_mumu_map[syst].at(idx_hist), dir_Dilepton_Combined, hname);
+          res &= getHistogram<TH2F, ExtendedHistogram_2D_f>(syst_SF_Dilepton_SingleLepton_mumu_map[syst].at(idx_hist), dir_Dilepton_Combined, hname);
           uppermostdir->cd();
           hname = Form("h_Combined_SF_pt25avg_%s_wcuts_ee_%s_%s_%s", systname.Data(), benames.at(ibe).Data(), benames.at(jbe).Data(), strSyst.Data());
-          res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_SF_Dilepton_SingleLepton_ee_map[syst].at(idx_hist), dir_Dilepton_Combined, hname);
+          res &= getHistogram<TH2F, ExtendedHistogram_2D_f>(syst_SF_Dilepton_SingleLepton_ee_map[syst].at(idx_hist), dir_Dilepton_Combined, hname);
           uppermostdir->cd();
           hname = Form("h_Combined_SF_pt25avg_%s_wcuts_mue_%s_%s_%s", systname.Data(), benames.at(ibe).Data(), benames.at(jbe).Data(), strSyst.Data());
-          res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_SF_Dilepton_SingleLepton_mue_map[syst].at(idx_hist), dir_Dilepton_Combined, hname);
+          res &= getHistogram<TH2F, ExtendedHistogram_2D_f>(syst_SF_Dilepton_SingleLepton_mue_map[syst].at(idx_hist), dir_Dilepton_Combined, hname);
           uppermostdir->cd();
           if (HelperFunctions::checkListVariable(allowedSysts_eff, syst)){
             hname = Form("h_Combined_eff_%s_wcuts_mumu_%s_%s_MC_%s", systname.Data(), benames.at(ibe).Data(), benames.at(jbe).Data(), strSyst.Data());
-            res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_eff_mc_Dilepton_SingleLepton_mumu_map[syst].at(idx_hist), dir_Dilepton_Combined, hname);
+            res &= getHistogram<TH2F, ExtendedHistogram_2D_f>(syst_eff_mc_Dilepton_SingleLepton_mumu_map[syst].at(idx_hist), dir_Dilepton_Combined, hname);
             uppermostdir->cd();
             hname = Form("h_Combined_eff_%s_wcuts_ee_%s_%s_MC_%s", systname.Data(), benames.at(ibe).Data(), benames.at(jbe).Data(), strSyst.Data());
-            res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_eff_mc_Dilepton_SingleLepton_ee_map[syst].at(idx_hist), dir_Dilepton_Combined, hname);
+            res &= getHistogram<TH2F, ExtendedHistogram_2D_f>(syst_eff_mc_Dilepton_SingleLepton_ee_map[syst].at(idx_hist), dir_Dilepton_Combined, hname);
             uppermostdir->cd();
             hname = Form("h_Combined_eff_%s_wcuts_mue_%s_%s_MC_%s", systname.Data(), benames.at(ibe).Data(), benames.at(jbe).Data(), strSyst.Data());
-            res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_eff_mc_Dilepton_SingleLepton_mue_map[syst].at(idx_hist), dir_Dilepton_Combined, hname);
+            res &= getHistogram<TH2F, ExtendedHistogram_2D_f>(syst_eff_mc_Dilepton_SingleLepton_mue_map[syst].at(idx_hist), dir_Dilepton_Combined, hname);
             uppermostdir->cd();
           }
         }
@@ -119,17 +119,17 @@ bool TriggerScaleFactorHandler::setup(){
         TString hname;
 
         hname = Form("h_SingleMuon_SF_%s_%s", systname.Data(), strSyst.Data());
-        res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_SF_SingleMuon_map[syst], dir_SingleLepton_Combined, hname);
+        res &= getHistogram<TH2F, ExtendedHistogram_2D_f>(syst_SF_SingleMuon_map[syst], dir_SingleLepton_Combined, hname);
         uppermostdir->cd();
         hname = Form("h_SingleElectron_SF_%s_%s", systname.Data(), strSyst.Data());
-        res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_SF_SingleElectron_map[syst], dir_SingleLepton_Combined, hname);
+        res &= getHistogram<TH2F, ExtendedHistogram_2D_f>(syst_SF_SingleElectron_map[syst], dir_SingleLepton_Combined, hname);
         uppermostdir->cd();
         if (HelperFunctions::checkListVariable(allowedSysts_eff, syst)){
           hname = Form("h_SingleMuon_eff_%s_MC_%s", systname.Data(), strSyst.Data());
-          res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_eff_mc_SingleMuon_map[syst], dir_SingleLepton_Combined, hname);
+          res &= getHistogram<TH2F, ExtendedHistogram_2D_f>(syst_eff_mc_SingleMuon_map[syst], dir_SingleLepton_Combined, hname);
           uppermostdir->cd();
           hname = Form("h_SingleElectron_eff_%s_MC_%s", systname.Data(), strSyst.Data());
-          res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_eff_mc_SingleElectron_map[syst], dir_SingleLepton_Combined, hname);
+          res &= getHistogram<TH2F, ExtendedHistogram_2D_f>(syst_eff_mc_SingleElectron_map[syst], dir_SingleLepton_Combined, hname);
           uppermostdir->cd();
         }
       }
@@ -154,7 +154,7 @@ void TriggerScaleFactorHandler::reset(){
   syst_SF_SingleElectron_map.clear();
 }
 
-void TriggerScaleFactorHandler::evalScaleFactorFromHistogram_PtEta(float& theSF, float const& pt, float const& eta, ExtendedHistogram_2D const& hist, bool etaOnY, bool useAbsEta) const{
+void TriggerScaleFactorHandler::evalScaleFactorFromHistogram_PtEta(float& theSF, float const& pt, float const& eta, ExtendedHistogram_2D_f const& hist, bool etaOnY, bool useAbsEta) const{
   TH2F const* hh = hist.getHistogram();
   if (!hh) return;
 
@@ -180,7 +180,7 @@ void TriggerScaleFactorHandler::evalScaleFactorFromHistogram_PtEta(float& theSF,
 
   theSF *= hh->GetBinContent(ix, iy);
 }
-void TriggerScaleFactorHandler::evalScaleFactorFromHistogram_PtPt(float& theSF, float const& pt1, float const& pt2, ExtendedHistogram_2D const& hist) const{
+void TriggerScaleFactorHandler::evalScaleFactorFromHistogram_PtPt(float& theSF, float const& pt1, float const& pt2, ExtendedHistogram_2D_f const& hist) const{
   TH2F const* hh = hist.getHistogram();
   if (!hh) MELAerr << "Histogram is NULL!" << endl;
   if (!hh) return;
@@ -257,8 +257,8 @@ void TriggerScaleFactorHandler::getCombinedDileptonSFAndEff(
   unsigned short idx_BE = (isBarrel1 ? 0 : 2) + (isBarrel2 ? 0 : 1);
 
   // Obtain histograms
-  ExtendedHistogram_2D const* h_eff_mc = nullptr;
-  ExtendedHistogram_2D const* h_SF = nullptr;
+  ExtendedHistogram_2D_f const* h_eff_mc = nullptr;
+  ExtendedHistogram_2D_f const* h_SF = nullptr;
   if (is_mue){
     h_eff_mc = &(syst_eff_mc_Dilepton_SingleLepton_mue_map.find(activeSyst_eff_nominal)->second.at(idx_BE));
     h_SF = &(syst_SF_Dilepton_SingleLepton_mue_map.find(activeSyst)->second.at(idx_BE));
@@ -326,8 +326,8 @@ void TriggerScaleFactorHandler::getCombinedSingleLeptonSFAndEff(
   bool is_mu = std::abs(partId)==13;
 
   // Obtain histograms
-  ExtendedHistogram_2D const* h_eff_mc = nullptr;
-  ExtendedHistogram_2D const* h_SF = nullptr;
+  ExtendedHistogram_2D_f const* h_eff_mc = nullptr;
+  ExtendedHistogram_2D_f const* h_SF = nullptr;
   if (is_mu){
     h_eff_mc = &(syst_eff_mc_SingleMuon_map.find(activeSyst_eff_nominal)->second);
     h_SF = &(syst_SF_SingleMuon_map.find(activeSyst)->second);

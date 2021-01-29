@@ -28,7 +28,7 @@ protected:
   std::vector< std::pair<double, double> > reweightingweights_frac_tolerance_pair_list;
   std::unordered_map< BaseTree*, std::vector<std::vector<float*> > > componentRefsList_reweightingweights;
 
-  std::unordered_map<BaseTree*, float> normWeights;
+  std::unordered_map<BaseTree*, double> normWeights;
 
   // Derived variables
   std::unordered_map< BaseTree*, std::vector< std::vector<float> > > absWeightThresholdsPerBinList;
@@ -57,7 +57,7 @@ public:
     ReweightingFunctions::ReweightingFunction_t rule_reweightingweights_,
     double thr_wgt=0.9995, double tolerance=5.
   );
-  void registerTree(BaseTree* tree, float extNorm=1);
+  void registerTree(BaseTree* tree, double extNorm=1);
 
   // thr_wgt and tol_wgt adjust the large weight removal threshold and tolerance.
   // thr_wgt=-1 defaults to the default of ReweightingFunctions::getAbsWeightThresholdsPerBinByFixedFractionalThreshold.
@@ -67,6 +67,8 @@ public:
     int ihypo_Neff, std::vector<std::pair<BaseTree*, BaseTree*>> const* tree_normTree_pairs=nullptr,
     float thr_frac_Neff=-1.
   );
+  // This function sets the vectors by reading from a file
+  void setupFromFile(TString cinput);
 
   double getOverallReweightingNormalization(BaseTree* tree) const;
   double getSamplePairwiseNormalization(BaseTree* tree) const;
@@ -77,6 +79,9 @@ public:
   std::vector<TString> const& getNominalWeightVars() const{ return strNominalWeights; }
   std::vector<TString> const& getCrossSectionWeightVars() const{ return strCrossSectionWeights; }
   std::vector<std::vector<TString>> const& getReweightingWeightVarList() const{ return strReweightingWeightsList; }
+
+  // This is to write the reweigthing specifications to a file
+  void writeToFile(TFile* foutput) const;
 
 };
 

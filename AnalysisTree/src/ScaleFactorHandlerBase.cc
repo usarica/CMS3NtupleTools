@@ -18,7 +18,7 @@ void ScaleFactorHandlerBase::closeFile(TFile*& f){
 
 void ScaleFactorHandlerBase::getAxisBinning(TAxis const* ax, ExtendedBinning& res){ HelperFunctions::getExtendedBinning(ax, res); }
 
-template<> bool ScaleFactorHandlerBase::getHistogram<TH1F, ExtendedHistogram_1D>(ExtendedHistogram_1D& h, TDirectory* f, TString s){
+template<> bool ScaleFactorHandlerBase::getHistogram<TH1F, ExtendedHistogram_1D_f>(ExtendedHistogram_1D_f& h, TDirectory* f, TString s){
   TDirectory* curdir = gDirectory;
   if (s=="") return false;
   if (!f) return false;
@@ -53,7 +53,7 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH1F, ExtendedHistogram_1D>
 
   return (hh!=nullptr);
 }
-template<> bool ScaleFactorHandlerBase::getHistogram<TH1D, ExtendedHistogram_1D>(ExtendedHistogram_1D& h, TDirectory* f, TString s){
+template<> bool ScaleFactorHandlerBase::getHistogram<TH1D, ExtendedHistogram_1D_f>(ExtendedHistogram_1D_f& h, TDirectory* f, TString s){
   TDirectory* curdir = gDirectory;
   if (s=="") return false;
   if (!f) return false;
@@ -88,7 +88,7 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH1D, ExtendedHistogram_1D>
 
   return (hh!=nullptr);
 }
-template<> bool ScaleFactorHandlerBase::getHistogram<TH2F, ExtendedHistogram_2D>(ExtendedHistogram_2D& h, TDirectory* f, TString s){
+template<> bool ScaleFactorHandlerBase::getHistogram<TH2F, ExtendedHistogram_2D_f>(ExtendedHistogram_2D_f& h, TDirectory* f, TString s){
   TDirectory* curdir = gDirectory;
   if (s=="") return false;
   if (!f) return false;
@@ -129,7 +129,7 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH2F, ExtendedHistogram_2D>
 
   return (hh!=nullptr);
 }
-template<> bool ScaleFactorHandlerBase::getHistogram<TH2D, ExtendedHistogram_2D>(ExtendedHistogram_2D& h, TDirectory* f, TString s){
+template<> bool ScaleFactorHandlerBase::getHistogram<TH2D, ExtendedHistogram_2D_f>(ExtendedHistogram_2D_f& h, TDirectory* f, TString s){
   TDirectory* curdir = gDirectory;
   if (s=="") return false;
   if (!f) return false;
@@ -171,7 +171,7 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH2D, ExtendedHistogram_2D>
   return (hh!=nullptr);
 }
 
-template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH1F, ExtendedHistogram_1D>(ExtendedHistogram_1D& h, TDirectory* f, TString s, TString su){
+template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH1F, ExtendedHistogram_1D_f>(ExtendedHistogram_1D_f& h, TDirectory* f, TString s, TString su){
   TDirectory* curdir = gDirectory;
   if (s=="") return false;
   if (!f) return false;
@@ -211,7 +211,7 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH1F, Extende
 
   return (hh!=nullptr);
 }
-template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH1D, ExtendedHistogram_1D>(ExtendedHistogram_1D& h, TDirectory* f, TString s, TString su){
+template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH1D, ExtendedHistogram_1D_f>(ExtendedHistogram_1D_f& h, TDirectory* f, TString s, TString su){
   TDirectory* curdir = gDirectory;
   if (s=="") return false;
   if (!f) return false;
@@ -251,7 +251,7 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH1D, Extende
 
   return (hh!=nullptr);
 }
-template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH2F, ExtendedHistogram_2D>(ExtendedHistogram_2D& h, TDirectory* f, TString s, TString su){
+template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH2F, ExtendedHistogram_2D_f>(ExtendedHistogram_2D_f& h, TDirectory* f, TString s, TString su){
   TDirectory* curdir = gDirectory;
   if (s=="") return false;
   if (!f) return false;
@@ -297,7 +297,7 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH2F, Extende
 
   return (hh!=nullptr);
 }
-template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH2D, ExtendedHistogram_2D>(ExtendedHistogram_2D& h, TDirectory* f, TString s, TString su){
+template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH2D, ExtendedHistogram_2D_f>(ExtendedHistogram_2D_f& h, TDirectory* f, TString s, TString su){
   TDirectory* curdir = gDirectory;
   if (s=="") return false;
   if (!f) return false;

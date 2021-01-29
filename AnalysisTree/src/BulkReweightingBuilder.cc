@@ -1,5 +1,8 @@
 #include "BulkReweightingBuilder.h"
+#include "HostHelpersCore.h"
 #include "SimpleEntry.h"
+#include "ExtendedHistogram_1D.h"
+#include "ExtendedHistogram_2D.h"
 #include "MELAAccumulators.h"
 #include "MELAStreamHelpers.hh"
 
@@ -40,7 +43,7 @@ void BulkReweightingBuilder::addReweightingWeights(
   reweightingweights_frac_tolerance_pair_list.emplace_back(thr_wgt, tolerance);
 }
 
-void BulkReweightingBuilder::registerTree(BaseTree* tree, float extNorm){
+void BulkReweightingBuilder::registerTree(BaseTree* tree, double extNorm){
   for (auto const& s:strBinningVars) tree->bookBranch<float>(s, 0.);
   binningVarRefs[tree] = ReweightingFunctions::getWeightRefs(tree, strBinningVars);
 
@@ -424,4 +427,250 @@ bool BulkReweightingBuilder::checkWeightsBelowThreshold(BaseTree* tree) const{
   }
 
   return res;
+}
+
+void BulkReweightingBuilder::writeToFile(TFile* foutput) const{
+  unsigned int const nhypos = strReweightingWeightsList.size();
+  unsigned int const nbins = (binning.isValid() ? binning.getNbins() : static_cast<unsigned int>(1));
+
+  TDirectory* curdir = gDirectory;
+  foutput->cd();
+
+  for (auto const& tree:registeredTrees){
+    TString const sid = tree->sampleIdentifier;
+    TDirectory* dir_tree = foutput->mkdir(sid);
+    dir_tree->cd();
+
+    TH1D* h_normWeights = new TH1D("normWeight", sid, 1, 0, 1);
+    h_normWeights->SetBinContent(1, normWeights.find(tree)->second);
+    dir_tree->WriteTObject(h_normWeights); delete h_normWeights;
+
+    TH1D* h_samplePairwiseNormalization = new TH1D("samplePairwiseNormalization", sid, 1, 0, 1);
+    h_samplePairwiseNormalization->SetBinContent(1, samplePairwiseNormalization.find(tree)->second);
+    dir_tree->WriteTObject(h_samplePairwiseNormalization); delete h_samplePairwiseNormalization;
+
+#define HIST_1D_COMMANDS \
+HIST_1D_COMMAND(sum_normwgts_all) \
+HIST_1D_COMMAND(sum_normwgts_nonzerorewgt) \
+HIST_1D_COMMAND(NeffsPerBin) \
+HIST_1D_COMMAND(sampleNormalization) \
+HIST_1D_COMMAND(sampleZeroMECompensation)
+#define HIST_1D_COMMAND(NAME) \
+    auto const& NAME##_tree = NAME.find(tree)->second; \
+    TH1D* h_##NAME = new TH1D(#NAME, sid, nbins, 0, nbins); \
+    for (unsigned int ibin=0; ibin<nbins; ibin++) h_##NAME->SetBinContent(ibin+1, NAME##_tree.at(ibin)); \
+    dir_tree->WriteTObject(h_##NAME); delete h_##NAME;
+    HIST_1D_COMMANDS;
+#undef HIST_1D_COMMAND
+#undef HIST_1D_COMMANDS
+
+    auto const& absWeightThresholdsPerBinList_tree = absWeightThresholdsPerBinList.find(tree)->second;
+    TH2D* h_absWeightThresholdsPerBinList = new TH2D("absWeightThresholdsPerBinList", sid, nhypos, 0, nhypos, nbins, 0, nbins);
+    for (unsigned int ihypo=0; ihypo<nhypos; ihypo++){
+      for (unsigned int ibin=0; ibin<nbins; ibin++){
+        h_absWeightThresholdsPerBinList->SetBinContent(ihypo+1, ibin+1, absWeightThresholdsPerBinList_tree.at(ihypo).at(ibin));
+      }
+    }
+    dir_tree->WriteTObject(h_absWeightThresholdsPerBinList); delete h_absWeightThresholdsPerBinList;
+
+    auto const& sum_wgts_withrewgt_tree = sum_wgts_withrewgt.find(tree)->second;
+    TH2D* h_sum_wgts_withrewgt = new TH2D("sum_wgts_withrewgt", sid, nhypos, 0, nhypos, nbins, 0, nbins);
+    for (unsigned int ihypo=0; ihypo<nhypos; ihypo++){
+      for (unsigned int ibin=0; ibin<nbins; ibin++){
+        h_sum_wgts_withrewgt->SetBinContent(ihypo+1, ibin+1, sum_wgts_withrewgt_tree.at(ihypo).at(ibin).first);
+        h_sum_wgts_withrewgt->SetBinError(ihypo+1, ibin+1, sum_wgts_withrewgt_tree.at(ihypo).at(ibin).second);
+      }
+    }
+    dir_tree->WriteTObject(h_sum_wgts_withrewgt); delete h_sum_wgts_withrewgt;
+
+    dir_tree->Close();
+    foutput->cd();
+  }
+
+  // Common stuff
+  TH2D* h_reweightingweights_frac_tolerance_pair_list = new TH2D("reweightingweights_frac_tolerance_pair_list", "", nhypos, 0, nhypos, 2, 0, 2);
+  for (unsigned int ihypo=0; ihypo<nhypos; ihypo++){
+    h_reweightingweights_frac_tolerance_pair_list->SetBinContent(ihypo+1, 1, reweightingweights_frac_tolerance_pair_list.at(ihypo).first);
+    h_reweightingweights_frac_tolerance_pair_list->SetBinContent(ihypo+1, 2, reweightingweights_frac_tolerance_pair_list.at(ihypo).second);
+  }
+  foutput->WriteTObject(h_reweightingweights_frac_tolerance_pair_list); delete h_reweightingweights_frac_tolerance_pair_list;
+
+  TTree* t_common = new TTree("CommonVariables", "");
+  TString binning_name = binning.getName(); t_common->Branch("binning_name", &binning_name);
+  std::vector<double> bin_thresholds = binning.getBinningVector(); t_common->Branch("bin_thresholds", &bin_thresholds);
+  auto v_strBinningVars = strBinningVars; t_common->Branch("strBinningVars", &v_strBinningVars);
+  auto v_strNominalWeights = strNominalWeights; t_common->Branch("strNominalWeights", &v_strNominalWeights);
+  auto v_strCrossSectionWeights = strCrossSectionWeights; t_common->Branch("strCrossSectionWeights", &v_strCrossSectionWeights);
+  auto v_strReweightingWeightsList = strReweightingWeightsList; t_common->Branch("strReweightingWeightsList", &v_strReweightingWeightsList);
+  t_common->Fill();
+  foutput->WriteTObject(t_common); delete t_common;
+
+  curdir->cd();
+}
+void BulkReweightingBuilder::setupFromFile(TString cinput){
+  HostHelpers::ExpandEnvironmentVariables(cinput);
+
+  if (!HostHelpers::FileReadable(cinput.Data())){
+    MELAerr << "BulkReweightingBuilder::setupFromFile: File " << cinput << " is not readable." << endl;
+    assert(0);
+  }
+  MELAout << "BulkReweightingBuilder::setupFromFile: setting up reweighting from file " << cinput << "." << endl;
+  TDirectory* curdir = gDirectory;
+  TFile* finput = TFile::Open(cinput, "read");
+  finput->cd();
+
+  // Cross-check the requested weighting scheme
+  TTree* t_common = (TTree*) finput->Get("CommonVariables");
+  TString binning_name; t_common->SetBranchAddress("binning_name", &binning_name);
+  std::vector<double>* bin_thresholds = nullptr; t_common->SetBranchAddress("bin_thresholds", &bin_thresholds);
+  std::vector<TString>* v_strBinningVars = nullptr; t_common->SetBranchAddress("strBinningVars", &v_strBinningVars);
+  std::vector<TString>* v_strNominalWeights = nullptr; t_common->SetBranchAddress("strNominalWeights", &v_strNominalWeights);
+  std::vector<TString>* v_strCrossSectionWeights = nullptr; t_common->SetBranchAddress("strCrossSectionWeights", &v_strCrossSectionWeights);
+  std::vector<std::vector<TString>>* v_strReweightingWeightsList = nullptr; t_common->SetBranchAddress("strReweightingWeightsList", &v_strReweightingWeightsList);
+  t_common->GetEntry(0);
+
+  // Check binning variables
+  {
+    bool hasSameBinning = (v_strBinningVars->size() == strBinningVars.size());
+    if (hasSameBinning){
+      for (auto const& v:strBinningVars){
+        if (!HelperFunctions::checkListVariable(*v_strBinningVars, v)){
+          hasSameBinning = false;
+          break;
+        }
+      }
+    }
+    if (!hasSameBinning){
+      MELAerr << "\t- Binning variables were specified as " << strBinningVars << ", but the input file has " << *v_strBinningVars << "." << endl;
+      assert(0);
+    }
+    // Reset binning
+    binning = ExtendedBinning(*bin_thresholds, binning_name, "");
+  }
+
+  // Check nominal weight variables
+  {
+    bool hasSameWeights = (v_strNominalWeights->size() == strNominalWeights.size());
+    if (hasSameWeights){
+      for (auto const& v:strNominalWeights){
+        if (!HelperFunctions::checkListVariable(*v_strNominalWeights, v)){
+          hasSameWeights = false;
+          break;
+        }
+      }
+    }
+    if (!hasSameWeights){
+      MELAerr << "\t- Nominal weight variables were specified as " << strNominalWeights << ", but the input file has " << *v_strNominalWeights << "." << endl;
+      assert(0);
+    }
+  }
+
+  // Check nominal weight variables
+  {
+    bool hasSameWeights = (v_strCrossSectionWeights->size() == strCrossSectionWeights.size());
+    if (hasSameWeights){
+      for (auto const& v:strCrossSectionWeights){
+        if (!HelperFunctions::checkListVariable(*v_strCrossSectionWeights, v)){
+          hasSameWeights = false;
+          break;
+        }
+      }
+    }
+    if (!hasSameWeights){
+      MELAerr << "\t- Cross section weight variables were specified as " << strCrossSectionWeights << ", but the input file has " << *v_strCrossSectionWeights << "." << endl;
+      assert(0);
+    }
+  }
+
+  unsigned int const nhypos = strReweightingWeightsList.size();
+  unsigned int const nbins = (binning.isValid() ? binning.getNbins() : static_cast<unsigned int>(1));
+
+  std::vector<unsigned int> hypo_order;
+  for (auto const& strReweightingWeights:strReweightingWeightsList){
+    int jhypo = -1;
+    for (unsigned int ihypo=0; ihypo<v_strReweightingWeightsList->size(); ihypo++){
+      auto const& v_strReweightingWeights = v_strReweightingWeightsList->at(ihypo);
+      bool hasSameWeights = (v_strReweightingWeights.size() == strReweightingWeights.size());
+      if (hasSameWeights){
+        for (auto const& v:strReweightingWeights){
+          if (!HelperFunctions::checkListVariable(v_strReweightingWeights, v)){
+            hasSameWeights = false;
+            break;
+          }
+        }
+      }
+      if (hasSameWeights){ jhypo = ihypo; break; }
+    }
+    if (jhypo<0){
+      MELAout << "\t- Reweighting hypothesis with weights " << strReweightingWeights << " is not specified in the input file." << endl;
+      assert(0);
+    }
+    hypo_order.push_back(jhypo);
+  }
+  assert(nhypos==hypo_order.size());
+
+  // Set reweightingweights_frac_tolerance_pair_list
+  reweightingweights_frac_tolerance_pair_list.assign(nhypos, std::pair<double, double>(0, 0));
+  TH2D* h_reweightingweights_frac_tolerance_pair_list = (TH2D*) finput->Get("reweightingweights_frac_tolerance_pair_list");
+  for (unsigned int ihypo=0; ihypo<nhypos; ihypo++){
+    unsigned int const& jhypo = hypo_order.at(ihypo);
+    reweightingweights_frac_tolerance_pair_list.at(ihypo).first = h_reweightingweights_frac_tolerance_pair_list->GetBinContent(jhypo+1, 1);
+    reweightingweights_frac_tolerance_pair_list.at(ihypo).second = h_reweightingweights_frac_tolerance_pair_list->GetBinContent(jhypo+1, 2);
+  }
+
+  // Set unordered maps for the trees
+  for (auto const& tree:registeredTrees){
+    TString const sid = tree->sampleIdentifier;
+    TDirectory* dir_tree = (TDirectory*) finput->Get(sid);
+    if (!dir_tree){
+      MELAout << "\t- No directory named " << sid << endl;
+      assert(0);
+    }
+    dir_tree->cd();
+
+    TH1D* h_normWeights = (TH1D*) dir_tree->Get("normWeight");
+    normWeights[tree] = h_normWeights->GetBinContent(1);
+
+    TH1D* h_samplePairwiseNormalization = (TH1D*) dir_tree->Get("samplePairwiseNormalization");
+    samplePairwiseNormalization[tree] = h_samplePairwiseNormalization->GetBinContent(1);
+
+#define HIST_1D_COMMANDS \
+HIST_1D_COMMAND(sum_normwgts_all) \
+HIST_1D_COMMAND(sum_normwgts_nonzerorewgt) \
+HIST_1D_COMMAND(NeffsPerBin) \
+HIST_1D_COMMAND(sampleNormalization) \
+HIST_1D_COMMAND(sampleZeroMECompensation)
+#define HIST_1D_COMMAND(NAME) \
+    auto const& NAME##_tree = NAME.find(tree)->second; \
+    NAME[tree] = std::vector<double>(nbins, 0); \
+    TH1D* h_##NAME = (TH1D*) dir_tree->Get(#NAME); \
+    for (unsigned int ibin=0; ibin<nbins; ibin++) NAME[tree].at(ibin) = h_##NAME->GetBinContent(ibin+1); \
+    HIST_1D_COMMANDS;
+#undef HIST_1D_COMMAND
+#undef HIST_1D_COMMANDS
+
+    absWeightThresholdsPerBinList[tree] = std::vector< std::vector<float> >(nhypos, std::vector<float>(nbins, -1));
+    TH2D* h_absWeightThresholdsPerBinList = (TH2D*) dir_tree->Get("absWeightThresholdsPerBinList");
+    for (unsigned int ihypo=0; ihypo<nhypos; ihypo++){
+      unsigned int const& jhypo = hypo_order.at(ihypo);
+      for (unsigned int ibin=0; ibin<nbins; ibin++){
+        absWeightThresholdsPerBinList[tree].at(ihypo).at(ibin) = h_absWeightThresholdsPerBinList->GetBinContent(jhypo+1, ibin+1);
+      }
+    }
+
+    sum_wgts_withrewgt[tree] = std::vector< std::vector< std::pair<double, double> > >(nhypos, std::vector< std::pair<double, double> >(nbins, std::pair<double, double>(0, 0)));
+    TH2D* h_sum_wgts_withrewgt = (TH2D*) dir_tree->Get("sum_wgts_withrewgt");
+    for (unsigned int ihypo=0; ihypo<nhypos; ihypo++){
+      unsigned int const& jhypo = hypo_order.at(ihypo);
+      for (unsigned int ibin=0; ibin<nbins; ibin++){
+        sum_wgts_withrewgt[tree].at(ihypo).at(ibin).first = h_sum_wgts_withrewgt->GetBinContent(jhypo+1, ibin+1);
+        sum_wgts_withrewgt[tree].at(ihypo).at(ibin).second = h_sum_wgts_withrewgt->GetBinError(jhypo+1, ibin+1);
+      }
+    }
+
+    finput->cd();
+  }
+
+  finput->Close();
+  curdir->cd();
 }

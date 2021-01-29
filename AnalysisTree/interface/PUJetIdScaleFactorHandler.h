@@ -11,12 +11,12 @@
 
 class PUJetIdScaleFactorHandler : public ScaleFactorHandlerBase{
 protected:
-  std::unordered_map< SystematicsHelpers::SystematicVariationTypes, std::vector<ExtendedHistogram_2D> > syst_pujetidwp_effs_map_mistagged;
-  std::unordered_map< SystematicsHelpers::SystematicVariationTypes, std::vector<ExtendedHistogram_2D> > syst_pujetidwp_effs_map_matched;
-  std::vector<ExtendedHistogram_2D> pujetidwp_SFs_map_mistagged;
-  std::vector<ExtendedHistogram_2D> pujetidwp_SFs_map_matched;
+  std::unordered_map< SystematicsHelpers::SystematicVariationTypes, std::vector<ExtendedHistogram_2D_f> > syst_pujetidwp_effs_map_mistagged;
+  std::unordered_map< SystematicsHelpers::SystematicVariationTypes, std::vector<ExtendedHistogram_2D_f> > syst_pujetidwp_effs_map_matched;
+  std::vector<ExtendedHistogram_2D_f> pujetidwp_SFs_map_mistagged;
+  std::vector<ExtendedHistogram_2D_f> pujetidwp_SFs_map_matched;
 
-  void evalScaleFactorFromHistogram(float& theSF, float& theSFRelErr, float const& pt, float const& eta, ExtendedHistogram_2D const& hist, bool etaOnY, bool useAbsEta) const;
+  void evalScaleFactorFromHistogram(float& theSF, float& theSFRelErr, float const& pt, float const& eta, ExtendedHistogram_2D_f const& hist, bool etaOnY, bool useAbsEta) const;
 
 public:
   PUJetIdScaleFactorHandler();

@@ -667,9 +667,9 @@ void getDistributions(
   sgroups_allhists.push_back("AllMC_NonRes");
   unsigned int const nprocesses = sgroups_allhists.size();
 
-  std::vector<ExtendedHistogram_1D*> hlist;
-  std::vector<ExtendedHistogram_1D*> hlist_SB_near;
-  std::vector<ExtendedHistogram_1D*> hlist_SB_ttbar;
+  std::vector<ExtendedHistogram_1D_f*> hlist;
+  std::vector<ExtendedHistogram_1D_f*> hlist_SB_near;
+  std::vector<ExtendedHistogram_1D_f*> hlist_SB_ttbar;
   for (auto const& sgroup:sgroups_allhists){
     int scolor = (int) kBlack;
     if (sgroup == "Data") scolor = (int) (kBlack);
@@ -714,12 +714,12 @@ void getDistributions(
           ExtendedBinning binning_Nak8jets_mass60to110(3, 0, 3, "N_{J} (110 GeV>m_{J}#geq60 GeV)");
           ExtendedBinning binning_Nak8jets_mass140(3, 0, 3, "N_{J} (m_{J}#geq140 GeV)");
 
-          ExtendedHistogram_1D* ehtmp = nullptr;
+          ExtendedHistogram_1D_f* ehtmp = nullptr;
           TH1F* htmp = nullptr;
 
           dir_hists_SR->cd();
 #define HISTOGRAM_COMMAND(NAME, BINNING) \
-          ehtmp = new ExtendedHistogram_1D(Form("h_SR_%s_%s_%s", NAME, strCutName.Data(), sgroup.Data()), strCutTitle, BINNING); \
+          ehtmp = new ExtendedHistogram_1D_f(Form("h_SR_%s_%s_%s", NAME, strCutName.Data(), sgroup.Data()), strCutTitle, BINNING); \
           ehtmp->resetProfiles(); \
           htmp = ehtmp->getHistogram(); \
           htmp->GetYaxis()->SetTitle("Events / bin"); \
@@ -756,7 +756,7 @@ void getDistributions(
 
           dir_hists_SB_near->cd();
 #define HISTOGRAM_COMMAND(NAME, BINNING) \
-          ehtmp = new ExtendedHistogram_1D(Form("h_SB_near_%s_%s_%s", NAME, strCutName.Data(), sgroup.Data()), strCutTitle, BINNING); \
+          ehtmp = new ExtendedHistogram_1D_f(Form("h_SB_near_%s_%s_%s", NAME, strCutName.Data(), sgroup.Data()), strCutTitle, BINNING); \
           ehtmp->resetProfiles(); \
           htmp = ehtmp->getHistogram(); \
           htmp->GetYaxis()->SetTitle("Events / bin"); \
@@ -774,7 +774,7 @@ void getDistributions(
 
           dir_hists_SB_ttbar->cd();
 #define HISTOGRAM_COMMAND(NAME, BINNING) \
-          ehtmp = new ExtendedHistogram_1D(Form("h_SB_ttbar_%s_%s_%s", NAME, strCutName.Data(), sgroup.Data()), strCutTitle, BINNING); \
+          ehtmp = new ExtendedHistogram_1D_f(Form("h_SB_ttbar_%s_%s_%s", NAME, strCutName.Data(), sgroup.Data()), strCutTitle, BINNING); \
           ehtmp->resetProfiles(); \
           htmp = ehtmp->getHistogram(); \
           htmp->GetYaxis()->SetTitle("Events / bin"); \

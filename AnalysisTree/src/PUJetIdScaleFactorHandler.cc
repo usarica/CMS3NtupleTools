@@ -56,7 +56,7 @@ bool PUJetIdScaleFactorHandler::setup(){
   };
 
   for (auto const& syst:allowedSysts){
-    std::vector<ExtendedHistogram_2D> tmplist(pujetidwpnames.size(), ExtendedHistogram_2D());
+    std::vector<ExtendedHistogram_2D_f> tmplist(pujetidwpnames.size(), ExtendedHistogram_2D_f());
 
     syst_pujetidwp_effs_map_mistagged[syst] = tmplist;
     syst_pujetidwp_effs_map_matched[syst] = tmplist;
@@ -79,9 +79,9 @@ bool PUJetIdScaleFactorHandler::setup(){
       for (auto const& pujetidwpname:pujetidwpnames){
         TString hname;
         hname = Form("%s_%s_%s", pujetidwpname.Data(), strmatches.front().Data(), systname.Data());
-        res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_pujetidwp_effs_map_mistagged[syst].at(iwp), finput, hname);
+        res &= getHistogram<TH2F, ExtendedHistogram_2D_f>(syst_pujetidwp_effs_map_mistagged[syst].at(iwp), finput, hname);
         hname = Form("%s_%s_%s", pujetidwpname.Data(), strmatches.back().Data(), systname.Data());
-        res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_pujetidwp_effs_map_matched[syst].at(iwp), finput, hname);
+        res &= getHistogram<TH2F, ExtendedHistogram_2D_f>(syst_pujetidwp_effs_map_matched[syst].at(iwp), finput, hname);
         iwp++;
       }
     }
@@ -103,8 +103,8 @@ bool PUJetIdScaleFactorHandler::setup(){
         HelperFunctions::replaceString<TString, const char*>(pujetidwpsfname, "<YEAR>", (const char*) Form("%i", SampleHelpers::getDataYear()));
         TString strmistagged = pujetidwpsfname; HelperFunctions::replaceString<TString, const char*>(strmistagged, "<EFFMISTAG>", "mistag");
         TString strmatched = pujetidwpsfname; HelperFunctions::replaceString<TString, const char*>(strmatched, "<EFFMISTAG>", "eff");
-        res &= getHistogramWithUncertainy<TH2F, ExtendedHistogram_2D>(pujetidwp_SFs_map_mistagged.at(iwp), finput, strmistagged, strmistagged+"_Systuncty");
-        res &= getHistogramWithUncertainy<TH2F, ExtendedHistogram_2D>(pujetidwp_SFs_map_matched.at(iwp), finput, strmatched, strmatched+"_Systuncty");
+        res &= getHistogramWithUncertainy<TH2F, ExtendedHistogram_2D_f>(pujetidwp_SFs_map_mistagged.at(iwp), finput, strmistagged, strmistagged+"_Systuncty");
+        res &= getHistogramWithUncertainy<TH2F, ExtendedHistogram_2D_f>(pujetidwp_SFs_map_matched.at(iwp), finput, strmatched, strmatched+"_Systuncty");
         iwp++;
       }
     }
@@ -121,7 +121,7 @@ void PUJetIdScaleFactorHandler::reset(){
   pujetidwp_SFs_map_matched.clear();
 }
 
-void PUJetIdScaleFactorHandler::evalScaleFactorFromHistogram(float& theSF, float& theSFRelErr, float const& pt, float const& eta, ExtendedHistogram_2D const& hist, bool etaOnY, bool useAbsEta) const{
+void PUJetIdScaleFactorHandler::evalScaleFactorFromHistogram(float& theSF, float& theSFRelErr, float const& pt, float const& eta, ExtendedHistogram_2D_f const& hist, bool etaOnY, bool useAbsEta) const{
   TH2F const* hh = hist.getHistogram();
   if (!hh) return;
 
@@ -183,8 +183,8 @@ void PUJetIdScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariat
   if (HelperFunctions::checkListVariable(allowedSysts, syst)) activeSyst = syst;
   if (verbosity>=TVar::DEBUG) MELAout << "\t- Active systematic: " << activeSyst << endl;
 
-  std::vector<ExtendedHistogram_2D> const& hlist_eff_MC = (isMatched ? syst_pujetidwp_effs_map_matched.find(activeSyst)->second : syst_pujetidwp_effs_map_mistagged.find(activeSyst)->second);
-  std::vector<ExtendedHistogram_2D> const& hlist_SF = (isMatched ? pujetidwp_SFs_map_matched : pujetidwp_SFs_map_mistagged);
+  std::vector<ExtendedHistogram_2D_f> const& hlist_eff_MC = (isMatched ? syst_pujetidwp_effs_map_matched.find(activeSyst)->second : syst_pujetidwp_effs_map_mistagged.find(activeSyst)->second);
+  std::vector<ExtendedHistogram_2D_f> const& hlist_SF = (isMatched ? pujetidwp_SFs_map_matched : pujetidwp_SFs_map_mistagged);
 
   std::vector<float> eff_vals_uncorrected(hlist_eff_MC.size(), 1);
   std::vector<float> SF_vals(hlist_SF.size(), 1);

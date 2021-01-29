@@ -9,15 +9,15 @@
 
 class MuonScaleFactorHandler : public ScaleFactorHandlerBase{
 protected:
-  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D> syst_eff_mc_id_map;
-  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D> syst_eff_mc_iso_loose_map;
-  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D> syst_eff_mc_iso_tight_map;
+  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D_f> syst_eff_mc_id_map;
+  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D_f> syst_eff_mc_iso_loose_map;
+  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D_f> syst_eff_mc_iso_tight_map;
 
-  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D> syst_SF_id_map;
-  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D> syst_SF_iso_loose_map;
-  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D> syst_SF_iso_tight_map;
+  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D_f> syst_SF_id_map;
+  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D_f> syst_SF_iso_loose_map;
+  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D_f> syst_SF_iso_tight_map;
 
-  void evalScaleFactorFromHistogram(float& theSF, float& theSFRelErr, float const& pt, float const& eta, ExtendedHistogram_2D const& hist, bool etaOnY, bool useAbsEta) const;
+  void evalScaleFactorFromHistogram(float& theSF, float& theSFRelErr, float const& pt, float const& eta, ExtendedHistogram_2D_f const& hist, bool etaOnY, bool useAbsEta) const;
 
 public:
   MuonScaleFactorHandler();

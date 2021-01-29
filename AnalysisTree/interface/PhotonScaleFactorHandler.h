@@ -9,13 +9,13 @@
 
 class PhotonScaleFactorHandler : public ScaleFactorHandlerBase{
 protected:
-  ExtendedHistogram_2D h_eff_mc_tampon;
-  ExtendedHistogram_2D h_eff_mc_tight;
+  ExtendedHistogram_2D_f h_eff_mc_tampon;
+  ExtendedHistogram_2D_f h_eff_mc_tight;
 
-  ExtendedHistogram_2D h_SF_tampon;
-  ExtendedHistogram_2D h_SF_tight;
+  ExtendedHistogram_2D_f h_SF_tampon;
+  ExtendedHistogram_2D_f h_SF_tight;
 
-  void evalScaleFactorFromHistogram(float& val, float& relerr, float const& pt, float const& etaSC, ExtendedHistogram_2D const& hist, bool etaOnY, bool useAbsEta) const;
+  void evalScaleFactorFromHistogram(float& val, float& relerr, float const& pt, float const& etaSC, ExtendedHistogram_2D_f const& hist, bool etaOnY, bool useAbsEta) const;
 
   static TString getScaleFactorFileName(PhotonSelectionHelpers::SelectionBits const& preselectionBit, int const& year);
 
