@@ -4,6 +4,8 @@ date=$1
 period=$2
 prodVersion=$3
 
+computeMEs=true
+applyLowDileptonMassReq=true
 useMETJERCorr=true
 declare -i doSim=1
 declare -i doData=1
@@ -20,10 +22,20 @@ for arg in "$@"; do
     doAllSysts=1
   elif [[ "$arg" == "all_imp_systs" ]]; then
     doImpSysts=1
+  elif [[ "$arg" == "computeMEs="* ]]; then
+    computeMEs=${arg#*=}
+  elif [[ "$arg" == "applyLowDileptonMassReq="* ]]; then
+    applyLowDileptonMassReq=${arg#*=}
   elif [[ "$arg" == "useMETJERCorr="* ]]; then
     useMETJERCorr=${arg#*=}
   fi
 done
+if [[ "${computeMEs}" != "true" ]] && [[ "${computeMEs}" != "false" ]]; then
+  echo "computeMEs must be 'true' or 'false'"
+fi
+if [[ "${applyLowDileptonMassReq}" != "true" ]] && [[ "${applyLowDileptonMassReq}" != "false" ]]; then
+  echo "applyLowDileptonMassReq must be 'true' or 'false'"
+fi
 if [[ "${useMETJERCorr}" != "true" ]] && [[ "${useMETJERCorr}" != "false" ]]; then
   echo "useMETJERCorr must be 'true' or 'false'"
 fi
@@ -31,10 +43,11 @@ fi
 script=produceLLGEvents.cc
 function=getTrees
 jobdate="${date}_LLGEvents"
-arguments='"<strSampleSet>","<period>","<prodVersion>","<strdate>",<ichunk>,<nchunks>,<theGlobalSyst>,<computeMEs>,<applyPUIdToAK4Jets>,<applyTightLeptonVetoIdToAK4Jets>,<use_MET_Puppi>,<use_MET_XYCorr>,<use_MET_JERCorr>,<use_MET_ParticleMomCorr>,<use_MET_p4Preservation>,<use_MET_corrections>'
+arguments='"<strSampleSet>","<period>","<prodVersion>","<strdate>",<ichunk>,<nchunks>,<theGlobalSyst>,<computeMEs>,<applyLowDileptonMassReq>,<applyPUIdToAK4Jets>,<applyTightLeptonVetoIdToAK4Jets>,<use_MET_Puppi>,<use_MET_XYCorr>,<use_MET_JERCorr>,<use_MET_ParticleMomCorr>,<use_MET_p4Preservation>,<use_MET_corrections>'
 arguments="${arguments/<strdate>/$date}"
 arguments="${arguments/<prodVersion>/$prodVersion}"
-arguments="${arguments/<computeMEs>/true}"
+arguments="${arguments/<computeMEs>/$computeMEs}"
+arguments="${arguments/<applyLowDileptonMassReq>/$applyLowDileptonMassReq}"
 arguments="${arguments/<applyPUIdToAK4Jets>/true}"
 arguments="${arguments/<applyTightLeptonVetoIdToAK4Jets>/false}"
 arguments="${arguments/<use_MET_Puppi>/false}"

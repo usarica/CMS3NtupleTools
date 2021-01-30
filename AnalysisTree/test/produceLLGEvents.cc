@@ -29,6 +29,9 @@ namespace LooperFunctionHelpers{
 
   void setAK4JetSelectionOptions(bool applyPUIdToAK4Jets_, bool applyTightLeptonVetoIdToAK4Jets_);
 
+  // Flag to apply thte low dilepton mass requirement
+  bool applyLowDileptonMassReq = true;
+  void setApplyLowDileptonMassReq(bool applyLowDileptonMassReq_);
 
   // Helpers for b-tagging
   float btag_thr_loose = -1;
@@ -602,7 +605,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   dilepton_phi = theChosenDilepton->phi();
   dilepton_mass = theChosenDilepton->m();
   // Filter out low-mass resonances
-  if (dilepton_mass<12.f) return false;
+  if (applyLowDileptonMassReq && dilepton_mass<12.f) return false;
 
   jetHandler->constructJetMET(simEventHandler, theGlobalSyst, &muons, &electrons, &photons, &pfcandidates);
   auto const& ak4jets = jetHandler->getAK4Jets();
@@ -873,6 +876,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
 #undef OBJECT_HANDLER_DIRECTIVES
 }
 
+void LooperFunctionHelpers::setApplyLowDileptonMassReq(bool applyLowDileptonMassReq_){ applyLowDileptonMassReq = applyLowDileptonMassReq_; }
+
 void LooperFunctionHelpers::setMETOptions(bool use_MET_Puppi_, bool use_MET_XYCorr_, bool use_MET_JERCorr_, bool use_MET_ParticleMomCorr_, bool use_MET_p4Preservation_, bool use_MET_corrections_){
   use_MET_Puppi = use_MET_Puppi_;
   use_MET_XYCorr = use_MET_XYCorr_;
@@ -903,6 +908,8 @@ void getTrees(
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal,
   // ME option
   bool computeMEs=false,
+  // Apply low mass dilepton cut
+  bool applyLowDileptonMassReq=true,
   // Jet ID options
   bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false,
   // MET options
@@ -995,6 +1002,9 @@ void getTrees(
 
   // Set flags for MET
   LooperFunctionHelpers::setMETOptions(use_MET_Puppi, use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr, use_MET_p4Preservation, use_MET_corrections);
+
+  // Set flag to apply the low dilepton mass requirement
+  LooperFunctionHelpers::setApplyLowDileptonMassReq(applyLowDileptonMassReq);
 
   // Set output directory
   TString coutput_main =
