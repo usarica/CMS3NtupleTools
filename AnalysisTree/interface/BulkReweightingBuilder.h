@@ -83,6 +83,9 @@ public:
   // This is to write the reweigthing specifications to a file
   void writeToFile(TFile* foutput) const;
 
+  // Print the existing reweighting information
+  void print() const;
+
 };
 
 

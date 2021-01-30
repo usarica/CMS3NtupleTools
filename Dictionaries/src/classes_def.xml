@@ -25,6 +25,9 @@
   <class name="std::vector<std::vector<TString> >"/>
   <class name="edm::Wrapper< std::vector<std::vector<TString> > >"/>
 
+  <class name="std::vector<std::vector<std::string> >"/>
+  <class name="edm::Wrapper< std::vector<std::vector<std::string> > >"/>
+
   <class name="std::vector<std::vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > > >"/>
   <class name="edm::Wrapper< std::vector<std::vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > > > >"/>
 

@@ -1,3 +1,4 @@
+#include <cassert>
 #include "BulkReweightingBuilder.h"
 #include "HostHelpersCore.h"
 #include "SimpleEntry.h"
@@ -441,13 +442,18 @@ void BulkReweightingBuilder::writeToFile(TFile* foutput) const{
     TDirectory* dir_tree = foutput->mkdir(sid);
     dir_tree->cd();
 
-    TH1D* h_normWeights = new TH1D("normWeight", sid, 1, 0, 1);
-    h_normWeights->SetBinContent(1, normWeights.find(tree)->second);
-    dir_tree->WriteTObject(h_normWeights); delete h_normWeights;
+#define HIST_1D_COMMANDS \
+HIST_1D_COMMAND(normWeights) \
+HIST_1D_COMMAND(samplePairwiseNormalization)
+#define HIST_1D_COMMAND(NAME) \
+    TH1D* h_##NAME = new TH1D(#NAME, sid, 1, 0, 1); \
+    h_##NAME->SetBinContent(1, NAME.find(tree)->second); \
+    dir_tree->WriteTObject(h_##NAME); delete h_##NAME;
 
-    TH1D* h_samplePairwiseNormalization = new TH1D("samplePairwiseNormalization", sid, 1, 0, 1);
-    h_samplePairwiseNormalization->SetBinContent(1, samplePairwiseNormalization.find(tree)->second);
-    dir_tree->WriteTObject(h_samplePairwiseNormalization); delete h_samplePairwiseNormalization;
+    HIST_1D_COMMANDS;
+
+#undef HIST_1D_COMMAND
+#undef HIST_1D_COMMANDS
 
 #define HIST_1D_COMMANDS \
 HIST_1D_COMMAND(sum_normwgts_all) \
@@ -460,7 +466,9 @@ HIST_1D_COMMAND(sampleZeroMECompensation)
     TH1D* h_##NAME = new TH1D(#NAME, sid, nbins, 0, nbins); \
     for (unsigned int ibin=0; ibin<nbins; ibin++) h_##NAME->SetBinContent(ibin+1, NAME##_tree.at(ibin)); \
     dir_tree->WriteTObject(h_##NAME); delete h_##NAME;
+
     HIST_1D_COMMANDS;
+
 #undef HIST_1D_COMMAND
 #undef HIST_1D_COMMANDS
 
@@ -496,12 +504,20 @@ HIST_1D_COMMAND(sampleZeroMECompensation)
   foutput->WriteTObject(h_reweightingweights_frac_tolerance_pair_list); delete h_reweightingweights_frac_tolerance_pair_list;
 
   TTree* t_common = new TTree("CommonVariables", "");
-  TString binning_name = binning.getName(); t_common->Branch("binning_name", &binning_name);
+  std::string binning_name = binning.getName().Data(); t_common->Branch("binning_name", &binning_name);
   std::vector<double> bin_thresholds = binning.getBinningVector(); t_common->Branch("bin_thresholds", &bin_thresholds);
-  auto v_strBinningVars = strBinningVars; t_common->Branch("strBinningVars", &v_strBinningVars);
-  auto v_strNominalWeights = strNominalWeights; t_common->Branch("strNominalWeights", &v_strNominalWeights);
-  auto v_strCrossSectionWeights = strCrossSectionWeights; t_common->Branch("strCrossSectionWeights", &v_strCrossSectionWeights);
-  auto v_strReweightingWeightsList = strReweightingWeightsList; t_common->Branch("strReweightingWeightsList", &v_strReweightingWeightsList);
+  std::vector<std::string> v_strBinningVars; t_common->Branch("strBinningVars", &v_strBinningVars);
+  std::vector<std::string> v_strNominalWeights; t_common->Branch("strNominalWeights", &v_strNominalWeights);
+  std::vector<std::string> v_strCrossSectionWeights; t_common->Branch("strCrossSectionWeights", &v_strCrossSectionWeights);
+  std::vector< std::vector<std::string> > v_strReweightingWeightsList; t_common->Branch("strReweightingWeightsList", &v_strReweightingWeightsList);
+  for (auto const& v:strBinningVars) v_strBinningVars.push_back(v.Data());
+  for (auto const& v:strNominalWeights) v_strNominalWeights.push_back(v.Data());
+  for (auto const& v:strCrossSectionWeights) v_strCrossSectionWeights.push_back(v.Data());
+  for (auto const& vv:strReweightingWeightsList){
+    std::vector<std::string> tmpvec;
+    for (auto const& v:vv) tmpvec.push_back(v.Data());
+    v_strReweightingWeightsList.push_back(tmpvec);
+  }
   t_common->Fill();
   foutput->WriteTObject(t_common); delete t_common;
 
@@ -514,19 +530,19 @@ void BulkReweightingBuilder::setupFromFile(TString cinput){
     MELAerr << "BulkReweightingBuilder::setupFromFile: File " << cinput << " is not readable." << endl;
     assert(0);
   }
-  MELAout << "BulkReweightingBuilder::setupFromFile: setting up reweighting from file " << cinput << "." << endl;
+  MELAout << "BulkReweightingBuilder::setupFromFile: Setting up reweighting from file " << cinput << endl;
   TDirectory* curdir = gDirectory;
   TFile* finput = TFile::Open(cinput, "read");
   finput->cd();
 
   // Cross-check the requested weighting scheme
   TTree* t_common = (TTree*) finput->Get("CommonVariables");
-  TString binning_name; t_common->SetBranchAddress("binning_name", &binning_name);
+  std::string* binning_name = nullptr; t_common->SetBranchAddress("binning_name", &binning_name);
   std::vector<double>* bin_thresholds = nullptr; t_common->SetBranchAddress("bin_thresholds", &bin_thresholds);
-  std::vector<TString>* v_strBinningVars = nullptr; t_common->SetBranchAddress("strBinningVars", &v_strBinningVars);
-  std::vector<TString>* v_strNominalWeights = nullptr; t_common->SetBranchAddress("strNominalWeights", &v_strNominalWeights);
-  std::vector<TString>* v_strCrossSectionWeights = nullptr; t_common->SetBranchAddress("strCrossSectionWeights", &v_strCrossSectionWeights);
-  std::vector<std::vector<TString>>* v_strReweightingWeightsList = nullptr; t_common->SetBranchAddress("strReweightingWeightsList", &v_strReweightingWeightsList);
+  std::vector<std::string>* v_strBinningVars = nullptr; t_common->SetBranchAddress("strBinningVars", &v_strBinningVars);
+  std::vector<std::string>* v_strNominalWeights = nullptr; t_common->SetBranchAddress("strNominalWeights", &v_strNominalWeights);
+  std::vector<std::string>* v_strCrossSectionWeights = nullptr; t_common->SetBranchAddress("strCrossSectionWeights", &v_strCrossSectionWeights);
+  std::vector< std::vector<std::string> >* v_strReweightingWeightsList = nullptr; t_common->SetBranchAddress("strReweightingWeightsList", &v_strReweightingWeightsList);
   t_common->GetEntry(0);
 
   // Check binning variables
@@ -534,7 +550,7 @@ void BulkReweightingBuilder::setupFromFile(TString cinput){
     bool hasSameBinning = (v_strBinningVars->size() == strBinningVars.size());
     if (hasSameBinning){
       for (auto const& v:strBinningVars){
-        if (!HelperFunctions::checkListVariable(*v_strBinningVars, v)){
+        if (!HelperFunctions::checkListVariable<std::string>(*v_strBinningVars, v.Data())){
           hasSameBinning = false;
           break;
         }
@@ -545,7 +561,7 @@ void BulkReweightingBuilder::setupFromFile(TString cinput){
       assert(0);
     }
     // Reset binning
-    binning = ExtendedBinning(*bin_thresholds, binning_name, "");
+    binning = ExtendedBinning(*bin_thresholds, binning_name->data(), "");
   }
 
   // Check nominal weight variables
@@ -553,7 +569,7 @@ void BulkReweightingBuilder::setupFromFile(TString cinput){
     bool hasSameWeights = (v_strNominalWeights->size() == strNominalWeights.size());
     if (hasSameWeights){
       for (auto const& v:strNominalWeights){
-        if (!HelperFunctions::checkListVariable(*v_strNominalWeights, v)){
+        if (!HelperFunctions::checkListVariable<std::string>(*v_strNominalWeights, v.Data())){
           hasSameWeights = false;
           break;
         }
@@ -570,7 +586,7 @@ void BulkReweightingBuilder::setupFromFile(TString cinput){
     bool hasSameWeights = (v_strCrossSectionWeights->size() == strCrossSectionWeights.size());
     if (hasSameWeights){
       for (auto const& v:strCrossSectionWeights){
-        if (!HelperFunctions::checkListVariable(*v_strCrossSectionWeights, v)){
+        if (!HelperFunctions::checkListVariable<std::string>(*v_strCrossSectionWeights, v.Data())){
           hasSameWeights = false;
           break;
         }
@@ -593,7 +609,7 @@ void BulkReweightingBuilder::setupFromFile(TString cinput){
       bool hasSameWeights = (v_strReweightingWeights.size() == strReweightingWeights.size());
       if (hasSameWeights){
         for (auto const& v:strReweightingWeights){
-          if (!HelperFunctions::checkListVariable(v_strReweightingWeights, v)){
+          if (!HelperFunctions::checkListVariable<std::string>(v_strReweightingWeights, v.Data())){
             hasSameWeights = false;
             break;
           }
@@ -628,11 +644,17 @@ void BulkReweightingBuilder::setupFromFile(TString cinput){
     }
     dir_tree->cd();
 
-    TH1D* h_normWeights = (TH1D*) dir_tree->Get("normWeight");
-    normWeights[tree] = h_normWeights->GetBinContent(1);
+#define HIST_1D_COMMANDS \
+HIST_1D_COMMAND(normWeights) \
+HIST_1D_COMMAND(samplePairwiseNormalization)
+#define HIST_1D_COMMAND(NAME) \
+    TH1D* h_##NAME = (TH1D*) dir_tree->Get(#NAME); \
+    NAME[tree] = h_##NAME->GetBinContent(1);
 
-    TH1D* h_samplePairwiseNormalization = (TH1D*) dir_tree->Get("samplePairwiseNormalization");
-    samplePairwiseNormalization[tree] = h_samplePairwiseNormalization->GetBinContent(1);
+    HIST_1D_COMMANDS;
+
+#undef HIST_1D_COMMAND
+#undef HIST_1D_COMMANDS
 
 #define HIST_1D_COMMANDS \
 HIST_1D_COMMAND(sum_normwgts_all) \
@@ -641,11 +663,12 @@ HIST_1D_COMMAND(NeffsPerBin) \
 HIST_1D_COMMAND(sampleNormalization) \
 HIST_1D_COMMAND(sampleZeroMECompensation)
 #define HIST_1D_COMMAND(NAME) \
-    auto const& NAME##_tree = NAME.find(tree)->second; \
     NAME[tree] = std::vector<double>(nbins, 0); \
     TH1D* h_##NAME = (TH1D*) dir_tree->Get(#NAME); \
-    for (unsigned int ibin=0; ibin<nbins; ibin++) NAME[tree].at(ibin) = h_##NAME->GetBinContent(ibin+1); \
+    for (unsigned int ibin=0; ibin<nbins; ibin++) NAME[tree].at(ibin) = h_##NAME->GetBinContent(ibin+1);
+
     HIST_1D_COMMANDS;
+
 #undef HIST_1D_COMMAND
 #undef HIST_1D_COMMANDS
 
@@ -673,4 +696,53 @@ HIST_1D_COMMAND(sampleZeroMECompensation)
 
   finput->Close();
   curdir->cd();
+}
+
+void BulkReweightingBuilder::print() const{
+  unsigned int const nhypos = strReweightingWeightsList.size();
+  unsigned int const nbins = (binning.isValid() ? binning.getNbins() : static_cast<unsigned int>(1));
+
+  MELAout << "----- BulkReweightingBuilder contents -----" << endl;
+
+  MELAout << "Binning:" << endl;
+  MELAout << "\t- Corrected number of bins: " << nbins << endl;
+  MELAout << "\t- Extended binning: [" << binning.getName() << "] => " << binning.getBinningVector() << endl;
+  MELAout << "\t- Variables: " << strBinningVars << endl;
+  MELAout << "\t- Rule: " << rule_binningVar << endl;
+
+  MELAout << "Nominal weights:" << endl;
+  MELAout << "\t- Variables: " << strNominalWeights << endl;
+  MELAout << "\t- Rule: " << rule_nominalweights << endl;
+
+  MELAout << "xsec weights:" << endl;
+  MELAout << "\t- Variables: " << strCrossSectionWeights << endl;
+  MELAout << "\t- Rule: " << rule_xsecweights << endl;
+
+  MELAout << "Reweighting weights:" << endl;
+  for (unsigned int ihypo=0; ihypo<nhypos; ihypo++){
+    MELAout << "\t- Hypothesis " << ihypo << ":" << endl;
+    MELAout << "\t\t- Variables: " << strReweightingWeightsList.at(ihypo) << endl;
+    MELAout << "\t\t- Rule: " << rule_reweightingweights_list.at(ihypo) << endl;
+    MELAout << "\t\t- Large weight fraction: " << reweightingweights_frac_tolerance_pair_list.at(ihypo).first << endl;
+    MELAout << "\t\t- Large weight tolerance: " << reweightingweights_frac_tolerance_pair_list.at(ihypo).second << endl;
+  }
+
+  MELAout << "Number of registered trees: " << registeredTrees.size() << endl;
+  for (auto const& tree:registeredTrees){
+    MELAout << "\t- Tree " << tree->sampleIdentifier << ":" << endl;
+    MELAout << "\t\t- Initial sample weight: " << normWeights.find(tree)->second << endl;
+    MELAout << "\t\t- Sum of all norm. weights: " << sum_normwgts_all.find(tree)->second << endl;
+    MELAout << "\t\t- Sum of non-zero reweighted norm. weights: " << sum_normwgts_nonzerorewgt.find(tree)->second << endl;
+    MELAout << "\t\t- Neffs: " << NeffsPerBin.find(tree)->second << endl;
+    MELAout << "\t\t- Sample overall pairwise normalization factor: " << samplePairwiseNormalization.find(tree)->second << endl;
+    MELAout << "\t\t- Sample zero-ME compensations: " << sampleZeroMECompensation.find(tree)->second << endl;
+    MELAout << "\t\t- Sample overall normalization factors: " << sampleNormalization.find(tree)->second << endl;
+    for (unsigned int ihypo=0; ihypo<nhypos; ihypo++){
+      MELAout << "\t\t- Hypothesis " << ihypo << ":" << endl;
+      MELAout << "\t\t\t- Thresholds: " << absWeightThresholdsPerBinList.find(tree)->second.at(ihypo) << endl;
+      MELAout << "\t\t\t- Sum of reweighting weights and weights-squared: " << sum_wgts_withrewgt.find(tree)->second.at(ihypo) << endl;
+    }
+  }
+
+  MELAout << "-------------------------------------------" << endl;
 }

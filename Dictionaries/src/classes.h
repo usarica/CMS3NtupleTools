@@ -37,6 +37,9 @@ namespace{
     std::vector<std::vector<TString> > vs2d;
     edm::Wrapper<std::vector<std::vector<TString> > > wvs2d;
 
+    std::vector<std::vector<std::string> > vss2d;
+    edm::Wrapper<std::vector<std::vector<std::string> > > wvss2d;
+
     std::vector<std::vector<math::XYZTLorentzVectorF> > vp2d;
     edm::Wrapper<std::vector<std::vector<math::XYZTLorentzVectorF> > > wvp2d;
 

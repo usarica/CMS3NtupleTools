@@ -346,6 +346,15 @@ void getTrees(
     ReweightingFunctions::getSimpleWeight,
     ReweightingFunctions::getSimpleWeight
   );
+  BulkReweightingBuilder rewgtBuilder_readTest(
+    binning_rewgt,
+    { "LHECandMass" },
+    { "genHEPMCweight_default" },
+    { "xsec" },
+    ReweightingFunctions::getSimpleVariableBin,
+    ReweightingFunctions::getSimpleWeight,
+    ReweightingFunctions::getSimpleWeight
+  );
   theLooper.addReweightingBuilder("MERewgt", &rewgtBuilder);
   if (isGG){
     rewgtBuilder.addReweightingWeights(
@@ -362,6 +371,18 @@ void getTrees(
     */
     rewgtBuilder.addReweightingWeights(
       { "p_Gen_GG_BKG_MCFM", "p_Gen_CPStoBWPropRewgt" },
+      ReweightingFunctions::getSimpleWeight,
+      (thr_frac>0. ? thr_frac : 0.9995), tol_wgt
+    );
+
+    // Fill also the reading test, but in swapped order
+    rewgtBuilder_readTest.addReweightingWeights(
+      { "p_Gen_GG_BKG_MCFM", "p_Gen_CPStoBWPropRewgt" },
+      ReweightingFunctions::getSimpleWeight,
+      (thr_frac>0. ? thr_frac : 0.9995), tol_wgt
+    );
+    rewgtBuilder_readTest.addReweightingWeights(
+      { "p_Gen_GG_SIG_kappaTopBot_1_ghz1_1_MCFM", "p_Gen_CPStoBWPropRewgt" },
       ReweightingFunctions::getSimpleWeight,
       (thr_frac>0. ? thr_frac : 0.9995), tol_wgt
     );
@@ -382,6 +403,18 @@ void getTrees(
     */
     rewgtBuilder.addReweightingWeights(
       { "p_Gen_JJEW_BKG_MCFM", "p_Gen_CPStoBWPropRewgt" },
+      ReweightingFunctions::getSimpleWeight,
+      (thr_frac>0. ? thr_frac : 0.9995), tol_wgt
+    );
+
+    // Fill also the reading test, but in swapped order
+    rewgtBuilder_readTest.addReweightingWeights(
+      { "p_Gen_JJEW_BKG_MCFM", "p_Gen_CPStoBWPropRewgt" },
+      ReweightingFunctions::getSimpleWeight,
+      (thr_frac>0. ? thr_frac : 0.9995), tol_wgt
+    );
+    rewgtBuilder_readTest.addReweightingWeights(
+      { "p_Gen_JJEW_SIG_ghv1_1_MCFM", "p_Gen_CPStoBWPropRewgt" },
       ReweightingFunctions::getSimpleWeight,
       (thr_frac>0. ? thr_frac : 0.9995), tol_wgt
     );
@@ -546,10 +579,13 @@ void getTrees(
     }
 
     // Register tree
+    MELAout << "\t- Registering the sample for reweighting..." << endl;
     rewgtBuilder.registerTree(sample_tree, BR_scale/sum_wgts_raw_noveto);
+    rewgtBuilder_readTest.registerTree(sample_tree, BR_scale/sum_wgts_raw_noveto);
 
     sample_tree->silenceUnused();
 
+    MELAout << "\t- Registering the sample to the looper..." << endl;
     // Add the input tree to the looper
     theLooper.addTree(sample_tree, globalWeights);
   }
@@ -559,7 +595,7 @@ void getTrees(
     BaseTree* const& sample_tree = sample_trees.at(itree);
     if (sample_tree==tree_MH125 || sample_tree==tree_MHLowestOffshell) continue;
     float const sampleMH = SampleHelpers::findPoleMass(sample_tree->sampleIdentifier);
-    if (sampleMH<160.f || sampleMH>SampleHelpers::findPoleMass(tree_MHLowestOffshell->sampleIdentifier)){
+    if ((tree_MH125 && sampleMH>SampleHelpers::findPoleMass(tree_MH125->sampleIdentifier) && sampleMH<160.f) || (tree_MHLowestOffshell && sampleMH>SampleHelpers::findPoleMass(tree_MHLowestOffshell->sampleIdentifier))){
       tree_normTree_pairs.emplace_back(sample_trees.at(itree), sample_trees.at(itree-1));
       MELAout << "Normalizing mass " << sampleMH << " to mass " << SampleHelpers::findPoleMass(sample_trees.at(itree-1)->sampleIdentifier) << endl;
     }
@@ -571,10 +607,20 @@ void getTrees(
 
   MELAout.open(stroutput_txt.Data());
   rewgtBuilder.setup(0, &tree_normTree_pairs, thr_frac_Neff);
+  rewgtBuilder.print();
   MELAout.close();
 
   // Loop over all events
-  theLooper.loop(true);
+  //theLooper.loop(true);
+
+  TString stroutput_weights = stroutput;
+  HelperFunctions::replaceString<TString, TString const>(stroutput_weights, ".root", "_ReweightingRecord.root");
+  TFile* foutput_rewgtrcd = TFile::Open(stroutput_weights, "recreate");
+  rewgtBuilder.writeToFile(foutput_rewgtrcd);
+  foutput_rewgtrcd->Close();
+
+  rewgtBuilder_readTest.setupFromFile(stroutput_weights);
+  rewgtBuilder_readTest.print();
 
   // No need for the inputs
   for (auto& ss:sample_trees) delete ss;
@@ -588,6 +634,8 @@ void getTrees(
   curdir->cd();
 
   SampleHelpers::addToCondorTransferList(stroutput);
+  SampleHelpers::addToCondorTransferList(stroutput_txt);
+  SampleHelpers::addToCondorTransferList(stroutput_weights);
 
   LooperFunctionHelpers::selectedMEs.clear();
 }
