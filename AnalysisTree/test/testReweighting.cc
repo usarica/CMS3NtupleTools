@@ -555,7 +555,7 @@ void getTrees(
     double globalWeight_PUUp = xsec * xsec_scale * BR_scale * (isData ? 1.f : lumi) / sum_wgts_PUUp; globalWeights[SystematicsHelpers::ePUUp] = globalWeight_PUUp;
     MELAout << "Sample " << sample_tree->sampleIdentifier << " has a gen. weight sum of " << sum_wgts << " (PU dn: " << sum_wgts_PUDn << ", PU up: " << sum_wgts_PUUp << ")." << endl;
     MELAout << "\t- Raw xsec = " << xsec << endl;
-    MELAout << "\t- xsec * BR scale = " << xsec_scale * BR_scale << endl;
+    MELAout << "\t- xsec scale * BR scale = " << xsec_scale * BR_scale << endl;
     MELAout << "\t- xsec * BR * lumi = " << xsec * xsec_scale * BR_scale * (isData ? 1.f : lumi) << endl;
     MELAout << "\t- Global weight = " << globalWeight << endl;
     MELAout << "\t- Global weight (PU dn) = " << globalWeight_PUDn << endl;

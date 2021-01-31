@@ -11,3 +11,6 @@
 
 <bin file="trimCMS3Production.cc" name="trimCMS3Production">
 </bin>
+
+<bin file="printCMS3SampleGroup.cc" name="printCMS3SampleGroup">
+</bin>

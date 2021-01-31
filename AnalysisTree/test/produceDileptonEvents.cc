@@ -988,19 +988,10 @@ void getTrees(
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
-  bool const useSkims = !(
-    strSampleSet.Contains("GluGluH") || strSampleSet.Contains("GGH")
-    ||
-    strSampleSet.Contains("VBF")
-    ||
-    strSampleSet.Contains("WminusH")
-    ||
-    strSampleSet.Contains("WplusH")
-    ||
-    strSampleSet.Contains("ZH")
-    ||
-    strSampleSet.Contains("JHUGen") || strSampleSet.Contains("JHUgen") || strSampleSet.Contains("jhugen")
-    );
+  TString strSampleSet_lower; HelperFunctions::lowercase(strSampleSet, strSampleSet_lower);
+  bool const isHighMassPOWHEG = strSampleSet_lower.Contains("powheg") && strSampleSet_lower.Contains("jhugen");
+  bool const useSkims = !isHighMassPOWHEG;
+
   SampleHelpers::configure(period, Form("%s:%s", (useSkims ? "store_skims" : "store"), prodVersion.Data()));
 
   const float lumi = SampleHelpers::getIntegratedLuminosity(SampleHelpers::getDataPeriod());
@@ -1208,16 +1199,22 @@ void getTrees(
     MELAout << "=> Accessing the input trees from " << strdsetfname << "..." << endl;
     BaseTree* sample_tree = new BaseTree(strdsetfname, (useSkims ? "cms3ntuple/Dilepton" : "cms3ntuple/Events"), "", ""); sample_trees.push_back(sample_tree);
     sample_tree->sampleIdentifier = SampleHelpers::getSampleIdentifier(sname);
+    float const sampleMH = SampleHelpers::findPoleMass(sample_tree->sampleIdentifier);
     MELAout << "\t- Sample identifier (is data ? " << isData << "): " << sample_tree->sampleIdentifier << endl;
 
     std::vector<TString> allbranchnames; sample_tree->getValidBranchNamesWithoutAlias(allbranchnames, false);
 
     const int nEntries = sample_tree->getSelectedNEvents();
+    bool hasTaus = false;
     double sum_wgts = (isData ? 1.f : 0.f);
     double sum_wgts_PUDn = sum_wgts;
     double sum_wgts_PUUp = sum_wgts;
+    double sum_wgts_raw_noveto = sum_wgts;
+    double sum_wgts_raw_withveto = sum_wgts;
+    double sum_wgts_raw_withveto_defaultMemberZero = sum_wgts;
     float xsec = 1;
     float xsec_scale = 1;
+    float BR_scale = 1;
     if (!isData){
       // Get cross section
       sample_tree->bookBranch<float>("xsec", 0.f);
@@ -1226,29 +1223,28 @@ void getTrees(
       sample_tree->releaseBranch("xsec");
       xsec *= 1000.;
 
-      // Reset gen. and lHE particle settings
-      {
-        bool has_lheMEweights = false;
-        bool has_lheparticles = false;
-        bool has_genparticles = false;
-        for (auto const& bname:allbranchnames){
-          if (bname.Contains("p_Gen") || bname.Contains("LHECandMass")) has_lheMEweights=true;
-          else if (bname.Contains(GenInfoHandler::colName_lheparticles)) has_lheparticles = true;
-          else if (bname.Contains(GenInfoHandler::colName_genparticles)) has_genparticles = true;
-        }
-        genInfoHandler.setAcquireLHEMEWeights(has_lheMEweights);
-        genInfoHandler.setAcquireLHEParticles(has_lheparticles);
-        genInfoHandler.setAcquireGenParticles(has_genparticles);
+      bool has_lheMEweights = false;
+      bool has_lheparticles = false;
+      bool has_genparticles = false;
+      for (auto const& bname:allbranchnames){
+        if (bname.Contains("p_Gen") || bname.Contains("LHECandMass")) has_lheMEweights = true;
+        else if (bname.Contains(GenInfoHandler::colName_lheparticles)) has_lheparticles = true;
+        else if (bname.Contains(GenInfoHandler::colName_genparticles)) has_genparticles = true;
       }
 
       // Book branches
       simEventHandler.bookBranches(sample_tree);
+
+      bool const isHighMassPOWHEGSample = (isHighMassPOWHEG && sampleMH>0.f);
+      bool const checkForTaus = has_lheparticles && isHighMassPOWHEGSample;
+
+      genInfoHandler.setAcquireLHEMEWeights(false);
+      genInfoHandler.setAcquireLHEParticles(isHighMassPOWHEGSample);
+      genInfoHandler.setAcquireGenParticles(false);
       genInfoHandler.bookBranches(sample_tree);
 
       // Get sum of weights
       std::vector<TString> inputfilenames = SampleHelpers::getDatasetFileNames(sname);
-      double sum_wgts_raw_noveto = 0;
-      double sum_wgts_raw_withveto = 0;
       bool hasCounters = true;
       {
         int bin_syst = 1 + 1*(theGlobalSyst==SystematicsHelpers::ePUDn) + 2*(theGlobalSyst==SystematicsHelpers::ePUUp);
@@ -1293,7 +1289,22 @@ void getTrees(
 
           genInfoHandler.constructGenInfo(SystematicsHelpers::sNominal); // Use sNominal here in order to get the weight that corresponds to xsec
           auto const& genInfo = genInfoHandler.getGenInfo();
+
+          if (checkForTaus){
+            auto const& lheparticles = genInfoHandler.getLHEParticles();
+            if (!hasTaus){
+              for (auto const& part:lheparticles){
+                if (part->status()==1 && std::abs(part->pdgId())==15){
+                  hasTaus = true;
+                  genInfoHandler.setAcquireLHEParticles(false);
+                  break;
+                }
+              }
+            }
+          }
+
           double genwgt = genInfo->getGenWeight(true);
+          double genwgt_defaultMemberZero = genInfo->extras.LHEweight_defaultMemberZero;
           if (genwgt==0.){
             n_zero_genwgts++;
             continue;
@@ -1301,6 +1312,7 @@ void getTrees(
 
           simEventHandler.constructSimEvent();
 
+          sum_wgts_raw_withveto_defaultMemberZero += genwgt_defaultMemberZero;
           sum_wgts_raw_withveto += genwgt;
           sum_wgts += genwgt * simEventHandler.getPileUpWeight(theGlobalSyst);
           sum_wgts_PUDn += genwgt * simEventHandler.getPileUpWeight(SystematicsHelpers::ePUDn);
@@ -1310,13 +1322,22 @@ void getTrees(
         sum_wgts_raw_noveto = sum_wgts_raw_withveto / (1. - frac_zero_genwgts);
       }
       xsec_scale = sum_wgts_raw_withveto / sum_wgts_raw_noveto;
+      if (isHighMassPOWHEGSample) BR_scale = SampleHelpers::calculateAdjustedHiggsBREff(sname, sum_wgts_raw_withveto_defaultMemberZero, sum_wgts_raw_withveto, hasTaus);
+
+      // Reset gen. and LHE particle settings
+      genInfoHandler.setAcquireLHEMEWeights(has_lheMEweights);
+      genInfoHandler.setAcquireLHEParticles(has_lheparticles);
+      genInfoHandler.setAcquireGenParticles(has_genparticles);
+      genInfoHandler.bookBranches(sample_tree);
     }
     std::unordered_map<SystematicsHelpers::SystematicVariationTypes, double> globalWeights;
-    double globalWeight = xsec * xsec_scale * (isData ? 1.f : lumi) / sum_wgts; globalWeights[theGlobalSyst] = globalWeight;
-    double globalWeight_PUDn = xsec * xsec_scale * (isData ? 1.f : lumi) / sum_wgts_PUDn; globalWeights[SystematicsHelpers::ePUDn] = globalWeight_PUDn;
-    double globalWeight_PUUp = xsec * xsec_scale * (isData ? 1.f : lumi) / sum_wgts_PUUp; globalWeights[SystematicsHelpers::ePUUp] = globalWeight_PUUp;
+    double globalWeight = xsec * xsec_scale * BR_scale * (isData ? 1.f : lumi) / sum_wgts; globalWeights[theGlobalSyst] = globalWeight;
+    double globalWeight_PUDn = xsec * xsec_scale * BR_scale * (isData ? 1.f : lumi) / sum_wgts_PUDn; globalWeights[SystematicsHelpers::ePUDn] = globalWeight_PUDn;
+    double globalWeight_PUUp = xsec * xsec_scale * BR_scale * (isData ? 1.f : lumi) / sum_wgts_PUUp; globalWeights[SystematicsHelpers::ePUUp] = globalWeight_PUUp;
     MELAout << "Sample " << sample_tree->sampleIdentifier << " has a gen. weight sum of " << sum_wgts << " (PU dn: " << sum_wgts_PUDn << ", PU up: " << sum_wgts_PUUp << ")." << endl;
-    MELAout << "\t- xsec scale = " << xsec_scale << endl;
+    MELAout << "\t- Raw xsec = " << xsec << endl;
+    MELAout << "\t- xsec scale * BR scale = " << xsec_scale * BR_scale << endl;
+    MELAout << "\t- xsec * BR * lumi = " << xsec * xsec_scale * BR_scale * (isData ? 1.f : lumi) << endl;
     MELAout << "\t- Global weight = " << globalWeight << endl;
     MELAout << "\t- Global weight (PU dn) = " << globalWeight_PUDn << endl;
     MELAout << "\t- Global weight (PU up) = " << globalWeight_PUUp << endl;

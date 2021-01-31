@@ -1285,8 +1285,8 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
               "/WminusH_HToZZTo2L2Nu_M1000_TuneCP5_13TeV_powheg2-minlo-HWJ_JHUGenV735_pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM",
               "/WminusH_HToZZTo2L2Nu_M1500_TuneCP5_13TeV_powheg2-minlo-HWJ_JHUGenV735_pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM",
               "/WminusH_HToZZTo2L2Nu_M2000_TuneCP5_13TeV_powheg2-minlo-HWJ_JHUGenV735_pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM",
-              "/WminusH_HToZZTo2L2Nu_M2500_TuneCP5_13TeV_powheg2-minlo-HWJ_JHUGenV735_pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM"/*,
-              "/WminusH_HToZZTo2L2Nu_M3000_TuneCP5_13TeV_powheg2-minlo-HWJ_JHUGenV735_pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM"*/
+              "/WminusH_HToZZTo2L2Nu_M2500_TuneCP5_13TeV_powheg2-minlo-HWJ_JHUGenV735_pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM",
+              "/WminusH_HToZZTo2L2Nu_M3000_TuneCP5_13TeV_powheg2-minlo-HWJ_JHUGenV735_pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM"
             };
           }
         } // End H->ZZ->2l2nu
