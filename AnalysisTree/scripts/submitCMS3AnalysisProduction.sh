@@ -135,9 +135,42 @@ fi
 
 theOutdir="${OUTDIR}/${THEOUTPUTFILE}"
 let hasJobSetup=0
-if [[ -e $theOutdir ]] || [[ -e ${theOutdir}.tar ]]; then
+theOutdirTar=${theOutdir}.tar
+theOutdirTarFirst=${theOutdirTar%/*}
+theOutdirTarLast=${theOutdirTar##*/}
+if [[ ${#theOutdirTarLast} -gt 255 ]]; then
+  theOutdirTar=${theOutdirTarFirst}/${theOutdirTarLast//_}
+fi
+if [[ -e ${theOutdir} ]] || [[ -e ${theOutdirTar} ]]; then
   let hasJobSetup=1
 fi
+if [[ $recreate -eq 1 ]] || [[ $hasJobSetup -eq 0 ]]; then
+  mkdir -p "${theOutdir}/Logs" &> /dev/null
+  if [[ $? -ne 0 ]]; then
+    echo "The path name ${theOutdir} is too long. Attempting to shorten it..."
+    theOutdirFirst=${theOutdir%/*}
+    theOutdirLast=${theOutdir##*/}
+    theOutdirLast=${theOutdirLast//_}
+    theOutdirLast=${theOutdirLast//_MINIAODSIM}
+    theOutdirLast=${theOutdirLast//_MINIAOD}
+    theOutdirLast=${theOutdirLast//MINIAODSIM}
+    theOutdirLast=${theOutdirLast//MINIAOD}
+    theOutdir=${theOutdirFirst}/${theOutdirLast}
+    echo "- The new directory name is ${theOutdir}"
+    # Reset the related variables
+    let hasJobSetup=0
+    theOutdirTar=${theOutdir}.tar
+    theOutdirTarFirst=${theOutdirTar%/*}
+    theOutdirTarLast=${theOutdirTar##*/}
+    if [[ ${#theOutdirTarLast} -gt 255 ]]; then
+      theOutdirTar=${theOutdirTarFirst}/${theOutdirTarLast//_}
+    fi
+    if [[ -e ${theOutdir} ]] || [[ -e ${theOutdirTar} ]]; then
+      let hasJobSetup=1
+    fi
+  fi
+fi
+
 if [[ $recreate -eq 1 ]] || [[ $hasJobSetup -eq 0 ]]; then
   CONDORSITE="DUMMY"
   if [[ "$hname" == *"lxplus"* ]];then
@@ -166,7 +199,12 @@ if [[ $recreate -eq 1 ]] || [[ $hasJobSetup -eq 0 ]]; then
     checkGridProxy.sh
   fi
 
-  mkdir -p "${theOutdir}/Logs"
+  mkdir -p "${theOutdir}/Logs" &> /dev/null
+  status_mkdir=$?
+  if [[ ${status_mkdir} -ne 0 ]]; then
+    echo "Cannot create ${theOutdir}. The error status was ${status_mkdir}."
+    exit ${status_mkdir}
+  fi
 
   ln -sf ${PWD}/${OUTDIR}/${TARFILE} ${PWD}/${theOutdir}/
 
