@@ -58,7 +58,7 @@ for f in $(find $chkdir -name condor.sub); do
     done
     
     if [[ ${job_is_running} -eq 1 ]]; then
-      echo "$d is still running"
+      echo "Job $jobnumber for $d is still running"
       let nUNKNOWN=$nUNKNOWN+1
       let dirok=0
       let nRunningJobs=${nRunningJobs}+1
