@@ -30,7 +30,6 @@ namespace LooperFunctionHelpers{
 
   void setAK4JetSelectionOptions(bool applyPUIdToAK4Jets_, bool applyTightLeptonVetoIdToAK4Jets_);
 
-
   // Helpers for b-tagging
   float btag_thr_loose = -1;
   float btag_thr_medium = -1;
@@ -38,6 +37,11 @@ namespace LooperFunctionHelpers{
 
   void setBtagWPs();
 
+  // Helpers to keep or discard gen. ak4jet quantities
+  bool keepGenAK4JetInfo = false;
+  void setKeepGenAK4JetInfo(bool keepGenAK4JetInfo_);
+
+  // Helpers to keep track of elapsed time
   std::vector<std::pair<TString, std::chrono::microseconds>> type_accTime_pairs;
   void addTimeDuration(TString const& strname, std::chrono::microseconds const& dur);
 
@@ -892,6 +896,42 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     for (auto const& it:ME_values) commonEntry.setNamedVal(it.first, it.second);
   }
 
+  if (!isData && keepGenAK4JetInfo){
+    auto const& genak4jets = genInfoHandler->getGenAK4Jets();
+    unsigned int n_genak4jets_noV = 0;
+    ParticleObject::LorentzVector_t genak4jets_noV_HT_p4;
+    std::vector<float> genak4jets_pt; genak4jets_pt.reserve(genak4jets.size());
+    std::vector<float> genak4jets_eta; genak4jets_eta.reserve(genak4jets.size());
+    std::vector<float> genak4jets_phi; genak4jets_phi.reserve(genak4jets.size());
+    std::vector<float> genak4jets_mass; genak4jets_mass.reserve(genak4jets.size());
+    for (auto const& jet:genak4jets){
+      float const jet_pt = jet->pt();
+      float const jet_eta = jet->eta();
+      float const jet_phi = jet->phi();
+      float const jet_mass = jet->mass();
+      genak4jets_pt.push_back(jet_pt);
+      genak4jets_eta.push_back(jet_eta);
+      genak4jets_phi.push_back(jet_phi);
+      genak4jets_mass.push_back(jet_mass);
+      if (
+        !(
+          (std::abs(jet_mass - PDGHelpers::Wmass)<25. && jet_pt>=200.f)
+          ||
+          (std::abs(jet_mass - PDGHelpers::Zmass)<25. && jet_pt>=220.f)
+          )
+        ){
+        n_genak4jets_noV++;
+        genak4jets_noV_HT_p4 += ParticleObject::LorentzVector_t(jet_pt*std::cos(jet_phi), jet_pt*std::sin(jet_phi), 0, jet_pt);
+      }
+    }
+    commonEntry.setNamedVal("n_genak4jets_noV", n_genak4jets_noV);
+    commonEntry.setNamedVal<float>("genak4jets_noV_HT", genak4jets_noV_HT_p4.E());
+    commonEntry.setNamedVal<float>("genak4jets_noV_MHT", genak4jets_noV_HT_p4.Pt());
+    commonEntry.setNamedVal("genak4jets_pt", genak4jets_pt);
+    commonEntry.setNamedVal("genak4jets_eta", genak4jets_eta);
+    commonEntry.setNamedVal("genak4jets_phi", genak4jets_phi);
+    commonEntry.setNamedVal("genak4jets_mass", genak4jets_mass);
+  }
 
   /*********************/
   /* RECORD THE OUTPUT */
@@ -926,6 +966,8 @@ void LooperFunctionHelpers::setBtagWPs(){
   btag_thr_medium = vwps.at(1);
   btag_thr_tight = vwps.at(2);
 }
+
+void LooperFunctionHelpers::setKeepGenAK4JetInfo(bool keepGenAK4JetInfo_){ keepGenAK4JetInfo = keepGenAK4JetInfo_; }
 
 void LooperFunctionHelpers::addTimeDuration(TString const& strname, std::chrono::microseconds const& dur){
   for (auto& pp:type_accTime_pairs){
@@ -1226,10 +1268,12 @@ void getTrees(
       bool has_lheMEweights = false;
       bool has_lheparticles = false;
       bool has_genparticles = false;
+      bool has_genak4jets = false;
       for (auto const& bname:allbranchnames){
         if (bname.Contains("p_Gen") || bname.Contains("LHECandMass")) has_lheMEweights = true;
         else if (bname.Contains(GenInfoHandler::colName_lheparticles)) has_lheparticles = true;
         else if (bname.Contains(GenInfoHandler::colName_genparticles)) has_genparticles = true;
+        else if (bname.Contains(GenInfoHandler::colName_genak4jets)) has_genak4jets = true;
       }
 
       // Book branches
@@ -1328,7 +1372,10 @@ void getTrees(
       genInfoHandler.setAcquireLHEMEWeights(has_lheMEweights);
       genInfoHandler.setAcquireLHEParticles(has_lheparticles);
       genInfoHandler.setAcquireGenParticles(has_genparticles);
+      genInfoHandler.setAcquireGenAK4Jets(isHighMassPOWHEGSample && has_genak4jets && theGlobalSyst==sNominal);
       genInfoHandler.bookBranches(sample_tree);
+
+      LooperFunctionHelpers::setKeepGenAK4JetInfo(isHighMassPOWHEGSample && has_genak4jets && theGlobalSyst==sNominal);
     }
     std::unordered_map<SystematicsHelpers::SystematicVariationTypes, double> globalWeights;
     double globalWeight = xsec * xsec_scale * BR_scale * (isData ? 1.f : lumi) / sum_wgts; globalWeights[theGlobalSyst] = globalWeight;

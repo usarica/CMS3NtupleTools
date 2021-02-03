@@ -41,6 +41,7 @@
 
 #include "DiscriminantClasses.h"
 #include "ACHypothesisHelpers.h"
+#include "PhysicsProcessHelpers.h"
 
 #include "BaseTreeLooper.h"
 

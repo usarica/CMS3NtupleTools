@@ -203,11 +203,13 @@ void getTrees(
 
   bool isGG = strSampleSet.Contains("GluGluH") || strSampleSet.Contains("GGH");
   bool isVBF = strSampleSet.Contains("VBF");
+  bool isVH = strSampleSet.Contains("WminusH") || strSampleSet.Contains("WplusH") || strSampleSet.Contains("ZH") || strSampleSet.Contains("HZJ");
 
   // Get sample specifications
   std::vector<TString> sampledirs;
-  //SampleHelpers::constructSamplesList(strSampleSet, theGlobalSyst, sampledirs);
+  SampleHelpers::constructSamplesList(strSampleSet, theGlobalSyst, sampledirs);
 
+  /*
   if (isGG){
     SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M125_POWHEG", theGlobalSyst, sampledirs);
     SampleHelpers::constructSamplesList("GGH_ZZTo2L2Nu_M160_POWHEG", theGlobalSyst, sampledirs);
@@ -258,6 +260,7 @@ void getTrees(
     SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M2500_POWHEG", theGlobalSyst, sampledirs);
     SampleHelpers::constructSamplesList("VBF_ZZTo2L2Nu_M3000_POWHEG", theGlobalSyst, sampledirs);
   }
+  */
 
   if (sampledirs.empty()) return;
   bool isData = SampleHelpers::checkSampleIsData(sampledirs.front());
@@ -396,9 +399,41 @@ void getTrees(
     );
     /*
     rewgtBuilder.addReweightingWeights(
-      { "p_Gen_JJEW_BSI_ghv1_1_MCFM", "p_Gen_CPStoBWPropRewgt" },
+    { "p_Gen_JJEW_BSI_ghv1_1_MCFM", "p_Gen_CPStoBWPropRewgt" },
+    ReweightingFunctions::getSimpleWeight,
+    (thr_frac>0. ? thr_frac : 0.995), tol_wgt
+    );
+    */
+    rewgtBuilder.addReweightingWeights(
+      { "p_Gen_JJEW_BKG_MCFM", "p_Gen_CPStoBWPropRewgt" },
       ReweightingFunctions::getSimpleWeight,
-      (thr_frac>0. ? thr_frac : 0.995), tol_wgt
+      (thr_frac>0. ? thr_frac : 0.999), tol_wgt
+    );
+
+    // Fill also the reading test, but in swapped order
+    rewgtBuilder_readTest.addReweightingWeights(
+      { "p_Gen_JJEW_BKG_MCFM", "p_Gen_CPStoBWPropRewgt" },
+      ReweightingFunctions::getSimpleWeight,
+      (thr_frac>0. ? thr_frac : 0.999), tol_wgt
+    );
+    rewgtBuilder_readTest.addReweightingWeights(
+      { "p_Gen_JJEW_SIG_ghv1_1_MCFM", "p_Gen_CPStoBWPropRewgt" },
+      ReweightingFunctions::getSimpleWeight,
+      (thr_frac>0. ? thr_frac : 0.9995), tol_wgt
+    );
+  }
+  else{
+    thr_frac_Neff = 0.01;
+    rewgtBuilder.addReweightingWeights(
+      { "p_Gen_JJEW_SIG_ghv1_1_MCFM", "p_Gen_CPStoBWPropRewgt" },
+      ReweightingFunctions::getSimpleWeight,
+      (thr_frac>0. ? thr_frac : 0.9995), tol_wgt
+    );
+    /*
+    rewgtBuilder.addReweightingWeights(
+    { "p_Gen_JJEW_BSI_ghv1_1_MCFM", "p_Gen_CPStoBWPropRewgt" },
+    ReweightingFunctions::getSimpleWeight,
+    (thr_frac>0. ? thr_frac : 0.995), tol_wgt
     );
     */
     rewgtBuilder.addReweightingWeights(
@@ -600,8 +635,9 @@ void getTrees(
       MELAout << "Normalizing mass " << sampleMH << " to mass " << SampleHelpers::findPoleMass(sample_trees.at(itree-1)->sampleIdentifier) << endl;
     }
     else{
-      tree_normTree_pairs.emplace_back(sample_trees.at(itree), sample_trees.at(itree+1));
-      MELAout << "Normalizing mass " << sampleMH << " to mass " << SampleHelpers::findPoleMass(sample_trees.at(itree+1)->sampleIdentifier) << endl;
+      //tree_normTree_pairs.emplace_back(sample_trees.at(itree), sample_trees.at(itree+1));
+      //MELAout << "Normalizing mass " << sampleMH << " to mass " << SampleHelpers::findPoleMass(sample_trees.at(itree+1)->sampleIdentifier) << endl;
+      continue;
     }
   }
 
@@ -611,7 +647,7 @@ void getTrees(
   MELAout.close();
 
   // Loop over all events
-  //theLooper.loop(true);
+  theLooper.loop(true);
 
   TString stroutput_weights = stroutput;
   HelperFunctions::replaceString<TString, TString const>(stroutput_weights, ".root", "_ReweightingRecord.root");

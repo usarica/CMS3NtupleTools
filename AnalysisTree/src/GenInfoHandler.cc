@@ -15,6 +15,8 @@ using namespace MELAStreamHelpers;
 
 const std::string GenInfoHandler::colName_lheparticles = GlobalCollectionNames::colName_lheparticles;
 const std::string GenInfoHandler::colName_genparticles = GlobalCollectionNames::colName_genparticles;
+const std::string GenInfoHandler::colName_genak4jets = GlobalCollectionNames::colName_genak4jets;
+const std::string GenInfoHandler::colName_genak8jets = GlobalCollectionNames::colName_genak8jets;
 
 GenInfoHandler::GenInfoHandler() :
   IvyBase(),
@@ -23,6 +25,8 @@ GenInfoHandler::GenInfoHandler() :
   acquireLHEMEWeights(true),
   acquireLHEParticles(true),
   acquireGenParticles(true),
+  acquireGenAK4Jets(false),
+  acquireGenAK8Jets(false),
   allowLargeGenWeightRemoval(false),
 
   genWeightException(SampleHelpers::nGenWeightExceptionType),
@@ -36,11 +40,17 @@ void GenInfoHandler::clear(){
 
   delete genInfo; genInfo=nullptr;
 
-  for (auto*& part:lheparticles) delete part;
+  for (auto& part:lheparticles) delete part;
   lheparticles.clear();
 
-  for (auto*& part:genparticles) delete part;
+  for (auto& part:genparticles) delete part;
   genparticles.clear();
+
+  for (auto& part:genak4jets) delete part;
+  genak4jets.clear();
+
+  for (auto& part:genak8jets) delete part;
+  genak8jets.clear();
 }
 
 bool GenInfoHandler::constructGenInfo(SystematicsHelpers::SystematicVariationTypes const& syst){
@@ -49,7 +59,7 @@ bool GenInfoHandler::constructGenInfo(SystematicsHelpers::SystematicVariationTyp
   clear();
   if (!currentTree) return false;
 
-  bool res = constructCoreGenInfo(syst) && constructLHEParticles() && constructGenParticles();
+  bool res = constructCoreGenInfo(syst) && constructLHEParticles() && constructGenParticles() && constructGenAK4Jets() && constructGenAK8Jets() && applyGenJetCleaning();
 
   if (res) this->cacheEvent();
   return res;
@@ -289,6 +299,138 @@ bool GenInfoHandler::constructGenParticles(){
   return true;
 }
 
+bool GenInfoHandler::constructGenAK4Jets(){
+  if (!acquireGenAK4Jets) return true;
+
+#define GENJET_VARIABLE(TYPE, NAME, DEFVAL) std::vector<TYPE>::const_iterator itBegin_genak4jets_##NAME, itEnd_genak4jets_##NAME;
+  GENJET_VARIABLES;
+#undef GENJET_VARIABLE
+
+  // Beyond this point starts checks and selection
+  bool allVariablesPresent = true;
+#define GENJET_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedCIterators<std::vector<TYPE>>(GenInfoHandler::colName_genak4jets + "_" + #NAME, &itBegin_genak4jets_##NAME, &itEnd_genak4jets_##NAME);
+  GENJET_VARIABLES;
+#undef GENJET_VARIABLE
+
+  if (!allVariablesPresent){
+    if (this->verbosity>=TVar::ERROR) MELAerr << "GenInfoHandler::constructGenAK4Jets: Not all variables are consumed properly!" << endl;
+    assert(0);
+  }
+  if (this->verbosity>=TVar::DEBUG) MELAout << "GenInfoHandler::constructGenAK4Jets: All variables are set up!" << endl;
+
+  size_t ngenak4jets = (itEnd_genak4jets_pt - itBegin_genak4jets_pt);
+  genak4jets.reserve(ngenak4jets);
+#define GENJET_VARIABLE(TYPE, NAME, DEFVAL) auto it_genak4jets_##NAME = itBegin_genak4jets_##NAME;
+  GENJET_VARIABLES;
+#undef GENJET_VARIABLE
+  {
+    size_t ip=0;
+    while (it_genak4jets_pt != itEnd_genak4jets_pt){
+      if (this->verbosity>=TVar::DEBUG) MELAout << "GenInfoHandler::constructGenAK4Jets: Attempting LHE particle " << ip << "..." << endl;
+
+      ParticleObject::LorentzVector_t momentum;
+      momentum = ParticleObject::PolarLorentzVector_t(*it_genak4jets_pt, *it_genak4jets_eta, *it_genak4jets_phi, *it_genak4jets_mass); // Yes you have to do this on a separate line because CMSSW...
+      genak4jets.push_back(new GenJetObject(0, momentum));
+
+      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+
+      ip++;
+#define GENJET_VARIABLE(TYPE, NAME, DEFVAL) it_genak4jets_##NAME++;
+      GENJET_VARIABLES;
+#undef GENJET_VARIABLE
+    }
+  }
+
+  return true;
+}
+bool GenInfoHandler::constructGenAK8Jets(){
+  if (!acquireGenAK8Jets) return true;
+
+#define GENJET_VARIABLE(TYPE, NAME, DEFVAL) std::vector<TYPE>::const_iterator itBegin_genak8jets_##NAME, itEnd_genak8jets_##NAME;
+  GENJET_VARIABLES;
+#undef GENJET_VARIABLE
+
+  // Beyond this point starts checks and selection
+  bool allVariablesPresent = true;
+#define GENJET_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedCIterators<std::vector<TYPE>>(GenInfoHandler::colName_genak8jets + "_" + #NAME, &itBegin_genak8jets_##NAME, &itEnd_genak8jets_##NAME);
+  GENJET_VARIABLES;
+#undef GENJET_VARIABLE
+
+  if (!allVariablesPresent){
+    if (this->verbosity>=TVar::ERROR) MELAerr << "GenInfoHandler::constructGenAK8Jets: Not all variables are consumed properly!" << endl;
+    assert(0);
+  }
+  if (this->verbosity>=TVar::DEBUG) MELAout << "GenInfoHandler::constructGenAK8Jets: All variables are set up!" << endl;
+
+  size_t ngenak8jets = (itEnd_genak8jets_pt - itBegin_genak8jets_pt);
+  genak8jets.reserve(ngenak8jets);
+#define GENJET_VARIABLE(TYPE, NAME, DEFVAL) auto it_genak8jets_##NAME = itBegin_genak8jets_##NAME;
+  GENJET_VARIABLES;
+#undef GENJET_VARIABLE
+  {
+    size_t ip=0;
+    while (it_genak8jets_pt != itEnd_genak8jets_pt){
+      if (this->verbosity>=TVar::DEBUG) MELAout << "GenInfoHandler::constructGenAK8Jets: Attempting LHE particle " << ip << "..." << endl;
+
+      ParticleObject::LorentzVector_t momentum;
+      momentum = ParticleObject::PolarLorentzVector_t(*it_genak8jets_pt, *it_genak8jets_eta, *it_genak8jets_phi, *it_genak8jets_mass); // Yes you have to do this on a separate line because CMSSW...
+      genak8jets.push_back(new GenJetObject(0, momentum));
+
+      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+
+      ip++;
+#define GENJET_VARIABLE(TYPE, NAME, DEFVAL) it_genak8jets_##NAME++;
+      GENJET_VARIABLES;
+#undef GENJET_VARIABLE
+    }
+  }
+
+  return true;
+}
+
+bool GenInfoHandler::applyGenJetCleaning(){
+  if (!acquireGenParticles) return true;
+  if (!acquireGenAK4Jets && !acquireGenAK8Jets) return true;
+
+  // Accumulate all prompt leptons or hard-process taus
+  std::vector<GenParticleObject*> genparticles_prompt; genparticles_prompt.reserve(genparticles.size());
+  for (auto const& part:genparticles){
+    auto const& extras = part->extras;
+    cms3_id_t const& part_id = part->pdgId();
+    if (
+      (extras.isPromptFinalState && (PDGHelpers::isALepton(part_id) || PDGHelpers::isAPhoton(part_id)))
+      ||
+      (extras.isHardProcess && std::abs(part_id)==15)
+      ) genparticles_prompt.push_back(part);
+  }
+
+  // Clean gen. ak4 jets
+  std::vector<GenJetObject*> genak4jets_new; genak4jets_new.reserve(genak4jets.size());
+  for (auto& jet:genak4jets){
+    bool doSkip=false;
+    for (auto const& part:genparticles_prompt){
+      if (jet->deltaR(part)<0.4){ doSkip=true; break; }
+    }
+    if (!doSkip) genak4jets_new.push_back(jet);
+    else delete jet;
+  }
+  genak4jets = genak4jets_new;
+
+  // Clean gen. ak8 jets
+  std::vector<GenJetObject*> genak8jets_new; genak8jets_new.reserve(genak8jets.size());
+  for (auto& jet:genak8jets){
+    bool doSkip=false;
+    for (auto const& part:genparticles_prompt){
+      if (jet->deltaR(part)<0.8){ doSkip=true; break; }
+    }
+    if (!doSkip) genak8jets_new.push_back(jet);
+    else delete jet;
+  }
+  genak8jets = genak8jets_new;
+
+  return true;
+}
+
 bool GenInfoHandler::wrapTree(BaseTree* tree){
   if (!tree) return false;
 
@@ -328,7 +470,7 @@ this->addConsumed<TYPE>(#NAME); this->defineConsumedSloppy(#NAME);
   std::vector<TString> kfactorlist;
   std::vector<TString> melist;
   bool has_lheparticles=false;
-  for (TString const& bname : allbranchnames){
+  for (TString const& bname:allbranchnames){
     if (bname.Contains("KFactor")){
       tree->bookBranch<float>(bname, 1.f);
       this->addConsumed<float>(bname);
@@ -364,6 +506,24 @@ this->addConsumed<TYPE>(#NAME); this->defineConsumedSloppy(#NAME);
 #define GENPARTICLE_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(colName_genparticles+ "_" + #NAME); this->defineConsumedSloppy(colName_genparticles+ "_" + #NAME);
   GENPARTICLE_VARIABLES;
 #undef GENPARTICLE_VARIABLE
+
+  if (acquireGenAK4Jets){
+#define GENJET_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<std::vector<TYPE>*>(colName_genak4jets+ "_" + #NAME, nullptr);
+    GENJET_VARIABLES;
+#undef GENJET_VARIABLE
+  }
+#define GENJET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(colName_genak4jets+ "_" + #NAME); this->defineConsumedSloppy(colName_genak4jets+ "_" + #NAME);
+  GENJET_VARIABLES;
+#undef GENJET_VARIABLE
+
+  if (acquireGenAK8Jets){
+#define GENJET_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<std::vector<TYPE>*>(colName_genak8jets+ "_" + #NAME, nullptr);
+    GENJET_VARIABLES;
+#undef GENJET_VARIABLE
+  }
+#define GENJET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(colName_genak8jets+ "_" + #NAME); this->defineConsumedSloppy(colName_genak8jets+ "_" + #NAME);
+  GENJET_VARIABLES;
+#undef GENJET_VARIABLE
 }
 
 bool GenInfoHandler::determineWeightThresholds(){

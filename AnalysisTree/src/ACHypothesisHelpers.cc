@@ -7,6 +7,10 @@ using namespace std;
 using namespace MELAStreamHelpers;
 
 
+bool ACHypothesisHelpers::isOnshellDecay(DecayType dktype){
+  return (dktype == kZZ4l_onshell);
+}
+
 TString ACHypothesisHelpers::getACHypothesisName(ACHypothesisHelpers::ACHypothesis hypo){
   switch (hypo){
   case kSM:
@@ -22,6 +26,46 @@ TString ACHypothesisHelpers::getACHypothesisName(ACHypothesisHelpers::ACHypothes
   default:
     return "";
   };
+}
+TString ACHypothesisHelpers::getACHypothesisLabel(ACHypothesisHelpers::ACHypothesis hypo){
+  TString res;
+  switch (hypo){
+  case ACHypothesisHelpers::kL1:
+    res="#Lambda_{1}";
+    break;
+  case ACHypothesisHelpers::kA2:
+    res="a_{2}";
+    break;
+  case ACHypothesisHelpers::kA3:
+    res="a_{3}";
+    break;
+  case ACHypothesisHelpers::kL1ZGs:
+    res="#Lambda_{1}^{Z#gamma}";
+    break;
+  default:
+    break;
+  };
+  return res;
+}
+TString ACHypothesisHelpers::getACHypothesisFLabel(ACHypothesisHelpers::ACHypothesis hypo){
+  TString res;
+  switch (hypo){
+  case ACHypothesisHelpers::kL1:
+    res="f_{#Lambda1}";
+    break;
+  case ACHypothesisHelpers::kA2:
+    res="f_{a2}";
+    break;
+  case ACHypothesisHelpers::kA3:
+    res="f_{a3}";
+    break;
+  case ACHypothesisHelpers::kL1ZGs:
+    res="f_{#Lambda1}^{Z#gamma}";
+    break;
+  default:
+    break;
+  };
+  return res;
 }
 
 float ACHypothesisHelpers::getACHypothesisMEHZZGVal(ACHypothesisHelpers::ACHypothesis hypo){

@@ -27,12 +27,14 @@ bool checkSystematicForSampleGroup(TString const& sgroup, SystematicsHelpers::Sy
 }
 
 void getMCSampleDirs(
-  std::vector< std::pair<TString, std::vector<std::pair<TString, TString>>> >& strsamples, SystematicsHelpers::SystematicVariationTypes theGlobalSyst,
+  TString strSampleSet,
+  std::vector< std::pair<TString, TString> >& strsamples, SystematicsHelpers::SystematicVariationTypes theGlobalSyst,
   bool applyPUIdToAK4Jets, bool applyTightLeptonVetoIdToAK4Jets,
   bool use_MET_Puppi,
   bool use_MET_XYCorr, bool use_MET_JERCorr, bool use_MET_ParticleMomCorr, bool use_MET_p4Preservation, bool use_MET_corrections
 ){
   using namespace SystematicsHelpers;
+  using namespace ACHypothesisHelpers;
 
   std::vector<SystematicsHelpers::SystematicVariationTypes> const disallowedSysts{
     tPDFScaleDn, tPDFScaleUp,
@@ -68,100 +70,6 @@ void getMCSampleDirs(
   TString strSyst = SystematicsHelpers::getSystName(theGlobalSyst).data();
   TString period = SampleHelpers::getDataPeriod();
 
-  std::vector< std::pair< TString, std::vector<TString> > > sampleSpecs;
-  switch (SampleHelpers::getDataYear()){
-  case 2016:
-    sampleSpecs = std::vector< std::pair< TString, std::vector<TString> > >{
-      {
-        "qqZZ_2l2nu",{ "qqZZ_2l2nu", "qqZZ_2l2nu_ext" }
-      },
-      {
-        "qqZZ_2l2q",{ "qqZZ_2l2q" }
-      },
-      {
-        "qqZZ_4l",{ "qqZZ_4l", "qqZZ_4l_ext" }
-      },
-      {
-        "qqWZ_3lnu",{ "qqWZ_3lnu_POWHEG" }
-      },
-      {
-        "qqWZ_3lnu_ext",{ "qqWZ_3lnu_POWHEG_mll_0p1-inf" }
-      },
-      {
-        "qqWZ_2l2q",{ "qqWZ_2l2q" }
-      },
-      {
-        "TTZ_2l2nu",{ "TTZ_2l2nu_M_10" }
-      },
-      {
-        "TZ_2l_4f",{ "TZ_2l_4f" }
-      }
-    };
-    break;
-  case 2017:
-    sampleSpecs = std::vector< std::pair< TString, std::vector<TString> > >{
-      {
-        "qqZZ_2l2nu",{ "qqZZ_2l2nu_mZ_18-inf" }
-      },
-      {
-        "qqZZ_2l2nu_ext",{ "qqZZ_2l2nu" }
-      },
-      {
-        "qqZZ_2l2q",{ "qqZZ_2l2q" }
-      },
-      {
-        "qqZZ_4l",{ "qqZZ_4l", "qqZZ_4l_ext" }
-      },
-      {
-        "qqWZ_3lnu",{ "qqWZ_3lnu_POWHEG_mll_0p1-inf" }
-      },
-      {
-        "qqWZ_3lnu_ext",{ "qqWZ_3lnu_POWHEG" }
-      },
-      {
-        "qqWZ_2l2q",{ "qqWZ_2l2q" }
-      },
-      {
-        "TTZ_2l2nu",{ "TTZ_2l2nu" }
-      },
-      {
-        "TZ_2l_4f",{ "TZ_2l_4f" }
-      }
-    };
-    break;
-  case 2018:
-    sampleSpecs = std::vector< std::pair< TString, std::vector<TString> > >{
-      {
-        "qqZZ_2l2nu",{ "qqZZ_2l2nu", "qqZZ_2l2nu_ext" }
-      },
-      {
-        "qqZZ_2l2nu_ext",{ "qqZZ_2l2nu_mZ_18-inf" }
-      },
-      {
-        "qqZZ_2l2q",{ "qqZZ_2l2q" }
-      },
-      {
-        "qqZZ_4l",{ "qqZZ_4l" }
-      },
-      {
-        "qqWZ_3lnu",{ "qqWZ_3lnu_POWHEG" }
-      },
-      {
-        "qqWZ_3lnu_ext",{ "qqWZ_3lnu_POWHEG_mll_0p1-inf" }
-      },
-      {
-        "qqWZ_2l2q",{ "qqWZ_2l2q" }
-      },
-      {
-        "TTZ_2l2nu",{ "TTZ_2l2nu" }
-      },
-      {
-        "TZ_2l_4f",{ "TZ_2l_4f" }
-      }
-    };
-    break;
-  }
-
   TString cinput_main =
     TString("AK4Jets")
     + "_" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
@@ -176,22 +84,17 @@ void getMCSampleDirs(
   cinput_main = cinput_main + "_" + (use_MET_corrections ? "ResolutionCorrected" : "ResolutionUncorrected");
   cinput_main = cinput_main + "/" + period;
 
-  for (auto const& s:sampleSpecs){
-    if (!checkSystematicForSampleGroup(s.first, theGlobalSyst)) continue;
+  if (!checkSystematicForSampleGroup(strSampleSet, theGlobalSyst)) return;
 
-    std::vector<TString> sdirs;
-    std::vector<std::pair<TString, TString>> sname_dir_pairs;
-    for (auto const& strSampleSet:s.second) SampleHelpers::constructSamplesList(strSampleSet, theGlobalSyst, sdirs);
-    sname_dir_pairs.reserve(sdirs.size());
-    for (auto const& sname:sdirs){
-      TString cinput = SampleHelpers::getSampleIdentifier(sname);
-      HelperFunctions::replaceString(cinput, "_MINIAODSIM", "");
-      HelperFunctions::replaceString(cinput, "_MINIAOD", "");
-      cinput = cinput + "_" + strSyst + "*.root";
-      cinput = cinput_main + "/" + cinput;
-      sname_dir_pairs.emplace_back(sname, cinput);
-    }
-    strsamples.emplace_back(s.first, sname_dir_pairs);
+  std::vector<TString> sdirs;
+  SampleHelpers::constructSamplesList(strSampleSet, theGlobalSyst, sdirs);
+  for (auto const& sname:sdirs){
+    TString cinput = SampleHelpers::getSampleIdentifier(sname);
+    HelperFunctions::replaceString(cinput, "_MINIAODSIM", "");
+    HelperFunctions::replaceString(cinput, "_MINIAOD", "");
+    cinput = cinput + "_" + strSyst + "*.root";
+    cinput = cinput_main + "/" + cinput;
+    strsamples.emplace_back(sname, cinput);
   }
 }
 
@@ -286,7 +189,24 @@ void getMCSampleDirs(
 
 
 using namespace SystematicsHelpers;
+using namespace PhysicsProcessHelpers;
+
+
+PhysicsProcessHandler* getPhysicsProcessHandler(TString strSampleSet, ACHypothesisHelpers::DecayType dktype){
+  PhysicsProcessHandler* res = nullptr;
+  if (strSampleSet.Contains("GGH") || strSampleSet.Contains("GluGluH")) res = new GGProcessHandler(dktype);
+  else if (strSampleSet.Contains("VBF")) res = new VVProcessHandler(dktype, kProcess_VBF);
+  else if (strSampleSet.Contains("ZH")) res = new VVProcessHandler(dktype, kProcess_ZH);
+  else if (strSampleSet.Contains("WminusH") || strSampleSet.Contains("WplusH")) res = new VVProcessHandler(dktype, kProcess_WH);
+  else{
+    MELAerr << "getPhysicsProcessHandler: Cannot identify process " << strSampleSet;
+    assert(0);
+  }
+  return res;
+}
+
 void getTrees_ZZTo2L2Nu(
+  TString strSampleSet,
   TString period, TString prodVersion, TString ntupleVersion, TString strdate,
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst,
   // Jet ID options
@@ -304,6 +224,7 @@ void getTrees_ZZTo2L2Nu(
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
   OffshellCutflow::setActiveFinalState(OffshellCutflow::fs_ZZ_2l2nu);
+  ACHypothesisHelpers::DecayType dktype = ACHypothesisHelpers::kZZ2l2nu_offshell;
 
   SampleHelpers::configure(period, Form("store_skims:%s", prodVersion.Data()));
 
@@ -317,18 +238,15 @@ void getTrees_ZZTo2L2Nu(
   TDirectory* curdir = gDirectory;
   gSystem->mkdir(coutput_main, true);
 
+  PhysicsProcessHandler* proc_handler = getPhysicsProcessHandler(strSampleSet, dktype);
+
   std::vector<TString> transfer_list;
 
   TriggerScaleFactorHandler triggerSFHandler;
 
   // Get list of samples
-  std::vector< std::pair<TString, std::vector<std::pair<TString, TString>>> > sgroup_sname_sfname_pairs_MC;
-  getMCSampleDirs(sgroup_sname_sfname_pairs_MC, theGlobalSyst, _JETMETARGS_);
-  std::vector<TString> sgroups;
-  for (auto const& sgroup_sname_sfname_pair:sgroup_sname_sfname_pairs_MC){
-    auto const& sgroup = sgroup_sname_sfname_pair.first;
-    if (!HelperFunctions::checkListVariable(sgroups, sgroup)) sgroups.push_back(sgroup);
-  }
+  std::vector< std::pair<TString, TString> > sname_sfname_pairs_MC;
+  getMCSampleDirs(strSampleSet, sname_sfname_pairs_MC, theGlobalSyst, _JETMETARGS_);
 
   // Build discriminants
   std::vector<DiscriminantClasses::Type> KDtypes;
@@ -358,267 +276,200 @@ void getTrees_ZZTo2L2Nu(
   // Construct the discriminants
   DiscriminantClasses::constructDiscriminants(KDlist, 0, "JJVBFTagged");
 
-  // Get output files and trees
-  std::unordered_map<TString, TFile*> sgroup_foutput_map;
-  std::unordered_map<TString, BaseTree*> sgroup_tout_map;
-  for (auto const& sgroup:sgroups){
-    TString stroutput = coutput_main + Form("/finaltree_%s_%s", sgroup.Data(), strSyst.Data());
-    stroutput = stroutput + ".root";
-    TFile* foutput = TFile::Open(stroutput, "recreate");
+  // Get output file and tree
+  TString stroutput = coutput_main + Form("/finaltrees_%s_%s", strSampleSet.Data(), strSyst.Data());
+  stroutput = stroutput + ".root";
+  TFile* foutput = TFile::Open(stroutput, "recreate");
 
-    foutput->cd();
+  std::unordered_map<ACHypothesisHelpers::ACHypothesis, TDirectory*> achypo_outdir_pair_map;
+  std::unordered_map<TString, BaseTree*> strme_tout_pair_map;
+  std::unordered_map<BaseTree*, TDirectory*> tout_outdir_pair_map;
+  for (unsigned int iac=0; iac<(unsigned int) ACHypothesisHelpers::nACHypotheses; iac++){
+    ACHypothesisHelpers::ACHypothesis hypo = (ACHypothesisHelpers::ACHypothesis) iac;
+    TDirectory* dir_hypo = foutput->mkdir(ACHypothesisHelpers::getACHypothesisName(hypo));
 
-    BaseTree* tout = new BaseTree("FinalTree");
+    dir_hypo->cd();
 
-    tout->putBranch<float>("weight", 1.f);
+    std::vector<TString> strMEs = proc_handler->getMELAHypothesisWeights(hypo, false);
+    std::vector<TString> strOutTreeNames = proc_handler->getOutputTreeNames(hypo, false);
+    for (unsigned int itree=0; itree<strMEs.size(); itree++){
+      auto const& strME = strMEs.at(itree);
+      BaseTree* tout = new BaseTree(strOutTreeNames.at(itree));
 
-    tout->putBranch<float>("mTZZ", 0.f);
+      tout->putBranch<float>("weight", 1.f);
 
-    tout->putBranch<cms3_id_t>("dilepton_id", 0);
-    tout->putBranch<float>("dilepton_mass", 0.f);
-    tout->putBranch<float>("dilepton_pt", 0.f);
-    tout->putBranch<float>("dilepton_eta", 0.f);
+      tout->putBranch<float>("mTZZ", 0.f);
 
-    tout->putBranch<float>("pTmiss", 0.f);
-    tout->putBranch<float>("phimiss", 0.f);
+      tout->putBranch<cms3_id_t>("dilepton_id", 0);
+      tout->putBranch<float>("dilepton_mass", 0.f);
+      tout->putBranch<float>("dilepton_pt", 0.f);
+      tout->putBranch<float>("dilepton_eta", 0.f);
 
-    tout->putBranch<unsigned int>("n_ak4jets_pt30", 0); // Number of ak4 jets with pT>=30 GeV
-    tout->putBranch<unsigned int>("n_ak4jets_pt30_mass60", 0); // Number of ak4 jets with pT>=30 GeV AND mass>=60 GeV
+      tout->putBranch<float>("pTmiss", 0.f);
+      tout->putBranch<float>("phimiss", 0.f);
 
-    // Dijet variables are always calculated for the two leading-pT jets
-    tout->putBranch<float>("dijet_mass", -1.f);
-    tout->putBranch<float>("dijet_pt", -1.f);
-    tout->putBranch<float>("dijet_dEta", -1.f);
-    tout->putBranch<float>("dijet_dPhi", -1.f); // Signed dPhi = phi_forward - phi_backward (after re-ordering leading-pT and subleading-pT by pz)
+      tout->putBranch<unsigned int>("n_ak4jets_pt30", 0); // Number of ak4 jets with pT>=30 GeV
+      tout->putBranch<unsigned int>("n_ak4jets_pt30_mass60", 0); // Number of ak4 jets with pT>=30 GeV AND mass>=60 GeV
 
-    tout->putBranch<float>("ak4jet_leading_pt", -1.f);
-    tout->putBranch<float>("ak4jet_leading_eta", 0.f);
-    tout->putBranch<float>("ak4jet_leading_phi", 0.f);
-    tout->putBranch<float>("ak4jet_leading_mass", -1.f);
+      // Dijet variables are always calculated for the two leading-pT jets
+      tout->putBranch<float>("dijet_mass", -1.f);
+      tout->putBranch<float>("dijet_pt", -1.f);
+      tout->putBranch<float>("dijet_dEta", -1.f);
+      tout->putBranch<float>("dijet_dPhi", -1.f); // Signed dPhi = phi_forward - phi_backward (after re-ordering leading-pT and subleading-pT by pz)
 
-    tout->putBranch<float>("ak4jet_subleading_pt", -1.f);
-    tout->putBranch<float>("ak4jet_subleading_eta", 0.f);
-    tout->putBranch<float>("ak4jet_subleading_phi", 0.f);
-    tout->putBranch<float>("ak4jet_subleading_mass", -1.f);
+      tout->putBranch<float>("ak4jet_leading_pt", -1.f);
+      tout->putBranch<float>("ak4jet_leading_eta", 0.f);
+      tout->putBranch<float>("ak4jet_leading_phi", 0.f);
+      tout->putBranch<float>("ak4jet_leading_mass", -1.f);
 
-    // ak8 jet variables, for potential future use
-    tout->putBranch<unsigned int>("n_ak8jets_pt200", 0); // Number of ak8 jets with pT>=200 GeV
-    tout->putBranch<unsigned int>("n_ak8jets_pt200_mass60to110", 0); // Number of ak8 jets with pT>=200 GeV AND mass within [60, 110) GeV (inclusive/exclusive range)
-    tout->putBranch<unsigned int>("n_ak8jets_pt200_mass140", 0); // Number of ak8 jets with pT>=200 GeV AND mass>=140 GeV
+      tout->putBranch<float>("ak4jet_subleading_pt", -1.f);
+      tout->putBranch<float>("ak4jet_subleading_eta", 0.f);
+      tout->putBranch<float>("ak4jet_subleading_phi", 0.f);
+      tout->putBranch<float>("ak4jet_subleading_mass", -1.f);
 
-    tout->putBranch<float>("ak8jet_leading_pt", -1.f);
-    tout->putBranch<float>("ak8jet_leading_eta", 0.f);
-    tout->putBranch<float>("ak8jet_leading_mass", -1.f);
+      // ak8 jet variables, for potential future use
+      tout->putBranch<unsigned int>("n_ak8jets_pt200", 0); // Number of ak8 jets with pT>=200 GeV
+      tout->putBranch<unsigned int>("n_ak8jets_pt200_mass60to110", 0); // Number of ak8 jets with pT>=200 GeV AND mass within [60, 110) GeV (inclusive/exclusive range)
+      tout->putBranch<unsigned int>("n_ak8jets_pt200_mass140", 0); // Number of ak8 jets with pT>=200 GeV AND mass>=140 GeV
 
-    // Values of various discriminants
-    for (auto const& KDspec:KDlist) tout->putBranch<float>(KDspec.KDname, -1.f);
+      tout->putBranch<float>("ak8jet_leading_pt", -1.f);
+      tout->putBranch<float>("ak8jet_leading_eta", 0.f);
+      tout->putBranch<float>("ak8jet_leading_mass", -1.f);
 
-    transfer_list.push_back(stroutput);
-    sgroup_foutput_map[sgroup] = foutput;
-    sgroup_tout_map[sgroup] = tout;
+      // Values of various discriminants
+      for (auto const& KDspec:KDlist) tout->putBranch<float>(KDspec.KDname, -1.f);
+
+      strme_tout_pair_map[strME] = tout;
+      tout_outdir_pair_map[tout] = dir_hypo;
+    }
+    achypo_outdir_pair_map[hypo] = dir_hypo;
+
     curdir->cd();
   }
 
+  transfer_list.push_back(stroutput);
+  curdir->cd();
+
   // Get input trees
   TString const cinput_main = "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/DileptonEvents/SkimTrees/" + ntupleVersion;
-  std::unordered_map<TChain*, double> norm_map;
-  std::unordered_map<TChain*, double> xsec_scale_map;
-  std::vector<std::pair<TString, TChain*>> samples_all;
-  for (auto const& sgroup_sname_sfname_pair:sgroup_sname_sfname_pairs_MC){
-    auto const& sgroup = sgroup_sname_sfname_pair.first;
-    auto const& sname_sfname_pairs = sgroup_sname_sfname_pair.second;
-    std::vector<TChain*> tins_collected;
-    for (auto const& sname_sfname_pair:sname_sfname_pairs){
-      auto const& sname = sname_sfname_pair.first;
-      auto const& sfname = sname_sfname_pair.second;
+  std::unordered_map<BaseTree*, double> norm_map;
+  std::unordered_map<BaseTree*, double> xsec_scale_map;
+  std::vector< std::pair<TString, BaseTree*> > samples_all;
+  for (auto const& sname_sfname_pair:sname_sfname_pairs_MC){
+    auto const& sname = sname_sfname_pair.first;
+    auto const& sfname = sname_sfname_pair.second;
 
-      TString sid = SampleHelpers::getSampleIdentifier(sname);
-      float xsec_scale = 1;
-      SampleHelpers::hasXSecException(sid, SampleHelpers::getDataYear(), &xsec_scale);
-      if (xsec_scale!=1.f) MELAout << "\t- Sample " << sname << " has a cross section exception with scale " << xsec_scale << "." << endl;
+    TString sid = SampleHelpers::getSampleIdentifier(sname);
+    float xsec_scale = 1;
+    SampleHelpers::hasXSecException(sid, SampleHelpers::getDataYear(), &xsec_scale);
+    if (xsec_scale!=1.f) MELAout << "\t- Sample " << sname << " has a cross section exception with scale " << xsec_scale << "." << endl;
 
-      TString cinput = cinput_main + "/" + sfname;
-      curdir->cd();
-      TChain* tin = new TChain("SkimTree");
-      int nfiles = tin->Add(cinput);
-      xsec_scale_map[tin] = xsec_scale;
-      MELAout << "\t- Successfully added " << nfiles << " files for " << sname << " from " << cinput << "..." << endl;
-      samples_all.emplace_back(sgroup, tin);
-      tins_collected.push_back(tin);
-      norm_map[tin] = 1;
-      if (sname_sfname_pairs.size()>1){
-        norm_map[tin] = 0;
-        std::vector<TString> inputfilenames = SampleHelpers::getDatasetFileNames(sname);
-        double sum_wgts = 0;
-        bool hasCounters = true;
-        {
-          int bin_syst = 1 + 1*(theGlobalSyst==SystematicsHelpers::ePUDn) + 2*(theGlobalSyst==SystematicsHelpers::ePUUp);
-          int bin_period = 1;
-          for (unsigned int iperiod=0; iperiod<nValidDataPeriods; iperiod++){
-            if (validDataPeriods.at(iperiod)==SampleHelpers::getDataPeriod()){ bin_period += iperiod+1; break; }
-          }
-          for (auto const& fname:inputfilenames){
-            TFile* ftmp = TFile::Open(fname, "read");
-            TH2D* hCounters = (TH2D*) ftmp->Get("cms3ntuple/Counters");
-            if (!hCounters){
-              hasCounters = false;
-              sum_wgts = 0;
-              break;
-            }
-            sum_wgts += hCounters->GetBinContent(bin_syst, bin_period);
-            ftmp->Close();
-            curdir->cd();
-          }
-          if (hasCounters) MELAout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
-        }
-        norm_map[tin] += sum_wgts;
-      }
-      curdir->cd();
-    }
-    {
-      double sum_wgts_MC = 0;
-      for (auto const& tin:tins_collected) sum_wgts_MC += norm_map[tin];
-      for (auto const& tin:tins_collected) norm_map[tin] /= sum_wgts_MC;
-    }
+    curdir->cd();
+
+    TString cinput = cinput_main + "/" + sfname;
+    BaseTree* tin = new BaseTree(cinput, "SkimTree", "", "");
+    tin->sampleIdentifier = sid;
+    xsec_scale_map[tin] = xsec_scale;
+    MELAout << "\t- Successfully added the input files for " << sname << " from " << cinput << "..." << endl;
+    samples_all.emplace_back(sname, tin);
+    norm_map[tin] = 1;
+
+    curdir->cd();
   }
-  for (auto const& sgroup_tin_pair:samples_all) MELAout
-    << "Relative normalization for sample in group " << sgroup_tin_pair.first << " = " << norm_map[sgroup_tin_pair.second]
-    << endl;
 
-#define BRANCH_COMMAND(TYPE, NAME) TYPE NAME = 0;
+#define BRANCH_COMMAND(TYPE, NAME) TYPE* inptr_##NAME = nullptr;
   BRANCH_SCALAR_COMMANDS;
 #undef BRANCH_COMMAND
-#define BRANCH_COMMAND(TYPE, NAME) std::vector<TYPE>* NAME = nullptr;
+#define BRANCH_COMMAND(TYPE, NAME) std::vector<TYPE>** inptr_##NAME = nullptr;
   BRANCH_VECTOR_COMMANDS;
 #undef BRANCH_COMMAND
 
-  std::unordered_map<TString, float> ME_Kfactor_values;
+  std::unordered_map<TString, float*> ME_Kfactor_values;
   for (auto& pp:samples_all){
     auto const& tin = pp.second;
 
     std::vector<TString> allbranchnames;
-    {
-      // Then check all leaves
-      const TList* llist = (const TList*) tin->GetListOfLeaves();
-      if (llist){
-        for (int ib=0; ib<llist->GetSize(); ib++){
-          auto const& bmem = llist->At(ib);
-          if (!bmem) continue;
-          TString bname = bmem->GetName();
-          if (!HelperFunctions::checkListVariable(allbranchnames, bname)) allbranchnames.push_back(bname);
-         }
-      }
-      // Then check all branches
-      const TList* blist = (const TList*) tin->GetListOfBranches();
-      if (blist){
-        for (int ib=0; ib<blist->GetSize(); ib++){
-          auto const& bmem = blist->At(ib);
-          if (!bmem) continue;
-          TString bname = bmem->GetName();
-          if (!HelperFunctions::checkListVariable(allbranchnames, bname)) allbranchnames.push_back(bname);
-        }
-      }
-
-      for (auto const& bname:allbranchnames){
-        if (
-          (bname.BeginsWith("p_") && (bname.Contains("JHUGen") || bname.Contains("MCFM")))
-          ||
-          bname.BeginsWith("KFactor")
-          ) ME_Kfactor_values[bname] = -1;
+    tin->getValidBranchNamesWithoutAlias(allbranchnames, false);
+    for (auto const& bname:allbranchnames){
+      if (
+        (bname.BeginsWith("p_") && (bname.Contains("JHUGen") || bname.Contains("MCFM")))
+        ||
+        bname.Contains("LHECandMass")
+        ||
+        bname.BeginsWith("KFactor")
+        ){
+        tin->bookBranch(bname, -1.f);
+        ME_Kfactor_values[bname] = nullptr;
       }
     }
 
-    tin->SetBranchStatus("*", 0);
-#define BRANCH_COMMAND(TYPE, NAME) tin->SetBranchStatus(#NAME, 1); tin->SetBranchAddress(#NAME, &NAME);
+#define BRANCH_COMMAND(TYPE, NAME) tin->bookBranch<TYPE>(#NAME, 0);
     BRANCH_COMMANDS;
 #undef BRANCH_COMMAND
-    for (auto& it:ME_Kfactor_values){
-      TString const& MEname = it.first;
-      if (!HelperFunctions::checkListVariable(allbranchnames, MEname)) continue;
-      float& MEval = it.second;
-      tin->SetBranchStatus(MEname, 1); tin->SetBranchAddress(MEname, &MEval);
-    }
-  }
 
-  // Keep track of sums of predicted number of events
-  std::unordered_map<TString, std::vector<double> > sgroup_sumwgts_all_map;
-  std::unordered_map<TString, std::vector<double> > sgroup_sumwgts_mTZZ350_map;
-  for (auto const& sgroup:sgroups){
-    sgroup_sumwgts_all_map[sgroup] = std::vector<double>(2, 0);
-    sgroup_sumwgts_mTZZ350_map[sgroup] = std::vector<double>(2, 0);
+    tin->silenceUnused();
   }
 
   // Loop over the samples
   for (auto const& spair:samples_all){
-    auto const& sgroup = spair.first;
+    auto const& sname = spair.first;
     auto const& tin = spair.second;
     double const& xsec_scale = xsec_scale_map.find(tin)->second;
     double const& norm_scale = norm_map.find(tin)->second;
 
-    TFile* foutput = sgroup_foutput_map[sgroup];
-    BaseTree* tout = sgroup_tout_map[sgroup];
+    constexpr bool useNNPDF30 = true;
+    constexpr bool requireGenMatchedLeptons = false;
 
-    auto& sum_wgts_all = sgroup_sumwgts_all_map[sgroup];
-    auto& sum_wgts_mTZZ350 = sgroup_sumwgts_mTZZ350_map[sgroup];
+#define BRANCH_COMMAND(TYPE, NAME) tin->getValRef(#NAME, inptr_##NAME);
+    BRANCH_COMMANDS;
+#undef BRANCH_COMMAND
+    for (auto& it:ME_Kfactor_values) tin->getValRef(it.first, it.second);
 
     foutput->cd();
 
     // Reset ME and K factor values
-    for (auto& it:ME_Kfactor_values) it.second = -1;
-    bool const is_qqVV = sgroup.Contains("qqZZ") || sgroup.Contains("qqWZ") || sgroup.Contains("qqWW");
-    bool const is_ggVV = sgroup.Contains("ggZZ") || sgroup.Contains("ggWW") || sgroup.Contains("GGH");
-    bool const isData = (sgroup == "Data");
-
-    bool const useNNPDF30 = !isData && sgroup.Contains("TZ_2l");
-    bool const requireGenMatchedLeptons = (sgroup.Contains("TTZ_2l2nu") || sgroup.Contains("TZ_2l"));
+    bool const is_ggVV = sname.Contains("ggZZ") || sname.Contains("ggWW") || sname.Contains("GGH") || sname.Contains("GluGlu");
 
     float* val_Kfactor_QCD = nullptr;
-    float* val_Kfactor_EW = nullptr;
-    if (is_qqVV){
-      val_Kfactor_QCD = &(ME_Kfactor_values.find("KFactor_QCD_NNLO_qqVV_Bkg_Nominal")->second);
-      switch (theGlobalSyst){
-      case tEWDn:
-        val_Kfactor_EW = &(ME_Kfactor_values.find("KFactor_EW_NLO_qqVV_Bkg_EWDn")->second);
-        break;
-      case tEWUp:
-        val_Kfactor_EW = &(ME_Kfactor_values.find("KFactor_EW_NLO_qqVV_Bkg_EWUp")->second);
-        break;
-      default:
-        val_Kfactor_EW = &(ME_Kfactor_values.find("KFactor_EW_NLO_qqVV_Bkg_Nominal")->second);
-        break;
-      }
-    }
     if (is_ggVV){
       switch (theGlobalSyst){
       case tQCDScaleDn:
-        val_Kfactor_QCD = &(ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_QCDScaleDn")->second);
+        val_Kfactor_QCD = ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_QCDScaleDn")->second;
         break;
       case tQCDScaleUp:
-        val_Kfactor_QCD = &(ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_QCDScaleUp")->second);
+        val_Kfactor_QCD = ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_QCDScaleUp")->second;
         break;
       case tPDFScaleDn:
-        val_Kfactor_QCD = &(ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_PDFScaleDn")->second);
+        val_Kfactor_QCD = ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_PDFScaleDn")->second;
         break;
       case tPDFScaleUp:
-        val_Kfactor_QCD = &(ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_PDFScaleUp")->second);
+        val_Kfactor_QCD = ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_PDFScaleUp")->second;
         break;
       case tPDFReplicaDn:
-        val_Kfactor_QCD = &(ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_PDFReplicaDn")->second);
+        val_Kfactor_QCD = ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_PDFReplicaDn")->second;
         break;
       case tPDFReplicaUp:
-        val_Kfactor_QCD = &(ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_PDFReplicaUp")->second);
+        val_Kfactor_QCD = ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_PDFReplicaUp")->second;
         break;
       case tAsMZDn:
-        val_Kfactor_QCD = &(ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_AsDn")->second);
+        val_Kfactor_QCD = ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_AsDn")->second;
         break;
       case tAsMZUp:
-        val_Kfactor_QCD = &(ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_AsUp")->second);
+        val_Kfactor_QCD = ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_AsUp")->second;
         break;
       default:
-        val_Kfactor_QCD = &(ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_Nominal")->second);
+        val_Kfactor_QCD = ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_Nominal")->second;
         break;
       }
     }
+
+    float* val_ME_CPS = ME_Kfactor_values.find("p_Gen_CPStoBWPropRewgt")->second;
+
+
+#define BRANCH_COMMAND(TYPE, NAME) auto& NAME = *inptr_##NAME;
+    BRANCH_COMMANDS;
+#undef BRANCH_COMMAND
+
 
     float* ptr_event_wgt = &event_wgt;
     float* ptr_event_wgt_adjustment = (!useNNPDF30 ? nullptr : &event_wgt_adjustment_NNPDF30);
@@ -737,11 +588,11 @@ void getTrees_ZZTo2L2Nu(
         break;
     }
 
-    int const nEntries = tin->GetEntries();
+    int const nEntries = tin->getNEvents();
     for (int ev=0; ev<nEntries; ev++){
       if (SampleHelpers::doSignalInterrupt==1) break;
 
-      tin->GetEntry(ev);
+      tin->getEvent(ev);
       HelperFunctions::progressbar(ev, nEntries);
 
       if (!check_pTmiss(event_pTmiss, event_n_ak4jets_pt30)) continue;
@@ -760,18 +611,17 @@ void getTrees_ZZTo2L2Nu(
       if (!check_pTl1(pTl1)) continue;
       if (!check_pTl2(pTl2)) continue;
 
-      bool const hasGenMatchedPair = isData || (leptons_is_genMatched_prompt->front() && leptons_is_genMatched_prompt->back());
+      bool const hasGenMatchedPair = (leptons_is_genMatched_prompt->front() && leptons_is_genMatched_prompt->back());
       if (requireGenMatchedLeptons && !hasGenMatchedPair) continue;
 
       *ptr_event_wgt_SFs_PUJetId = std::min(*ptr_event_wgt_SFs_PUJetId, 3.f);
       float wgt =
         (*ptr_event_wgt) * (ptr_event_wgt_adjustment ? *ptr_event_wgt_adjustment : 1.f) * (ptr_event_wgt_syst_adjustment ? *ptr_event_wgt_syst_adjustment : 1.f)
         * (val_Kfactor_QCD ? *val_Kfactor_QCD : 1.f)
-        * (val_Kfactor_EW ? *val_Kfactor_EW : 1.f)
         * (*ptr_event_wgt_SFs_muons) * (*ptr_event_wgt_SFs_electrons) * (*ptr_event_wgt_SFs_photons) * (*ptr_event_wgt_SFs_PUJetId) * (*ptr_event_wgt_SFs_btagging)
         * norm_scale * xsec_scale;
 
-      if (!isData){
+      {
         float SFself=1, effself=1;
         triggerSFHandler.getCombinedDileptonSFAndEff(
           theGlobalSyst,
@@ -784,13 +634,6 @@ void getTrees_ZZTo2L2Nu(
       }
 
       // NO MORE MODIFICATION TO wgt BEYOND THIS POINT!
-      float const wgtsq = std::pow(wgt, 2);
-      sum_wgts_all.front() += wgt;
-      sum_wgts_all.back() += wgtsq;
-      if (event_mTZZ>=350.f){
-        sum_wgts_mTZZ350.front() += wgt;
-        sum_wgts_mTZZ350.back() += wgtsq;
-      }
 
       unsigned int out_n_ak4jets_pt30_mass60 = 0;
       ROOT::Math::PtEtaPhiMVector ak4jet_leadingpt, ak4jet_subleadingpt;
@@ -820,59 +663,67 @@ void getTrees_ZZTo2L2Nu(
       // Update discriminants
       for (auto& KDspec:KDlist){
         std::vector<float> KDvars; KDvars.reserve(KDspec.KDvars.size());
-        for (auto const& strKDvar:KDspec.KDvars) KDvars.push_back(ME_Kfactor_values[strKDvar]);
+        for (auto const& strKDvar:KDspec.KDvars) KDvars.push_back(*(ME_Kfactor_values[strKDvar]));
         KDspec.KD->update(KDvars, event_mZZ); // Use mZZ!
       }
 
-      // Record the event to the output tree
-      tout->setVal<float>("weight", wgt);
+      // Record the event to the output trees
+      for (auto& strme_tout_pair:strme_tout_pair_map){
+        auto const& strME = strme_tout_pair.first;
+        BaseTree* const& tout = strme_tout_pair.second;
 
-      tout->setVal<float>("mTZZ", event_mTZZ);
+        float* val_ME = ME_Kfactor_values.find(strME)->second;
 
-      tout->setVal<cms3_id_t>("dilepton_id", dilepton_id);
-      tout->setVal<float>("dilepton_mass", dilepton_mass);
-      tout->setVal<float>("dilepton_pt", dilepton_pt);
-      tout->setVal<float>("dilepton_eta", dilepton_eta);
 
-      tout->setVal<float>("pTmiss", event_pTmiss);
-      tout->setVal<float>("phimiss", event_phimiss);
+        tout->setVal<float>("weight", wgt);
 
-      tout->setVal<unsigned int>("n_ak4jets_pt30", event_n_ak4jets_pt30);
-      tout->setVal<unsigned int>("n_ak4jets_pt30_mass60", out_n_ak4jets_pt30_mass60);
-      // No need to set value if njets<2; this is why default values are provided and BaseTree::resetBranches() is called.
-      if (event_n_ak4jets_pt30>=2){
-        tout->setVal<float>("dijet_mass", p4_dijet.M());
-        tout->setVal<float>("dijet_pt", p4_dijet.Pt());
-        tout->setVal<float>("dijet_dEta", dijet_dEta);
-        tout->setVal<float>("dijet_dPhi", dijet_dPhi);
-      }
+        tout->setVal<float>("mTZZ", event_mTZZ);
 
-      if (event_n_ak4jets_pt30>0){
-        tout->setVal<float>("ak4jet_leading_pt", ak4jet_leadingpt.Pt());
-        tout->setVal<float>("ak4jet_leading_eta", ak4jet_leadingpt.Eta());
-        tout->setVal<float>("ak4jet_leading_phi", ak4jet_leadingpt.Phi());
-        tout->setVal<float>("ak4jet_leading_mass", ak4jet_leadingpt.M());
-        if (event_n_ak4jets_pt30>1){
-          tout->setVal<float>("ak4jet_subleading_pt", ak4jet_subleadingpt.Pt());
-          tout->setVal<float>("ak4jet_subleading_eta", ak4jet_subleadingpt.Eta());
-          tout->setVal<float>("ak4jet_subleading_phi", ak4jet_subleadingpt.Phi());
-          tout->setVal<float>("ak4jet_subleading_mass", ak4jet_subleadingpt.M());
+        tout->setVal<cms3_id_t>("dilepton_id", dilepton_id);
+        tout->setVal<float>("dilepton_mass", dilepton_mass);
+        tout->setVal<float>("dilepton_pt", dilepton_pt);
+        tout->setVal<float>("dilepton_eta", dilepton_eta);
+
+        tout->setVal<float>("pTmiss", event_pTmiss);
+        tout->setVal<float>("phimiss", event_phimiss);
+
+        tout->setVal<unsigned int>("n_ak4jets_pt30", event_n_ak4jets_pt30);
+        tout->setVal<unsigned int>("n_ak4jets_pt30_mass60", out_n_ak4jets_pt30_mass60);
+        // No need to set value if njets<2; this is why default values are provided and BaseTree::resetBranches() is called.
+        if (event_n_ak4jets_pt30>=2){
+          tout->setVal<float>("dijet_mass", p4_dijet.M());
+          tout->setVal<float>("dijet_pt", p4_dijet.Pt());
+          tout->setVal<float>("dijet_dEta", dijet_dEta);
+          tout->setVal<float>("dijet_dPhi", dijet_dPhi);
         }
+
+        if (event_n_ak4jets_pt30>0){
+          tout->setVal<float>("ak4jet_leading_pt", ak4jet_leadingpt.Pt());
+          tout->setVal<float>("ak4jet_leading_eta", ak4jet_leadingpt.Eta());
+          tout->setVal<float>("ak4jet_leading_phi", ak4jet_leadingpt.Phi());
+          tout->setVal<float>("ak4jet_leading_mass", ak4jet_leadingpt.M());
+          if (event_n_ak4jets_pt30>1){
+            tout->setVal<float>("ak4jet_subleading_pt", ak4jet_subleadingpt.Pt());
+            tout->setVal<float>("ak4jet_subleading_eta", ak4jet_subleadingpt.Eta());
+            tout->setVal<float>("ak4jet_subleading_phi", ak4jet_subleadingpt.Phi());
+            tout->setVal<float>("ak4jet_subleading_mass", ak4jet_subleadingpt.M());
+          }
+        }
+
+        tout->setVal<unsigned int>("n_ak8jets_pt200", out_n_ak8jets_pt200);
+        tout->setVal<unsigned int>("n_ak8jets_pt200_mass60to110", out_n_ak8jets_pt200_mass60to110);
+        tout->setVal<unsigned int>("n_ak8jets_pt200_mass140", out_n_ak8jets_pt200_mass140);
+        if (out_n_ak8jets_pt200>0){
+          tout->setVal<float>("ak8jet_leading_pt", ak8jets_pt->front());
+          tout->setVal<float>("ak8jet_leading_eta", ak8jets_eta->front());
+          tout->setVal<float>("ak8jet_leading_mass", ak8jets_mass->front());
+        }
+
+        if (event_n_ak4jets_pt30>=2){ for (auto const& KDspec:KDlist) tout->setVal<float>(KDspec.KDname, *(KDspec.KD)); }
+
+        tout->fill();
+        tout->resetBranches();
       }
-
-      tout->setVal<unsigned int>("n_ak8jets_pt200", out_n_ak8jets_pt200);
-      tout->setVal<unsigned int>("n_ak8jets_pt200_mass60to110", out_n_ak8jets_pt200_mass60to110);
-      tout->setVal<unsigned int>("n_ak8jets_pt200_mass140", out_n_ak8jets_pt200_mass140);
-      if (out_n_ak8jets_pt200>0){
-        tout->setVal<float>("ak8jet_leading_pt", ak8jets_pt->front());
-        tout->setVal<float>("ak8jet_leading_eta", ak8jets_eta->front());
-        tout->setVal<float>("ak8jet_leading_mass", ak8jets_mass->front());
-      }
-
-      if (event_n_ak4jets_pt30>=2){ for (auto const& KDspec:KDlist) tout->setVal<float>(KDspec.KDname, *(KDspec.KD)); }
-
-      tout->fill();
-      tout->resetBranches();
     }
 
     curdir->cd();
@@ -881,25 +732,21 @@ void getTrees_ZZTo2L2Nu(
   // Delete KDs
   for (auto& KDspec:KDlist) KDspec.resetKD();
 
-  for (auto const& sgroup:sgroups){
-    MELAout << "Finalizing " << sgroup << ":" << endl;
-    TFile* foutput = sgroup_foutput_map[sgroup];
-    BaseTree* tout = sgroup_tout_map[sgroup];
-
-    auto const& sum_wgts_all = sgroup_sumwgts_all_map[sgroup];
-    auto const& sum_wgts_mTZZ350 = sgroup_sumwgts_mTZZ350_map[sgroup];
-    MELAout << "\t- Number of events predicted after selection requirements: " << sum_wgts_all.front() << " +- " << std::sqrt(sum_wgts_all.back()) << endl;
-    MELAout << "\t- Number of events predicted after selection requirements and mTZZ>=350 GeV: " << sum_wgts_mTZZ350.front() << " +- " << std::sqrt(sum_wgts_mTZZ350.back()) << endl;
-
+  foutput->cd();
+  for (auto& tout_outdir_pair:tout_outdir_pair_map){
+    tout_outdir_pair.second->cd();
+    tout_outdir_pair.first->writeToDirectory(tout_outdir_pair.second);
     foutput->cd();
-    tout->writeToFile(foutput);
-
-    delete tout;
-    foutput->Close();
-    curdir->cd();
   }
+  for (auto& strme_tout_pair:strme_tout_pair_map) delete strme_tout_pair.second;
+  for (auto& it_achypo_outdir_pair_map:achypo_outdir_pair_map) it_achypo_outdir_pair_map.second->Close();
+  foutput->Close();
+
+  curdir->cd();
 
   for (auto& pp:samples_all) delete pp.second;
+
+  delete proc_handler;
 
   for (auto const& fname:transfer_list) SampleHelpers::addToCondorTransferList(fname);
 }
@@ -914,6 +761,7 @@ void getTrees_ZZTo2L2Nu(
 // ntupleVersion: Version of trimmed DileptonEvents ntuples, which is separate from the SkimTrees version (e.g. "210107").
 // strdate: Tag for the output
 void runDistributionsChain(
+  TString strSampleSet,
   TString period, TString prodVersion, TString ntupleVersion, TString strdate,
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst,
   // Jet ID options
@@ -924,7 +772,7 @@ void runDistributionsChain(
 ){
 #define _VERSIONARGS_ period, prodVersion, ntupleVersion, strdate
 #define _JETMETARGS_ applyPUIdToAK4Jets, applyTightLeptonVetoIdToAK4Jets, use_MET_Puppi, use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr, use_MET_p4Preservation, use_MET_corrections
-  getTrees_ZZTo2L2Nu(_VERSIONARGS_, theGlobalSyst, _JETMETARGS_);
+  getTrees_ZZTo2L2Nu(strSampleSet, _VERSIONARGS_, theGlobalSyst, _JETMETARGS_);
 #undef _JETMETARGS_
 #undef _VERSIONARGS_
 }
