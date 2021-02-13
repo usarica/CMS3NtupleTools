@@ -94,7 +94,7 @@ for f in $(find $chkdir -name condor.sub); do
           resb+=( "$line" )
         elif [[ "$line" == *"end copying output"* ]]; then
           rese+=( "$line" )
-        elif [[ "$line" == *"Running: env -i "* ]]; then
+        elif [[ "$line" == *"OUTPUTFILE: "* ]]; then
           resf+=( "$line" )
         elif [[ "$line" == *"Copied successfully"* ]]; then
           ress+=( "$line" )
@@ -114,7 +114,7 @@ for f in $(find $chkdir -name condor.sub); do
     if [[ $size_resb -gt 0 ]] && [[ $size_resb -eq $size_rese ]] && [[ $size_resb -eq $size_ress ]] && [[ $size_resb -eq $size_resf ]];then
       let nOutputExist=0
       for rf in "${resf[@]}";do
-        rf="${rf//*'gsiftp://gftp.t2.ucsd.edu'}"
+        rf="${rf//*'OUTPUTFILE: '}"
 
         if [[ -s $rf ]];then
           let nOutputExist=${nOutputExist}+1

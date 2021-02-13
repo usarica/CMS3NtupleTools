@@ -868,7 +868,7 @@ bool CMS3Ntuplizer::recordGenParticles(
   return true;
 }
 bool CMS3Ntuplizer::recordGenJets(edm::Event const& iEvent, bool const& isFatJet, std::vector<reco::GenJet const*>* filledObjects){
-  std::string strColName = (isFatJet ? "genak4jets" : "genak8jets");
+  std::string strColName = (!isFatJet ? "genak4jets" : "genak8jets");
   const char* colName = strColName.data();
   edm::Handle< edm::View<reco::GenJet> > genJetsHandle;
   iEvent.getByToken((isFatJet ? genAK4JetsToken : genAK8JetsToken), genJetsHandle);

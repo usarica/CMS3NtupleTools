@@ -130,6 +130,34 @@ export ROOT_INCLUDE_PATH=${ROOT_INCLUDE_PATH}:${CMSSW_BASE}/src/JHUGenMELA/MELA/
 # dstat -cdngytlmrs --float --nocolor -T --output dsout.csv 180 >& /dev/null &
 
 
+echo "Checking CMS_PATH and site configuration..."
+if [[ ! -z ${GLIDEIN_CMSSite+x} ]]; then
+  declare -i hasSiteConf=1
+  if [[ ! -z ${SITECONFIG_PATH+x} ]]; then
+    if [[ ! -e ${SITECONFIG_PATH}/JobConfig/site-local-config.xml ]]; then
+      echo "${SITECONFIG_PATH}/JobConfig/site-local-config.xml does not exist."
+      hasSiteConf=0
+    fi
+  else
+    if [[ ! -e ${CMS_PATH}/SITECONF/local/JobConfig/site-local-config.xml ]]; then
+      echo "${CMS_PATH}/SITECONF/local/JobConfig/site-local-config.xml does not exist."
+      hasSiteConf=0
+    fi
+  fi
+  if [[ ${hasSiteConf} -eq 0 ]] && [[ -e ${CMS_PATH}/SITECONF/${GLIDEIN_CMSSite}/JobConfig/site-local-config.xml ]]; then
+     echo "But ${CMS_PATH}/SITECONF/${GLIDEIN_CMSSite}/JobConfig/site-local-config.xml does exist. Copying it locally."
+     mkdir -p ${CMSSW_BASE}/test/SITECONF/local/JobConfig
+     cp ${CMS_PATH}/SITECONF/${GLIDEIN_CMSSite}/JobConfig/* ${CMSSW_BASE}/test/SITECONF/local/JobConfig/
+     export CMS_PATH=${CMSSW_BASE}/test
+     export SITECONFIG_PATH=${CMS_PATH}/SITECONF/local
+     if [[ -f ${SITECONFIG_PATH}/JobConfig/cmsset_local.sh ]]; then
+       source ${SITECONFIG_PATH}/JobConfig/cmsset_local.sh
+     fi
+  fi
+fi
+
+
+
 echo "before running: ls -lrth"
 ls -lrth
 

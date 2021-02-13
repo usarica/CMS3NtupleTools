@@ -10,7 +10,11 @@ import argparse
 
 
 def getNFilesRequired(sname):
-   if "GluGlu" in sname or "VBF" in sname or ("ZZTo2L2Nu" in sname and ("Wminus" in sname or "Wplus" in sname)) or "ZH_LNuQQ" in sname or "HZJ_HToWW2L2NuInclusiveZ" in sname:
+   if "GluGlu" in sname \
+      or "VBF" in sname \
+      or ("ZZTo2L2Nu" in sname and ("Wminus" in sname or "Wplus" in sname)) \
+      or "ZH_HToWWToLNuQQ" in sname \
+      or "HZJ_HToWW2L2NuInclusiveZ" in sname:
       return 500
    elif "WminusH_HToZZTo2L2Q" in sname or "WplusH_HToZZTo2L2Q" in sname:
       return 50
@@ -54,9 +58,11 @@ def getCSVLine(sname):
    else:
       raise RuntimeError("Year cannot be identified for {}".format(sname))
 
-   if any(fsname in sname for fsname in [ "ZZTo2L2Nu", "ZZTo2L2Q", "ZZTo2Nu2X", "ZZTo4Q", "HTo2L2Q", "HTo2Nu2X", "HTo4Q" ]):
+   if any(fsname in sname for fsname in [ "ZZTo2L2Nu", "ZZTo2L2Q", "ZZTo2Nu2X", "ZZTo4Q", "HTo2L2Q", "HTo2Nu2X", "HTo4Q", "ZZ_4LFilter", "ZZTo4L" ]):
       vvmode="ZZ"
-      if "2L2Nu" in sname:
+      if "ZZTo4L" in sname:
+         vvdecaymode=0
+      elif "2L2Nu" in sname:
          vvdecaymode=3
       else:
          vvdecaymode=-1

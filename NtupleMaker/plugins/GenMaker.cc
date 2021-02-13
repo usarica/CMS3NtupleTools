@@ -359,7 +359,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     } // End loop over gen particles
 
     sumEt = tempvect.pt();
-    genhardpartons_MHT = tempvect.Pt();
+    genhardpartons_MHT = tempvect_hardpartons.Pt();
 
     n_shower_gluons_to_bottom = shower_gluons_to_bottom.size();
     n_shower_gluons_to_charm = shower_gluons_to_charm.size();
