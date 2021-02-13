@@ -547,19 +547,20 @@ void BulkReweightingBuilder::setupFromFile(TString cinput){
 
   // Check binning variables
   {
-    bool hasSameBinning = (v_strBinningVars->size() == strBinningVars.size());
-    if (hasSameBinning){
+    bool hasSameBinningVars = (v_strBinningVars->size() == strBinningVars.size());
+    if (hasSameBinningVars){
       for (auto const& v:strBinningVars){
         if (!HelperFunctions::checkListVariable<std::string>(*v_strBinningVars, v.Data())){
-          hasSameBinning = false;
+          hasSameBinningVars = false;
           break;
         }
       }
     }
-    if (!hasSameBinning){
+    if (!hasSameBinningVars){
       MELAerr << "\t- Binning variables were specified as " << strBinningVars << ", but the input file has " << *v_strBinningVars << "." << endl;
       assert(0);
     }
+
     // Reset binning
     binning = ExtendedBinning(*bin_thresholds, binning_name->data(), "");
   }
@@ -618,7 +619,7 @@ void BulkReweightingBuilder::setupFromFile(TString cinput){
       if (hasSameWeights){ jhypo = ihypo; break; }
     }
     if (jhypo<0){
-      MELAout << "\t- Reweighting hypothesis with weights " << strReweightingWeights << " is not specified in the input file." << endl;
+      MELAerr << "\t- Reweighting hypothesis with weights " << strReweightingWeights << " is not specified in the input file." << endl;
       assert(0);
     }
     hypo_order.push_back(jhypo);
@@ -639,7 +640,7 @@ void BulkReweightingBuilder::setupFromFile(TString cinput){
     TString const sid = tree->sampleIdentifier;
     TDirectory* dir_tree = (TDirectory*) finput->Get(sid);
     if (!dir_tree){
-      MELAout << "\t- No directory named " << sid << endl;
+      MELAerr << "\t- No directory named " << sid << endl;
       assert(0);
     }
     dir_tree->cd();
