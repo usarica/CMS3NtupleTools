@@ -26,6 +26,10 @@ namespace SampleHelpers{
   TString getDatasetFirstFileName(std::string sname, bool ignoreDNE=false);
   TString getDatasetFirstFileName(TString sname, bool ignoreDNE=false);
 
+  // Check whether the file exists locally or in the Worker directory.
+  // If it exists in the Worker directory, modify the file name to point to that.
+  bool checkFileOnWorker(TString& fname, HostHelpers::Hosts input_host = HostHelpers::kUCSDT2);
+
 }
 // Here begins the more specialized functions for off-shell analysis
 namespace SampleHelpers{

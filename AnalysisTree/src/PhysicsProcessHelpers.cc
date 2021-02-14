@@ -378,8 +378,8 @@ namespace PhysicsProcessHelpers{
   }
 
   float GGProcessHandler::getProcessScale() const{
-    //return 1.098946;
-    return 1;
+    return 1.098946;
+    //return 1;
   }
   void GGProcessHandler::imposeTplPhysicality(std::vector<float>& vals, bool /*robust*/) const{
     vector<TemplateContributionList> pairing;

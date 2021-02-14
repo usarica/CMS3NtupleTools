@@ -47,7 +47,10 @@ std::string SampleHelpers::getDatasetDirectoryCoreName(std::string sname){ retur
 TString SampleHelpers::getDatasetDirectoryName(std::string sname, bool ignoreDNE){
   assert(theSamplesTag!="");
   assert(theInputDirectory!="");
-  assert(HostHelpers::DirectoryExists(theInputDirectory.Data()));
+  if (!HostHelpers::DirectoryExists(theInputDirectory.Data())){
+    MELAerr << "SampleHelpers::getDatasetDirectoryName: The input directory " << theInputDirectory << " does not exist." << endl;
+    assert(0);
+  }
 
   sname = SampleHelpers::getDatasetDirectoryCoreName(sname);
   TString res = Form("%s/%s/%s", theInputDirectory.Data(), theSamplesTag.Data(), sname.data());
@@ -62,7 +65,6 @@ TString SampleHelpers::getDatasetDirectoryName(std::string sname, bool ignoreDNE
   return res;
 }
 TString SampleHelpers::getDatasetDirectoryName(TString sname, bool ignoreDNE){ return SampleHelpers::getDatasetDirectoryName(std::string(sname.Data()), ignoreDNE); }
-
 
 TString SampleHelpers::getDatasetFileName(std::string sname, bool ignoreDNE){
   TString dsetdir = getDatasetDirectoryName(sname, ignoreDNE);
@@ -105,3 +107,19 @@ TString SampleHelpers::getDatasetFirstFileName(std::string sname, bool ignoreDNE
   return (!fileList.empty() ? fileList.front() : TString(""));
 }
 TString SampleHelpers::getDatasetFirstFileName(TString sname, bool ignoreDNE){ return SampleHelpers::getDatasetFirstFileName(std::string(sname.Data()), ignoreDNE); }
+
+bool SampleHelpers::checkFileOnWorker(TString& fname, HostHelpers::Hosts input_host){
+  if (HostHelpers::FileReadable(fname) || HostHelpers::DirectoryExists(fname)) return true;
+
+  TString fname_worker = Form("/store/user/usarica/Offshell_2L2Nu/Worker/%s", fname.Data());
+  fname_worker = HostHelpers::GetStandardHostPathToStore(fname_worker.Data(), input_host);
+  MELAout << "SampleHelpers::checkFileOnWorker: Could not find " << fname << ". Checking for the presence of " << fname_worker << "..." << endl;
+
+  if (HostHelpers::FileReadable(fname_worker) || HostHelpers::DirectoryExists(fname_worker)){
+    fname = fname_worker;
+    MELAout << "\t- Will now use " << fname << " as a substitute." << endl;
+    return true;
+  }
+
+  return false;
+}
