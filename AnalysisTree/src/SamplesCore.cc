@@ -49,6 +49,23 @@ void SampleHelpers::setInputDirectory(TString s){
 int const& SampleHelpers::getDataYear(){ return theDataYear; }
 TString const& SampleHelpers::getDataPeriod(){ return theDataPeriod; }
 TString const& SampleHelpers::getInputDirectory(){ return theInputDirectory; }
+TString SampleHelpers::getSqrtsString(){
+  switch (theDataYear){
+  case 2011:
+    return "7";
+  case 2012:
+    return "8";
+  case 2015:
+  case 2016:
+  case 2017:
+  case 2018:
+    return "13";
+  default:
+    MELAerr << "SampleHelpers::getSqrtsString: Undefined year " << theDataYear << "." << endl;
+    assert(0);
+    return "";
+  }
+}
 
 bool SampleHelpers::testDataPeriodIsLikeData(TString const& period){
   int try_year=-1;

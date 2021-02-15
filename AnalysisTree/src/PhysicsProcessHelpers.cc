@@ -16,6 +16,10 @@ namespace PhysicsProcessHelpers{
   }
   void PhysicsProcessHandler::assignProcessName(){
     using namespace ACHypothesisHelpers;
+
+    // Do not assign a name to generic bkgs.
+    if (proctype==kProcess_GenericBkg) return;
+
     switch (dktype){
     case kZZ4l_offshell:
     case kZZ2l2nu_offshell:
@@ -395,7 +399,7 @@ namespace PhysicsProcessHelpers{
         if (vals.at(componentPair.first)<0.) vals.at(componentPair.first)=0;
         thr *= pow(vals.at(componentPair.first), componentPair.second);
       }
-      if (fabs(tplVal)>thr) tplVal *= thr*0.99/fabs(tplVal);
+      if (std::abs(tplVal)>thr) tplVal *= thr*0.99/std::abs(tplVal);
     }
   }
   template<> void GGProcessHandler::recombineHistogramsToTemplates<std::pair<float, float>>(std::vector<std::pair<float, float>>& vals, ACHypothesisHelpers::ACHypothesis hypo) const{
@@ -407,8 +411,8 @@ namespace PhysicsProcessHelpers{
       assert(vals.size()==nGGSMTypes);
       const double invA[nGGSMTypes][nGGSMTypes]={
         { 1, 0, 0 },
-      { 0, 1, 0 },
-      { -1, -1, 1 }
+        { 0, 1, 0 },
+        { -1, -1, 1 }
       };
       for (int ix=0; ix<(int) nGGSMTypes; ix++){
         for (int iy=0; iy<(int) nGGSMTypes; iy++){
@@ -426,11 +430,11 @@ namespace PhysicsProcessHelpers{
       const double cscalesq = pow(cscale, double(2));
       const double invA[nGGTypes][nGGTypes]={
         { 1, 0, 0, 0, 0, 0 },
-      { 0, 1, 0, 0, 0, 0 },
-      { -1, -1, 1, 0, 0, 0 },
-      { 0, 0, 0, cscalesq, 0, 0 },
-      { 0, -cscale, 0, -cscale, cscale, 0 },
-      { -cscale, 0, 0, -cscale, 0, cscale }
+        { 0, 1, 0, 0, 0, 0 },
+        { -1, -1, 1, 0, 0, 0 },
+        { 0, 0, 0, cscalesq, 0, 0 },
+        { 0, -cscale, 0, -cscale, cscale, 0 },
+        { -cscale, 0, 0, -cscale, 0, cscale }
       };
       for (int ix=0; ix<(int) nGGTypes; ix++){
         for (int iy=0; iy<(int) nGGTypes; iy++){
@@ -1367,8 +1371,8 @@ namespace PhysicsProcessHelpers{
         if (vals.at(componentPair.first)<0.) vals.at(componentPair.first)=0;
         thr *= pow(vals.at(componentPair.first), componentPair.second);
       }
-      if (fabs(tplVal)>thr){
-        float scale = thr*0.99/fabs(tplVal);
+      if (std::abs(tplVal)>thr){
+        float scale = thr*0.99/std::abs(tplVal);
         tplVal *= scale;
         if (pair.type==VVTplInt_Re) scale_a1=sqrt(scale); // sqrt because interference scales as a1**2
         else if (pair.type==VVTplIntBSM_ai1_2_Re) scale_ai=sqrt(scale); // sqrt because interference scales as a1**2
@@ -1399,21 +1403,21 @@ namespace PhysicsProcessHelpers{
         float sum_pure=0;
         for (float fai=-1; fai<=1; fai+=0.0005){
           KahanAccumulator<float> sum;
-          sum += pow((1.-fabs(fai)), 2) * vals.at(VVTplSig);
-          sum += TMath::Sign(1, fai)*sqrt(fabs(fai))*pow(sqrt(1.-fabs(fai)), 3) * vals.at(VVTplSigBSMSMInt_ai1_1_Re);
-          sum += fabs(fai)*(1.-fabs(fai)) * vals.at(VVTplSigBSMSMInt_ai1_2_PosDef);
-          sum += TMath::Sign(1, fai)*pow(sqrt(fabs(fai)), 3)*sqrt(1.-fabs(fai)) * vals.at(VVTplSigBSMSMInt_ai1_3_Re);
+          sum += pow((1.-std::abs(fai)), 2) * vals.at(VVTplSig);
+          sum += TMath::Sign(1, fai)*sqrt(std::abs(fai))*pow(sqrt(1.-std::abs(fai)), 3) * vals.at(VVTplSigBSMSMInt_ai1_1_Re);
+          sum += std::abs(fai)*(1.-std::abs(fai)) * vals.at(VVTplSigBSMSMInt_ai1_2_PosDef);
+          sum += TMath::Sign(1, fai)*pow(sqrt(std::abs(fai)), 3)*sqrt(1.-std::abs(fai)) * vals.at(VVTplSigBSMSMInt_ai1_3_Re);
           sum += pow(fai, 2) * vals.at(VVTplSigBSM);
           if (sum<val_fai_mostNeg){
             val_fai_mostNeg=sum;
             fai_mostNeg=fai;
-            sum_pure = pow((1.-fabs(fai)), 2) * vals.at(VVTplSig) + pow(fai, 2) * vals.at(VVTplSigBSM);
+            sum_pure = pow((1.-std::abs(fai)), 2) * vals.at(VVTplSig) + pow(fai, 2) * vals.at(VVTplSigBSM);
           }
         }
         if (fai_mostNeg>=-1){
           float excess_mostNeg = val_fai_mostNeg - sum_pure;
           float thr_neg = -sum_pure;
-          float neg_scale = fabs(thr_neg*chopper/excess_mostNeg);
+          float neg_scale = std::abs(thr_neg*chopper/excess_mostNeg);
           vals.at(VVTplSigBSMSMInt_ai1_1_Re) *= neg_scale;
           vals.at(VVTplSigBSMSMInt_ai1_2_PosDef) *= neg_scale;
           vals.at(VVTplSigBSMSMInt_ai1_3_Re) *= neg_scale;
@@ -1438,26 +1442,26 @@ namespace PhysicsProcessHelpers{
           KahanAccumulator<float> sum;
           sum += vals.at(VVTplBkg);
 
-          sum += pow((1.-fabs(fai)), 2) * vals.at(VVTplSig);
-          sum += TMath::Sign(1, fai)*sqrt(fabs(fai))*pow(sqrt(1.-fabs(fai)), 3) * vals.at(VVTplSigBSMSMInt_ai1_1_Re);
-          sum += fabs(fai)*(1.-fabs(fai)) * vals.at(VVTplSigBSMSMInt_ai1_2_PosDef);
-          sum += TMath::Sign(1, fai)*pow(sqrt(fabs(fai)), 3)*sqrt(1.-fabs(fai)) * vals.at(VVTplSigBSMSMInt_ai1_3_Re);
+          sum += pow((1.-std::abs(fai)), 2) * vals.at(VVTplSig);
+          sum += TMath::Sign(1, fai)*sqrt(std::abs(fai))*pow(sqrt(1.-std::abs(fai)), 3) * vals.at(VVTplSigBSMSMInt_ai1_1_Re);
+          sum += std::abs(fai)*(1.-std::abs(fai)) * vals.at(VVTplSigBSMSMInt_ai1_2_PosDef);
+          sum += TMath::Sign(1, fai)*pow(sqrt(std::abs(fai)), 3)*sqrt(1.-std::abs(fai)) * vals.at(VVTplSigBSMSMInt_ai1_3_Re);
           sum += pow(fai, 2) * vals.at(VVTplSigBSM);
 
-          sum += (1.-fabs(fai)) * vals.at(VVTplInt_Re);
-          sum += TMath::Sign(1, fai)*sqrt(fabs(fai)*(1.-fabs(fai))) * vals.at(VVTplIntBSM_ai1_1_Re);
-          sum += fabs(fai) * vals.at(VVTplIntBSM_ai1_2_Re);
+          sum += (1.-std::abs(fai)) * vals.at(VVTplInt_Re);
+          sum += TMath::Sign(1, fai)*sqrt(std::abs(fai)*(1.-std::abs(fai))) * vals.at(VVTplIntBSM_ai1_1_Re);
+          sum += std::abs(fai) * vals.at(VVTplIntBSM_ai1_2_Re);
 
           if (sum<val_fai_mostNeg){
             val_fai_mostNeg=sum;
             fai_mostNeg=fai;
-            sum_pure = vals.at(VVTplBkg) + pow((1.-fabs(fai)), 2) * vals.at(VVTplSig) + pow(fai, 2) * vals.at(VVTplSigBSM);
+            sum_pure = vals.at(VVTplBkg) + pow((1.-std::abs(fai)), 2) * vals.at(VVTplSig) + pow(fai, 2) * vals.at(VVTplSigBSM);
           }
         }
         if (fai_mostNeg>=-1){
           float excess_mostNeg = val_fai_mostNeg - sum_pure;
           float thr_neg = -sum_pure;
-          float neg_scale = fabs(thr_neg*chopper/excess_mostNeg);
+          float neg_scale = std::abs(thr_neg*chopper/excess_mostNeg);
           vals.at(VVTplSigBSMSMInt_ai1_1_Re) *= neg_scale;
           vals.at(VVTplSigBSMSMInt_ai1_2_PosDef) *= neg_scale;
           vals.at(VVTplSigBSMSMInt_ai1_3_Re) *= neg_scale;
@@ -1479,8 +1483,8 @@ namespace PhysicsProcessHelpers{
       assert(vals.size()==nVVSMTypes);
       const double invA[nVVSMTypes][nVVSMTypes]={
         { 1, 0, 0 },
-      { 0, 1, 0 },
-      { -1, -1, 1 }
+        { 0, 1, 0 },
+        { -1, -1, 1 }
       };
       for (int ix=0; ix<(int) nVVSMTypes; ix++){
         for (int iy=0; iy<(int) nVVSMTypes; iy++){
@@ -1500,14 +1504,14 @@ namespace PhysicsProcessHelpers{
       const double c4 = pow(c, 4);
       const double invA[nVVTypes][nVVTypes]={
         { 1, 0, 0, 0, 0, 0, 0, 0, 0 },
-      { 0, 1, 0, 0, 0, 0, 0, 0, 0 },
-      { -1, -1, 1, 0, 0, 0, 0, 0, 0 },
-      { 0, 0, 0, c4, 0, 0, 0, 0, 0 },
-      { 0, double(-22./3.)*c, 0, double(-3./32.)*c, double(12.)*c, double(-6.)*c, double(4./3.)*c, 0, 0 },
-      { 0, double(16.)*c2, 0, double(11./16.)*c2, double(-40.)*c2, double(32.)*c2, double(-8.)*c2, 0, 0 },
-      { 0, double(-32./3.)*c3, 0, double(-3./2.)*c3, double(32.)*c3, double(-32.)*c3, double(32./3.)*c3, 0, 0 },
-      { c, double(2.)*c, -c, double(29./32.)*c, double(-4.)*c, double(6.)*c, double(-4.)*c, -c, c },
-      { -c2, 0, 0, -c2, 0, 0, 0, c2, 0 }
+        { 0, 1, 0, 0, 0, 0, 0, 0, 0 },
+        { -1, -1, 1, 0, 0, 0, 0, 0, 0 },
+        { 0, 0, 0, c4, 0, 0, 0, 0, 0 },
+        { 0, double(-22./3.)*c, 0, double(-3./32.)*c, double(12.)*c, double(-6.)*c, double(4./3.)*c, 0, 0 },
+        { 0, double(16.)*c2, 0, double(11./16.)*c2, double(-40.)*c2, double(32.)*c2, double(-8.)*c2, 0, 0 },
+        { 0, double(-32./3.)*c3, 0, double(-3./2.)*c3, double(32.)*c3, double(-32.)*c3, double(32./3.)*c3, 0, 0 },
+        { c, double(2.)*c, -c, double(29./32.)*c, double(-4.)*c, double(6.)*c, double(-4.)*c, -c, c },
+        { -c2, 0, 0, -c2, 0, 0, 0, c2, 0 }
       };
       for (int ix=0; ix<(int) nVVTypes; ix++){
         for (int iy=0; iy<(int) nVVTypes; iy++){
@@ -2264,7 +2268,7 @@ namespace PhysicsProcessHelpers{
         if (vals.at(componentPair.first)<0.) vals.at(componentPair.first)=0;
         thr *= pow(vals.at(componentPair.first), componentPair.second);
       }
-      if (fabs(tplVal)>thr) tplVal *= thr*0.99/fabs(tplVal);
+      if (std::abs(tplVal)>thr) tplVal *= thr*0.99/std::abs(tplVal);
     }
   }
   template<> void TTProcessHandler::recombineHistogramsToTemplates<std::pair<float, float>>(std::vector<std::pair<float, float>>& vals, ACHypothesisHelpers::ACHypothesis hypo) const{
@@ -2291,8 +2295,8 @@ namespace PhysicsProcessHelpers{
       const double cscalesq = pow(cscale, double(2));
       const double invA[nTTTypes][nTTTypes]={
         { 1, 0, 0 },
-      { 0, cscalesq, 0 },
-      { -cscale, -cscale, cscale }
+        { 0, cscalesq, 0 },
+        { -cscale, -cscale, cscale }
       };
       for (int ix=0; ix<(int) nTTTypes; ix++){
         for (int iy=0; iy<(int) nTTTypes; iy++){
@@ -2929,7 +2933,7 @@ namespace PhysicsProcessHelpers{
         if (vals.at(componentPair.first)<0.) vals.at(componentPair.first)=0;
         thr *= pow(vals.at(componentPair.first), componentPair.second);
       }
-      if (fabs(tplVal)>thr) tplVal *= thr*0.99/fabs(tplVal);
+      if (std::abs(tplVal)>thr) tplVal *= thr*0.99/std::abs(tplVal);
     }
   }
   template<> void BBProcessHandler::recombineHistogramsToTemplates<std::pair<float, float>>(std::vector<std::pair<float, float>>& vals, ACHypothesisHelpers::ACHypothesis hypo) const{
@@ -2956,8 +2960,8 @@ namespace PhysicsProcessHelpers{
       const double cscalesq = pow(cscale, double(2));
       const double invA[nBBTypes][nBBTypes]={
         { 1, 0, 0 },
-      { 0, cscalesq, 0 },
-      { -cscale, -cscale, cscale }
+        { 0, cscalesq, 0 },
+        { -cscale, -cscale, cscale }
       };
       for (int ix=0; ix<(int) nBBTypes; ix++){
         for (int iy=0; iy<(int) nBBTypes; iy++){
@@ -3385,5 +3389,55 @@ namespace PhysicsProcessHelpers{
     }
   }
 
+
+  GenericBkgProcessHandler::GenericBkgProcessHandler(TString const& procname_, TString const& proclabel_, ACHypothesisHelpers::DecayType dktype_) :
+    PhysicsProcessHandler(kProcess_GenericBkg, dktype_),
+    proclabel(proclabel_)
+  {
+    procname = procname_;
+  }
+
+  template<> void GenericBkgProcessHandler::recombineHistogramsToTemplates<TH1F*>(std::vector<TH1F*>& vals, ACHypothesisHelpers::ACHypothesis hypo) const{
+    typedef TH1F T;
+    if ((int) vals.size()!=castHypothesisTypeToInt(nGenericBkgTypes)) return;
+    for (T*& hh:vals){
+      std::vector<unsigned int> symAxes;
+      if (hypo==ACHypothesisHelpers::kA3){
+        if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle())) symAxes.push_back(0);
+      }
+      for (unsigned int const& ia:symAxes) HelperFunctions::symmetrizeHistogram(hh, ia);
+
+      hh->SetTitle(getProcessLabel());
+    }
+  }
+  template<> void GenericBkgProcessHandler::recombineHistogramsToTemplates<TH2F*>(std::vector<TH2F*>& vals, ACHypothesisHelpers::ACHypothesis hypo) const{
+    typedef TH2F T;
+    if ((int) vals.size()!=castHypothesisTypeToInt(nGenericBkgTypes)) return;
+    for (T*& hh:vals){
+      std::vector<unsigned int> symAxes;
+      if (hypo==ACHypothesisHelpers::kA3){
+        if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle())) symAxes.push_back(0);
+        if (DiscriminantClasses::isCPSensitive(hh->GetYaxis()->GetTitle())) symAxes.push_back(1);
+      }
+      for (unsigned int const& ia:symAxes) HelperFunctions::symmetrizeHistogram(hh, ia);
+
+      hh->SetTitle(getProcessLabel());
+    }
+  }
+  template<> void GenericBkgProcessHandler::recombineHistogramsToTemplates<TH3F*>(std::vector<TH3F*>& vals, ACHypothesisHelpers::ACHypothesis hypo) const{
+    typedef TH3F T;
+    if ((int) vals.size()!=castHypothesisTypeToInt(nGenericBkgTypes)) return;
+    for (T*& hh:vals){
+      std::vector<unsigned int> symAxes;
+      if (hypo==ACHypothesisHelpers::kA3){
+        if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle())) symAxes.push_back(0);
+        if (DiscriminantClasses::isCPSensitive(hh->GetYaxis()->GetTitle())) symAxes.push_back(1);
+        if (DiscriminantClasses::isCPSensitive(hh->GetZaxis()->GetTitle())) symAxes.push_back(2);
+      }
+      for (unsigned int const& ia:symAxes) HelperFunctions::symmetrizeHistogram(hh, ia);
+
+      hh->SetTitle(getProcessLabel());
+    }
+  }
 
 }

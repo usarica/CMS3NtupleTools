@@ -17,6 +17,8 @@ namespace PhysicsProcessHelpers{
     kProcess_TT,
     kProcess_BB,
 
+    kProcess_GenericBkg,
+
     nPhysicsProcessTypes
   };
 
@@ -611,6 +613,49 @@ namespace PhysicsProcessHelpers{
   template void BBProcessHandler::conditionalizeTemplates<TH2F*>(std::vector<TH2F*>& vals, ACHypothesisHelpers::ACHypothesis hypo, unsigned int const iaxis) const;
   template void BBProcessHandler::conditionalizeTemplates<TH3F*>(std::vector<TH3F*>& vals, ACHypothesisHelpers::ACHypothesis hypo, unsigned int const iaxis) const;
 
+
+  class GenericBkgProcessHandler : public PhysicsProcessHandler{
+  protected:
+    TString proclabel;
+
+  public:
+    enum HypothesisType{
+      GenericBkg=0,
+      nGenericBkgTypes
+    };
+    enum TemplateType{
+      GenericBkgTpl=0,
+      nGenericBkgTplTypes
+    };
+
+    GenericBkgProcessHandler(TString const& procname_, TString const& proclabel_, ACHypothesisHelpers::DecayType dktype_);
+
+    TString const& getProcessLabel() const{ return proclabel; }
+
+    TString getOutputTreeName() const{ return "FinalTree"; }
+    TString getTemplateName() const{ return Form("T_%s", procname.Data()); }
+    std::vector<TString> getOutputTreeNames(ACHypothesisHelpers::ACHypothesis hypo=ACHypothesisHelpers::kSM, bool includeSM=true) const{ return std::vector<TString>{ getOutputTreeName() }; }
+    std::vector<TString> getTemplateNames(ACHypothesisHelpers::ACHypothesis hypo=ACHypothesisHelpers::kSM, bool includeSM=true) const{ return std::vector<TString>{ getTemplateName() }; }
+    std::vector<TString> getMELAHypothesisWeights(ACHypothesisHelpers::ACHypothesis hypo=ACHypothesisHelpers::kSM, bool includeSM=true) const{ return std::vector<TString>(); }
+
+    static int castHypothesisTypeToInt(GenericBkgProcessHandler::HypothesisType type){ return (int) type; }
+    static int castTemplateTypeToInt(GenericBkgProcessHandler::TemplateType type){ return (int) type; }
+
+    template<typename T> void recombineHistogramsToTemplates(std::vector<T>& vals, ACHypothesisHelpers::ACHypothesis hypo) const;
+
+    template<typename T> void conditionalizeTemplates(std::vector<T>& vals, unsigned int const iaxis) const;
+
+  };
+  template<> void GenericBkgProcessHandler::recombineHistogramsToTemplates<TH1F*>(std::vector<TH1F*>& vals, ACHypothesisHelpers::ACHypothesis hypo) const;
+  template<> void GenericBkgProcessHandler::recombineHistogramsToTemplates<TH2F*>(std::vector<TH2F*>& vals, ACHypothesisHelpers::ACHypothesis hypo) const;
+  template<> void GenericBkgProcessHandler::recombineHistogramsToTemplates<TH3F*>(std::vector<TH3F*>& vals, ACHypothesisHelpers::ACHypothesis hypo) const;
+
+  template<typename T> void GenericBkgProcessHandler::conditionalizeTemplates(std::vector<T>& vals, unsigned int const iaxis) const{
+    if (vals.empty()) return;
+    for (T& hh:vals) HelperFunctions::conditionalizeHistogram(hh, iaxis);
+  }
+  template void GenericBkgProcessHandler::conditionalizeTemplates<TH2F*>(std::vector<TH2F*>& vals, unsigned int const iaxis) const;
+  template void GenericBkgProcessHandler::conditionalizeTemplates<TH3F*>(std::vector<TH3F*>& vals, unsigned int const iaxis) const;
 
 }
 

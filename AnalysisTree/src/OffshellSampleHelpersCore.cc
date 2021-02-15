@@ -29,6 +29,7 @@ void SampleHelpers::configure(TString period, TString stag, HostHelpers::Hosts i
       TString const& strlocation = splitstr.front();
       if (strlocation == "hadoop" || strlocation == "store") strInputDir = "/store/user/usarica/Offshell_2L2Nu/Production";
       else if (strlocation == "hadoop_skims" || strlocation == "store_skims") strInputDir = "/store/user/usarica/Offshell_2L2Nu/Skims";
+      else if (strlocation == "store_finaltrees") strInputDir = "/store/user/usarica/Offshell_2L2Nu/FinalTrees";
 
       if (splitstr.size()==3) HelperFunctions::replaceString<TString, const TString>(strInputDir, "usarica", splitstr.at(1));
     }

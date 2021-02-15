@@ -37,6 +37,7 @@ namespace SampleHelpers{
   int const& getDataYear();
   TString const& getDataPeriod();
   TString const& getInputDirectory();
+  TString getSqrtsString();
 
   int getDataYearFromPeriod(TString const& period);
 

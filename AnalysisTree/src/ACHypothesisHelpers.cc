@@ -280,6 +280,7 @@ std::vector<DiscriminantClasses::Type> ACHypothesisHelpers::getACHypothesisKDSet
         break;
       };
     }
+    /*
     else if (prod_type==kHadVH){
       // Always used
       res.push_back(DiscriminantClasses::kDjjZH);
@@ -304,6 +305,7 @@ std::vector<DiscriminantClasses::Type> ACHypothesisHelpers::getACHypothesisKDSet
         break;
       };
     }
+    */
   }
 
   return res;
