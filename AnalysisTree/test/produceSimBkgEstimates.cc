@@ -764,8 +764,10 @@ void getTrees_ZZTo2L2Nu(
       if (requireGenMatchedLeptons && !hasGenMatchedPair) continue;
 
       *ptr_event_wgt_SFs_PUJetId = std::min(*ptr_event_wgt_SFs_PUJetId, 3.f);
+      double wgt_adjustment = (ptr_event_wgt_adjustment ? *ptr_event_wgt_adjustment : 1.f) * (ptr_event_wgt_syst_adjustment ? *ptr_event_wgt_syst_adjustment : 1.f);
+      if (std::abs(wgt_adjustment)>10.f) wgt_adjustment = 10./std::abs(wgt_adjustment);
       float wgt =
-        (*ptr_event_wgt) * (ptr_event_wgt_adjustment ? *ptr_event_wgt_adjustment : 1.f) * (ptr_event_wgt_syst_adjustment ? *ptr_event_wgt_syst_adjustment : 1.f)
+        (*ptr_event_wgt) * wgt_adjustment
         * (val_Kfactor_QCD ? *val_Kfactor_QCD : 1.f)
         * (val_Kfactor_EW ? *val_Kfactor_EW : 1.f)
         * (*ptr_event_wgt_SFs_muons) * (*ptr_event_wgt_SFs_electrons) * (*ptr_event_wgt_SFs_photons) * (*ptr_event_wgt_SFs_PUJetId) * (*ptr_event_wgt_SFs_btagging)

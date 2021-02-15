@@ -4,9 +4,10 @@ date=$1
 period=$2
 prodVersion=$3
 ntupleVersion=$4
+
 script=produceSimBkgEstimates.cc
 function=runDistributionsChain
-jobdate="SimBkgEstimates_${date}"
+jobdate="${date}_SimBkgEstimates"
 arguments='"<period>","<prodVersion>","<ntupleVersion>","<strdate>",<theGlobalSyst>,<applyPUIdToAK4Jets>,<applyTightLeptonVetoIdToAK4Jets>,<use_MET_Puppi>,<use_MET_XYCorr>,<use_MET_JERCorr>,<use_MET_ParticleMomCorr>,<use_MET_p4Preservation>,<use_MET_corrections>'
 arguments="${arguments/<period>/$period}"
 arguments="${arguments/<strdate>/$date}"
@@ -27,6 +28,7 @@ declare -a systs=( \
     tQCDScaleDn tQCDScaleUp \
     tAsMZDn tAsMZUp \
     tPDFReplicaDn tPDFReplicaUp \
+    tPythiaScaleDn tPythiaScaleUp \
     tEWDn tEWUp \
     eEleEffStatDn eEleEffStatUp \
     eEleEffSystDn eEleEffSystUp \

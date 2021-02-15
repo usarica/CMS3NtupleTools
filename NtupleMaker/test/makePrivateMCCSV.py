@@ -114,12 +114,14 @@ def run(args):
          sname = subdir.replace(search_dir,'/')
          nfiles = len(glob.glob(subdir+"/*.root"))
          nreq = getNFilesRequired(sname)
-         if nfiles>=nreq:
+         if nfiles>=nreq or args.show_complete:
             print("{}: {} / {}".format(sname, nfiles, nreq))
             csv_line = getCSVLine(sname)
             sample_line_list.append(csv_line)
             if csv_line[0] not in valid_years:
                valid_years.append(csv_line[0])
+   if args.show_complete:
+      return
    sample_line_list.sort()
    valid_years.sort()
    for year in valid_years:
@@ -135,6 +137,7 @@ def run(args):
 if __name__ == "__main__":
    parser = argparse.ArgumentParser()
    parser.add_argument("--csv", help="Output csv file", type=str, required=True)
+   parser.add_argument("--show_complete", help="Only show the fraction of completions", action='store_true')
    parser.add_argument("localSearchDir", help="Search directory for local files. Can specify multiple.", nargs="+")
    args = parser.parse_args()
 

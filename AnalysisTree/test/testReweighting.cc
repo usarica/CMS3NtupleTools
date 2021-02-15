@@ -615,8 +615,8 @@ void getTrees(
 
     // Register tree
     MELAout << "\t- Registering the sample for reweighting..." << endl;
-    rewgtBuilder.registerTree(sample_tree, BR_scale/sum_wgts_raw_noveto);
-    rewgtBuilder_readTest.registerTree(sample_tree, BR_scale/sum_wgts_raw_noveto);
+    rewgtBuilder.registerTree(sample_tree, BR_scale / sum_wgts_raw_noveto);
+    rewgtBuilder_readTest.registerTree(sample_tree, BR_scale / sum_wgts_raw_noveto);
 
     sample_tree->silenceUnused();
 
