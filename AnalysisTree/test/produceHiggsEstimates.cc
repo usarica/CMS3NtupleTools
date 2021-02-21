@@ -13,7 +13,7 @@
 
 constexpr bool useJetOverlapStripping=false;
 
-#define _USE_GENJETS_SYST_ 0
+#define _USE_GENJETS_SYST_ 1
 #if _USE_GENJETS_SYST_==1
 typedef TH3F hsyst_genjets_t;
 typedef TH2F hsyst_genjets_slice_t;
@@ -337,6 +337,7 @@ void produceReweightingRecords(
   /***** INPUT SETUP *****/
   // Acquire the samples and register them to the reweighting builder
   // Keep track of the H125 and H200 (or closest higher mass point) samples in order to anchor the nornalization of other samples
+  bool allTreesValid = true;
   BaseTree* tree_MH125 = nullptr;
   BaseTree* tree_MHLowestOffshell = nullptr;
   std::vector<BaseTree*> sample_trees; sample_trees.reserve(sampledirs.size());
@@ -344,6 +345,13 @@ void produceReweightingRecords(
     TString strinput = SampleHelpers::getDatasetFileName(sname);
     MELAout << "Acquiring " << sname << " from input file(s) " << strinput << "..." << endl;
     BaseTree* sample_tree = new BaseTree(strinput, "cms3ntuple/Events", "", ""); sample_trees.push_back(sample_tree);
+    if (!sample_tree->isValid()){
+      MELAerr << "\t- Tree is invalid. Aborting..." << endl;
+      delete sample_tree;
+      for (auto& ss:sample_trees) delete ss;
+      allTreesValid = false;
+      break;
+    }
     sample_tree->sampleIdentifier = SampleHelpers::getSampleIdentifier(sname);
     float const sampleMH = SampleHelpers::findPoleMass(sample_tree->sampleIdentifier);
     if (std::abs(sampleMH-125.f)<0.8f) tree_MH125 = sample_tree;
@@ -433,6 +441,7 @@ void produceReweightingRecords(
 
     sample_tree->silenceUnused();
   }
+  if (!allTreesValid) return;
 
   // Setup the pairwise normalization
   std::vector< std::pair<BaseTree*, BaseTree*> > tree_normTree_pairs; tree_normTree_pairs.reserve(sample_trees.size()-1);
@@ -485,7 +494,12 @@ void produceSystematicsReweighting_MINLO_Pythia(
   bool const isVBF = strSampleSet.Contains("VBF");
   bool const isWH = strSampleSet.Contains("WminusH") || strSampleSet.Contains("WplusH");
   bool const isZH = strSampleSet.Contains("ZH") || strSampleSet.Contains("HZJ");
-  unsigned int n_genak4jets_expected_mult = (isWH || isZH || strSampleSet.Contains("2L2Q") || strSampleSet.Contains("LNuQQ"));
+  bool const usePSWeightsforPythiaScale = (
+    (theGlobalSyst==tPythiaScaleDn || theGlobalSyst==tPythiaScaleUp)
+    &&
+    (period=="2017" || period=="2018" || (period=="2016" && (strSampleSet.Contains("WWTo2L2Nu") || strSampleSet.Contains("WW_2LOSFilter"))))
+    );
+  //unsigned int n_genak4jets_expected_mult = (isWH || isZH || strSampleSet.Contains("2L2Q") || strSampleSet.Contains("LNuQQ"));
 
   if (
     !(
@@ -506,6 +520,8 @@ void produceSystematicsReweighting_MINLO_Pythia(
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
   SampleHelpers::configure(period, Form("store:%s", prodVersion.Data()));
+
+  if (usePSWeightsforPythiaScale) MELAout << "PS weights will be used for Pythia reweighting..." << endl;
 
   // Acquire the nominal / syst tree pairs
   std::vector<TString> sampledirs_nominal;
@@ -546,9 +562,9 @@ void produceSystematicsReweighting_MINLO_Pythia(
 
   ExtendedBinning binning_mass({ 0, 150, 600 }, "lheHiggs_mass");
   ExtendedBinning binning_n_genak4jets;
-  if (n_genak4jets_expected_mult) binning_n_genak4jets = ExtendedBinning({ 0, 2, 4, 6 }, "n_genak4jets");
+  /*if (n_genak4jets_expected_mult) binning_n_genak4jets = ExtendedBinning({ 0, 2, 4, 6 }, "n_genak4jets");
   else if (isGG && !(theGlobalSyst==tHardJetsDn || theGlobalSyst==tHardJetsUp)) binning_n_genak4jets = ExtendedBinning({ 0, 1, 2 }, "n_genak4jets");
-  else binning_n_genak4jets = ExtendedBinning({ 0, 1, 2, 3 }, "n_genak4jets");
+  else */binning_n_genak4jets = ExtendedBinning({ 0, 1, 2, 3 }, "n_genak4jets"); // This is actually the count without V->qq decays in the different exclusive final state trees.
   ExtendedBinning binning_ptRatio({ 0, 0.4, 0.8, 1.2, 1.6, 2.0 }, "lheHiggs_pt_over_lheHiggs_mass");
   ExtendedBinning binning_genpromptparticles_sump4_pt({ 0, 0.15, 0.3, 0.5, 0.8, 1.2, 1.6, 2.0 }, "genpromptparticles_sump4_pt_over_lheHiggs_mass");
   ExtendedBinning const* zbinning = (theGlobalSyst==tHardJetsDn || theGlobalSyst==tHardJetsUp ? &binning_ptRatio : &binning_genpromptparticles_sump4_pt);
@@ -592,6 +608,8 @@ void produceSystematicsReweighting_MINLO_Pythia(
   genInfoHandler.setAcquireLHEParticles(true);
   genInfoHandler.setAcquireGenParticles(true);
   genInfoHandler.setAcquireGenAK4Jets(true);
+  // Specify this flag to omit V->qq->jj
+  genInfoHandler.setDoGenJetsVDecayCleaning(true);
 
   for (auto const& sname_pair:sampledirs_common){
     TString const& sname_nominal = sname_pair.first;
@@ -678,6 +696,10 @@ void produceSystematicsReweighting_MINLO_Pythia(
       auto const& genInfo = genInfoHandler.getGenInfo();
       double genwgt = genInfo->getGenWeight(true);
       double genwgt_adjustment_NNPDF30 = (genwgt==0. ? 1. : genInfo->getGenWeight(false)/genwgt);
+      if (usePSWeightsforPythiaScale){
+        if (theGlobalSyst==tPythiaScaleDn) genwgt_adjustment_NNPDF30 *= genInfo->extras.PythiaWeight_isr_muR0p25 * genInfo->extras.PythiaWeight_fsr_muR0p25;
+        else if (theGlobalSyst==tPythiaScaleUp) genwgt_adjustment_NNPDF30 *= genInfo->extras.PythiaWeight_isr_muR4 * genInfo->extras.PythiaWeight_fsr_muR4;
+      }
       if (std::abs(genwgt_adjustment_NNPDF30)>10.) genwgt_adjustment_NNPDF30 = 10. / std::abs(genwgt_adjustment_NNPDF30);
       genwgt *= genwgt_adjustment_NNPDF30;
 
@@ -1022,7 +1044,6 @@ void combineSystematicsReweightings(
   bool const isVBF = strSampleSet.Contains("VBF");
   bool const isWH = strSampleSet.Contains("WminusH") || strSampleSet.Contains("WplusH");
   bool const isZH = strSampleSet.Contains("ZH") || strSampleSet.Contains("HZJ");
-  unsigned int n_genak4jets_expected_mult = (isWH || isZH || strSampleSet.Contains("2L2Q") || strSampleSet.Contains("LNuQQ"));
 
   std::vector<SystematicVariationTypes> allowedSysts_LHE;
   if (isGG) allowedSysts_LHE = std::vector<SystematicVariationTypes>{
@@ -1278,20 +1299,20 @@ void runSystematicsReweightingsChain(TString strdate){
     "GGH_WWTo2L2Nu_POWHEG",
 
     "VBF_ZZTo2L2Nu_POWHEG",
-    "VBF_WWTo2L2Nu_POWHEG"/*,
+    "VBF_WWTo2L2Nu_POWHEG",
 
     "WminusH_ZZTo2L2Nu_POWHEG",
-    "WminusH_ZZTo2L2Q_POWHEG",
+    //"WminusH_ZZTo2L2Q_POWHEG",
     "WminusH_HToWW_2LOSFilter_POWHEG",
 
     "WplusH_ZZTo2L2Nu_POWHEG",
-    "WplusH_ZZTo2L2Q_POWHEG",
+    //"WplusH_ZZTo2L2Q_POWHEG",
     "WplusH_HToWW_2LOSFilter_POWHEG",
 
     "ZH_HTo2Nu2X_2LFilter_POWHEG",
     "ZH_HTo2L2Q_2LFilter_POWHEG",
     "ZH_HTo4Q_2LFilter_POWHEG",
-    "ZH_WWTo2L2Nu_POWHEG",
+    "ZH_WWTo2L2Nu_POWHEG"/*,
     "ZH_HToLNuQQ_2LFilter_POWHEG"*/
   };
   for (auto const& syst:allowedSysts){ for (auto const& strprocess:strprocesses) combineSystematicsReweightings(strprocess, strdate, syst); }
