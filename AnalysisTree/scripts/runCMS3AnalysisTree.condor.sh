@@ -64,6 +64,7 @@ echo "CONDOROUTDIR: $CONDOROUTDIR"
 echo "GLIDEIN_CMSSite: $GLIDEIN_CMSSite"
 echo "hostname: $(hostname)"
 echo "uname -a: $(uname -a)"
+echo "whoami: $(whoami)"
 echo "time: $(date +%s)"
 echo "args: $@"
 echo -e "\n--- end header output ---\n" #                       <----- section division

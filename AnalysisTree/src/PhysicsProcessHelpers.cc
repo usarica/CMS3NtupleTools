@@ -29,22 +29,22 @@ namespace PhysicsProcessHelpers{
         procname="ggZZ_offshell";
         break;
       case kProcess_VV:
-        procname="VVZZ_offshell";
+        procname="VVVV_offshell";
         break;
       case kProcess_VBF:
         procname="VBF_offshell";
         break;
       case kProcess_ZH:
-        procname="ZZZ_offshell";
+        procname="ZVV_offshell";
         break;
       case kProcess_WH:
-        procname="WZZ_offshell";
+        procname="WVV_offshell";
         break;
       case kProcess_TT:
-        procname="ttZZ_offshell";
+        procname="ttVV_offshell";
         break;
       case kProcess_BB:
-        procname="bbZZ_offshell";
+        procname="bbVV_offshell";
         break;
       /*
       case kProcess_QQBkg:
@@ -65,10 +65,10 @@ namespace PhysicsProcessHelpers{
     {
       switch (proctype){
       case kProcess_GG:
-        procname="ggZZ";
+        procname="ggVV";
         break;
       case kProcess_VV:
-        procname="VVZZ";
+        procname="VVVV";
         break;
       case kProcess_VBF:
         procname="VBF";

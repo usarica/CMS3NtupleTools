@@ -9,7 +9,7 @@ using namespace MELAStreamHelpers;
 ExtendedBinning TemplateHelpers::getDiscriminantFineBinning(TString const& strvar, ACHypothesisHelpers::ACHypothesis hypo, ACHypothesisHelpers::ProductionType prod_type, ACHypothesisHelpers::DecayType dktype){
   using namespace ACHypothesisHelpers;
 
-  ExtendedBinning res(strvar);
+  ExtendedBinning res(strvar, strvar);
   if (dktype==kZZ4l_onshell){
     if (strvar=="ZZMass" || strvar.Contains("m4l")){
       double vlow=105, vhigh=140;

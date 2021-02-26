@@ -27,6 +27,7 @@ GenInfoHandler::GenInfoHandler() :
   acquireGenParticles(true),
   acquireGenAK4Jets(false),
   acquireGenAK8Jets(false),
+  doGenJetsVDecayCleaning(false),
   allowLargeGenWeightRemoval(false),
 
   genWeightException(SampleHelpers::nGenWeightExceptionType),
@@ -389,11 +390,10 @@ bool GenInfoHandler::constructGenAK8Jets(){
 }
 
 bool GenInfoHandler::applyGenJetCleaning(){
-  if (!acquireGenParticles) return true;
   if (!acquireGenAK4Jets && !acquireGenAK8Jets) return true;
 
+  std::vector<ParticleObject*> cleaningparticles; cleaningparticles.reserve(genparticles.size());
   // Accumulate all prompt leptons or hard-process taus
-  std::vector<GenParticleObject*> genparticles_prompt; genparticles_prompt.reserve(genparticles.size());
   for (auto const& part:genparticles){
     auto const& extras = part->extras;
     cms3_id_t const& part_id = part->pdgId();
@@ -401,14 +401,29 @@ bool GenInfoHandler::applyGenJetCleaning(){
       (extras.isPromptFinalState && (PDGHelpers::isALepton(part_id) || PDGHelpers::isAPhoton(part_id)))
       ||
       (extras.isHardProcess && std::abs(part_id)==15)
-      ) genparticles_prompt.push_back(part);
+      ) cleaningparticles.push_back(part);
+  }
+  // Accumulate all V-.qq decays from LHE level
+  if (doGenJetsVDecayCleaning){
+    for (auto const& part:lheparticles){
+      cms3_id_t const& part_id = part->pdgId();
+      cms3_genstatus_t const& part_st = part->status();
+      bool hasVmothers = false;
+      for (auto const& mother:part->getMothers()){
+        if (PDGHelpers::isAWBoson(mother->pdgId()) || PDGHelpers::isAZBoson(mother->pdgId())){
+          hasVmothers = true;
+          break;
+        }
+      }
+      if (part_st==1 && PDGHelpers::isAQuark(part_id) && hasVmothers) cleaningparticles.push_back(part);
+    }
   }
 
   // Clean gen. ak4 jets
   std::vector<GenJetObject*> genak4jets_new; genak4jets_new.reserve(genak4jets.size());
   for (auto& jet:genak4jets){
     bool doSkip=false;
-    for (auto const& part:genparticles_prompt){
+    for (auto const& part:cleaningparticles){
       if (jet->deltaR(part)<0.4){ doSkip=true; break; }
     }
     if (!doSkip) genak4jets_new.push_back(jet);
@@ -420,7 +435,7 @@ bool GenInfoHandler::applyGenJetCleaning(){
   std::vector<GenJetObject*> genak8jets_new; genak8jets_new.reserve(genak8jets.size());
   for (auto& jet:genak8jets){
     bool doSkip=false;
-    for (auto const& part:genparticles_prompt){
+    for (auto const& part:cleaningparticles){
       if (jet->deltaR(part)<0.8){ doSkip=true; break; }
     }
     if (!doSkip) genak8jets_new.push_back(jet);

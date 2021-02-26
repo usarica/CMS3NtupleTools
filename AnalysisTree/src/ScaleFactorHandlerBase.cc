@@ -204,7 +204,7 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH1F, Extende
     TH1F* const& th = h.getHistogram();
     for (unsigned int ix=0; ix<=nbinsx+1; ix++){
       th->SetBinContent(ix, hh->GetBinContent(ix));
-      th->SetBinError(ix, hu->GetBinError(ix));
+      th->SetBinError(ix, hu->GetBinContent(ix));
     }
   }
   else MELAerr << "ScaleFactorHandlerBase::getHistogramWithUncertainy: " << s << " or " << su << " cannot be acquired!" << endl;
@@ -244,7 +244,7 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH1D, Extende
     TH1F* const& th = h.getHistogram();
     for (unsigned int ix=0; ix<=nbinsx+1; ix++){
       th->SetBinContent(ix, hh->GetBinContent(ix));
-      th->SetBinError(ix, hu->GetBinError(ix));
+      th->SetBinError(ix, hu->GetBinContent(ix));
     }
   }
   else MELAerr << "ScaleFactorHandlerBase::getHistogramWithUncertainy: " << s << " or " << su << " cannot be acquired!" << endl;
@@ -289,7 +289,7 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH2F, Extende
     for (unsigned int ix=0; ix<=nbinsx+1; ix++){
       for (unsigned int iy=0; iy<=nbinsy+1; iy++){
         th->SetBinContent(ix, iy, hh->GetBinContent(ix, iy));
-        th->SetBinError(ix, iy, hu->GetBinError(ix, iy));
+        th->SetBinError(ix, iy, hu->GetBinContent(ix, iy));
       }
     }
   }
@@ -335,7 +335,7 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH2D, Extende
     for (unsigned int ix=0; ix<=nbinsx+1; ix++){
       for (unsigned int iy=0; iy<=nbinsy+1; iy++){
         th->SetBinContent(ix, iy, hh->GetBinContent(ix, iy));
-        th->SetBinError(ix, iy, hu->GetBinError(ix, iy));
+        th->SetBinError(ix, iy, hu->GetBinContent(ix, iy));
       }
     }
   }

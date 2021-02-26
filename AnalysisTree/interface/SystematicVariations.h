@@ -2,6 +2,7 @@
 #define SYSTEMATICVARIATIONS_H
 
 #include <string>
+#include "TString.h"
 
 
 namespace SystematicsHelpers{
@@ -57,6 +58,9 @@ namespace SystematicsHelpers{
   SystematicsHelpers::SystematicVariationTypes getSystComplement(SystematicsHelpers::SystematicVariationTypes const& type);
   std::string getSystCoreName(SystematicsHelpers::SystematicVariationTypes const& type);
   std::string getSystName(SystematicsHelpers::SystematicVariationTypes const& type);
+
+  std::string getSystDatacardCoreName(SystematicsHelpers::SystematicVariationTypes const& type, TString const& proc_syst_indicator);
+  std::string getSystDatacardName(SystematicsHelpers::SystematicVariationTypes const& type, TString const& proc_syst_indicator);
 
 }
 

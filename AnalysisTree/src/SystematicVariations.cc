@@ -1,5 +1,6 @@
 #include <cassert>
 #include "SystematicVariations.h"
+#include "SamplesCore.h"
 #include "MELAStreamHelpers.hh"
 
 
@@ -142,3 +143,123 @@ std::string SystematicsHelpers::getSystName(SystematicsHelpers::SystematicVariat
   else if (SystematicsHelpers::isUpSystematic(type)) res = res + "Up";
   return res;
 }
+std::string SystematicsHelpers::getSystDatacardCoreName(SystematicsHelpers::SystematicVariationTypes const& type, TString const& proc_syst_indicator){
+  TString strSystPerYear = Form("%sTeV_%s", SampleHelpers::getSqrtsString().Data(), SampleHelpers::getDataPeriod().Data());
+
+  switch (type){
+  case sNominal:
+    return "Nominal";
+
+  case tPDFScaleDn:
+  case tPDFScaleUp:
+    return Form("QCDscale_fac_%s", proc_syst_indicator.Data());
+  case tQCDScaleDn:
+  case tQCDScaleUp:
+    return Form("QCDscale_ren_%s", proc_syst_indicator.Data());
+  case tAsMZDn:
+  case tAsMZUp:
+    return Form("pdf_asmz_%s", proc_syst_indicator.Data());
+  case tPDFReplicaDn:
+  case tPDFReplicaUp:
+    return Form("pdf_variation_%s", proc_syst_indicator.Data());
+  case tPythiaScaleDn:
+  case tPythiaScaleUp:
+    return "CMS_scale_pythia";
+  case tPythiaTuneDn:
+  case tPythiaTuneUp:
+    return "CMS_tune_pythia";
+  case tEWDn:
+  case tEWUp:
+    return Form("EWcorr_%s", proc_syst_indicator.Data()); // VV
+  case tHardJetsDn:
+  case tHardJetsUp:
+    return Form("QCDscale_%s2in", proc_syst_indicator.Data()); // ggH currently
+
+  case eEleEffDn:
+  case eEleEffUp:
+    return Form("CMS_eff_e_%s", strSystPerYear.Data());
+  case eEleEffStatDn:
+  case eEleEffStatUp:
+    return Form("CMS_eff_stat_e_%s", strSystPerYear.Data());
+  case eEleEffSystDn:
+  case eEleEffSystUp:
+    return Form("CMS_eff_syst_e_%s", strSystPerYear.Data());
+  case eEleEffAltMCDn:
+  case eEleEffAltMCUp:
+    return Form("CMS_eff_altMC_e_%s", strSystPerYear.Data());
+  case eEleScaleDn:
+  case eEleScaleUp:
+    return Form("CMS_scale_e_%s", strSystPerYear.Data());
+  case eEleResDn:
+  case eEleResUp:
+    return Form("CMS_res_e_%s", strSystPerYear.Data());
+
+  case eMuEffDn:
+  case eMuEffUp:
+    return Form("CMS_eff_mu_%s", strSystPerYear.Data());
+  case eMuEffStatDn:
+  case eMuEffStatUp:
+    return Form("CMS_eff_stat_mu_%s", strSystPerYear.Data());
+  case eMuEffSystDn:
+  case eMuEffSystUp:
+    return Form("CMS_eff_syst_mu_%s", strSystPerYear.Data());
+  case eMuEffAltMCDn:
+  case eMuEffAltMCUp:
+    return Form("CMS_eff_altMC_mu_%s", strSystPerYear.Data());
+  case eMuScaleDn:
+  case eMuScaleUp:
+    return Form("CMS_scale_mu_%s", strSystPerYear.Data());
+  case eMuResDn:
+  case eMuResUp:
+    return Form("CMS_res_mu_%s", strSystPerYear.Data());
+
+  case ePhoEffDn:
+  case ePhoEffUp:
+    return Form("CMS_eff_pho_%s", strSystPerYear.Data());
+  case ePhoScaleDn:
+  case ePhoScaleUp:
+    return Form("CMS_scale_pho_%s", strSystPerYear.Data());
+  case ePhoResDn:
+  case ePhoResUp:
+    return Form("CMS_res_pho_%s", strSystPerYear.Data());
+
+  case eMETDn:
+  case eMETUp:
+    return Form("CMS_res_MET_%s", strSystPerYear.Data());
+  case eJECDn:
+  case eJECUp:
+    return Form("CMS_scale_j_%s", strSystPerYear.Data());
+  case eJERDn:
+  case eJERUp:
+    return Form("CMS_res_j_%s", strSystPerYear.Data());
+  case ePUDn:
+  case ePUUp:
+    return Form("CMS_pileup_%s", strSystPerYear.Data());
+  case ePUJetIdEffDn:
+  case ePUJetIdEffUp:
+    return Form("CMS_eff_j_%s", strSystPerYear.Data());
+  case eBTagSFDn:
+  case eBTagSFUp:
+    return Form("CMS_btag_comb_%s", strSystPerYear.Data());
+
+  case eL1PrefiringDn:
+  case eL1PrefiringUp:
+    return "CMS_L1prefiring";
+
+  case eTriggerEffDn:
+  case eTriggerEffUp:
+    return Form("CMS_eff_trigger_%s_%s", proc_syst_indicator.Data(), strSystPerYear.Data()); // proc_syst_indicator=ee, mumu, emu etc.
+
+  default:
+    MELAerr << "SystematicsHelpers::getSystDatacardCoreName: Systematic " << type << " is not defined!" << endl;
+    assert(0);
+    return "";
+  }
+}
+std::string SystematicsHelpers::getSystDatacardName(SystematicsHelpers::SystematicVariationTypes const& type, TString const& proc_syst_indicator){
+  std::string res = SystematicsHelpers::getSystDatacardCoreName(type, proc_syst_indicator);
+  if (SystematicsHelpers::isDownSystematic(type)) res = res + "Down";
+  else if (SystematicsHelpers::isUpSystematic(type)) res = res + "Up";
+  return res;
+}
+
