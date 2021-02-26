@@ -1523,73 +1523,68 @@ void getTrees_ZZTo2L2Nu(
   foutput->cd();
 
   std::vector<TString> strMEs_allhypos;
-  std::unordered_map<ACHypothesisHelpers::ACHypothesis, TDirectory*> achypo_outdir_pair_map;
-  std::unordered_map<TString, BaseTree*> strme_tout_pair_map;
-  std::unordered_map<BaseTree*, TDirectory*> tout_outdir_pair_map;
-  for (unsigned int iac=0; iac<(unsigned int) ACHypothesisHelpers::nACHypotheses; iac++){
-    ACHypothesisHelpers::ACHypothesis hypo = (ACHypothesisHelpers::ACHypothesis) iac;
-    TDirectory* dir_hypo = foutput->mkdir(ACHypothesisHelpers::getACHypothesisName(hypo));
+  std::unordered_map<TString, TString> strME_strweight_map;
+  BaseTree* tout = new BaseTree("FinalTree");
+  {
+    // Branch weights
+    for (unsigned int iac=0; iac<(unsigned int) ACHypothesisHelpers::nACHypotheses; iac++){
+      ACHypothesisHelpers::ACHypothesis hypo = (ACHypothesisHelpers::ACHypothesis) iac;
+      TString strHypoName = ACHypothesisHelpers::getACHypothesisName(hypo);
 
-    dir_hypo->cd();
-
-    std::vector<TString> strMEs = proc_handler->getMELAHypothesisWeights(hypo, false);
-    HelperFunctions::appendVector(strMEs_allhypos, strMEs);
-    std::vector<TString> strOutTreeNames = proc_handler->getOutputTreeNames(hypo, false);
-    for (unsigned int itree=0; itree<strMEs.size(); itree++){
-      auto const& strME = strMEs.at(itree);
-      BaseTree* tout = new BaseTree(strOutTreeNames.at(itree));
-
-      tout->putBranch<float>("LHECandMass", -1.f);
-
-      tout->putBranch<float>("weight", 1.f);
-
-      tout->putBranch<float>("mTZZ", 0.f);
-
-      tout->putBranch<cms3_id_t>("dilepton_id", 0);
-      tout->putBranch<float>("dilepton_mass", 0.f);
-      tout->putBranch<float>("dilepton_pt", 0.f);
-      tout->putBranch<float>("dilepton_eta", 0.f);
-
-      tout->putBranch<float>("pTmiss", 0.f);
-      tout->putBranch<float>("phimiss", 0.f);
-
-      tout->putBranch<unsigned int>("n_ak4jets_pt30", 0); // Number of ak4 jets with pT>=30 GeV
-      tout->putBranch<unsigned int>("n_ak4jets_pt30_mass60", 0); // Number of ak4 jets with pT>=30 GeV AND mass>=60 GeV
-
-      // Dijet variables are always calculated for the two leading-pT jets
-      tout->putBranch<float>("dijet_mass", -1.f);
-      tout->putBranch<float>("dijet_pt", -1.f);
-      tout->putBranch<float>("dijet_dEta", -1.f);
-      tout->putBranch<float>("dijet_dPhi", -1.f); // Signed dPhi = phi_forward - phi_backward (after re-ordering leading-pT and subleading-pT by pz)
-
-      tout->putBranch<float>("ak4jet_leading_pt", -1.f);
-      tout->putBranch<float>("ak4jet_leading_eta", 0.f);
-      tout->putBranch<float>("ak4jet_leading_phi", 0.f);
-      tout->putBranch<float>("ak4jet_leading_mass", -1.f);
-
-      tout->putBranch<float>("ak4jet_subleading_pt", -1.f);
-      tout->putBranch<float>("ak4jet_subleading_eta", 0.f);
-      tout->putBranch<float>("ak4jet_subleading_phi", 0.f);
-      tout->putBranch<float>("ak4jet_subleading_mass", -1.f);
-
-      // ak8 jet variables, for potential future use
-      tout->putBranch<unsigned int>("n_ak8jets_pt200", 0); // Number of ak8 jets with pT>=200 GeV
-      tout->putBranch<unsigned int>("n_ak8jets_pt200_mass60to110", 0); // Number of ak8 jets with pT>=200 GeV AND mass within [60, 110) GeV (inclusive/exclusive range)
-      tout->putBranch<unsigned int>("n_ak8jets_pt200_mass140", 0); // Number of ak8 jets with pT>=200 GeV AND mass>=140 GeV
-
-      tout->putBranch<float>("ak8jet_leading_pt", -1.f);
-      tout->putBranch<float>("ak8jet_leading_eta", 0.f);
-      tout->putBranch<float>("ak8jet_leading_mass", -1.f);
-
-      // Values of various discriminants
-      for (auto const& KDspec:KDlist) tout->putBranch<float>(KDspec.KDname, -1.f);
-
-      strme_tout_pair_map[strME] = tout;
-      tout_outdir_pair_map[tout] = dir_hypo;
+      std::vector<TString> strMEs = proc_handler->getMELAHypothesisWeights(hypo, false);
+      HelperFunctions::appendVector(strMEs_allhypos, strMEs);
+      std::vector<TString> strOutTreeNames = proc_handler->getOutputTreeNames(hypo, false);
+      for (unsigned int itree=0; itree<strMEs.size(); itree++){
+        auto const& strME = strMEs.at(itree);
+        TString strweight = Form("weight_%s_%s", strHypoName.Data(), strOutTreeNames.at(itree).Data());
+        tout->putBranch<float>(strweight, 1.f);
+        strME_strweight_map[strME] = strweight;
+      }
     }
-    achypo_outdir_pair_map[hypo] = dir_hypo;
 
-    curdir->cd();
+    tout->putBranch<float>("LHECandMass", -1.f);
+
+    tout->putBranch<float>("mTZZ", 0.f);
+
+    tout->putBranch<cms3_id_t>("dilepton_id", 0);
+    tout->putBranch<float>("dilepton_mass", 0.f);
+    tout->putBranch<float>("dilepton_pt", 0.f);
+    tout->putBranch<float>("dilepton_eta", 0.f);
+
+    tout->putBranch<float>("pTmiss", 0.f);
+    tout->putBranch<float>("phimiss", 0.f);
+
+    tout->putBranch<unsigned int>("n_ak4jets_pt30", 0); // Number of ak4 jets with pT>=30 GeV
+    tout->putBranch<unsigned int>("n_ak4jets_pt30_mass60", 0); // Number of ak4 jets with pT>=30 GeV AND mass>=60 GeV
+
+    // Dijet variables are always calculated for the two leading-pT jets
+    tout->putBranch<float>("dijet_mass", -1.f);
+    tout->putBranch<float>("dijet_pt", -1.f);
+    tout->putBranch<float>("dijet_dEta", -1.f);
+    tout->putBranch<float>("dijet_dPhi", -1.f); // Signed dPhi = phi_forward - phi_backward (after re-ordering leading-pT and subleading-pT by pz)
+
+    tout->putBranch<float>("ak4jet_leading_pt", -1.f);
+    tout->putBranch<float>("ak4jet_leading_eta", 0.f);
+    tout->putBranch<float>("ak4jet_leading_phi", 0.f);
+    tout->putBranch<float>("ak4jet_leading_mass", -1.f);
+
+    tout->putBranch<float>("ak4jet_subleading_pt", -1.f);
+    tout->putBranch<float>("ak4jet_subleading_eta", 0.f);
+    tout->putBranch<float>("ak4jet_subleading_phi", 0.f);
+    tout->putBranch<float>("ak4jet_subleading_mass", -1.f);
+
+    // ak8 jet variables, for potential future use
+    tout->putBranch<unsigned int>("n_ak8jets_pt200", 0); // Number of ak8 jets with pT>=200 GeV
+    tout->putBranch<unsigned int>("n_ak8jets_pt200_mass60to110", 0); // Number of ak8 jets with pT>=200 GeV AND mass within [60, 110) GeV (inclusive/exclusive range)
+    tout->putBranch<unsigned int>("n_ak8jets_pt200_mass60to130", 0); // Number of ak8 jets with pT>=200 GeV AND mass within [60, 130) GeV (inclusive/exclusive range)
+    tout->putBranch<unsigned int>("n_ak8jets_pt200_mass140", 0); // Number of ak8 jets with pT>=200 GeV AND mass>=140 GeV
+
+    tout->putBranch<float>("ak8jet_leading_pt", -1.f);
+    tout->putBranch<float>("ak8jet_leading_eta", 0.f);
+    tout->putBranch<float>("ak8jet_leading_mass", -1.f);
+
+    // Values of various discriminants
+    for (auto const& KDspec:KDlist) tout->putBranch<float>(KDspec.KDname, -1.f);
   }
 
   transfer_list.push_back(stroutput);
@@ -2003,11 +1998,12 @@ void getTrees_ZZTo2L2Nu(
         HelperFunctions::deltaPhi(float(ak4jet_subleadingpt.Phi()), float(ak4jet_leadingpt.Phi()), dijet_dPhi);
       }
 
-      unsigned int out_n_ak8jets_pt200(0), out_n_ak8jets_pt200_mass60to110(0), out_n_ak8jets_pt200_mass140(0);
+      unsigned int out_n_ak8jets_pt200(0), out_n_ak8jets_pt200_mass60to110(0), out_n_ak8jets_pt200_mass60to130(0), out_n_ak8jets_pt200_mass140(0);
       // Tight ak8 jet selection always ensures pT>=200 GeV, so we only need to look at mass.
       out_n_ak8jets_pt200 = ak8jets_mass->size();
       for (auto const& ak8jet_mass:(*ak8jets_mass)){
-        if (ak8jet_mass>=60.f && ak8jet_mass<110.f) out_n_ak8jets_pt200_mass60to110++;
+        if (ak8jet_mass>=60.f && ak8jet_mass<110.f){ out_n_ak8jets_pt200_mass60to110++; out_n_ak8jets_pt200_mass60to130++; }
+        else if (ak8jet_mass>=60.f && ak8jet_mass<130.f) out_n_ak8jets_pt200_mass60to130++;
         else if (ak8jet_mass>=140.f) out_n_ak8jets_pt200_mass140++;
       }
 
@@ -2019,17 +2015,17 @@ void getTrees_ZZTo2L2Nu(
       }
 
       // Record the event to the output trees
-      for (auto& strme_tout_pair:strme_tout_pair_map){
-        auto const& strME = strme_tout_pair.first;
-        BaseTree* const& tout = strme_tout_pair.second;
+      {
+        for (auto const& strME:strMEs_allhypos){
+          TString const& strweight = strME_strweight_map.find(strME)->second;
 
-        float* val_ME = ME_Kfactor_values.find(strME)->second;
-        float wgt_ME_comb = wgt * (*val_ME) * (*val_ME_CPS);
-        if (wgt_ME_comb==0.f) continue;
+          float* val_ME = ME_Kfactor_values.find(strME)->second;
+          float wgt_ME_comb = wgt * (*val_ME) * (*val_ME_CPS);
+
+          tout->setVal<float>(strweight, wgt_ME_comb);
+        }
 
         tout->setVal<float>("LHECandMass", *val_LHECandMass);
-
-        tout->setVal<float>("weight", wgt_ME_comb);
 
         tout->setVal<float>("mTZZ", event_mTZZ);
 
@@ -2066,6 +2062,7 @@ void getTrees_ZZTo2L2Nu(
 
         tout->setVal<unsigned int>("n_ak8jets_pt200", out_n_ak8jets_pt200);
         tout->setVal<unsigned int>("n_ak8jets_pt200_mass60to110", out_n_ak8jets_pt200_mass60to110);
+        tout->setVal<unsigned int>("n_ak8jets_pt200_mass60to130", out_n_ak8jets_pt200_mass60to130);
         tout->setVal<unsigned int>("n_ak8jets_pt200_mass140", out_n_ak8jets_pt200_mass140);
         if (out_n_ak8jets_pt200>0){
           tout->setVal<float>("ak8jet_leading_pt", ak8jets_pt->front());
@@ -2086,15 +2083,12 @@ void getTrees_ZZTo2L2Nu(
   // Delete KDs
   for (auto& KDspec:KDlist) KDspec.resetKD();
 
+  // Write the output tree
   foutput->cd();
-  for (auto& tout_outdir_pair:tout_outdir_pair_map){
-    tout_outdir_pair.second->cd();
-    tout_outdir_pair.first->writeToDirectory(tout_outdir_pair.second);
-    foutput->cd();
-  }
-  for (auto& strme_tout_pair:strme_tout_pair_map) delete strme_tout_pair.second;
-  for (auto& it_achypo_outdir_pair_map:achypo_outdir_pair_map) it_achypo_outdir_pair_map.second->Close();
-
+  BaseTree::setRobustSaveWrite(true);
+  tout->writeToFile(foutput);
+  BaseTree::setRobustSaveWrite(false);
+  delete tout;
 
   delete h_ratio_syst_3D;
   delete h_ratio_syst_2D;
