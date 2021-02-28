@@ -503,7 +503,7 @@ void getTrees(
   bool applyPUIdToAK4Jets=true; bool applyTightLeptonVetoIdToAK4Jets=false; bool useJetOverlapStripping=false;
   // MET options
   bool use_MET_Puppi=false;
-  bool use_MET_XYCorr=true; bool use_MET_JERCorr=true; bool use_MET_ParticleMomCorr=true; bool use_MET_p4Preservation=false; bool use_MET_corrections=false;
+  bool use_MET_XYCorr=true; bool use_MET_JERCorr=false; bool use_MET_ParticleMomCorr=true; bool use_MET_p4Preservation=false; bool use_MET_corrections=false;
 
   if (nchunks==1){ nchunks = 0; ichunk=0; }
   if (nchunks>0 && (ichunk<0 || ichunk==nchunks)) return;

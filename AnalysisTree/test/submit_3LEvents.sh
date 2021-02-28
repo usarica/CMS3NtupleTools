@@ -4,17 +4,33 @@ date=$1
 period=$2
 prodVersion=$3
 
-useMETJERCorr=true
+useMETJERCorr=false
 declare -i doSim=1
+declare -i doStdSim=1
+declare -i doOffshellSim=1
 declare -i doData=1
 declare -i doAllSysts=0 # Do all systematics
 declare -i doImpSysts=0 # Only do important systematics
 for arg in "$@"; do
   if [[ "$arg" == "only_data" ]]; then
     doSim=0
+    doStdSim=0
+    doOffshellSim=0
     doData=1
   elif [[ "$arg" == "only_sim" ]]; then
     doSim=1
+    doStdSim=1
+    doOffshellSim=1
+    doData=0
+  elif [[ "$arg" == "only_sim_offshell" ]]; then
+    doSim=1
+    doStdSim=0
+    doOffshellSim=1
+    doData=0
+  elif [[ "$arg" == "only_sim_std" ]]; then
+    doSim=1
+    doStdSim=1
+    doOffshellSim=0
     doData=0
   elif [[ "$arg" == "all_systs" ]]; then
     doAllSysts=1
@@ -95,8 +111,21 @@ maindir=$( ExecuteCompiledCommand GetStandardHostPathToStore ${maindir} t2.ucsd.
 
 if [[ $doSim -eq 1 ]]; then
 
-for sample in $(readCMS3SkimSamplesFromCSV.py --csv=${csvfile} --sim --tree_req="Dilepton,Dilepton_Control,SingleLepton"); do
+declare -a SimSamples=()
+if [[ $doStdSim -eq 1 ]]; then
+  SimSamples+=( $(readCMS3SkimSamplesFromCSV.py --csv=${csvfile} --sim --tree_req="Dilepton,Dilepton_Control,SingleLepton") )
+fi
+if [[ $doOffshellSim -eq 1 ]]; then
+  strSampleGroup="WminusH_HToWW_2LOSFilter_POWHEG"
+  strSampleGroup="${strSampleGroup},WplusH_HToWW_2LOSFilter_POWHEG"
+  strSampleGroup="${strSampleGroup},ZH_WWTo2L2Nu_POWHEG"
+  strSampleGroup="${strSampleGroup},ZH_HToLNuQQ_2LFilter_POWHEG"
+  SimSamples+=( $(printCMS3SampleGroup $strSampleGroup $period $prodVersion stdout) )
+fi
+
+for sample in "${SimSamples[@]}"; do
   sampleDir=${sample//MINIAODSIM}
+  sample_lower="$(echo $sample | awk '{print tolower($0)}')"
 
   echo "====="
   skimdir="${maindir}/Skims/${prodVersion}/${sampleDir}"
@@ -110,6 +139,7 @@ for sample in $(readCMS3SkimSamplesFromCSV.py --csv=${csvfile} --sim --tree_req=
     skimdir=$proddir
   fi
   if [[ "$( ExecuteCompiledCommand DirectoryExists ${skimdir} )" == "false" ]]; then
+    echo "$skimdir does not exist"
     continue
   fi
 
@@ -120,6 +150,10 @@ for sample in $(readCMS3SkimSamplesFromCSV.py --csv=${csvfile} --sim --tree_req=
   nfeff=$((nchunks * 4))
   if [[ $nfeff -lt $nfiles ]];then
     nchunks=$((nchunks + 1))
+  fi
+  # If samples are JHUGen, the number of events are relatively small, so keep them in a single job.
+  if [[ "${sample_lower}" == *"jhugen"* ]]; then
+    nchunks=1
   fi
   echo " - There will be $nchunks chunks"
   if [[ $nchunks -eq 0 ]]; then

@@ -4,7 +4,7 @@ date=$1
 period=$2
 prodVersion=$3
 
-useMETJERCorr=true
+useMETJERCorr=false
 declare -i doSim=1
 declare -i doData=1
 declare -i doAllSysts=0 # Do all systematics

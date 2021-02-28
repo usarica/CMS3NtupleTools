@@ -420,7 +420,7 @@ void plot(
   bool applyPUIdToAK4Jets=true, applyTightLeptonVetoIdToAK4Jets=false;
   // MET options
   bool use_MET_Puppi=false;
-  bool use_MET_XYCorr=true, use_MET_JERCorr=true, use_MET_ParticleMomCorr=true;
+  bool use_MET_XYCorr=true, use_MET_JERCorr=false, use_MET_ParticleMomCorr=true;
   bool use_MET_p4Preservation=false;
   bool use_MET_corrections=false;
   OffshellCutflow::setActiveFinalState(OffshellCutflow::fs_ZZ_2l2nu);

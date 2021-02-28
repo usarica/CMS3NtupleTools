@@ -263,3 +263,75 @@ std::string SystematicsHelpers::getSystDatacardName(SystematicsHelpers::Systemat
   return res;
 }
 
+// The following numbers are taken from https://twiki.cern.ch/twiki/bin/view/CMS/TWikiLUM#LumiComb.
+// Documentation can be found one subsection above in the same twiki, https://twiki.cern.ch/twiki/bin/view/CMS/TWikiLUM#TabLum.
+double SystematicsHelpers::getLumiUncertainty_Uncorrelated(){
+  auto const& year = SampleHelpers::getDataYear();
+  double res = 0;
+  switch (year){
+  case 2011:
+    res = 2.2;
+    break;
+  case 2012:
+    res = 2.6;
+    break;
+  case 2015:
+    res = 1.2;
+    break;
+  case 2016:
+    res = 1.8;
+    break;
+  case 2017:
+    res = 2.0;
+    break;
+  case 2018:
+    res = 1.5;
+    break;
+  default:
+    MELAerr << "SystematicsHelpers::getLumiUncertainty_Uncorrelated: Year " << year << " is unspecified." << endl;
+    assert(0);
+    break;
+  }
+  res *= 0.01;
+  return res;
+}
+double SystematicsHelpers::getLumiUncertainty_Correlated(){
+  auto const& year = SampleHelpers::getDataYear();
+  double res = 0;
+  switch (year){
+  case 2015:
+    res = 1.643;
+    break;
+  case 2016:
+    res = 1.175;
+    break;
+  case 2017:
+    res = 1.114;
+    break;
+  case 2018:
+    res = 2.020;
+    break;
+  default:
+    MELAerr << "SystematicsHelpers::getLumiUncertainty_Correlated: Year " << year << " is unspecified." << endl;
+    assert(0);
+    break;
+  }
+  res *= 0.01;
+  return res;
+}
+double SystematicsHelpers::getLumiUncertainty_Correlated_2015_2016(){
+  auto const& year = SampleHelpers::getDataYear();
+  double res = 0;
+  switch (year){
+  case 2015:
+    res = 1.162;
+    break;
+  case 2016:
+    res = 1.249;
+    break;
+  default:
+    break;
+  }
+  res *= 0.01;
+  return res;
+}

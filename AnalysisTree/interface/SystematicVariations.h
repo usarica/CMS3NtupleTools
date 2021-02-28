@@ -62,6 +62,9 @@ namespace SystematicsHelpers{
   std::string getSystDatacardCoreName(SystematicsHelpers::SystematicVariationTypes const& type, TString const& proc_syst_indicator);
   std::string getSystDatacardName(SystematicsHelpers::SystematicVariationTypes const& type, TString const& proc_syst_indicator);
 
+  double getLumiUncertainty_Uncorrelated();
+  double getLumiUncertainty_Correlated();
+  double getLumiUncertainty_Correlated_2015_2016();
 }
 
 #endif

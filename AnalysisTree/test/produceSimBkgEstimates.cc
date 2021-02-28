@@ -293,7 +293,7 @@ void getTrees_ZZTo2L2Nu(
   bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false,
   // MET options
   bool use_MET_Puppi=false,
-  bool use_MET_XYCorr=true, bool use_MET_JERCorr=true, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true
+  bool use_MET_XYCorr=true, bool use_MET_JERCorr=false, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true
 ){
 #define _JETMETARGS_ applyPUIdToAK4Jets, applyTightLeptonVetoIdToAK4Jets, use_MET_Puppi, use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr, use_MET_p4Preservation, use_MET_corrections
 
@@ -404,6 +404,7 @@ void getTrees_ZZTo2L2Nu(
     // ak8 jet variables, for potential future use
     tout->putBranch<unsigned int>("n_ak8jets_pt200", 0); // Number of ak8 jets with pT>=200 GeV
     tout->putBranch<unsigned int>("n_ak8jets_pt200_mass60to110", 0); // Number of ak8 jets with pT>=200 GeV AND mass within [60, 110) GeV (inclusive/exclusive range)
+    tout->putBranch<unsigned int>("n_ak8jets_pt200_mass60to130", 0); // Number of ak8 jets with pT>=200 GeV AND mass within [60, 130) GeV (inclusive/exclusive range)
     tout->putBranch<unsigned int>("n_ak8jets_pt200_mass140", 0); // Number of ak8 jets with pT>=200 GeV AND mass>=140 GeV
 
     tout->putBranch<float>("ak8jet_leading_pt", -1.f);
@@ -811,11 +812,12 @@ void getTrees_ZZTo2L2Nu(
         HelperFunctions::deltaPhi(float(ak4jet_subleadingpt.Phi()), float(ak4jet_leadingpt.Phi()), dijet_dPhi);
       }
 
-      unsigned int out_n_ak8jets_pt200(0), out_n_ak8jets_pt200_mass60to110(0), out_n_ak8jets_pt200_mass140(0);
+      unsigned int out_n_ak8jets_pt200(0), out_n_ak8jets_pt200_mass60to110(0), out_n_ak8jets_pt200_mass60to130(0), out_n_ak8jets_pt200_mass140(0);
       // Tight ak8 jet selection always ensures pT>=200 GeV, so we only need to look at mass.
       out_n_ak8jets_pt200 = ak8jets_mass->size();
       for (auto const& ak8jet_mass:(*ak8jets_mass)){
-        if (ak8jet_mass>=60.f && ak8jet_mass<110.f) out_n_ak8jets_pt200_mass60to110++;
+        if (ak8jet_mass>=60.f && ak8jet_mass<110.f){ out_n_ak8jets_pt200_mass60to110++; out_n_ak8jets_pt200_mass60to130++; }
+        else if (ak8jet_mass>=60.f && ak8jet_mass<130.f) out_n_ak8jets_pt200_mass60to130++;
         else if (ak8jet_mass>=140.f) out_n_ak8jets_pt200_mass140++;
       }
 
@@ -864,6 +866,7 @@ void getTrees_ZZTo2L2Nu(
 
       tout->setVal<unsigned int>("n_ak8jets_pt200", out_n_ak8jets_pt200);
       tout->setVal<unsigned int>("n_ak8jets_pt200_mass60to110", out_n_ak8jets_pt200_mass60to110);
+      tout->setVal<unsigned int>("n_ak8jets_pt200_mass60to130", out_n_ak8jets_pt200_mass60to130);
       tout->setVal<unsigned int>("n_ak8jets_pt200_mass140", out_n_ak8jets_pt200_mass140);
       if (out_n_ak8jets_pt200>0){
         tout->setVal<float>("ak8jet_leading_pt", ak8jets_pt->front());
@@ -922,7 +925,7 @@ void runDistributionsChain(
   bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false,
   // MET options
   bool use_MET_Puppi=false,
-  bool use_MET_XYCorr=true, bool use_MET_JERCorr=true, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true
+  bool use_MET_XYCorr=true, bool use_MET_JERCorr=false, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true
 ){
 #define _VERSIONARGS_ period, prodVersion, ntupleVersion, strdate
 #define _JETMETARGS_ applyPUIdToAK4Jets, applyTightLeptonVetoIdToAK4Jets, use_MET_Puppi, use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr, use_MET_p4Preservation, use_MET_corrections

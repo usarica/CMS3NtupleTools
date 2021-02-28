@@ -4,7 +4,7 @@ date=$1
 period=$2
 prodVersion=$3
 
-useMETJERCorr=true
+useMETJERCorr=false
 declare -i doSim=1
 declare -i doStdSim=1
 declare -i doOffshellSim=1
@@ -14,6 +14,8 @@ declare -i doImpSysts=0 # Only do important systematics
 for arg in "$@"; do
   if [[ "$arg" == "only_data" ]]; then
     doSim=0
+    doStdSim=0
+    doOffshellSim=0
     doData=1
   elif [[ "$arg" == "only_sim" ]]; then
     doSim=1
@@ -149,6 +151,7 @@ for sample in "${SimSamples[@]}"; do
     skimdir=$proddir
   fi
   if [[ "$( ExecuteCompiledCommand DirectoryExists ${skimdir} )" == "false" ]]; then
+    echo "$skimdir does not exist"
     continue
   fi
 

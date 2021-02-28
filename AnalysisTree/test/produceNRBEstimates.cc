@@ -23,7 +23,8 @@ void makePlot(
   TString selectionLabels,
   TString drawopts="hist",
   bool adjustYLow=false,
-  float factorYHigh=-1
+  float factorYHigh=-1,
+  bool forceData=false
 );
 
 void getDataSampleDirs(
@@ -306,7 +307,7 @@ void getDistributions(
   bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false,
   // MET options
   bool use_MET_Puppi=false,
-  bool use_MET_XYCorr=true, bool use_MET_JERCorr=true, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true
+  bool use_MET_XYCorr=true, bool use_MET_JERCorr=false, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true
 ){
 #define _JETMETARGS_ applyPUIdToAK4Jets, applyTightLeptonVetoIdToAK4Jets, use_MET_Puppi, use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr, use_MET_p4Preservation, use_MET_corrections
 
@@ -339,7 +340,7 @@ void getDistributions(
   size_t const nValidDataPeriods = validDataPeriods.size();
 
   std::vector<TString> const strChannelNames{ "mumu", "ee", "mue", "mue_rewgt_mumu", "mue_rewgt_ee" };
-  std::vector<TString> const strChannelTitles{ "#mu#mu", "ee", "#mue (un-rewgt.)", "#mue (rewgt. #mu#mu)", "#mue (rewgt. ee)" };
+  std::vector<TString> const strChannelTitles{ "#mu#mu", "ee", "e#mu (un-rewgt.)", "e#mu (rewgt. #mu#mu)", "e#mu (rewgt. ee)" };
   const unsigned int nchannels = strChannelNames.size();
 
   std::vector<TString> const strNjetsNames{ "Nj_eq_0", "Nj_eq_1", "Nj_geq_2", "Nj_geq_1", "Nj_geq_0" };
@@ -347,7 +348,7 @@ void getDistributions(
   const unsigned int nbins_njets = strNjetsNames.size();
 
   std::vector<TString> const strBtaggingRegionNames{ "Nbloose_eq_0", "Nbmed_geq_1" };
-  std::vector<TString> const strBtaggingRegionTitles{ "N_{b}^{loose}=0", "N_{b}^{medium}#geq1" };
+  std::vector<TString> const strBtaggingRegionTitles{ "N_{b}^{loose}=0", "N_{b}^{tight}#geq1" }; // Label is 'tight' in the latter bc of how the WP is defined in the AN/paper
   const unsigned int nbins_nbtagged = strBtaggingRegionNames.size();
 
   constexpr float thr_corr_pTmiss = 60.f;
@@ -636,6 +637,7 @@ void getDistributions(
     // ak8 jet variables, for potential future use
     tout_data->putBranch<unsigned int>("n_ak8jets_pt200", 0); // Number of ak8 jets with pT>=200 GeV
     tout_data->putBranch<unsigned int>("n_ak8jets_pt200_mass60to110", 0); // Number of ak4 jets with pT>=200 GeV AND mass within [60, 110) GeV (inclusive/exclusive range)
+    tout_data->putBranch<unsigned int>("n_ak8jets_pt200_mass60to130", 0); // Number of ak4 jets with pT>=200 GeV AND mass within [60, 130) GeV (inclusive/exclusive range)
     tout_data->putBranch<unsigned int>("n_ak8jets_pt200_mass140", 0); // Number of ak4 jets with pT>=200 GeV AND mass>=140 GeV
 
     tout_data->putBranch<float>("ak8jet_leading_pt", -1.f);
@@ -711,7 +713,8 @@ void getDistributions(
           ExtendedBinning binning_Nak4jets_mass60(2, 0, 2, "N_{j} (m_{j}#geq60 GeV)");
           ExtendedBinning binning_mJ(20, 60., 260., "m_{J} (leading-p_{T}^{J}) (GeV)");
           ExtendedBinning binning_Nak8jets(3, 0, 3, "N_{J}");
-          ExtendedBinning binning_Nak8jets_mass60to110(3, 0, 3, "N_{J} (110 GeV>m_{J}#geq60 GeV)");
+          //ExtendedBinning binning_Nak8jets_mass60to110(3, 0, 3, "N_{J} (110 GeV>m_{J}#geq60 GeV)");
+          ExtendedBinning binning_Nak8jets_mass60to130(3, 0, 3, "N_{J} (130 GeV>m_{J}#geq60 GeV)");
           ExtendedBinning binning_Nak8jets_mass140(3, 0, 3, "N_{J} (m_{J}#geq140 GeV)");
 
           ExtendedHistogram_1D_f* ehtmp = nullptr;
@@ -744,7 +747,8 @@ void getDistributions(
             HISTOGRAM_COMMAND("Nak4jetsMass60", binning_Nak4jets_mass60);
             HISTOGRAM_COMMAND("mJ", binning_mJ);
             HISTOGRAM_COMMAND("Nak8jets", binning_Nak8jets);
-            HISTOGRAM_COMMAND("Nak8jetsMass60to110", binning_Nak8jets_mass60to110);
+            /*HISTOGRAM_COMMAND("Nak8jetsMass60to110", binning_Nak8jets_mass60to110);*/
+            HISTOGRAM_COMMAND("Nak8jetsMass60to130", binning_Nak8jets_mass60to130);
             HISTOGRAM_COMMAND("Nak8jetsMass140", binning_Nak8jets_mass140);
             for (auto const& KDspec:KDlist){
               ExtendedBinning binning_KD(10, 0, 1, KDspec.KDlabel);
@@ -1149,7 +1153,7 @@ void getDistributions(
       bool const pass_SR_mll = check_mll(dilepton_mass, is_ee || is_mumu);
       bool const pass_sel_SR = pass_SR_pTmiss && pass_SR_pTboson && pass_SR_mll;
       bool const pass_sel_SR_all_nodecay = pass_sel_SR && event_n_ak4jets_pt30_btagged_loose==0;
-      bool const pass_sel_SB = !pass_SR_mll && std::abs(dilepton_mass)<30.f;
+      bool const pass_sel_SB = !pass_SR_mll && std::abs(dilepton_mass-MZ_VAL_CUTS)<30.f; // Do not OR !pass_SR_mll with Nbmed>0 because one might still get DY contamination around the Z peak
       bool const pass_sel_SB_ttbar = dilepton_mass>=MZ_VAL_CUTS+30.f && dilepton_mass<thr_corr_mll;
 
       // Fill histograms
@@ -1171,11 +1175,12 @@ void getDistributions(
           HelperFunctions::deltaPhi(float(ak4jet_subleadingpt.Phi()), float(ak4jet_leadingpt.Phi()), dijet_dPhi);
         }
 
-        unsigned int out_n_ak8jets_pt200(0), out_n_ak8jets_pt200_mass60to110(0), out_n_ak8jets_pt200_mass140(0);
+        unsigned int out_n_ak8jets_pt200(0), out_n_ak8jets_pt200_mass60to110(0), out_n_ak8jets_pt200_mass60to130(0), out_n_ak8jets_pt200_mass140(0);
         // Tight ak8 jet selection always ensures pT>=200 GeV, so we only need to look at mass.
         out_n_ak8jets_pt200 = ak8jets_mass->size();
         for (auto const& ak8jet_mass:(*ak8jets_mass)){
-          if (ak8jet_mass>=60.f && ak8jet_mass<110.f) out_n_ak8jets_pt200_mass60to110++;
+          if (ak8jet_mass>=60.f && ak8jet_mass<110.f){ out_n_ak8jets_pt200_mass60to110++; out_n_ak8jets_pt200_mass60to130++; }
+          else if (ak8jet_mass>=60.f && ak8jet_mass<130.f) out_n_ak8jets_pt200_mass60to130++;
           else if (ak8jet_mass>=140.f) out_n_ak8jets_pt200_mass140++;
         }
 
@@ -1253,6 +1258,7 @@ void getDistributions(
           if (hname.Contains("mJ") && out_n_ak8jets_pt200>0) hh->fill(ak8jets_mass->front(), hwgt);
           if (hname.Contains("Nak8jets")) hh->fill(out_n_ak8jets_pt200, hwgt);
           if (hname.Contains("Nak8jetsMass60to110")) hh->fill(out_n_ak8jets_pt200_mass60to110, hwgt);
+          if (hname.Contains("Nak8jetsMass60to130")) hh->fill(out_n_ak8jets_pt200_mass60to130, hwgt);
           if (hname.Contains("Nak8jetsMass140")) hh->fill(out_n_ak8jets_pt200_mass140, hwgt);
 
           for (auto& KDspec:KDlist){
@@ -1300,6 +1306,7 @@ void getDistributions(
 
             tout_data->setVal<unsigned int>("n_ak8jets_pt200", out_n_ak8jets_pt200);
             tout_data->setVal<unsigned int>("n_ak8jets_pt200_mass60to110", out_n_ak8jets_pt200_mass60to110);
+            tout_data->setVal<unsigned int>("n_ak8jets_pt200_mass60to130", out_n_ak8jets_pt200_mass60to130);
             tout_data->setVal<unsigned int>("n_ak8jets_pt200_mass140", out_n_ak8jets_pt200_mass140);
             if (out_n_ak8jets_pt200>0){
               tout_data->setVal<float>("ak8jet_leading_pt", ak8jets_pt->front());
@@ -1600,7 +1607,7 @@ void runDistributionsChain(
   bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false,
   // MET options
   bool use_MET_Puppi=false,
-  bool use_MET_XYCorr=true, bool use_MET_JERCorr=true, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true
+  bool use_MET_XYCorr=true, bool use_MET_JERCorr=false, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true
 ){
 #define _VERSIONARGS_ period, prodVersion, ntupleVersion, strdate
 #define _JETMETARGS_ applyPUIdToAK4Jets, applyTightLeptonVetoIdToAK4Jets, use_MET_Puppi, use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr, use_MET_p4Preservation, use_MET_corrections
@@ -1638,7 +1645,8 @@ void makePlot(
   TString selectionLabels,
   TString drawopts,
   bool adjustYLow,
-  float factorYHigh
+  float factorYHigh,
+  bool forceData
 ){
   size_t nplottables = hlist.size();
   if (hlabels.size()!=nplottables) return;
@@ -1648,6 +1656,7 @@ void makePlot(
   if (selectionLabels!="") HelperFunctions::splitOptionRecursive(selectionLabels, selectionList, '|');
 
   bool hasData = false;
+  bool is_mll = canvasname.Contains("_mll");
 
   std::vector<bool> hHasErrors;
 
@@ -1671,7 +1680,7 @@ void makePlot(
     hHasErrors.push_back(hasErrors);
     //MELAout << "ymin, ymax after " << hname << ": " << ymin << ", " << ymax << endl;
   }
-  if (ymax>=0.) ymax *= (factorYHigh>0.f ? factorYHigh : 1.5);
+  if (ymax>=0.) ymax *= (factorYHigh>0.f ? factorYHigh : 1.5)*(!is_mll ? 1. : 3.);
   else ymax /= (factorYHigh>0.f ? factorYHigh : 1.5);
   ymin *= (ymin>=0. ? 0.95 : 1.05);
   for (TH1F* const& hist:hlist) hist->GetYaxis()->SetRangeUser(ymin, ymax);
@@ -1679,12 +1688,44 @@ void makePlot(
   std::unordered_map<TH1F*, TGraphAsymmErrors*> hist_tg_map;
   for (size_t is=0; is<hlist.size(); is++){
     TH1F* hist = hlist.at(is);
+
+    hist->GetXaxis()->SetNdivisions(505);
+    hist->GetXaxis()->SetLabelFont(42);
+    hist->GetXaxis()->SetLabelOffset(0.007);
+    hist->GetXaxis()->SetLabelSize(0.0315);
+    hist->GetXaxis()->SetTitleSize(0.04);
+    hist->GetXaxis()->SetTitleOffset(1.1);
+    hist->GetXaxis()->SetTitleFont(42);
+    hist->GetYaxis()->SetNdivisions(505);
+    hist->GetYaxis()->SetLabelFont(42);
+    hist->GetYaxis()->SetLabelOffset(0.007);
+    hist->GetYaxis()->SetLabelSize(0.0315);
+    hist->GetYaxis()->SetTitleSize(0.04);
+    hist->GetYaxis()->SetTitleOffset(1.3);
+    hist->GetYaxis()->SetTitleFont(42);
+
     TString hname = hist->GetName();
     if (hname.Contains("Data")){
       TGraphAsymmErrors* tg = nullptr;
       HelperFunctions::convertTH1FToTGraphAsymmErrors(hist, tg, false, true);
       tg->SetTitle("");
       tg->GetYaxis()->SetRangeUser(ymin, ymax);
+
+      tg->GetXaxis()->SetNdivisions(505);
+      tg->GetXaxis()->SetLabelFont(42);
+      tg->GetXaxis()->SetLabelOffset(0.007);
+      tg->GetXaxis()->SetLabelSize(0.0315);
+      tg->GetXaxis()->SetTitleSize(0.04);
+      tg->GetXaxis()->SetTitleOffset(1.1);
+      tg->GetXaxis()->SetTitleFont(42);
+      tg->GetYaxis()->SetNdivisions(505);
+      tg->GetYaxis()->SetLabelFont(42);
+      tg->GetYaxis()->SetLabelOffset(0.007);
+      tg->GetYaxis()->SetLabelSize(0.0315);
+      tg->GetYaxis()->SetTitleSize(0.04);
+      tg->GetYaxis()->SetTitleOffset(1.3);
+      tg->GetYaxis()->SetTitleFont(42);
+
       hist_tg_map[hist] = tg;
     }
   }
@@ -1730,7 +1771,7 @@ void makePlot(
   pt->SetTextSize(0.045);
   text = pt->AddText(0.025, 0.45, "#font[61]{CMS}");
   text->SetTextSize(0.044);
-  if (!hasData) text = pt->AddText(0.165, 0.42, "#font[52]{Simulation}");
+  if (!hasData && !forceData) text = pt->AddText(0.165, 0.42, "#font[52]{Simulation}");
   else text = pt->AddText(0.165, 0.42, "#font[52]{Preliminary}");
   text->SetTextSize(0.0315);
   TString cErgTev = Form("#font[42]{%.1f fb^{-1} %i TeV}", lumi, 13);
@@ -1845,7 +1886,7 @@ void makePlots_fcorr(
   const unsigned int nbins_njets = strNjetsNames.size();
 
   std::vector<TString> const strBtaggingRegionNames{ "Nbloose_eq_0", "Nbmed_geq_1" };
-  std::vector<TString> const strBtaggingRegionTitles{ "N_{b}^{loose}=0", "N_{b}^{medium}#geq1" };
+  std::vector<TString> const strBtaggingRegionTitles{ "N_{b}^{loose}=0", "N_{b}^{tight}#geq1" };
   const unsigned int nbins_nbtagged = strBtaggingRegionNames.size();
 
   TDirectory* curdir = gDirectory;
@@ -1877,7 +1918,7 @@ void makePlots_fcorr(
     "Data"
   };
   std::vector<TString> const process_labels{
-    "All non-res. expected",
+    "Expected non-res.",
     "Observed"
   };
   unsigned short nprocesses = process_names.size();
@@ -1917,25 +1958,23 @@ void makePlots_fcorr(
               TString strCutTitle = strChannelTitle + ", " + strNjetsTitle + ", " + varcutlabel + "|" + strprocesslabel;
 
               std::vector<TString> hnames; hnames.reserve(3);
-              hnames.push_back(Form("ratios_SB_near/h_corr_SB_near_%s_%s_%s_Nominal", varname.Data(), strCutName.Data(), strprocess.Data()));
-              hlabels.push_back(Form("SB near, %s", strBtaggingRegionTitle.Data()));
-              hnames.push_back(Form("ratios_SB_ttbar/h_corr_SB_ttbar_%s_%s_%s_Nominal", varname.Data(), strCutName.Data(), strprocess.Data()));
-              hlabels.push_back(Form("SB far, %s", strBtaggingRegionTitle.Data()));
               hnames.push_back(Form("ratios_SB_combined/h_corr_SB_combined_%s_%s_%s_Nominal", varname.Data(), strCutName.Data(), strprocess.Data()));
-              hlabels.push_back(Form("SB comb., %s", strBtaggingRegionTitle.Data()));
+              hlabels.push_back(Form("m_{ll} SB, %s", strBtaggingRegionTitle.Data()));
               if (ibt==1 && (strNjetsName!=strNjetsNames.at(3) || varname!=varnames.front())){
                 TString tmpname = hnames.back();
                 HelperFunctions::replaceString<TString, TString const>(tmpname, strNjetsName, strNjetsNames.at(3));
                 HelperFunctions::replaceString<TString, TString const>(tmpname, varname, varnames.front());
                 hnames.push_back(tmpname);
-                if (varname==varnames.front()) hlabels.push_back(Form("SB comb., %s, %s", strNjetsTitles.at(3).Data(), strBtaggingRegionTitle.Data()));
+                if (varname==varnames.front()) hlabels.push_back(Form("m_{ll} SB, %s, %s", strNjetsTitles.at(3).Data(), strBtaggingRegionTitle.Data()));
                 else hlabels.push_back("Final corr. w/ p_{T}^{ll}#geq25 GeV");
               }
               finputs.front()->cd();
               for (auto const& hname:hnames){
                 TH1F* htmp = (TH1F*) finputs.front()->Get(hname);
+                if (!htmp){ MELAerr << "makePlots_fcorr: " << hname << " does not exist." << endl; continue; }
                 if (!HelperFunctions::checkHistogramIntegrity(htmp)) MELAerr << "makePlots_fcorr: " << hname << " failed the integrity check!" << endl;
                 htmp->SetTitle(strCutTitle);
+                htmp->GetYaxis()->SetTitle("f_{corr}^{miss}");
                 htmp->SetFillColor(0);
                 htmp->SetLineWidth(2);
                 htmp->SetMarkerSize(1.2);
@@ -1980,7 +2019,8 @@ void makePlots_fcorr(
               coutput_main, lumi, canvasname,
               hplot, hlabels,
               selectionLabels,
-              "e1p", true, 2
+              "e1p", true, 2,
+              (strprocess == "Data")
             );
 
           }
@@ -2010,7 +2050,7 @@ void makePlots(
   size_t const nValidDataPeriods = validDataPeriods.size();
 
   std::vector<TString> const strChannelNames{ "mumu", "ee", "mue", "mue_rewgt_mumu", "mue_rewgt_ee" };
-  std::vector<TString> const strChannelTitles{ "#mu#mu", "ee", "#mue (un-rewgt.)", "#mue (rewgt. #mu#mu)", "#mue (rewgt. ee)" };
+  std::vector<TString> const strChannelTitles{ "#mu#mu", "ee", "e#mu (un-rewgt.)", "e#mu (rewgt. #mu#mu)", "e#mu (rewgt. ee)" };
   const unsigned int nchannels = strChannelNames.size();
 
   std::vector<TString> const strNjetsNames{ "Nj_eq_0", "Nj_eq_1", "Nj_geq_2", "Nj_geq_1", "Nj_geq_0" };
@@ -2018,7 +2058,7 @@ void makePlots(
   const unsigned int nbins_njets = strNjetsNames.size();
 
   std::vector<TString> const strBtaggingRegionNames{ "Nbloose_eq_0", "Nbmed_geq_1" };
-  std::vector<TString> const strBtaggingRegionTitles{ "N_{b}^{loose}=0", "N_{b}^{medium}#geq1" };
+  std::vector<TString> const strBtaggingRegionTitles{ "N_{b}^{loose}=0", "N_{b}^{tight}#geq1" };
   const unsigned int nbins_nbtagged = strBtaggingRegionNames.size();
 
   constexpr float thr_corr_pTmiss = 60;
@@ -2026,7 +2066,7 @@ void makePlots(
   TDirectory* curdir = gDirectory;
 
   TString const cinput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Histograms/" + period;
-  TString const coutput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Plots/" + period;
+  TString const coutput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Plots/" + period + "/Distributions";
   gSystem->mkdir(coutput_main, true);
 
   TString stroutput = coutput_main + Form("/plots_%s", strSyst.Data());

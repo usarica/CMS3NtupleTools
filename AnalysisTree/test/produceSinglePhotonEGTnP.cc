@@ -155,7 +155,7 @@ void getTrees(
   bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false,
   // MET options
   bool use_MET_Puppi=false,
-  bool use_MET_XYCorr=true, bool use_MET_JERCorr=true, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true
+  bool use_MET_XYCorr=true, bool use_MET_JERCorr=false, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true
 ){
   if (!SampleHelpers::checkRunOnCondor()) std::signal(SIGINT, SampleHelpers::setSignalInterrupt);
 

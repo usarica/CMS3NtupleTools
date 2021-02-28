@@ -21,8 +21,7 @@ using namespace SystematicsHelpers;
   BRANCH_COMMAND(float, pTmiss) \
   BRANCH_COMMAND(unsigned int, n_ak4jets_pt30) \
   BRANCH_COMMAND(float, dijet_mass) \
-  BRANCH_COMMAND(unsigned int, n_ak8jets_pt200) \
-  BRANCH_COMMAND(unsigned int, n_ak8jets_pt200_mass140)
+  BRANCH_COMMAND(unsigned int, n_ak8jets_pt200_mass60to130)
 #define BRANCH_VECTOR_COMMANDS
 #define BRANCH_COMMANDS \
   BRANCH_SCALAR_COMMANDS \
@@ -53,7 +52,7 @@ std::vector<TString> getAllowedSysts(cms3_id_t const& dilepton_id_ref){
   return res;
 }
 
-TString getSystDatacardName(TString const& syst){
+TString getSystDatacardName(TString const& syst, cms3_id_t const& dilepton_id_ref){
   if (syst=="Nominal") return syst;
   bool const isDown = syst.Contains("Dn");
   TString systcore = syst;
@@ -67,7 +66,7 @@ TString getSystDatacardName(TString const& syst){
   else if (systcore=="ElectronEff_Syst") res = Form("CMS_eff_syst_e_%s", strSystPerYear.Data());
   else if (systcore=="MuonEff_Stat") res = Form("CMS_eff_stat_mu_%s", strSystPerYear.Data());
   else if (systcore=="MuonEff_Syst") res = Form("CMS_eff_syst_mu_%s", strSystPerYear.Data());
-  else if (systcore=="SidebandEff") res = Form("CMS_stat_NRB_sideband_%s", strSystPerYear.Data());
+  else if (systcore=="SidebandEff") res = Form("CMS_stat_NRB_sideband_%s_%s", (dilepton_id_ref==-121 ? "ee" : "mumu"), strSystPerYear.Data());
   else if (systcore=="TriggerEff_mue") res = Form("CMS_eff_trigger_mue_%s", strSystPerYear.Data());
   else if (systcore=="TriggerEff_mumu") res = Form("CMS_eff_trigger_mumu_%s", strSystPerYear.Data());
   else if (systcore=="TriggerEff_ee") res = Form("CMS_eff_trigger_ee_%s", strSystPerYear.Data());
@@ -90,7 +89,8 @@ void getTemplate_ZZ2L2Nu(
   ACHypothesisHelpers::ACHypothesis AChypo,
   cms3_id_t dilepton_id_ref, 
   TString strSyst,
-  bool includeHadVHCategory
+  bool includeBoostedHadVHCategory,
+  bool includeResolvedHadVHCategory
 ){
   using namespace StatisticsHelpers;
   using namespace PhysicsProcessHelpers;
@@ -100,10 +100,13 @@ void getTemplate_ZZ2L2Nu(
 
   SampleHelpers::configure(period, Form("%s:ZZTo2L2Nu/%s", "store_finaltrees", ntupleVersion.Data()));
 
-  std::vector<TString> strCatNames{ "Nj_eq_0", "Nj_eq_1", "Nj_eq_2" };
-  if (includeHadVHCategory) strCatNames.push_back("HadronicVH");
+  int icat_boostedHadVH = -1;
+  int icat_resolvedHadVH = -1;
+  std::vector<TString> strCatNames{ "Nj_eq_0", "Nj_eq_1", "Nj_geq_2" };
+  if (includeBoostedHadVHCategory){ strCatNames.push_back("BoostedHadVH"); icat_boostedHadVH=strCatNames.size()-1; }
+  if (includeResolvedHadVHCategory){ strCatNames.push_back("ResolvedHadVH"); icat_resolvedHadVH=strCatNames.size()-1; }
   unsigned int const nCats = strCatNames.size();
-  TString const strSystDC = getSystDatacardName(strSyst);
+  TString const strSystDC = getSystDatacardName(strSyst, dilepton_id_ref);
   TString strChannel = (dilepton_id_ref==-121 ? "2e2nu" : "2mu2nu");
 
   // Build process
@@ -146,6 +149,17 @@ void getTemplate_ZZ2L2Nu(
     tin->SetBranchStatus(KDname, 1); tin->SetBranchAddress(KDname, &(KDvals.at(iKD)));
   }
 
+  // Set up output
+  TString const coutput_main = "output/Templates/" + strdate + "/CatScheme_Nj" + (includeBoostedHadVHCategory ? (includeResolvedHadVHCategory ? "_BoostedHadVH_ResolvedHadVH" : "_BoostedHadVH") : (includeResolvedHadVHCategory ? "_ResolvedHadVH" : "")) + "/" + ACHypothesisHelpers::getACHypothesisName(AChypo) + "/" + period;
+  gSystem->mkdir(coutput_main, true);
+
+  TString stroutput_txt = coutput_main + "/" + process_handler.getProcessName() + "_" + strChannel + "_" + strSystDC + ".txt";
+  MELAout.open(stroutput_txt.Data());
+  SampleHelpers::addToCondorTransferList(stroutput_txt);
+
+  TString stroutput_commons = coutput_main + "/" + process_handler.getProcessName() + "_" + strChannel + "_" + strSystDC + "_commons.root";
+  TFile* foutput_common = TFile::Open(stroutput_commons, "recreate");
+
   std::vector<TTree*> tin_split(nCats, nullptr);
   for (unsigned int icat=0; icat<nCats; icat++){
     tin_split.at(icat) = tin->CloneTree(0);
@@ -158,22 +172,17 @@ void getTemplate_ZZ2L2Nu(
 
     if (dilepton_id!=dilepton_id_ref) continue;
 
-    unsigned int const n_ak8jets_pt200_60_140 = n_ak8jets_pt200 - n_ak8jets_pt200_mass140;
-    bool const isMVjj = (n_ak8jets_pt200_60_140>0 || (dijet_mass>=60.f && dijet_mass<140.f && n_ak4jets_pt30>=2));
+    bool const isMVJ = (n_ak8jets_pt200_mass60to130>0);
+    bool const isMVjj = (dijet_mass>=60.f && dijet_mass<130.f && n_ak4jets_pt30>=2);
 
-    if (includeHadVHCategory && isMVjj) tin_split.at(3)->Fill();
-    else if (n_ak4jets_pt30>=2) tin_split.at(2)->Fill();
-    else if (n_ak4jets_pt30==1) tin_split.at(1)->Fill();
-    else tin_split.at(0)->Fill();
+    unsigned int icat=0;
+    if (icat_boostedHadVH>=0 && isMVJ) icat=icat_boostedHadVH;
+    else if (icat_resolvedHadVH>=0 && isMVjj) icat=icat_resolvedHadVH;
+    else if (n_ak4jets_pt30>=2) icat=2;
+    else if (n_ak4jets_pt30==1) icat=1;
+    else icat=0;
+    tin_split.at(icat)->Fill();
   }
-
-  // Set up output
-  TString const coutput_main = "output/Templates/" + strdate + "/" + (includeHadVHCategory ? "CatScheme_Nj_HadVH" : "CatScheme_Nj") + "/" + ACHypothesisHelpers::getACHypothesisName(AChypo) + "/" + period;
-  gSystem->mkdir(coutput_main, true);
-
-  TString stroutput_txt = coutput_main + "/" + process_handler.getProcessName() + "_" + strChannel + "_" + strSystDC + ".txt";
-  MELAout.open(stroutput_txt.Data());
-  SampleHelpers::addToCondorTransferList(stroutput_txt);
 
   for (unsigned int icat=0; icat<nCats; icat++){
     MELAout << "Producing templates for " << strCatNames.at(icat) << ":" << endl;
@@ -196,6 +205,7 @@ void getTemplate_ZZ2L2Nu(
     if (strSyst=="Nominal"){
       hasStatUnc = true;
       TString stroutput_var;
+      // Statistical variations should be correlated between ee and mumu, so there should be no channel name.
       TString proc_chan_cat_syst_indicator = process_handler.getProcessName() + "_" + strCatNames.at(icat) + "_" + period;
       HelperFunctions::replaceString<TString, TString const>(proc_chan_cat_syst_indicator, "2l2nu", "emu");
 
@@ -293,9 +303,10 @@ void getTemplate_ZZ2L2Nu(
         integral_raw = HelperFunctions::getHistogramIntegralAndError(hRaw_nonKD, 0, hRaw_nonKD->GetNbinsX()+1, false, &integralerr_raw);
         double Neff_raw = (integralerr_raw>0. ? std::pow(integral_raw/integralerr_raw, 2) : 1.);
         StatisticsHelpers::getPoissonCountingConfidenceInterval_Frequentist(Neff_raw, VAL_CL_1SIGMA, integral_raw_dn, integral_raw_up);
-        MELAout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << "]" << endl;
         scale_norm_dn = integral_raw_dn/Neff_raw;
         scale_norm_up = integral_raw_up/Neff_raw;
+        MELAout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
+        MELAout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc.: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
       }
       delete hRaw_nonKD;
 
@@ -310,6 +321,7 @@ void getTemplate_ZZ2L2Nu(
         }
         if (hStat_nonKD.front()) hSmooth_combined_1D.push_back(hStat_nonKD.front());
         if (hStat_nonKD.back()) hSmooth_combined_1D.push_back(hStat_nonKD.back());
+        // Do not clean up non-KD histograms
       } // End nKDs=0
       else if (nVars_KD==1){
         //TH1F* hRaw_KD=nullptr;
@@ -334,8 +346,8 @@ void getTemplate_ZZ2L2Nu(
           if (istat<=2){ hh_nonKD=hSmooth_nonKD; hh_KD=hSmooth_KD; }
           else if (istat==3){ hh_nonKD=hStat_nonKD.front(); hh_KD=hSmooth_KD; }
           else if (istat==4){ hh_nonKD=hStat_nonKD.back(); hh_KD=hSmooth_KD; }
-          else if (istat==5){ hh_nonKD=hSmooth_nonKD; hh_KD=hSmooth_KD; }
-          else if (istat==6){ hh_nonKD=hSmooth_nonKD; hh_KD=hSmooth_KD; }
+          else if (istat==5){ hh_nonKD=hSmooth_nonKD; hh_KD=hStat_KD.front(); }
+          else if (istat==6){ hh_nonKD=hSmooth_nonKD; hh_KD=hStat_KD.back(); }
 
           if (!hh_nonKD || !hh_KD) continue;
 
@@ -355,6 +367,12 @@ void getTemplate_ZZ2L2Nu(
           else if (istat==2) hSmooth_combined->Scale(scale_norm_up);
           hSmooth_combined_2D.push_back(hSmooth_combined);
         }
+
+        // Cleanup
+        delete hSmooth_KD;
+        for (auto& hh:hStat_KD) delete hh;
+        delete hSmooth_nonKD;
+        for (auto& hh:hStat_nonKD) delete hh;
       } // End nKDs=1
       else if (nVars_KD==2){
         //TH2F* hRaw_KD=nullptr;
@@ -380,8 +398,8 @@ void getTemplate_ZZ2L2Nu(
           if (istat<=2){ hh_nonKD=hSmooth_nonKD; hh_KD=hSmooth_KD; }
           else if (istat==3){ hh_nonKD=hStat_nonKD.front(); hh_KD=hSmooth_KD; }
           else if (istat==4){ hh_nonKD=hStat_nonKD.back(); hh_KD=hSmooth_KD; }
-          else if (istat==5){ hh_nonKD=hSmooth_nonKD; hh_KD=hSmooth_KD; }
-          else if (istat==6){ hh_nonKD=hSmooth_nonKD; hh_KD=hSmooth_KD; }
+          else if (istat==5){ hh_nonKD=hSmooth_nonKD; hh_KD=hStat_KD.front(); }
+          else if (istat==6){ hh_nonKD=hSmooth_nonKD; hh_KD=hStat_KD.back(); }
 
           if (!hh_nonKD || !hh_KD) continue;
 
@@ -404,6 +422,12 @@ void getTemplate_ZZ2L2Nu(
           else if (istat==2) hSmooth_combined->Scale(scale_norm_up);
           hSmooth_combined_3D.push_back(hSmooth_combined);
         }
+
+        // Cleanup
+        delete hSmooth_KD;
+        for (auto& hh:hStat_KD) delete hh;
+        delete hSmooth_nonKD;
+        for (auto& hh:hStat_nonKD) delete hh;
       } // End nKDs=2
     } // End non-KD = 1
     else if (nVars_nonKD==2){
@@ -426,9 +450,10 @@ void getTemplate_ZZ2L2Nu(
         integral_raw = HelperFunctions::getHistogramIntegralAndError(hRaw_nonKD, 0, hRaw_nonKD->GetNbinsX()+1, 0, hRaw_nonKD->GetNbinsY()+1, false, &integralerr_raw);
         double Neff_raw = (integralerr_raw>0. ? std::pow(integral_raw/integralerr_raw, 2) : 1.);
         StatisticsHelpers::getPoissonCountingConfidenceInterval_Frequentist(Neff_raw, VAL_CL_1SIGMA, integral_raw_dn, integral_raw_up);
-        MELAout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << "]" << endl;
         scale_norm_dn = integral_raw_dn/Neff_raw;
         scale_norm_up = integral_raw_up/Neff_raw;
+        MELAout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
+        MELAout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc.: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
       }
       delete hRaw_nonKD;
 
@@ -443,6 +468,7 @@ void getTemplate_ZZ2L2Nu(
         }
         if (hStat_nonKD.front()) hSmooth_combined_2D.push_back(hStat_nonKD.front());
         if (hStat_nonKD.back()) hSmooth_combined_2D.push_back(hStat_nonKD.back());
+        // Do not cleanup non-KD histograms
       } // End nKDs=0
       else if (nVars_KD==1){
         //TH1F* hRaw_KD=nullptr;
@@ -467,8 +493,8 @@ void getTemplate_ZZ2L2Nu(
           if (istat<=2){ hh_nonKD=hSmooth_nonKD; hh_KD=hSmooth_KD; }
           else if (istat==3){ hh_nonKD=hStat_nonKD.front(); hh_KD=hSmooth_KD; }
           else if (istat==4){ hh_nonKD=hStat_nonKD.back(); hh_KD=hSmooth_KD; }
-          else if (istat==5){ hh_nonKD=hSmooth_nonKD; hh_KD=hSmooth_KD; }
-          else if (istat==6){ hh_nonKD=hSmooth_nonKD; hh_KD=hSmooth_KD; }
+          else if (istat==5){ hh_nonKD=hSmooth_nonKD; hh_KD=hStat_KD.front(); }
+          else if (istat==6){ hh_nonKD=hSmooth_nonKD; hh_KD=hStat_KD.back(); }
 
           if (!hh_nonKD || !hh_KD) continue;
 
@@ -491,6 +517,12 @@ void getTemplate_ZZ2L2Nu(
           else if (istat==2) hSmooth_combined->Scale(scale_norm_up);
           hSmooth_combined_3D.push_back(hSmooth_combined);
         }
+
+        // Cleanup
+        delete hSmooth_KD;
+        for (auto& hh:hStat_KD) delete hh;
+        delete hSmooth_nonKD;
+        for (auto& hh:hStat_nonKD) delete hh;
       } // End nKDs=1
     } // End non-KD = 2
 
@@ -510,6 +542,7 @@ void getTemplate_ZZ2L2Nu(
         }
         TemplateHelpers::doTemplatePostprocessing(hSmooth_1D);
         foutputs.at(istat)->WriteTObject(hSmooth_1D);
+        delete hSmooth_1D;
       }
       if (hSmooth_2D){
         hSmooth_2D->SetName(process_handler.getTemplateName());
@@ -520,6 +553,7 @@ void getTemplate_ZZ2L2Nu(
         }
         TemplateHelpers::doTemplatePostprocessing(hSmooth_2D);
         foutputs.at(istat)->WriteTObject(hSmooth_2D);
+        delete hSmooth_2D;
       }
       if (hSmooth_3D){
         hSmooth_3D->SetName(process_handler.getTemplateName());
@@ -530,6 +564,7 @@ void getTemplate_ZZ2L2Nu(
         }
         TemplateHelpers::doTemplatePostprocessing(hSmooth_3D);
         foutputs.at(istat)->WriteTObject(hSmooth_3D);
+        delete hSmooth_3D;
       }
     }
 
@@ -538,6 +573,7 @@ void getTemplate_ZZ2L2Nu(
     delete tin_cat;
   }
 
+  foutput_common->Close();
   MELAout.close();
   finput->Close();
 
@@ -548,3 +584,20 @@ void getTemplate_ZZ2L2Nu(
 #undef BRANCH_COMMANDS
 #undef BRANCH_VECTOR_COMMANDS
 #undef BRANCH_SCALAR_COMMANDS
+
+
+void runTemplateChain(TString period, TString ntupleVersion, TString strdate, bool includeBoostedHadVHCategory, bool includeResolvedHadVHCategory){
+  SampleHelpers::configure(period, Form("%s:ZZTo2L2Nu/%s", "store_finaltrees", ntupleVersion.Data()));
+
+  std::vector<cms3_id_t> const dilepton_ids{ -121, -169 };
+  for (auto const& dilepton_id:dilepton_ids){
+    for (auto const& syst:getAllowedSysts(dilepton_id)){
+      for (int iac=0; iac<(int) ACHypothesisHelpers::nACHypotheses; iac++) getTemplate_ZZ2L2Nu(
+        period, ntupleVersion, strdate,
+        static_cast<ACHypothesisHelpers::ACHypothesis>(iac),
+        dilepton_id, syst,
+        includeBoostedHadVHCategory, includeResolvedHadVHCategory
+      );
+    }
+  }
+}

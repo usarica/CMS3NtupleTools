@@ -38,6 +38,7 @@ namespace PhysicsProcessHelpers{
     PhysicsProcessType const& getProcessType() const{ return this->proctype; }
     ACHypothesisHelpers::DecayType const& getProcessDecayType() const{ return this->dktype; }
     TString const& getProcessName() const{ return this->procname; }
+    void setProcessName(TString const& procname_){ this->procname=procname_; }
 
     virtual float getProcessScale() const{ return 1; }
     virtual void imposeTplPhysicality(std::vector<float>& vals, bool robust=false) const;
