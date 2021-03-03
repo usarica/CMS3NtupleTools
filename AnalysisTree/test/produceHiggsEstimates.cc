@@ -1324,7 +1324,7 @@ double EvalSystHistogram(TH1F* hist, float const& xvar){
 
   const int nbinsx = hist->GetNbinsX();
   int ibin = hist->GetXaxis()->FindBin(xvar);
-  if (ibin<1) ibin = 0;
+  if (ibin<1) ibin = 1;
   else if (ibin>nbinsx) ibin = nbinsx;
 
   return hist->GetBinContent(ibin);
@@ -1334,12 +1334,12 @@ double EvalSystHistogram(TH2F* hist, float const& xvar, float const& yvar){
 
   const int nbinsx = hist->GetNbinsX();
   int ibin = hist->GetXaxis()->FindBin(xvar);
-  if (ibin<1) ibin = 0;
+  if (ibin<1) ibin = 1;
   else if (ibin>nbinsx) ibin = nbinsx;
 
   const int nbinsy = hist->GetNbinsY();
   int jbin = hist->GetYaxis()->FindBin(yvar);
-  if (jbin<1) jbin = 0;
+  if (jbin<1) jbin = 1;
   else if (jbin>nbinsy) jbin = nbinsy;
 
   return hist->GetBinContent(ibin, jbin);
@@ -1349,17 +1349,17 @@ double EvalSystHistogram(TH3F* hist, float const& xvar, float const& yvar, float
 
   const int nbinsx = hist->GetNbinsX();
   int ibin = hist->GetXaxis()->FindBin(xvar);
-  if (ibin<1) ibin = 0;
+  if (ibin<1) ibin = 1;
   else if (ibin>nbinsx) ibin = nbinsx;
 
   const int nbinsy = hist->GetNbinsY();
   int jbin = hist->GetYaxis()->FindBin(yvar);
-  if (jbin<1) jbin = 0;
+  if (jbin<1) jbin = 1;
   else if (jbin>nbinsy) jbin = nbinsy;
 
   const int nbinz = hist->GetNbinsZ();
   int kbin = hist->GetZaxis()->FindBin(zvar);
-  if (kbin<1) kbin = 0;
+  if (kbin<1) kbin = 1;
   else if (kbin>nbinz) kbin = nbinz;
 
   return hist->GetBinContent(ibin, jbin, kbin);
@@ -1464,15 +1464,17 @@ void getTrees_ZZTo2L2Nu(
       tPDFScaleDn, tPDFScaleUp,
       tQCDScaleDn, tQCDScaleUp,
       tAsMZDn, tAsMZUp,
-      tPDFReplicaDn, tPDFReplicaUp,
-      tPythiaScaleDn, tPythiaScaleUp
+      tPDFReplicaDn, tPDFReplicaUp
     };
 #if _USE_GENJETS_SYST_==1
-    std::vector<SystematicVariationTypes> const allowedSysts_2D;
+    std::vector<SystematicVariationTypes> const allowedSysts_2D{
+      tPythiaScaleDn, tPythiaScaleUp
+    };
     std::vector<SystematicVariationTypes> const allowedSysts_3D{
 #else
     std::vector<SystematicVariationTypes> const allowedSysts_3D;
     std::vector<SystematicVariationTypes> const allowedSysts_2D{
+      tPythiaScaleDn, tPythiaScaleUp,
 #endif
       tPythiaTuneDn, tPythiaTuneUp,
       tHardJetsDn, tHardJetsUp
@@ -1504,13 +1506,13 @@ void getTrees_ZZTo2L2Nu(
         TH2F* htmp = (TH2F*) finput_syst->Get("h_ratio");
         foutput->cd();
         h_ratio_syst_2D = (TH2F*) htmp->Clone(htmp->GetName());
-        if (h_ratio_syst_2D) MELAout << "\t- A 1D reweighting histogram " << h_ratio_syst_2D->GetName() << " is found." << endl;
+        if (h_ratio_syst_2D) MELAout << "\t- A 2D reweighting histogram " << h_ratio_syst_2D->GetName() << " is found." << endl;
       }
       else if (HelperFunctions::checkListVariable(allowedSysts_3D, theGlobalSyst)){
         TH3F* htmp = (TH3F*) finput_syst->Get("h_ratio");
         foutput->cd();
         h_ratio_syst_3D = (TH3F*) htmp->Clone(htmp->GetName());
-        if (h_ratio_syst_3D) MELAout << "\t- A 1D reweighting histogram " << h_ratio_syst_3D->GetName() << " is found." << endl;
+        if (h_ratio_syst_3D) MELAout << "\t- A 3D reweighting histogram " << h_ratio_syst_3D->GetName() << " is found." << endl;
       }
       finput_syst->Close();
       if (!h_ratio_syst_1D && !h_ratio_syst_2D && !h_ratio_syst_3D){
@@ -1930,9 +1932,10 @@ void getTrees_ZZTo2L2Nu(
         ) syst_corr = EvalSystHistogram(h_ratio_syst_1D, *inptr_lheHiggs_mass);
       else if (
         inptr_lheHiggs_mass && inptr_genpromptparticles_sump4_pt
+        && inptr_genak4jets_pt
         &&
         (theGlobalSyst==tPythiaScaleDn || theGlobalSyst==tPythiaScaleUp)
-        ) syst_corr = EvalSystHistogram(h_ratio_syst_1D, *inptr_genpromptparticles_sump4_pt / *inptr_lheHiggs_mass);
+        ) syst_corr = EvalSystHistogram(h_ratio_syst_2D, (*inptr_genak4jets_pt)->size(), *inptr_genpromptparticles_sump4_pt / *inptr_lheHiggs_mass);
       else if (
         inptr_lheHiggs_mass && inptr_genpromptparticles_sump4_pt
 #if _USE_GENJETS_SYST_==1
@@ -1957,7 +1960,6 @@ void getTrees_ZZTo2L2Nu(
 #else
         ) syst_corr = EvalSystHistogram(h_ratio_syst_2D, *inptr_lheHiggs_mass, *inptr_lheHiggs_pt / *inptr_lheHiggs_mass);
 #endif
-
 
       *ptr_event_wgt_SFs_PUJetId = std::min(*ptr_event_wgt_SFs_PUJetId, 3.f);
       float wgt =
@@ -2076,6 +2078,7 @@ void getTrees_ZZTo2L2Nu(
         tout->resetBranches();
       }
     }
+    MELAout << "Accumulated " << tout->getNEvents() << " events." << endl;
 
     curdir->cd();
   }

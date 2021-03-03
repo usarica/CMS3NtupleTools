@@ -150,6 +150,29 @@ namespace PhysicsProcessHelpers{
     res->Reset("ICES");
     for (unsigned int i=0; i<coeffs.size(); i++) res->Add(vals.at(i), coeffs.at(i));
   }
+  template<> void GGProcessHandler::getHypothesisHistogramFromTemplates<float>(float& res, std::vector<float> const& vals, ACHypothesisHelpers::ACHypothesis hypo, float scaleBkg, float scaleSig, float scaleBSM) const{
+    if (vals.empty()) return;
+    std::vector<float> coeffs;
+    if (hypo==ACHypothesisHelpers::kSM){
+      assert(vals.size()==nGGSMTypes);
+      coeffs.reserve(vals.size());
+      coeffs.push_back(scaleBkg);
+      coeffs.push_back(scaleSig);
+      coeffs.push_back(sqrt(scaleBkg*scaleSig));
+    }
+    else{
+      assert(vals.size()==nGGTypes);
+      coeffs.push_back(scaleBkg);
+      coeffs.push_back(scaleSig);
+      coeffs.push_back(sqrt(scaleBkg*scaleSig));
+      coeffs.push_back(scaleBSM);
+      coeffs.push_back(sqrt(scaleSig*scaleBSM));
+      coeffs.push_back(sqrt(scaleBkg*scaleBSM));
+    }
+    assert(coeffs.size()==vals.size());
+    res = 0;
+    for (unsigned int i=0; i<coeffs.size(); i++) res += vals.at(i) * coeffs.at(i);
+  }
   template void GGProcessHandler::getHypothesisHistogramFromTemplates<TH1F*>(TH1F*& res, std::vector<TH1F*> const& vals, ACHypothesisHelpers::ACHypothesis hypo, float scaleBkg, float scaleSig, float scaleBSM) const;
   template void GGProcessHandler::getHypothesisHistogramFromTemplates<TH2F*>(TH2F*& res, std::vector<TH2F*> const& vals, ACHypothesisHelpers::ACHypothesis hypo, float scaleBkg, float scaleSig, float scaleBSM) const;
   template void GGProcessHandler::getHypothesisHistogramFromTemplates<TH3F*>(TH3F*& res, std::vector<TH3F*> const& vals, ACHypothesisHelpers::ACHypothesis hypo, float scaleBkg, float scaleSig, float scaleBSM) const;
@@ -304,6 +327,35 @@ namespace PhysicsProcessHelpers{
     res->Reset("ICES");
     for (unsigned int i=0; i<coeffs.size(); i++) res->Add(vals.at(i), coeffs.at(i));
   }
+  template<> void VVProcessHandler::getHypothesisHistogramFromTemplates<float>(float& res, std::vector<float> const& vals, ACHypothesisHelpers::ACHypothesis hypo, float scaleBkg, float scaleSig, float scaleBSM) const{
+    if (vals.empty()) return;
+    std::vector<float> coeffs;
+    if (hypo==ACHypothesisHelpers::kSM){
+      assert(vals.size()==nVVSMTypes);
+      coeffs.reserve(vals.size());
+      coeffs.push_back(scaleBkg);
+      coeffs.push_back(scaleSig);
+      coeffs.push_back(sqrt(scaleBkg*scaleSig));
+    }
+    else{
+      assert(vals.size()==nVVTypes);
+
+      coeffs.push_back(scaleBkg);
+      coeffs.push_back(scaleSig);
+      coeffs.push_back(sqrt(scaleBkg*scaleSig));
+
+      coeffs.push_back(scaleBSM);
+      coeffs.push_back(pow(scaleSig, 0.75)*pow(scaleBSM, 0.25));
+      coeffs.push_back(pow(scaleSig, 0.5)*pow(scaleBSM, 0.5));
+      coeffs.push_back(pow(scaleSig, 0.25)*pow(scaleBSM, 0.75));
+
+      coeffs.push_back(pow(scaleBkg, 0.5)*pow(scaleSig*scaleBSM, 0.25));
+      coeffs.push_back(pow(scaleBkg, 0.5)*pow(scaleBSM, 0.5));
+    }
+    assert(coeffs.size()==vals.size());
+    res = 0;
+    for (unsigned int i=0; i<coeffs.size(); i++) res += vals.at(i) * coeffs.at(i);
+  }
   template void VVProcessHandler::getHypothesisHistogramFromTemplates<TH1F*>(TH1F*& res, std::vector<TH1F*> const& vals, ACHypothesisHelpers::ACHypothesis hypo, float scaleBkg, float scaleSig, float scaleBSM) const;
   template void VVProcessHandler::getHypothesisHistogramFromTemplates<TH2F*>(TH2F*& res, std::vector<TH2F*> const& vals, ACHypothesisHelpers::ACHypothesis hypo, float scaleBkg, float scaleSig, float scaleBSM) const;
   template void VVProcessHandler::getHypothesisHistogramFromTemplates<TH3F*>(TH3F*& res, std::vector<TH3F*> const& vals, ACHypothesisHelpers::ACHypothesis hypo, float scaleBkg, float scaleSig, float scaleBSM) const;
@@ -452,6 +504,29 @@ namespace PhysicsProcessHelpers{
     res->Reset("ICES");
     for (unsigned int i=0; i<coeffs.size(); i++) res->Add(vals.at(i), coeffs.at(i));
   }
+  template<> void TTProcessHandler::getHypothesisHistogramFromTemplates<float>(float& res, std::vector<float> const& vals, ACHypothesisHelpers::ACHypothesis hypo, float scaleBkg, float scaleSig, float scaleBSM) const{
+    if (vals.empty()) return;
+    std::vector<float> coeffs;
+    if (hypo==ACHypothesisHelpers::kSM){
+      assert(vals.size()==nTTSMTypes);
+      coeffs.reserve(vals.size());
+      coeffs.push_back(scaleBkg);
+      coeffs.push_back(scaleSig);
+      coeffs.push_back(sqrt(scaleBkg*scaleSig));
+    }
+    else{
+      assert(vals.size()==nTTTypes);
+      coeffs.push_back(scaleBkg);
+      coeffs.push_back(scaleSig);
+      coeffs.push_back(sqrt(scaleBkg*scaleSig));
+      coeffs.push_back(scaleBSM);
+      coeffs.push_back(sqrt(scaleSig*scaleBSM));
+      coeffs.push_back(sqrt(scaleBkg*scaleBSM));
+    }
+    assert(coeffs.size()==vals.size());
+    res = 0;
+    for (unsigned int i=0; i<coeffs.size(); i++) res += vals.at(i) * coeffs.at(i);
+  }
   template void TTProcessHandler::getHypothesisHistogramFromTemplates<TH1F*>(TH1F*& res, std::vector<TH1F*> const& vals, ACHypothesisHelpers::ACHypothesis hypo, float scaleBkg, float scaleSig, float scaleBSM) const;
   template void TTProcessHandler::getHypothesisHistogramFromTemplates<TH2F*>(TH2F*& res, std::vector<TH2F*> const& vals, ACHypothesisHelpers::ACHypothesis hypo, float scaleBkg, float scaleSig, float scaleBSM) const;
   template void TTProcessHandler::getHypothesisHistogramFromTemplates<TH3F*>(TH3F*& res, std::vector<TH3F*> const& vals, ACHypothesisHelpers::ACHypothesis hypo, float scaleBkg, float scaleSig, float scaleBSM) const;
@@ -580,6 +655,29 @@ namespace PhysicsProcessHelpers{
     assert(coeffs.size()==vals.size());
     res->Reset("ICES");
     for (unsigned int i=0; i<coeffs.size(); i++) res->Add(vals.at(i), coeffs.at(i));
+  }
+  template<> void BBProcessHandler::getHypothesisHistogramFromTemplates<float>(float& res, std::vector<float> const& vals, ACHypothesisHelpers::ACHypothesis hypo, float scaleBkg, float scaleSig, float scaleBSM) const{
+    if (vals.empty()) return;
+    std::vector<float> coeffs;
+    if (hypo==ACHypothesisHelpers::kSM){
+      assert(vals.size()==nBBSMTypes);
+      coeffs.reserve(vals.size());
+      coeffs.push_back(scaleBkg);
+      coeffs.push_back(scaleSig);
+      coeffs.push_back(sqrt(scaleBkg*scaleSig));
+    }
+    else{
+      assert(vals.size()==nBBTypes);
+      coeffs.push_back(scaleBkg);
+      coeffs.push_back(scaleSig);
+      coeffs.push_back(sqrt(scaleBkg*scaleSig));
+      coeffs.push_back(scaleBSM);
+      coeffs.push_back(sqrt(scaleSig*scaleBSM));
+      coeffs.push_back(sqrt(scaleBkg*scaleBSM));
+    }
+    assert(coeffs.size()==vals.size());
+    res = 0;
+    for (unsigned int i=0; i<coeffs.size(); i++) res += vals.at(i) * coeffs.at(i);
   }
   template void BBProcessHandler::getHypothesisHistogramFromTemplates<TH1F*>(TH1F*& res, std::vector<TH1F*> const& vals, ACHypothesisHelpers::ACHypothesis hypo, float scaleBkg, float scaleSig, float scaleBSM) const;
   template void BBProcessHandler::getHypothesisHistogramFromTemplates<TH2F*>(TH2F*& res, std::vector<TH2F*> const& vals, ACHypothesisHelpers::ACHypothesis hypo, float scaleBkg, float scaleSig, float scaleBSM) const;

@@ -23,6 +23,7 @@ systs=(
     tAsMZDn tAsMZUp \
     tPDFReplicaDn tPDFReplicaUp \
     tPythiaScaleDn tPythiaScaleUp \
+    tPythiaTuneDn tPythiaTuneUp \
     ePhoEffDn ePhoEffUp \
     eMETDn eMETUp \
     eJECDn eJECUp \

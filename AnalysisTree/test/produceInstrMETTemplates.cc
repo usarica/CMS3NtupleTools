@@ -71,6 +71,14 @@ std::vector<std::pair<TString, TString>> getAllowedSysts(TString const& strSampl
       ePUJetIdEffDn, ePUJetIdEffUp,
       eBTagSFDn, eBTagSFUp,
 
+      eEleEffStatDn, eEleEffStatUp,
+      eEleEffSystDn, eEleEffSystUp,
+      eEleEffAltMCDn, eEleEffAltMCUp,
+
+      eMuEffStatDn, eMuEffStatUp,
+      eMuEffSystDn, eMuEffSystUp,
+      eMuEffAltMCDn, eMuEffAltMCUp,
+
       ePhoEffDn, ePhoEffUp,
       eTriggerEffDn, eTriggerEffUp
     };

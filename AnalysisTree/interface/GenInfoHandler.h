@@ -24,7 +24,8 @@ protected:
   bool acquireGenParticles;
   bool acquireGenAK4Jets;
   bool acquireGenAK8Jets;
-  bool doGenJetsVDecayCleaning; // Requires LHE particles
+  bool doGenJetsCleaning; // Needs gen. particles and LHE taus
+  bool doGenJetsVDecayCleaning; // Needs LHE particles
   bool allowLargeGenWeightRemoval;
 
   SampleHelpers::GenWeightExceptionType genWeightException;
@@ -71,6 +72,7 @@ public:
   void setAcquireGenParticles(bool flag){ acquireGenParticles=flag; }
   void setAcquireGenAK4Jets(bool flag){ acquireGenAK4Jets=flag; }
   void setAcquireGenAK8Jets(bool flag){ acquireGenAK8Jets=flag; }
+  void setDoGenJetsCleaning(bool flag){ doGenJetsCleaning=flag; }
   void setDoGenJetsVDecayCleaning(bool flag){ doGenJetsVDecayCleaning=flag; }
   void setAllowLargeGenWeightRemoval(bool flag){ allowLargeGenWeightRemoval=flag; }
 

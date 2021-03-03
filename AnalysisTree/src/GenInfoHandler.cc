@@ -1,6 +1,7 @@
 #include <cassert>
 
 #include <CMS3/Dictionaries/interface/GlobalCollectionNames.h>
+#include "ParticleObjectHelpers.h"
 
 #include "SamplesCore.h"
 #include "HelperFunctions.h"
@@ -27,6 +28,7 @@ GenInfoHandler::GenInfoHandler() :
   acquireGenParticles(true),
   acquireGenAK4Jets(false),
   acquireGenAK8Jets(false),
+  doGenJetsCleaning(true),
   doGenJetsVDecayCleaning(false),
   allowLargeGenWeightRemoval(false),
 
@@ -341,6 +343,8 @@ bool GenInfoHandler::constructGenAK4Jets(){
 #undef GENJET_VARIABLE
     }
   }
+  // Sort particles
+  ParticleObjectHelpers::sortByGreaterPt(genak4jets);
 
   return true;
 }
@@ -385,12 +389,15 @@ bool GenInfoHandler::constructGenAK8Jets(){
 #undef GENJET_VARIABLE
     }
   }
+  // Sort particles
+  ParticleObjectHelpers::sortByGreaterPt(genak8jets);
 
   return true;
 }
 
 bool GenInfoHandler::applyGenJetCleaning(){
   if (!acquireGenAK4Jets && !acquireGenAK8Jets) return true;
+  if (!doGenJetsCleaning) return true;
 
   std::vector<ParticleObject*> cleaningparticles; cleaningparticles.reserve(genparticles.size());
   // Accumulate all prompt leptons or hard-process taus
@@ -403,7 +410,7 @@ bool GenInfoHandler::applyGenJetCleaning(){
       (extras.isHardProcess && std::abs(part_id)==15)
       ) cleaningparticles.push_back(part);
   }
-  // Accumulate all V-.qq decays from LHE level
+  // Accumulate all V->qq decays from LHE level
   if (doGenJetsVDecayCleaning){
     for (auto const& part:lheparticles){
       cms3_id_t const& part_id = part->pdgId();

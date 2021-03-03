@@ -81,6 +81,7 @@ std::vector<SystematicsHelpers::SystematicVariationTypes> getAllowedSysts(TStrin
     tAsMZDn, tAsMZUp,
     tPDFReplicaDn, tPDFReplicaUp,
     tPythiaScaleDn, tPythiaScaleUp,
+    tPythiaTuneDn, tPythiaTuneUp,
 
     ePhoEffDn, ePhoEffUp,
 

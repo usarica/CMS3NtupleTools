@@ -145,6 +145,7 @@ std::string SystematicsHelpers::getSystName(SystematicsHelpers::SystematicVariat
 }
 std::string SystematicsHelpers::getSystDatacardCoreName(SystematicsHelpers::SystematicVariationTypes const& type, TString const& proc_syst_indicator){
   TString strSystPerYear = Form("%sTeV_%s", SampleHelpers::getSqrtsString().Data(), SampleHelpers::getDataPeriod().Data());
+  TString strSyst = Form("%sTeV", SampleHelpers::getSqrtsString().Data());
 
   switch (type){
   case sNominal:
@@ -186,7 +187,7 @@ std::string SystematicsHelpers::getSystDatacardCoreName(SystematicsHelpers::Syst
     return Form("CMS_eff_syst_e_%s", strSystPerYear.Data());
   case eEleEffAltMCDn:
   case eEleEffAltMCUp:
-    return Form("CMS_eff_altMC_e_%s", strSystPerYear.Data());
+    return Form("CMS_eff_altMC_e_%s", strSyst.Data());
   case eEleScaleDn:
   case eEleScaleUp:
     return Form("CMS_scale_e_%s", strSystPerYear.Data());
@@ -205,7 +206,7 @@ std::string SystematicsHelpers::getSystDatacardCoreName(SystematicsHelpers::Syst
     return Form("CMS_eff_syst_mu_%s", strSystPerYear.Data());
   case eMuEffAltMCDn:
   case eMuEffAltMCUp:
-    return Form("CMS_eff_altMC_mu_%s", strSystPerYear.Data());
+    return Form("CMS_eff_altMC_mu_%s", strSyst.Data());
   case eMuScaleDn:
   case eMuScaleUp:
     return Form("CMS_scale_mu_%s", strSystPerYear.Data());

@@ -223,7 +223,7 @@ void getTrees_ZZTo2L2Nu(
   for (unsigned short icat=0; icat<nCats; icat++){
     TString stroutput = coutput_main + "/" + getDatacardFileName(strChannel, strCatNames.at(icat));
     TFile* foutput = TFile::Open(stroutput, "recreate");
-    transfer_list.push_back(nCats);
+    transfer_list.push_back(stroutput);
     foutputs.push_back(foutput);
 
     foutput->cd();
@@ -367,6 +367,8 @@ void getTrees_ZZTo2L2Nu(
 #undef BRANCH_VECTOR_COMMANDS
 #undef BRANCH_SCALAR_COMMANDS
 
+
+using namespace ACHypothesisHelpers;
 // period: The data period (i.e. "[year]")
 // prodVersion: SkimTrees directory version (e.g. "201221_[year]")
 // ntupleVersion: Version of trimmed DileptonEvents ntuples, which is separate from the SkimTrees version (e.g. "210107").
