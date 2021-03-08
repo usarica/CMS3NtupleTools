@@ -84,6 +84,14 @@ std::vector<std::pair<TString, TString>> getAllowedSysts(TString const& strSampl
     };
     if (SampleHelpers::getDataYear()==2016 || SampleHelpers::getDataYear()==2017) HelperFunctions::appendVector(systs, std::vector<SystematicVariationTypes>{ eL1PrefiringDn, eL1PrefiringUp });
 
+    if (strSampleSet.Contains("ZG")) HelperFunctions::appendVector(
+      res,
+      std::vector<std::pair<TString, TString>>{
+        { "ZGScaleFactorDn", Form("CMS_llGnorm_ZG_%sDown", strSystPerYear.Data()) },
+        { "ZGScaleFactorUp", Form("CMS_llGnorm_ZG_%sUp", strSystPerYear.Data()) }
+      }
+    );
+
     for (auto const& syst:systs){
       TString systName = SystematicsHelpers::getSystCoreName(syst);
 
@@ -117,7 +125,6 @@ std::vector<std::pair<TString, TString>> getAllowedSysts(TString const& strSampl
     }
   }
   else if (strSampleSet=="SingleElectron"){
-    TString strSystPerYear = Form("%sTeV_%s", SampleHelpers::getSqrtsString().Data(), SampleHelpers::getDataPeriod().Data());
     HelperFunctions::appendVector(
       res,
       std::vector<std::pair<TString, TString>>{
@@ -339,7 +346,11 @@ void getTemplateIntermediate_ZZ2L2Nu(
     else if (icat==2) prod_type = ACHypothesisHelpers::kVBF;
     else prod_type = ACHypothesisHelpers::kHadVH;
 
-    TString stroutput = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), strIntermediateProcName, strSystDC);
+    // Hack syst name to introduce category indicator
+    TString strSystDCcat = strSystDC;
+    if (strSystDC.Contains("llGnorm_ZG")) HelperFunctions::replaceString<TString, TString const>(strSystDCcat, "llGnorm_ZG", Form("llGnorm_ZG_%s", strCatNames.at(icat).Data()));
+
+    TString stroutput = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), strIntermediateProcName, strSystDCcat);
     std::vector<TFile*> foutputs; foutputs.reserve(9);
     foutputs.push_back(TFile::Open(stroutput, "recreate"));
     SampleHelpers::addToCondorTransferList(stroutput);
