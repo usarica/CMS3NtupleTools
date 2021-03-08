@@ -871,9 +871,9 @@ bool CMS3Ntuplizer::recordGenJets(edm::Event const& iEvent, bool const& isFatJet
   std::string strColName = (!isFatJet ? "genak4jets" : "genak8jets");
   const char* colName = strColName.data();
   edm::Handle< edm::View<reco::GenJet> > genJetsHandle;
-  iEvent.getByToken((isFatJet ? genAK4JetsToken : genAK8JetsToken), genJetsHandle);
+  iEvent.getByToken((!isFatJet ? genAK4JetsToken : genAK8JetsToken), genJetsHandle);
   if (!genJetsHandle.isValid()){
-    edm::LogError("BuggyGenJets") << "CMS3Ntuplizer::recordGenJets: Error getting the gen. " << (isFatJet ? "ak4" : "ak8") << " jets from the event...";
+    edm::LogError("BuggyGenJets") << "CMS3Ntuplizer::recordGenJets: Error getting the gen. " << (!isFatJet ? "ak4" : "ak8") << " jets from the event...";
     return false;
   }
 
