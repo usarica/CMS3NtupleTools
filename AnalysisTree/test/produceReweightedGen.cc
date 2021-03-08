@@ -5,6 +5,32 @@
 #include "TStyle.h"
 
 
+// Recorded variables
+#define BRANCH_SCALAR_COMMANDS \
+  BRANCH_COMMAND(float, event_wgt) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_NNPDF30) \
+  BRANCH_COMMAND(bool, invalidReweightingWgts) \
+  BRANCH_COMMAND(float, sample_wgt) \
+  BRANCH_COMMAND(float, lheHiggs_pt) \
+  BRANCH_COMMAND(float, lheLeptonicDecay_pt) \
+  BRANCH_COMMAND(float, lheLeptonicDecay_mass) \
+  BRANCH_COMMAND(float, genLeptonicDecay_pt) \
+  BRANCH_COMMAND(float, genLeptonicDecay_mass)
+#define BRANCH_VECTOR_COMMANDS \
+  BRANCH_COMMAND(cms3_id_t, genparticles_id) \
+  BRANCH_COMMAND(float, genparticles_pt) \
+  BRANCH_COMMAND(float, genparticles_eta) \
+  BRANCH_COMMAND(float, genparticles_phi) \
+  BRANCH_COMMAND(float, genparticles_mass) \
+  BRANCH_COMMAND(float, genak4jets_pt) \
+  BRANCH_COMMAND(float, genak4jets_eta) \
+  BRANCH_COMMAND(float, genak4jets_phi) \
+  BRANCH_COMMAND(float, genak4jets_mass)
+#define BRANCH_COMMANDS \
+  BRANCH_SCALAR_COMMANDS \
+  BRANCH_VECTOR_COMMANDS
+
+
 namespace LooperFunctionHelpers{
   using namespace std;
   using namespace MELAStreamHelpers;
@@ -43,31 +69,6 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   /************************/
   /* EVENT INTERPRETATION */
   /************************/
-  // Recorded variables
-#define BRANCH_SCALAR_COMMANDS \
-  BRANCH_COMMAND(float, event_wgt) \
-  BRANCH_COMMAND(float, event_wgt_adjustment_NNPDF30) \
-  BRANCH_COMMAND(bool, invalidReweightingWgts) \
-  BRANCH_COMMAND(float, sample_wgt) \
-  BRANCH_COMMAND(float, lheHiggs_pt) \
-  BRANCH_COMMAND(float, lheLeptonicDecay_pt) \
-  BRANCH_COMMAND(float, lheLeptonicDecay_mass) \
-  BRANCH_COMMAND(float, genLeptonicDecay_pt) \
-  BRANCH_COMMAND(float, genLeptonicDecay_mass)
-#define BRANCH_VECTOR_COMMANDS \
-  BRANCH_COMMAND(cms3_id_t, genparticles_id) \
-  BRANCH_COMMAND(float, genparticles_pt) \
-  BRANCH_COMMAND(float, genparticles_eta) \
-  BRANCH_COMMAND(float, genparticles_phi) \
-  BRANCH_COMMAND(float, genparticles_mass) \
-  BRANCH_COMMAND(float, genak4jets_pt) \
-  BRANCH_COMMAND(float, genak4jets_eta) \
-  BRANCH_COMMAND(float, genak4jets_phi) \
-  BRANCH_COMMAND(float, genak4jets_mass)
-#define BRANCH_COMMANDS \
-  BRANCH_SCALAR_COMMANDS \
-  BRANCH_VECTOR_COMMANDS
-
 #define BRANCH_COMMAND(TYPE, NAME) TYPE NAME = 0;
   BRANCH_SCALAR_COMMANDS;
 #undef BRANCH_COMMAND
@@ -468,4 +469,318 @@ void produceReweightedGen(
   curdir->cd();
 
   SampleHelpers::addToCondorTransferList(stroutput);
+}
+
+void makePlots(TString strSampleSet, TString period, TString strdate){
+  SystematicsHelpers::SystematicVariationTypes const theGlobalSyst = SystematicsHelpers::sNominal;
+
+  gStyle->SetOptStat(0);
+
+  if (strdate=="") strdate = HelperFunctions::todaysdate();
+
+  bool const isGG = strSampleSet.Contains("GluGluH") || strSampleSet.Contains("GGH");
+  //bool isVVVV = strSampleSet.Contains("VBF") || strSampleSet.Contains("ZH") || strSampleSet.Contains("WminusH") || strSampleSet.Contains("WplusH");
+  MELAout << "Sample is " << (isGG ? "a gg" : "an EW") << " sample." << endl;
+
+  // Set output directory
+  TString cinput_main = "output/ReweightedGenTrees/" + strdate + "/" + period;
+  TString coutput_main = "output/ReweightedGenTrees/" + strdate + "/" + period + "/Plots";
+
+  TDirectory* curdir = gDirectory;
+  gSystem->mkdir(coutput_main, true);
+
+  curdir->cd();
+
+  // Create the output file
+  TString coutput = SampleHelpers::getSampleIdentifier(strSampleSet);
+  HelperFunctions::replaceString(coutput, "_MINIAODSIM", "");
+  HelperFunctions::replaceString(coutput, "_MINIAOD", "");
+  TString stroutput = Form("%s/%s", coutput_main.Data(), coutput.Data());
+  stroutput += Form("_%s", SystematicsHelpers::getSystName(theGlobalSyst).data());
+  stroutput += ".root";
+  TFile* foutput = TFile::Open(stroutput, "recreate");
+  MELAout << "Created output file " << stroutput << "..." << endl;
+  foutput->cd();
+  
+  TString strinput = cinput_main + "/" + coutput + "_" + SystematicsHelpers::getSystName(theGlobalSyst).data() + ".root";
+  MELAout << "Acquiring input " << strinput << "..." << endl;
+  BaseTree* tin = new BaseTree(strinput, "SkimTree", "", "");
+  if (!tin->isValid()){
+    MELAerr << "\t- Failed to acquire." << endl;
+    delete tin;
+    foutput->Close();
+    exit(1);
+  }
+
+#define BRANCH_COMMAND(TYPE, NAME) TYPE* NAME = nullptr; tin->bookBranch<TYPE>(#NAME, 0);
+  BRANCH_SCALAR_COMMANDS;
+#undef BRANCH_COMMAND
+#define BRANCH_COMMAND(TYPE, NAME) std::vector<TYPE>** NAME=nullptr; tin->bookBranch<std::vector<TYPE>*>(#NAME, nullptr);
+  BRANCH_VECTOR_COMMANDS;
+#undef BRANCH_COMMAND
+#define BRANCH_COMMAND(TYPE, NAME) tin->getValRef(#NAME, NAME);
+  BRANCH_COMMANDS;
+#undef BRANCH_COMMAND
+
+  std::unordered_map<TString, float*> ME_Kfactor_values;
+  std::vector<TString> allbranchnames;
+  tin->getValidBranchNamesWithoutAlias(allbranchnames, false);
+  for (auto const& bname:allbranchnames){
+    if (
+      (bname.BeginsWith("p_") && (bname.Contains("JHUGen") || bname.Contains("MCFM")))
+      ||
+      bname.BeginsWith("p_Gen")
+      ||
+      bname.Contains("LHECandMass")
+      ||
+      bname.BeginsWith("KFactor")
+      ){
+      tin->bookBranch<float>(bname, -1.f);
+      ME_Kfactor_values[bname] = nullptr;
+      tin->getValRef(bname, ME_Kfactor_values[bname]);
+    }
+  }
+
+  tin->silenceUnused();
+
+  float* val_Kfactor_QCD = nullptr;
+  float* val_ME_SIG = nullptr;
+  if (isGG){
+    val_Kfactor_QCD = ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_Nominal")->second;
+    val_ME_SIG = ME_Kfactor_values.find("p_Gen_GG_SIG_kappaTopBot_1_ghz1_1_MCFM")->second;
+  }
+  else{
+    val_ME_SIG = ME_Kfactor_values.find("p_Gen_JJEW_SIG_ghv1_1_MCFM")->second;
+  }
+  float* val_ME_CPS = ME_Kfactor_values.find("p_Gen_CPStoBWPropRewgt")->second;
+  float* LHECandMass = ME_Kfactor_values.find("LHECandMass")->second;
+
+  bool hasError = false;
+  if (!val_ME_SIG){
+    MELAerr << "val_ME_SIG is null!" << endl;
+    hasError = true;
+  }
+  if (!val_ME_CPS){
+    MELAerr << "val_ME_CPS is null!" << endl;
+    hasError = true;
+  }
+  if (isGG && !val_Kfactor_QCD){
+    MELAerr << "val_Kfactor_QCD is null!" << endl;
+    hasError = true;
+  }
+  if (hasError){
+    delete tin;
+    foutput->Close();
+    exit(1);
+  }
+
+  std::vector<TString> const strCatNames{ "Nj_eq_0", "Nj_eq_1", "Nj_geq_2" };
+  std::vector<TString> const strCatLabels{ "N_{j}=0", "N_{j}=1", "N_{j} #geq 2" };
+  size_t const nCats = strCatNames.size();
+
+  ExtendedBinning binning_mass("genmass", "m_{ZZ} (GeV)");
+  constexpr bool useConstBinning = false;
+  if (!useConstBinning){
+    binning_mass.addBinBoundary(100);
+    binning_mass.addBinBoundary(124);
+    binning_mass.addBinBoundary(126);
+    binning_mass.addBinBoundary(150);
+    {
+      double bin_low_edge = 180;
+      while (bin_low_edge<=500.){
+        binning_mass.addBinBoundary(bin_low_edge);
+        bin_low_edge += 20.;
+      }
+      while (bin_low_edge<=1000.){
+        binning_mass.addBinBoundary(bin_low_edge);
+        bin_low_edge += 50.;
+      }
+      while (bin_low_edge<=2000.){
+        binning_mass.addBinBoundary(bin_low_edge);
+        bin_low_edge += 100.;
+      }
+      while (bin_low_edge<=3000.){
+        binning_mass.addBinBoundary(bin_low_edge);
+        bin_low_edge += 500.;
+      }
+    }
+  }
+  else{
+    double bin_low_edge = 100;
+    while (bin_low_edge<=3000.){
+      binning_mass.addBinBoundary(bin_low_edge);
+      bin_low_edge += 25.;
+    }
+  }
+
+  std::vector<TH1F> hlist_genmass; hlist_genmass.reserve(strCatNames.size());
+  std::vector<TH1F> hlist_genak4jetpt; hlist_genak4jetpt.reserve(strCatNames.size());
+  std::vector<TH1F> hlist_genak4jetselectedpt; hlist_genak4jetselectedpt.reserve(strCatNames.size());
+  std::vector<TH1F> hlist_genak4jetselected_leadingpt; hlist_genak4jetselected_leadingpt.reserve(strCatNames.size());
+  std::vector<TH1F> hlist_genak4jetselected_subleadingpt; hlist_genak4jetselected_subleadingpt.reserve(strCatNames.size());
+  for (unsigned short icat=0; icat<nCats; icat++){
+    hlist_genmass.emplace_back(
+      Form("h_genmass_%s", strCatNames.at(icat).Data()), strCatLabels.at(icat),
+      binning_mass.getNbins(), binning_mass.getBinning()
+    );
+    hlist_genak4jetpt.emplace_back(
+      Form("h_genak4jetpt_%s", strCatNames.at(icat).Data()), strCatLabels.at(icat),
+      100, 20, 1020
+    );
+    hlist_genak4jetselectedpt.emplace_back(
+      Form("h_genak4jetselectedpt_%s", strCatNames.at(icat).Data()), strCatLabels.at(icat),
+      100, 20, 1020
+    );
+    hlist_genak4jetselected_leadingpt.emplace_back(
+      Form("h_genak4jetselected_leadingpt_%s", strCatNames.at(icat).Data()), strCatLabels.at(icat),
+      100, 20, 1020
+    );
+    hlist_genak4jetselected_subleadingpt.emplace_back(
+      Form("h_genak4jetselected_subleadingpt_%s", strCatNames.at(icat).Data()), strCatLabels.at(icat),
+      100, 20, 1020
+    );
+  }
+
+  float sum_wgts = 0;
+  float sum_wgts_accepted = 0;
+  float sum_wgts_rejected_Nleptons_lt_4 = 0;
+  float sum_wgts_rejected_Nleptons_gt_4 = 0;
+  float sum_wgts_rejected_noZZ = 0;
+  float sum_wgts_hasHardPhotons = 0;
+  int n_printouts = -1;
+  int nEntries = tin->getNEvents();
+  MELAout << "Looping over " << nEntries << " events:" << endl;
+  for (int ev=0; ev<nEntries; ev++){
+    tin->getEvent(ev);
+    HelperFunctions::progressbar(ev, nEntries);
+
+    float wgt = (*event_wgt) * (*sample_wgt) * (*invalidReweightingWgts ? 0.f : 1.f) * (val_Kfactor_QCD ? *val_Kfactor_QCD : 1.f) * (*val_ME_SIG) * (*val_ME_CPS);
+    sum_wgts += wgt;
+
+    unsigned int n_genparticles = (*genparticles_id)->size();
+    std::vector<MELAParticle> genparticles; genparticles.reserve(n_genparticles);
+    for (unsigned int ipart=0; ipart<n_genparticles; ipart++){
+      TLorentzVector tmp_p4;
+      tmp_p4.SetPtEtaPhiM((*genparticles_pt)->at(ipart), (*genparticles_eta)->at(ipart), (*genparticles_phi)->at(ipart), (*genparticles_mass)->at(ipart));
+      genparticles.emplace_back((*genparticles_id)->at(ipart), tmp_p4);
+    }
+
+    int sumid_genleptons_selected = 0;
+    TLorentzVector sump4_genleptons_selected;
+    std::vector<MELAParticle const*> genleptons_selected; genleptons_selected.reserve(n_genparticles);
+    std::vector<MELAParticle const*> genphotons_selected; genphotons_selected.reserve(n_genparticles);
+    for (auto const& part:genparticles){
+      int pid = part.id;
+      if (PDGHelpers::isALepton(pid) && part.pt()>=5. && std::abs(part.eta())<(std::abs(pid)==11 ? 2.5 : 2.4)){
+        sumid_genleptons_selected += part.id;
+        sump4_genleptons_selected += part.p4;
+        genleptons_selected.push_back(&part);
+      }
+      else if (PDGHelpers::isAPhoton(pid) && part.pt()>=20. && std::abs(part.eta())<2.5) genphotons_selected.push_back(&part);
+    }
+
+    if (genleptons_selected.size()!=4){
+      if (n_printouts>=0 && n_printouts<100){
+        MELAout << "Event " << ev << " is rejected because it has " << genleptons_selected.size() << " leptons." << endl;
+        n_printouts++;
+      }
+      if (genleptons_selected.size()<4) sum_wgts_rejected_Nleptons_lt_4 += wgt;
+      if (genleptons_selected.size()>4) sum_wgts_rejected_Nleptons_gt_4 += wgt;
+      continue;
+    }
+    if (sumid_genleptons_selected!=0){
+      if (n_printouts>=0 && n_printouts<100){
+        MELAout << "Event " << ev << " is rejected because it doesn't have a proper ZZ candidate." << endl;
+        n_printouts++;
+      }
+      sum_wgts_rejected_noZZ += wgt;
+      continue;
+    }
+    sum_wgts_accepted += wgt;
+
+    if (!genphotons_selected.empty()){
+      bool hasHardPhotons = false;
+      for (auto const& photon:genphotons_selected){
+        bool isSeparated = true;
+        for (auto const& lepton:genleptons_selected){
+          if (photon->deltaR(lepton)<0.4){
+            isSeparated = false;
+            break;
+          }
+        }
+        if (isSeparated){
+          hasHardPhotons = true;
+          break;
+        }
+      }
+      if (hasHardPhotons) sum_wgts_hasHardPhotons += wgt;
+    }
+
+    unsigned int n_genak4jets = (*genak4jets_pt)->size();
+    std::vector<MELAParticle> genak4jets; genak4jets.reserve(n_genak4jets);
+    for (unsigned int ipart=0; ipart<n_genak4jets; ipart++){
+      TLorentzVector tmp_p4;
+      tmp_p4.SetPtEtaPhiM((*genak4jets_pt)->at(ipart), (*genak4jets_eta)->at(ipart), (*genak4jets_phi)->at(ipart), (*genak4jets_mass)->at(ipart));
+      genak4jets.emplace_back(0, tmp_p4);
+    }
+
+    std::vector<MELAParticle const*> genak4jets_selected; genak4jets_selected.reserve(genak4jets.size());
+    for (auto const& jet:genak4jets){
+      if (jet.pt()<30. || std::abs(jet.eta())>=4.7) continue;
+      bool doSkip = false;
+      for (auto const& part:genleptons_selected){
+        if (jet.deltaR(part)<0.4/* && std::abs(jet.pt()/part->pt()-1.)<0.2*/){ doSkip = true; break; }
+      }
+      if (!doSkip) genak4jets_selected.push_back(&jet);
+    }
+
+    unsigned int icat = std::min(genak4jets_selected.size(), nCats-1);
+
+    hlist_genmass.at(icat).Fill(
+      *LHECandMass,
+      //sump4_genleptons_selected.M(),
+      wgt
+    );
+    if ((*LHECandMass)>200.){
+      for (auto const& jet:genak4jets) hlist_genak4jetpt.at(icat).Fill(jet.pt(), wgt);
+      for (auto const& jet:genak4jets_selected) hlist_genak4jetselectedpt.at(icat).Fill(jet->pt(), wgt);
+      if (genak4jets_selected.size()>=1){
+        hlist_genak4jetselected_leadingpt.at(icat).Fill(genak4jets_selected.at(0)->pt(), wgt);
+        if (genak4jets_selected.size()>=2){
+          hlist_genak4jetselected_subleadingpt.at(icat).Fill(genak4jets_selected.at(1)->pt(), wgt);
+        }
+      }
+    }
+  }
+
+  MELAout << "Sum of weights: " << sum_wgts << endl;
+  MELAout << "\t- Fraction of events accepted: " << sum_wgts_accepted / sum_wgts << endl;
+  MELAout << "\t- Fraction of events rejected because selected number of leptons < 4: " << sum_wgts_rejected_Nleptons_lt_4 / sum_wgts << endl;
+  MELAout << "\t- Fraction of events rejected because selected number of leptons > 4: " << sum_wgts_rejected_Nleptons_gt_4 / sum_wgts << endl;
+  MELAout << "\t- Fraction of events rejected because no ZZ candidate can be constructed: " << sum_wgts_rejected_noZZ / sum_wgts << endl;
+  MELAout << "\t- Fraction of accepted events with at least one hard photon: " << sum_wgts_hasHardPhotons / sum_wgts_accepted << endl;
+
+  for (auto& hh:hlist_genmass){
+    HelperFunctions::divideBinWidth(&hh);
+    foutput->WriteTObject(&hh);
+  }
+  for (auto& hh:hlist_genak4jetpt){
+    HelperFunctions::divideBinWidth(&hh);
+    foutput->WriteTObject(&hh);
+  }
+  for (auto& hh:hlist_genak4jetselectedpt){
+    HelperFunctions::divideBinWidth(&hh);
+    foutput->WriteTObject(&hh);
+  }
+  for (auto& hh:hlist_genak4jetselected_leadingpt){
+    HelperFunctions::divideBinWidth(&hh);
+    foutput->WriteTObject(&hh);
+  }
+  for (auto& hh:hlist_genak4jetselected_subleadingpt){
+    HelperFunctions::divideBinWidth(&hh);
+    foutput->WriteTObject(&hh);
+  }
+
+  delete tin;
+  foutput->Close();
 }
