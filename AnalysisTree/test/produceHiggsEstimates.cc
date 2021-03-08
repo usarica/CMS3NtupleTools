@@ -13,15 +13,6 @@
 
 constexpr bool useJetOverlapStripping=false;
 
-#define _USE_GENJETS_SYST_ 1
-#if _USE_GENJETS_SYST_==1
-typedef TH3F hsyst_genjets_t;
-typedef TH2F hsyst_genjets_slice_t;
-#else
-typedef TH2F hsyst_genjets_t;
-typedef TH1F hsyst_genjets_slice_t;
-#endif
-
 
 // Dummy for now, but can be extended to veto certain samples for certain systematics
 bool checkSystematicForSampleGroup(TString const& sgroup, SystematicsHelpers::SystematicVariationTypes const& syst){
@@ -569,37 +560,24 @@ void produceSystematicsReweighting_MINLO_Pythia(
   ExtendedBinning binning_genpromptparticles_sump4_pt({ 0, 0.15, 0.3, 0.5, 0.8, 1.2, 1.6, 2.0 }, "genpromptparticles_sump4_pt_over_lheHiggs_mass");
   ExtendedBinning const* zbinning = (theGlobalSyst==tHardJetsDn || theGlobalSyst==tHardJetsUp ? &binning_ptRatio : &binning_genpromptparticles_sump4_pt);
 
-  hsyst_genjets_t h_nominal(
+  TH3F h_nominal(
     "h_nominal", "",
     binning_mass.getNbins(), binning_mass.getBinning(),
-#if _USE_GENJETS_SYST_==1
     binning_n_genak4jets.getNbins(), binning_n_genak4jets.getBinning(),
     zbinning->getNbins(), zbinning->getBinning()
-#else
-    zbinning->getNbins(), zbinning->getBinning()
-#endif
   );
-  hsyst_genjets_t h_syst(
+  TH3F h_syst(
     "h_syst", "",
     binning_mass.getNbins(), binning_mass.getBinning(),
-#if _USE_GENJETS_SYST_==1
     binning_n_genak4jets.getNbins(), binning_n_genak4jets.getBinning(),
     zbinning->getNbins(), zbinning->getBinning()
-#else
-    zbinning->getNbins(), zbinning->getBinning()
-#endif
   );
   h_nominal.GetXaxis()->SetTitle(binning_mass.getLabel());
   h_syst.GetXaxis()->SetTitle(binning_mass.getLabel());
-#if _USE_GENJETS_SYST_==1
   h_nominal.GetYaxis()->SetTitle(binning_n_genak4jets.getLabel());
   h_syst.GetYaxis()->SetTitle(binning_n_genak4jets.getLabel());
   h_nominal.GetZaxis()->SetTitle(zbinning->getLabel()); h_nominal.Sumw2();
   h_syst.GetZaxis()->SetTitle(zbinning->getLabel()); h_syst.Sumw2();
-#else
-  h_nominal.GetYaxis()->SetTitle(zbinning->getLabel()); h_nominal.Sumw2();
-  h_syst.GetYaxis()->SetTitle(zbinning->getLabel()); h_syst.Sumw2();
-#endif
 
   curdir->cd();
 
@@ -630,9 +608,9 @@ void produceSystematicsReweighting_MINLO_Pythia(
 
     int nEntries = 0;
     double sum_wgts = 0;
-    hsyst_genjets_t* htmp = nullptr;
+    TH3F* htmp = nullptr;
 
-    htmp = (hsyst_genjets_t*) h_nominal.Clone("htmp"); htmp->Reset("ICESM");
+    htmp = (TH3F*) h_nominal.Clone("htmp"); htmp->Reset("ICESM");
     sum_wgts = 0;
     nEntries = sample_tree_nominal->getNEvents();
     genInfoHandler.wrapTree(sample_tree_nominal);
@@ -672,9 +650,7 @@ void produceSystematicsReweighting_MINLO_Pythia(
 
       htmp->Fill(
         lheHiggs_mass,
-#if _USE_GENJETS_SYST_==1
         n_genak4jets,
-#endif
         (zbinning == &binning_ptRatio ? lheHiggs_pt : static_cast<float>(genpromptparticles_sump4.Pt()))/lheHiggs_mass,
         genwgt
       );
@@ -684,7 +660,7 @@ void produceSystematicsReweighting_MINLO_Pythia(
     h_nominal.Add(htmp, 1.);
     delete htmp;
 
-    htmp = (hsyst_genjets_t*) h_syst.Clone("htmp"); htmp->Reset("ICESM");
+    htmp = (TH3F*) h_syst.Clone("htmp"); htmp->Reset("ICESM");
     sum_wgts = 0;
     nEntries = sample_tree_syst->getNEvents();
     genInfoHandler.wrapTree(sample_tree_syst);
@@ -737,9 +713,7 @@ void produceSystematicsReweighting_MINLO_Pythia(
 
       htmp->Fill(
         lheHiggs_mass,
-#if _USE_GENJETS_SYST_==1
         n_genak4jets,
-#endif
         (zbinning == &binning_ptRatio ? lheHiggs_pt : static_cast<float>(genpromptparticles_sump4.Pt()))/lheHiggs_mass,
         genwgt*genwgt_sf
       );
@@ -756,24 +730,18 @@ void produceSystematicsReweighting_MINLO_Pythia(
   foutput->WriteTObject(&h_nominal);
   foutput->WriteTObject(&h_syst);
 
-  HelperFunctions::conditionalizeHistogram<hsyst_genjets_t>(&h_nominal, 0, nullptr, false, false);
-  HelperFunctions::conditionalizeHistogram<hsyst_genjets_t>(&h_syst, 0, nullptr, false, false);
+  HelperFunctions::conditionalizeHistogram<TH3F>(&h_nominal, 0, nullptr, false, false);
+  HelperFunctions::conditionalizeHistogram<TH3F>(&h_syst, 0, nullptr, false, false);
 
-  hsyst_genjets_t* h_ratio = (hsyst_genjets_t*) h_nominal.Clone("h_ratio");
+  TH3F* h_ratio = (TH3F*) h_nominal.Clone("h_ratio");
   if (theGlobalSyst==tHardJetsDn) HelperFunctions::divideHistograms(&h_nominal, &h_syst, h_ratio, false);
   else HelperFunctions::divideHistograms(&h_syst, &h_nominal, h_ratio, false);
   foutput->WriteTObject(h_ratio);
 
   for (unsigned int isl=0; isl<binning_mass.getNbins(); isl++){
-#if _USE_GENJETS_SYST_==1
-    hsyst_genjets_slice_t* h_nominal_slice = HelperFunctions::getHistogramSlice(&h_nominal, 1, 2, isl+1, isl+1, Form("%s_slice%u", h_nominal.GetName(), isl));
-    hsyst_genjets_slice_t* h_syst_slice = HelperFunctions::getHistogramSlice(&h_syst, 1, 2, isl+1, isl+1, Form("%s_slice%u", h_syst.GetName(), isl));
-    hsyst_genjets_slice_t* h_ratio_slice = HelperFunctions::getHistogramSlice(h_ratio, 1, 2, isl+1, isl+1, Form("%s_slice%u", h_ratio->GetName(), isl));
-#else
-    hsyst_genjets_slice_t* h_nominal_slice = HelperFunctions::getHistogramSlice(&h_nominal, 1, isl+1, isl+1, Form("%s_slice%u", h_nominal.GetName(), isl));
-    hsyst_genjets_slice_t* h_syst_slice = HelperFunctions::getHistogramSlice(&h_syst, 1, isl+1, isl+1, Form("%s_slice%u", h_syst.GetName(), isl));
-    hsyst_genjets_slice_t* h_ratio_slice = HelperFunctions::getHistogramSlice(h_ratio, 1, isl+1, isl+1, Form("%s_slice%u", h_ratio->GetName(), isl));
-#endif
+    TH2F* h_nominal_slice = HelperFunctions::getHistogramSlice(&h_nominal, 1, 2, isl+1, isl+1, Form("%s_slice%u", h_nominal.GetName(), isl));
+    TH2F* h_syst_slice = HelperFunctions::getHistogramSlice(&h_syst, 1, 2, isl+1, isl+1, Form("%s_slice%u", h_syst.GetName(), isl));
+    TH2F* h_ratio_slice = HelperFunctions::getHistogramSlice(h_ratio, 1, 2, isl+1, isl+1, Form("%s_slice%u", h_ratio->GetName(), isl));
 
     foutput->WriteTObject(h_nominal_slice); delete h_nominal_slice;
     foutput->WriteTObject(h_syst_slice); delete h_syst_slice;
@@ -1149,11 +1117,11 @@ void combineSystematicsReweightings(
 
   foutput->cd();
 
-  hsyst_genjets_t* h_nominal=nullptr;
-  hsyst_genjets_t* h_syst=nullptr;
+  TH3F* h_nominal=nullptr;
+  TH3F* h_syst=nullptr;
 
-  hsyst_genjets_slice_t* h_nominal_reduced=nullptr;
-  hsyst_genjets_slice_t* h_syst_reduced=nullptr;
+  TH2F* h_nominal_reduced=nullptr;
+  TH2F* h_syst_reduced=nullptr;
 
   TH1F* h_nominal_1D=nullptr;
   TH1F* h_syst_1D=nullptr;
@@ -1168,37 +1136,15 @@ void combineSystematicsReweightings(
 
     finput->cd();
 
-    if (theGlobalSyst==tHardJetsDn || theGlobalSyst==tHardJetsUp || theGlobalSyst==tPythiaTuneDn || theGlobalSyst==tPythiaTuneUp){
-      hsyst_genjets_t* htmp_nominal = (hsyst_genjets_t*) finput->Get("h_nominal");
-      hsyst_genjets_t* htmp_syst = (hsyst_genjets_t*) finput->Get("h_syst");
+    if (theGlobalSyst==tHardJetsDn || theGlobalSyst==tHardJetsUp || theGlobalSyst==tPythiaTuneDn || theGlobalSyst==tPythiaTuneUp || theGlobalSyst==tPythiaScaleDn || theGlobalSyst==tPythiaScaleUp){
+      TH3F* htmp_nominal = (TH3F*) finput->Get("h_nominal");
+      TH3F* htmp_syst = (TH3F*) finput->Get("h_syst");
 
       foutput->cd();
-      if (!h_nominal) h_nominal = (hsyst_genjets_t*) htmp_nominal->Clone(htmp_nominal->GetName());
+      if (!h_nominal) h_nominal = (TH3F*) htmp_nominal->Clone(htmp_nominal->GetName());
       else h_nominal->Add(htmp_nominal, 1.);
-      if (!h_syst) h_syst = (hsyst_genjets_t*) htmp_syst->Clone(htmp_syst->GetName());
+      if (!h_syst) h_syst = (TH3F*) htmp_syst->Clone(htmp_syst->GetName());
       else h_syst->Add(htmp_syst, 1.);
-    }
-    else if (theGlobalSyst==tPythiaScaleDn || theGlobalSyst==tPythiaScaleUp){
-      hsyst_genjets_t* htmp_nominal = (hsyst_genjets_t*) finput->Get("h_nominal");
-      hsyst_genjets_t* htmp_syst = (hsyst_genjets_t*) finput->Get("h_syst");
-
-      foutput->cd();
-
-#if _USE_GENJETS_SYST_==1
-      hsyst_genjets_slice_t* htmp_nominal_reduced = HelperFunctions::getHistogramSlice(htmp_nominal, 1, 2, 1, htmp_nominal->GetNbinsX(), Form("%s_reduced", htmp_nominal->GetName()));
-      hsyst_genjets_slice_t* htmp_syst_reduced = HelperFunctions::getHistogramSlice(htmp_syst, 1, 2, 1, htmp_syst->GetNbinsX(), Form("%s_reduced", htmp_syst->GetName()));
-#else
-      hsyst_genjets_slice_t* htmp_nominal_reduced = HelperFunctions::getHistogramSlice(htmp_nominal, 1, 1, htmp_nominal->GetNbinsX(), Form("%s_reduced", htmp_nominal->GetName()));
-      hsyst_genjets_slice_t* htmp_syst_reduced = HelperFunctions::getHistogramSlice(htmp_syst, 1, 1, htmp_syst->GetNbinsX(), Form("%s_reduced", htmp_syst->GetName()));
-#endif
-
-      if (!h_nominal_reduced) h_nominal_reduced = (hsyst_genjets_slice_t*) htmp_nominal_reduced->Clone(htmp_nominal->GetName());
-      else h_nominal_reduced->Add(htmp_nominal_reduced, 1.);
-      if (!h_syst_reduced) h_syst_reduced = (hsyst_genjets_slice_t*) htmp_syst_reduced->Clone(htmp_syst->GetName());
-      else h_syst_reduced->Add(htmp_syst_reduced, 1.);
-
-      delete htmp_nominal_reduced;
-      delete htmp_syst_reduced;
     }
     else if (isLHESyst){
       TH1F* htmp_nominal = (TH1F*) finput->Get("h_nominal");
@@ -1220,24 +1166,18 @@ void combineSystematicsReweightings(
     foutput->WriteTObject(h_nominal);
     foutput->WriteTObject(h_syst);
 
-    HelperFunctions::conditionalizeHistogram<hsyst_genjets_t>(h_nominal, 0, nullptr, false, false);
-    HelperFunctions::conditionalizeHistogram<hsyst_genjets_t>(h_syst, 0, nullptr, false, false);
+    HelperFunctions::conditionalizeHistogram<TH3F>(h_nominal, 0, nullptr, false, false);
+    HelperFunctions::conditionalizeHistogram<TH3F>(h_syst, 0, nullptr, false, false);
 
-    hsyst_genjets_t* h_ratio = (hsyst_genjets_t*) h_nominal->Clone("h_ratio");
+    TH3F* h_ratio = (TH3F*) h_nominal->Clone("h_ratio");
     if (theGlobalSyst==tHardJetsDn) HelperFunctions::divideHistograms(h_nominal, h_syst, h_ratio, false);
     else HelperFunctions::divideHistograms(h_syst, h_nominal, h_ratio, false);
     foutput->WriteTObject(h_ratio);
 
     for (int isl=0; isl<h_nominal->GetNbinsX(); isl++){
-#if _USE_GENJETS_SYST_==1
-      hsyst_genjets_slice_t* h_nominal_slice = HelperFunctions::getHistogramSlice(h_nominal, 1, 2, isl+1, isl+1, Form("%s_slice%u", h_nominal->GetName(), isl));
-      hsyst_genjets_slice_t* h_syst_slice = HelperFunctions::getHistogramSlice(h_syst, 1, 2, isl+1, isl+1, Form("%s_slice%u", h_syst->GetName(), isl));
-      hsyst_genjets_slice_t* h_ratio_slice = HelperFunctions::getHistogramSlice(h_ratio, 1, 2, isl+1, isl+1, Form("%s_slice%u", h_ratio->GetName(), isl));
-#else
-      hsyst_genjets_slice_t* h_nominal_slice = HelperFunctions::getHistogramSlice(h_nominal, 1, isl+1, isl+1, Form("%s_slice%u", h_nominal->GetName(), isl));
-      hsyst_genjets_slice_t* h_syst_slice = HelperFunctions::getHistogramSlice(h_syst, 1, isl+1, isl+1, Form("%s_slice%u", h_syst->GetName(), isl));
-      hsyst_genjets_slice_t* h_ratio_slice = HelperFunctions::getHistogramSlice(h_ratio, 1, isl+1, isl+1, Form("%s_slice%u", h_ratio->GetName(), isl));
-#endif
+      TH2F* h_nominal_slice = HelperFunctions::getHistogramSlice(h_nominal, 1, 2, isl+1, isl+1, Form("%s_slice%u", h_nominal->GetName(), isl));
+      TH2F* h_syst_slice = HelperFunctions::getHistogramSlice(h_syst, 1, 2, isl+1, isl+1, Form("%s_slice%u", h_syst->GetName(), isl));
+      TH2F* h_ratio_slice = HelperFunctions::getHistogramSlice(h_ratio, 1, 2, isl+1, isl+1, Form("%s_slice%u", h_ratio->GetName(), isl));
 
       foutput->WriteTObject(h_nominal_slice); delete h_nominal_slice;
       foutput->WriteTObject(h_syst_slice); delete h_syst_slice;
@@ -1250,7 +1190,10 @@ void combineSystematicsReweightings(
     foutput->WriteTObject(h_nominal_reduced);
     foutput->WriteTObject(h_syst_reduced);
 
-    hsyst_genjets_slice_t* h_ratio = (hsyst_genjets_slice_t*) h_nominal_reduced->Clone("h_ratio");
+    h_nominal_reduced->Scale(1./HelperFunctions::getHistogramIntegralAndError(h_nominal_reduced, 1, h_nominal_reduced->GetNbinsX(), 1, h_nominal_reduced->GetNbinsY(), false));
+    h_syst_reduced->Scale(1./HelperFunctions::getHistogramIntegralAndError(h_syst_reduced, 1, h_syst_reduced->GetNbinsX(), 1, h_syst_reduced->GetNbinsY(), false));
+
+    TH2F* h_ratio = (TH2F*) h_nominal_reduced->Clone("h_ratio");
     HelperFunctions::divideHistograms(h_syst_reduced, h_nominal_reduced, h_ratio, false);
     foutput->WriteTObject(h_ratio);
 
@@ -1466,16 +1409,9 @@ void getTrees_ZZTo2L2Nu(
       tAsMZDn, tAsMZUp,
       tPDFReplicaDn, tPDFReplicaUp
     };
-#if _USE_GENJETS_SYST_==1
-    std::vector<SystematicVariationTypes> const allowedSysts_2D{
-      tPythiaScaleDn, tPythiaScaleUp
-    };
+    std::vector<SystematicVariationTypes> const allowedSysts_2D;
     std::vector<SystematicVariationTypes> const allowedSysts_3D{
-#else
-    std::vector<SystematicVariationTypes> const allowedSysts_3D;
-    std::vector<SystematicVariationTypes> const allowedSysts_2D{
       tPythiaScaleDn, tPythiaScaleUp,
-#endif
       tPythiaTuneDn, tPythiaTuneUp,
       tHardJetsDn, tHardJetsUp
     };
@@ -1520,6 +1456,15 @@ void getTrees_ZZTo2L2Nu(
         assert(0);
       }
     }
+  }
+  bool applyPythiaScaleExternally = false;
+  if (
+    (theGlobalSyst==tPythiaScaleDn || theGlobalSyst==tPythiaScaleUp)
+    &&
+    (h_ratio_syst_1D || h_ratio_syst_2D || h_ratio_syst_3D)
+    ){
+    applyPythiaScaleExternally = true;
+    MELAout << "Applying Pythia scale through external input..." << endl;
   }
 
   foutput->cd();
@@ -1806,10 +1751,10 @@ void getTrees_ZZTo2L2Nu(
         ptr_event_wgt_syst_adjustment = (!useNNPDF30 ? &event_wgt_adjustment_PDFReplicaUp : &event_wgt_adjustment_NNPDF30_PDFReplicaUp);
         break;
       case tPythiaScaleDn:
-        ptr_event_wgt_syst_adjustment = &event_wgt_adjustment_PythiaScaleDn;
+        if (!applyPythiaScaleExternally) ptr_event_wgt_syst_adjustment = &event_wgt_adjustment_PythiaScaleDn;
         break;
       case tPythiaScaleUp:
-        ptr_event_wgt_syst_adjustment = &event_wgt_adjustment_PythiaScaleUp;
+        if (!applyPythiaScaleExternally) ptr_event_wgt_syst_adjustment = &event_wgt_adjustment_PythiaScaleUp;
         break;
 
       case eEleEffStatDn:
@@ -1931,35 +1876,16 @@ void getTrees_ZZTo2L2Nu(
           )
         ) syst_corr = EvalSystHistogram(h_ratio_syst_1D, *inptr_lheHiggs_mass);
       else if (
-        inptr_lheHiggs_mass && inptr_genpromptparticles_sump4_pt
-        && inptr_genak4jets_pt
+        inptr_lheHiggs_mass && inptr_genpromptparticles_sump4_pt && inptr_genak4jets_pt
         &&
-        (theGlobalSyst==tPythiaScaleDn || theGlobalSyst==tPythiaScaleUp)
-        ) syst_corr = EvalSystHistogram(h_ratio_syst_2D, (*inptr_genak4jets_pt)->size(), *inptr_genpromptparticles_sump4_pt / *inptr_lheHiggs_mass);
-      else if (
-        inptr_lheHiggs_mass && inptr_genpromptparticles_sump4_pt
-#if _USE_GENJETS_SYST_==1
-        && inptr_genak4jets_pt
-#endif
-        &&
-        (theGlobalSyst==tPythiaTuneDn || theGlobalSyst==tPythiaTuneUp)
-#if _USE_GENJETS_SYST_==1
+        (theGlobalSyst==tPythiaTuneDn || theGlobalSyst==tPythiaTuneUp || theGlobalSyst==tPythiaScaleDn || theGlobalSyst==tPythiaScaleUp)
         ) syst_corr = EvalSystHistogram(h_ratio_syst_3D, *inptr_lheHiggs_mass, (*inptr_genak4jets_pt)->size(), *inptr_genpromptparticles_sump4_pt / *inptr_lheHiggs_mass);
-#else
-        ) syst_corr = EvalSystHistogram(h_ratio_syst_2D, *inptr_lheHiggs_mass, *inptr_genpromptparticles_sump4_pt / *inptr_lheHiggs_mass);
-#endif
       else if (
-        inptr_lheHiggs_mass && inptr_lheHiggs_pt
-#if _USE_GENJETS_SYST_==1
-        && inptr_genak4jets_pt
-#endif
+        inptr_lheHiggs_mass && inptr_lheHiggs_pt && inptr_genak4jets_pt
         &&
         (theGlobalSyst==tHardJetsDn || theGlobalSyst==tHardJetsUp)
-#if _USE_GENJETS_SYST_==1
         ) syst_corr = EvalSystHistogram(h_ratio_syst_3D, *inptr_lheHiggs_mass, (*inptr_genak4jets_pt)->size(), *inptr_lheHiggs_pt / *inptr_lheHiggs_mass);
-#else
-        ) syst_corr = EvalSystHistogram(h_ratio_syst_2D, *inptr_lheHiggs_mass, *inptr_lheHiggs_pt / *inptr_lheHiggs_mass);
-#endif
+      //MELAout << syst_corr << endl;
 
       *ptr_event_wgt_SFs_PUJetId = std::min(*ptr_event_wgt_SFs_PUJetId, 3.f);
       float wgt =
