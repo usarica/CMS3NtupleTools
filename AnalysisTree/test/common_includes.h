@@ -28,6 +28,7 @@
 #include "AK4JetSelectionHelpers.h"
 #include "AK8JetSelectionHelpers.h"
 #include "IsotrackSelectionHelpers.h"
+#include "GenParticleSelectionHelpers.h"
 #include "BtagHelpers.h"
 
 #include "MuonScaleFactorHandler.h"

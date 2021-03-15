@@ -145,6 +145,21 @@ float get_etaSC(ParticleObject const* part){
   if (electron) return electron->etaSC();
   else return part->eta();
 }
+bool get_conv_vtx_flag(ParticleObject const* part){
+  ElectronObject const* electron = dynamic_cast<ElectronObject const*>(part);
+  if (electron) return electron->extras.conv_vtx_flag;
+  else return false;
+}
+cms3_electron_missinghits_t get_n_missing_inner_hits(ParticleObject const* part){
+  ElectronObject const* electron = dynamic_cast<ElectronObject const*>(part);
+  if (electron) return electron->extras.n_missing_inner_hits;
+  else return false;
+}
+cms3_electron_missinghits_t get_n_all_missing_inner_hits(ParticleObject const* part){
+  ElectronObject const* electron = dynamic_cast<ElectronObject const*>(part);
+  if (electron) return electron->extras.n_all_missing_inner_hits;
+  else return false;
+}
 cms3_egamma_fid_type_mask_t get_fid_mask(ParticleObject const* part){
   ElectronObject const* electron = dynamic_cast<ElectronObject const*>(part);
   if (electron) return electron->extras.fid_mask;
@@ -162,6 +177,7 @@ bool testTiming(ParticleObject const* part){
   if (muon) return muon->extras.pass_muon_timing;
   else return true;
 }
+
 
 using namespace SystematicsHelpers;
 void getTrees(
@@ -466,9 +482,15 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_EAcorr_l2) \
 BRANCH_COMMAND(float, miniIso_l2)
 
 #define BRANCHES_DIELECTRONS \
+BRANCH_COMMAND(bool, conv_vtx_flag_l1) \
+BRANCH_COMMAND(cms3_electron_missinghits_t, n_missing_inner_hits_l1) \
+BRANCH_COMMAND(cms3_electron_missinghits_t, n_all_missing_inner_hits_l1) \
 BRANCH_COMMAND(cms3_egamma_fid_type_mask_t, fid_mask_l1) \
 BRANCH_COMMAND(float, minDR_muon_l1) \
 BRANCH_COMMAND(float, etaSC_l1) \
+BRANCH_COMMAND(bool, conv_vtx_flag_l2) \
+BRANCH_COMMAND(cms3_electron_missinghits_t, n_missing_inner_hits_l2) \
+BRANCH_COMMAND(cms3_electron_missinghits_t, n_all_missing_inner_hits_l2) \
 BRANCH_COMMAND(cms3_egamma_fid_type_mask_t, fid_mask_l2) \
 BRANCH_COMMAND(float, minDR_muon_l2) \
 BRANCH_COMMAND(float, etaSC_l2)
@@ -921,6 +943,9 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
           pass_extraTight_l1 = testExtraTightTagSelection(lepton_tag);
           dxy_l1 = get_dxy(lepton_tag);
           dz_l1 = get_dz(lepton_tag);
+          conv_vtx_flag_l1 = get_conv_vtx_flag(lepton_tag);
+          n_missing_inner_hits_l1 = get_n_missing_inner_hits(lepton_tag);
+          n_all_missing_inner_hits_l1 = get_n_all_missing_inner_hits(lepton_tag);
           fid_mask_l1 = get_fid_mask(lepton_tag);
           etaSC_l1 = get_etaSC(lepton_tag);
           hasTightCharge_l1 = get_tightCharge(lepton_tag);
@@ -939,6 +964,9 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
           miniIso_l2 = getMiniIso(lepton_probe);
           dxy_l2 = get_dxy(lepton_probe);
           dz_l2 = get_dz(lepton_probe);
+          conv_vtx_flag_l2 = get_conv_vtx_flag(lepton_probe);
+          n_missing_inner_hits_l2 = get_n_missing_inner_hits(lepton_probe);
+          n_all_missing_inner_hits_l2 = get_n_all_missing_inner_hits(lepton_probe);
           fid_mask_l2 = get_fid_mask(lepton_probe);
           etaSC_l2 = get_etaSC(lepton_probe);
           hasTightCharge_l2 = get_tightCharge(lepton_probe);

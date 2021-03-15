@@ -241,6 +241,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   BRANCH_COMMAND(float, lepton_mass) \
   BRANCH_COMMAND(float, lepton_relIso) \
   BRANCH_COMMAND(bool, lepton_is_genMatched_prompt) \
+  BRANCH_COMMAND(bool, electron_conv_vtx_flag) \
+  BRANCH_COMMAND(bool, electron_pass_tightCharge) \
+  BRANCH_COMMAND(cms3_electron_missinghits_t, electron_n_missing_inner_hits) \
+  BRANCH_COMMAND(cms3_electron_missinghits_t, electron_n_all_missing_inner_hits) \
   BRANCH_COMMAND(float, electron_full5x5_sigmaIEtaIEta) \
   BRANCH_COMMAND(float, electron_full5x5_sigmaIPhiIPhi) \
   BRANCH_COMMAND(float, electron_full5x5_r9) \
@@ -537,6 +541,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   lepton_mass = theChosenLepton->m();
   lepton_is_genMatched_prompt = (theMuon ? theMuon->extras.is_genMatched_prompt : theElectron->extras.is_genMatched_prompt);
   if (theElectron){
+    electron_conv_vtx_flag = theElectron->extras.conv_vtx_flag;
+    electron_pass_tightCharge = HelperFunctions::test_bit(theElectron->extras.charge_consistency_bits, 2);
+    electron_n_missing_inner_hits = theElectron->extras.n_missing_inner_hits;
+    electron_n_all_missing_inner_hits = theElectron->extras.n_all_missing_inner_hits;
     electron_full5x5_sigmaIEtaIEta = theElectron->extras.full5x5_sigmaIEtaIEta;
     electron_full5x5_sigmaIPhiIPhi = theElectron->extras.full5x5_sigmaIPhiIPhi;
     electron_full5x5_r9 = theElectron->extras.full5x5_r9;
@@ -952,9 +960,11 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     ParticleObject::LorentzVector_t genpromptparticles_sump4;
     auto const& genparticles = genInfoHandler->getGenParticles();
     for (auto const& part:genparticles){
-      if (part->extras.isPromptFinalState && (PDGHelpers::isAPhoton(part->pdgId()) || PDGHelpers::isANeutrino(part->pdgId()) || PDGHelpers::isALepton(part->pdgId()))){
-        genpromptparticles_sump4 += part->p4();
-      }
+      if (
+        part->testSelectionBit(GenParticleSelectionHelpers::kHardPromptFinalVisibleParticle)
+        ||
+        (part->extras.isPromptFinalState && PDGHelpers::isANeutrino(part->pdgId()))
+        ) genpromptparticles_sump4 += part->p4();
     }
 
     commonEntry.setNamedVal<float>("genpromptparticles_sump4_pt", genpromptparticles_sump4.Pt());

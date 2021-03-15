@@ -32,6 +32,8 @@ namespace ACHypothesisHelpers{
   TString getACHypothesisLabel(ACHypothesisHelpers::ACHypothesis hypo);
   TString getACHypothesisFLabel(ACHypothesisHelpers::ACHypothesis hypo);
 
+  TString getDecayFinalStateLabel(ACHypothesisHelpers::DecayType dktype);
+
   std::vector<DiscriminantClasses::Type> getACHypothesisKDSet(ACHypothesisHelpers::ACHypothesis hypo, ACHypothesisHelpers::ProductionType prod_type, ACHypothesisHelpers::DecayType decay_type);
   std::vector<TString> getACHypothesisKDNameSet(ACHypothesisHelpers::ACHypothesis hypo, ACHypothesisHelpers::ProductionType prod_type, ACHypothesisHelpers::DecayType decay_type);
 

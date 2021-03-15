@@ -888,9 +888,11 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     ParticleObject::LorentzVector_t genpromptparticles_sump4;
     auto const& genparticles = genInfoHandler->getGenParticles();
     for (auto const& part:genparticles){
-      if (part->extras.isPromptFinalState && (PDGHelpers::isAPhoton(part->pdgId()) || PDGHelpers::isANeutrino(part->pdgId()) || PDGHelpers::isALepton(part->pdgId()))){
-        genpromptparticles_sump4 += part->p4();
-      }
+      if (
+        part->testSelectionBit(GenParticleSelectionHelpers::kHardPromptFinalVisibleParticle)
+        ||
+        (part->extras.isPromptFinalState && PDGHelpers::isANeutrino(part->pdgId()))
+        ) genpromptparticles_sump4 += part->p4();
     }
 
     commonEntry.setNamedVal<float>("genpromptparticles_sump4_pt", genpromptparticles_sump4.Pt());

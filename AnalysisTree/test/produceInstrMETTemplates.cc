@@ -433,6 +433,8 @@ void getTemplateIntermediate_ZZ2L2Nu(
       smearingStrengthCoeffs.push_back(TemplateHelpers::getSmearingStrengthCoefficient("pTmiss", AChypo, prod_type, process_handler.getProcessDecayType()));
       nVars_nonKD++;
     }
+
+    // Add KDs as the remaining dimensions if they are supposed to be used.
     if (hasKDs){
       for (unsigned int iKD=0; iKD<nKDs; iKD++){
         auto const& KD = KDlist.at(iKD);
@@ -441,6 +443,13 @@ void getTemplateIntermediate_ZZ2L2Nu(
         smearingStrengthCoeffs.push_back(TemplateHelpers::getSmearingStrengthCoefficient(KD.KDname, AChypo, prod_type, process_handler.getProcessDecayType()));
       }
       nVars_KD = nKDs;
+    }
+
+    // For all categories, smearing coefficients for (mTZZ, pTmiss) in the single photon data should be increased by a factor of 2 except in the KD dimensions.
+    if (strSampleSet=="Data"){
+      for (unsigned int ivar=0; ivar<nVars_nonKD; ivar++){
+        if (ivar>0 || strCatNames.at(icat)=="BoostedHadVH") smearingStrengthCoeffs.at(ivar) *= 2.;
+      }
     }
 
     ExtendedBinning const& binning_mTZZ = binning_KDvars.front();
@@ -470,6 +479,67 @@ void getTemplateIntermediate_ZZ2L2Nu(
 
     bool selflag = true;
 
+    // First, extract unsmoothened distributions
+    double scale_norm_dn=1, scale_norm_up=1;
+    if (hasStatUnc){
+      foutputs.front()->cd();
+      TDirectory* dir_raw = foutputs.front()->mkdir("Raw"); dir_raw->cd();
+
+      double integral_raw=0, integralerr_raw=0;
+      double integral_raw_dn=0, integral_raw_up=0;
+
+      if ((nVars_nonKD + nVars_KD)==1){
+        TH1F* hRaw = getSmoothHistogram(
+          process_handler.getTemplateName()+"_Raw", process_handler.getTemplateName()+"_Raw", binning_KDvars.at(0),
+          tin_cat, *(varvals.at(0)), weight, selflag,
+          0,
+          nullptr, nullptr, nullptr
+        );
+
+        integral_raw = HelperFunctions::getHistogramIntegralAndError(hRaw, 0, hRaw->GetNbinsX()+1, false, &integralerr_raw);
+        TemplateHelpers::doTemplatePostprocessing(hRaw);
+        dir_raw->WriteTObject(hRaw);
+        delete hRaw;
+      }
+      else if ((nVars_nonKD + nVars_KD)==2){
+        TH2F* hRaw = getSmoothHistogram(
+          process_handler.getTemplateName()+"_Raw", process_handler.getTemplateName()+"_Raw", binning_KDvars.at(0), binning_KDvars.at(1),
+          tin_cat, *(varvals.at(0)), *(varvals.at(1)), weight, selflag,
+          0, 0,
+          nullptr, nullptr, nullptr
+        );
+
+        integral_raw = HelperFunctions::getHistogramIntegralAndError(hRaw, 0, hRaw->GetNbinsX()+1, 0, hRaw->GetNbinsY()+1, false, &integralerr_raw);
+        TemplateHelpers::doTemplatePostprocessing(hRaw);
+        dir_raw->WriteTObject(hRaw);
+        delete hRaw;
+      }
+      else if ((nVars_nonKD + nVars_KD)==3){
+        TH3F* hRaw = getSmoothHistogram(
+          process_handler.getTemplateName()+"_Raw", process_handler.getTemplateName()+"_Raw", binning_KDvars.at(0), binning_KDvars.at(1), binning_KDvars.at(2),
+          tin_cat, *(varvals.at(0)), *(varvals.at(1)), *(varvals.at(2)), weight, selflag,
+          0, 0, 0,
+          nullptr, nullptr, nullptr
+        );
+
+        integral_raw = HelperFunctions::getHistogramIntegralAndError(hRaw, 0, hRaw->GetNbinsX()+1, 0, hRaw->GetNbinsY()+1, 0, hRaw->GetNbinsZ()+1, false, &integralerr_raw);
+        TemplateHelpers::doTemplatePostprocessing(hRaw);
+        dir_raw->WriteTObject(hRaw);
+        delete hRaw;
+      }
+
+      double Neff_raw = (integralerr_raw>0. ? std::pow(integral_raw/integralerr_raw, 2) : 1.);
+      StatisticsHelpers::getPoissonCountingConfidenceInterval_Frequentist(Neff_raw, VAL_CL_1SIGMA, integral_raw_dn, integral_raw_up);
+      scale_norm_dn = integral_raw_dn/Neff_raw;
+      scale_norm_up = integral_raw_up/Neff_raw;
+      MELAout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
+      MELAout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc.: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
+
+      dir_raw->Close();
+      foutputs.front()->cd();
+    }
+
+    // Now extract smoothened histograms
     std::vector<TH1F*> hSmooth_combined_1D; hSmooth_combined_1D.reserve(nStatVars);
     std::vector<TH2F*> hSmooth_combined_2D; hSmooth_combined_2D.reserve(nStatVars);
     std::vector<TH3F*> hSmooth_combined_3D; hSmooth_combined_3D.reserve(nStatVars);
@@ -478,30 +548,14 @@ void getTemplateIntermediate_ZZ2L2Nu(
       if (nVars_nonKD + (!hasUniformHighMassKD && !hasKDsplit ? nVars_KD : 0)==1){
         MELAout << "\t- Producing unsplit 1D templates..." << endl;
 
-        TH1F* hRaw=nullptr;
         std::vector<TH1F*> hStat(2, nullptr);
         TH1F* hSmooth = getSmoothHistogram(
           process_handler.getTemplateName(), process_handler.getTemplateName(), binning_KDvars.at(0),
           tin_cat, *(varvals.at(0)), weight, selflag,
           smearingStrengthCoeffs.at(0),
-          (hasStatUnc ? &hRaw : nullptr),
+          nullptr,
           (hasStatUnc ? &(hStat.front()) : nullptr), (hasStatUnc ? &(hStat.back()) : nullptr)
         );
-
-        // Find norm dn/up
-        double scale_norm_dn=1, scale_norm_up=1;
-        if (hRaw){
-          double integral_raw=0, integralerr_raw=0;
-          double integral_raw_dn=0, integral_raw_up=0;
-          integral_raw = HelperFunctions::getHistogramIntegralAndError(hRaw, 0, hRaw->GetNbinsX()+1, false, &integralerr_raw);
-          double Neff_raw = (integralerr_raw>0. ? std::pow(integral_raw/integralerr_raw, 2) : 1.);
-          StatisticsHelpers::getPoissonCountingConfidenceInterval_Frequentist(Neff_raw, VAL_CL_1SIGMA, integral_raw_dn, integral_raw_up);
-          scale_norm_dn = integral_raw_dn/Neff_raw;
-          scale_norm_up = integral_raw_up/Neff_raw;
-          MELAout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
-          MELAout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc.: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
-        }
-        delete hRaw;
 
         hSmooth_combined_1D.push_back(hSmooth);
         if (hasStatUnc){
@@ -516,31 +570,15 @@ void getTemplateIntermediate_ZZ2L2Nu(
       else if (nVars_nonKD + (!hasUniformHighMassKD && !hasKDsplit ? nVars_KD : 0)==2){
         MELAout << "\t- Producing unsplit 2D templates..." << endl;
 
-        TH2F* hRaw=nullptr;
         std::vector<TH2F*> hStat(2, nullptr);
         TH2F* hSmooth = getSmoothHistogram(
           process_handler.getTemplateName(), process_handler.getTemplateName(),
           binning_KDvars.at(0), binning_KDvars.at(1),
           tin_cat, *(varvals.at(0)), *(varvals.at(1)), weight, selflag,
           smearingStrengthCoeffs.at(0), smearingStrengthCoeffs.at(1),
-          (hasStatUnc ? &hRaw : nullptr),
+          nullptr,
           (hasStatUnc ? &(hStat.front()) : nullptr), (hasStatUnc ? &(hStat.back()) : nullptr)
         );
-
-        // Find norm dn/up
-        double scale_norm_dn=1, scale_norm_up=1;
-        if (hRaw){
-          double integral_raw=0, integralerr_raw=0;
-          double integral_raw_dn=0, integral_raw_up=0;
-          integral_raw = HelperFunctions::getHistogramIntegralAndError(hRaw, 0, hRaw->GetNbinsX()+1, 0, hRaw->GetNbinsY()+1, false, &integralerr_raw);
-          double Neff_raw = (integralerr_raw>0. ? std::pow(integral_raw/integralerr_raw, 2) : 1.);
-          StatisticsHelpers::getPoissonCountingConfidenceInterval_Frequentist(Neff_raw, VAL_CL_1SIGMA, integral_raw_dn, integral_raw_up);
-          scale_norm_dn = integral_raw_dn/Neff_raw;
-          scale_norm_up = integral_raw_up/Neff_raw;
-          MELAout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
-          MELAout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc.: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
-        }
-        delete hRaw;
 
         hSmooth_combined_2D.push_back(hSmooth);
         if (hasStatUnc){
@@ -555,31 +593,15 @@ void getTemplateIntermediate_ZZ2L2Nu(
       else if (nVars_nonKD + (!hasUniformHighMassKD && !hasKDsplit ? nVars_KD : 0)==3){
         MELAout << "\t- Producing unsplit 3D templates..." << endl;
 
-        TH3F* hRaw=nullptr;
         std::vector<TH3F*> hStat(2, nullptr);
         TH3F* hSmooth = getSmoothHistogram(
           process_handler.getTemplateName(), process_handler.getTemplateName(),
           binning_KDvars.at(0), binning_KDvars.at(1), binning_KDvars.at(2),
           tin_cat, *(varvals.at(0)), *(varvals.at(1)), *(varvals.at(2)), weight, selflag,
           smearingStrengthCoeffs.at(0), smearingStrengthCoeffs.at(1), smearingStrengthCoeffs.at(2),
-          (hasStatUnc ? &hRaw : nullptr),
+          nullptr,
           (hasStatUnc ? &(hStat.front()) : nullptr), (hasStatUnc ? &(hStat.back()) : nullptr)
         );
-
-        // Find norm dn/up
-        double scale_norm_dn=1, scale_norm_up=1;
-        if (hRaw){
-          double integral_raw=0, integralerr_raw=0;
-          double integral_raw_dn=0, integral_raw_up=0;
-          integral_raw = HelperFunctions::getHistogramIntegralAndError(hRaw, 0, hRaw->GetNbinsX()+1, 0, hRaw->GetNbinsY()+1, 0, hRaw->GetNbinsZ()+1, false, &integralerr_raw);
-          double Neff_raw = (integralerr_raw>0. ? std::pow(integral_raw/integralerr_raw, 2) : 1.);
-          StatisticsHelpers::getPoissonCountingConfidenceInterval_Frequentist(Neff_raw, VAL_CL_1SIGMA, integral_raw_dn, integral_raw_up);
-          scale_norm_dn = integral_raw_dn/Neff_raw;
-          scale_norm_up = integral_raw_up/Neff_raw;
-          MELAout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
-          MELAout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc.: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
-        }
-        delete hRaw;
 
         hSmooth_combined_3D.push_back(hSmooth);
         if (hasStatUnc){
@@ -596,30 +618,14 @@ void getTemplateIntermediate_ZZ2L2Nu(
       if (nVars_nonKD==1){
         MELAout << "\t- Producing nVars_nonKD==1 KD-split templates..." << endl;
 
-        TH1F* hRaw_nonKD=nullptr;
         std::vector<TH1F*> hStat_nonKD(2, nullptr);
         TH1F* hSmooth_nonKD = getSmoothHistogram(
           process_handler.getTemplateName()+"_nonKD", process_handler.getTemplateName()+"_nonKD", binning_KDvars.at(0),
           tin_cat, *(varvals.at(0)), weight, selflag,
           smearingStrengthCoeffs.at(0),
-          (hasStatUnc ? &hRaw_nonKD : nullptr),
+          nullptr,
           (hasStatUnc ? &(hStat_nonKD.front()) : nullptr), (hasStatUnc ? &(hStat_nonKD.back()) : nullptr)
         );
-
-        // Find norm dn/up
-        double scale_norm_dn=1, scale_norm_up=1;
-        if (hRaw_nonKD){
-          double integral_raw=0, integralerr_raw=0;
-          double integral_raw_dn=0, integral_raw_up=0;
-          integral_raw = HelperFunctions::getHistogramIntegralAndError(hRaw_nonKD, 0, hRaw_nonKD->GetNbinsX()+1, false, &integralerr_raw);
-          double Neff_raw = (integralerr_raw>0. ? std::pow(integral_raw/integralerr_raw, 2) : 1.);
-          StatisticsHelpers::getPoissonCountingConfidenceInterval_Frequentist(Neff_raw, VAL_CL_1SIGMA, integral_raw_dn, integral_raw_up);
-          scale_norm_dn = integral_raw_dn/Neff_raw;
-          scale_norm_up = integral_raw_up/Neff_raw;
-          MELAout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
-          MELAout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc.: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
-        }
-        delete hRaw_nonKD;
 
         if (nVars_KD==1){
           std::vector<TH2F*> hStat_KD(2, nullptr);
@@ -742,30 +748,14 @@ void getTemplateIntermediate_ZZ2L2Nu(
       else if (nVars_nonKD==2){
         MELAout << "\t- Producing nVars_nonKD==2 KD-split templates..." << endl;
 
-        TH2F* hRaw_nonKD=nullptr;
         std::vector<TH2F*> hStat_nonKD(2, nullptr);
         TH2F* hSmooth_nonKD = getSmoothHistogram(
           process_handler.getTemplateName()+"_nonKD", process_handler.getTemplateName()+"_nonKD", binning_KDvars.at(0), binning_KDvars.at(1),
           tin_cat, *(varvals.at(0)), *(varvals.at(1)), weight, selflag,
           smearingStrengthCoeffs.at(0), smearingStrengthCoeffs.at(1),
-          (hasStatUnc ? &hRaw_nonKD : nullptr),
+          nullptr,
           (hasStatUnc ? &(hStat_nonKD.front()) : nullptr), (hasStatUnc ? &(hStat_nonKD.back()) : nullptr)
         );
-
-        // Find norm dn/up
-        double scale_norm_dn=1, scale_norm_up=1;
-        if (hRaw_nonKD){
-          double integral_raw=0, integralerr_raw=0;
-          double integral_raw_dn=0, integral_raw_up=0;
-          integral_raw = HelperFunctions::getHistogramIntegralAndError(hRaw_nonKD, 0, hRaw_nonKD->GetNbinsX()+1, 0, hRaw_nonKD->GetNbinsY()+1, false, &integralerr_raw);
-          double Neff_raw = (integralerr_raw>0. ? std::pow(integral_raw/integralerr_raw, 2) : 1.);
-          StatisticsHelpers::getPoissonCountingConfidenceInterval_Frequentist(Neff_raw, VAL_CL_1SIGMA, integral_raw_dn, integral_raw_up);
-          scale_norm_dn = integral_raw_dn/Neff_raw;
-          scale_norm_up = integral_raw_up/Neff_raw;
-          MELAout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
-          MELAout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc.: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
-        }
-        delete hRaw_nonKD;
 
         {
           std::vector<TH3F*> hStat_KD(2, nullptr);
@@ -1093,20 +1083,27 @@ void getTemplate_ZZ2L2Nu(
       }
       
       if (h1D){
+        TH1F* hFloored = (TH1F*) h1D->Clone(Form("%s_belowfloor", h1D->GetName()));
         for (int ix=0; ix<=h1D->GetNbinsX()+1; ix++){
           double bc = h1D->GetBinContent(ix);
           if (bc<0.) bc=0;
+          else hFloored->SetBinContent(ix, 0.);
           h1D->SetBinContent(ix, bc);
           h1D->SetBinError(ix, 0.);
         }
         foutput->WriteTObject(h1D);
+        hFloored->Scale(-1.); foutput->WriteTObject(hFloored);
         MELAout << "\t\t- Final integral: " << HelperFunctions::getHistogramIntegralAndError(h1D, 1, h1D->GetNbinsX(), true) << endl;
+        MELAout << "\t\t- Floor bias in integral: " << -HelperFunctions::getHistogramIntegralAndError(hFloored, 1, hFloored->GetNbinsX(), true) << endl;
+        delete hFloored;
       }
       if (h2D){
+        TH2F* hFloored = (TH2F*) h2D->Clone(Form("%s_belowfloor", h2D->GetName()));
         for (int ix=0; ix<=h2D->GetNbinsX()+1; ix++){
           for (int iy=0; iy<=h2D->GetNbinsY()+1; iy++){
             double bc = h2D->GetBinContent(ix, iy);
             if (bc<0.) bc=0;
+            else hFloored->SetBinContent(ix, iy, 0.);
             h2D->SetBinContent(ix, iy, bc);
             h2D->SetBinError(ix, iy, 0);
           }
@@ -1133,14 +1130,19 @@ void getTemplate_ZZ2L2Nu(
           }
         }
         foutput->WriteTObject(h2D);
+        hFloored->Scale(-1.); foutput->WriteTObject(hFloored);
         MELAout << "\t\t- Final integral: " << HelperFunctions::getHistogramIntegralAndError(h2D, 1, h2D->GetNbinsX(), 1, h2D->GetNbinsY(), true) << endl;
+        MELAout << "\t\t- Floor bias in integral: " << -HelperFunctions::getHistogramIntegralAndError(hFloored, 1, hFloored->GetNbinsX(), 1, hFloored->GetNbinsY(), true) << endl;
+        delete hFloored;
       }
       if (h3D){
+        TH3F* hFloored = (TH3F*) h3D->Clone(Form("%s_belowfloor", h3D->GetName()));
         for (int ix=0; ix<=h3D->GetNbinsX()+1; ix++){
           for (int iy=0; iy<=h3D->GetNbinsY()+1; iy++){
             for (int iz=0; iz<=h3D->GetNbinsZ()+1; iz++){
               double bc = h3D->GetBinContent(ix, iy, iz);
               if (bc<0.) bc=0;
+              else hFloored->SetBinContent(ix, iy, iz, 0.);
               h3D->SetBinContent(ix, iy, iz, bc);
               h3D->SetBinError(ix, iy, iz, 0);
             }
@@ -1198,7 +1200,10 @@ void getTemplate_ZZ2L2Nu(
           }
         }
         foutput->WriteTObject(h3D);
+        hFloored->Scale(-1.); foutput->WriteTObject(hFloored);
         MELAout << "\t\t- Final integral: " << HelperFunctions::getHistogramIntegralAndError(h3D, 1, h3D->GetNbinsX(), 1, h3D->GetNbinsY(), 1, h3D->GetNbinsZ(), true) << endl;
+        MELAout << "\t\t- Floor bias in integral: " << -HelperFunctions::getHistogramIntegralAndError(hFloored, 1, hFloored->GetNbinsX(), 1, hFloored->GetNbinsY(), 1, hFloored->GetNbinsZ(), true) << endl;
+        delete hFloored;
       }
 
       delete h1D;
@@ -1216,30 +1221,33 @@ void getTemplate_ZZ2L2Nu(
 }
 
 
-void runTemplateChain(TString period, TString ntupleVersion, TString strdate, bool includeBoostedHadVHCategory, bool includeResolvedHadVHCategory){
+void runTemplateChain(
+  TString period, TString ntupleVersion, TString strdate,
+  ACHypothesisHelpers::ACHypothesis AChypo,
+  cms3_id_t dilepton_id,
+  bool includeBoostedHadVHCategory, bool includeResolvedHadVHCategory,
+  bool skipIntermediates = false
+){
   SampleHelpers::configure(period, Form("%s:ZZTo2L2Nu/%s", "store_finaltrees", ntupleVersion.Data()));
 
   std::vector<TString> const strSampleSets{ "Data", "WG", "ZG", "VVG", "SingleElectron", "tGX" };
-  std::vector<cms3_id_t> const dilepton_ids{ -121, -169 };
-  for (auto const& dilepton_id:dilepton_ids){
-    for (int iac=0; iac<(int) ACHypothesisHelpers::nACHypotheses; iac++){
-      for (auto const& strSampleSet:strSampleSets){
-        for (auto const& syst_pair:getAllowedSysts(strSampleSet, dilepton_id)){
-          getTemplateIntermediate_ZZ2L2Nu(
-            strSampleSet,
-            period, ntupleVersion, strdate,
-            static_cast<ACHypothesisHelpers::ACHypothesis>(iac),
-            dilepton_id, syst_pair,
-            includeBoostedHadVHCategory, includeResolvedHadVHCategory
-          );
-        }
+  if (!skipIntermediates){
+    for (auto const& strSampleSet:strSampleSets){
+      for (auto const& syst_pair:getAllowedSysts(strSampleSet, dilepton_id)){
+        getTemplateIntermediate_ZZ2L2Nu(
+          strSampleSet,
+          period, ntupleVersion, strdate,
+          AChypo,
+          dilepton_id, syst_pair,
+          includeBoostedHadVHCategory, includeResolvedHadVHCategory
+        );
       }
-      getTemplate_ZZ2L2Nu(
-        period, ntupleVersion, strdate,
-        static_cast<ACHypothesisHelpers::ACHypothesis>(iac),
-        dilepton_id,
-        includeBoostedHadVHCategory, includeResolvedHadVHCategory
-      );
     }
   }
+  getTemplate_ZZ2L2Nu(
+    period, ntupleVersion, strdate,
+    AChypo,
+    dilepton_id,
+    includeBoostedHadVHCategory, includeResolvedHadVHCategory
+  );
 }

@@ -31,6 +31,15 @@ def getNFilesRequired(sname):
       raise RuntimeError("Cannot identify the number of required files for {}".format(sname))
 
 
+def checkSampleIsNotIncomplete(sname):
+   slist_incomplete=[
+   ]
+   if sname in slist_incomplete:
+      return False
+   else:
+      return True
+
+
 def getCSVLine(sname):
    line_tpl="{SNAME},/hadoop/cms/store/user/<USER>/Offshell_2L2Nu/Production/<DATE>,-1,-1,{VVMODE},{VVDECAYMODE},{MEFILE},globaltag={GLOBALTAG} nevents=-1 year={YEAR} {METRECIPE}doTrigObjMatching=True triggerListFromFile=OffshellTriggerFilterList_{YEAR}.lst {KFACTOROPT}data=False minNleptons=1 minNphotons=1 includeLJetsSelection=True keepGenParticles=reducedfinalstatesandhardprocesses keepGenJets=True LHEInputTag=source disableDuplicateCheck=True"
 
@@ -103,6 +112,20 @@ def getCSVLine(sname):
 
 
 def run(args):
+   filter_csvs=args.filter_csv
+   samples_filtered=[]
+   for filter_csv in filter_csvs:
+      filter_csvnames=glob.glob(filter_csv)
+      for fname in filter_csvnames:
+         print("Filter applied from {}".format(fname))
+         with open(fname) as fh:
+            reader = csv.DictReader(fh)
+            for row in reader:
+               dataset = row["#Dataset"]
+               if dataset.strip().startswith("#"):
+                  continue
+               samples_filtered.append(dataset)
+
    localSearchDir=args.localSearchDir
    sample_line_list = []
    valid_years = []
@@ -112,9 +135,11 @@ def run(args):
       subdirs=glob.glob(search_dir+"*/*/MINIAODSIM")
       for subdir in subdirs:
          sname = subdir.replace(search_dir,'/')
+         if sname in samples_filtered:
+            continue
          nfiles = len(glob.glob(subdir+"/*.root"))
          nreq = getNFilesRequired(sname)
-         if nfiles>=nreq or args.show_complete:
+         if nfiles>=nreq or args.show_complete or (args.override_counts and checkSampleIsNotIncomplete(sname)):
             print("{}: {} / {}".format(sname, nfiles, nreq))
             csv_line = getCSVLine(sname)
             sample_line_list.append(csv_line)
@@ -137,7 +162,9 @@ def run(args):
 if __name__ == "__main__":
    parser = argparse.ArgumentParser()
    parser.add_argument("--csv", help="Output csv file", type=str, required=True)
+   parser.add_argument("--filter_csv", help="csv files filtered", nargs="+")
    parser.add_argument("--show_complete", help="Only show the fraction of completions", action='store_true')
+   parser.add_argument("--override_counts", help="Override the check on completed samples by count", action='store_true')
    parser.add_argument("localSearchDir", help="Search directory for local files. Can specify multiple.", nargs="+")
    args = parser.parse_args()
 

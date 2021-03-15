@@ -310,3 +310,17 @@ std::vector<DiscriminantClasses::Type> ACHypothesisHelpers::getACHypothesisKDSet
 
   return res;
 }
+
+TString ACHypothesisHelpers::getDecayFinalStateLabel(ACHypothesisHelpers::DecayType dktype){
+  switch (dktype){
+  case kZZ4l_onshell:
+  case kZZ4l_offshell:
+    return "4l";
+  case kZZ2l2nu_offshell:
+    return "2l2\nu";
+  default:
+    MELAerr << "ACHypothesisHelpers::getDecayFinalStateLabel: Decay type " << dktype << " is not recognized. Please fix the implementation." << endl;
+    assert(0);
+    return "";
+  }
+}

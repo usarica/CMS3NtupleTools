@@ -281,34 +281,79 @@ void getTemplate_ZZ2L2Nu(
 
     bool selflag = true;
 
+    // First, extract unsmoothened distributions
+    double scale_norm_dn=1, scale_norm_up=1;
+    if (hasStatUnc){
+      foutputs.front()->cd();
+      TDirectory* dir_raw = foutputs.front()->mkdir("Raw"); dir_raw->cd();
+
+      double integral_raw=0, integralerr_raw=0;
+      double integral_raw_dn=0, integral_raw_up=0;
+
+      if ((nVars_nonKD + nVars_KD)==1){
+        TH1F* hRaw = getSmoothHistogram(
+          process_handler.getTemplateName()+"_Raw", process_handler.getTemplateName()+"_Raw", binning_KDvars.at(0),
+          tin_cat, *(varvals.at(0)), weight, selflag,
+          0,
+          nullptr, nullptr, nullptr
+        );
+
+        integral_raw = HelperFunctions::getHistogramIntegralAndError(hRaw, 0, hRaw->GetNbinsX()+1, false, &integralerr_raw);
+        TemplateHelpers::doTemplatePostprocessing(hRaw);
+        dir_raw->WriteTObject(hRaw);
+        delete hRaw;
+      }
+      else if ((nVars_nonKD + nVars_KD)==2){
+        TH2F* hRaw = getSmoothHistogram(
+          process_handler.getTemplateName()+"_Raw", process_handler.getTemplateName()+"_Raw", binning_KDvars.at(0), binning_KDvars.at(1),
+          tin_cat, *(varvals.at(0)), *(varvals.at(1)), weight, selflag,
+          0, 0,
+          nullptr, nullptr, nullptr
+        );
+
+        integral_raw = HelperFunctions::getHistogramIntegralAndError(hRaw, 0, hRaw->GetNbinsX()+1, 0, hRaw->GetNbinsY()+1, false, &integralerr_raw);
+        TemplateHelpers::doTemplatePostprocessing(hRaw);
+        dir_raw->WriteTObject(hRaw);
+        delete hRaw;
+      }
+      else if ((nVars_nonKD + nVars_KD)==3){
+        TH3F* hRaw = getSmoothHistogram(
+          process_handler.getTemplateName()+"_Raw", process_handler.getTemplateName()+"_Raw", binning_KDvars.at(0), binning_KDvars.at(1), binning_KDvars.at(2),
+          tin_cat, *(varvals.at(0)), *(varvals.at(1)), *(varvals.at(2)), weight, selflag,
+          0, 0, 0,
+          nullptr, nullptr, nullptr
+        );
+
+        integral_raw = HelperFunctions::getHistogramIntegralAndError(hRaw, 0, hRaw->GetNbinsX()+1, 0, hRaw->GetNbinsY()+1, 0, hRaw->GetNbinsZ()+1, false, &integralerr_raw);
+        TemplateHelpers::doTemplatePostprocessing(hRaw);
+        dir_raw->WriteTObject(hRaw);
+        delete hRaw;
+      }
+
+      double Neff_raw = (integralerr_raw>0. ? std::pow(integral_raw/integralerr_raw, 2) : 1.);
+      StatisticsHelpers::getPoissonCountingConfidenceInterval_Frequentist(Neff_raw, VAL_CL_1SIGMA, integral_raw_dn, integral_raw_up);
+      scale_norm_dn = integral_raw_dn/Neff_raw;
+      scale_norm_up = integral_raw_up/Neff_raw;
+      MELAout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
+      MELAout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc.: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
+
+      dir_raw->Close();
+      foutputs.front()->cd();
+    }
+
+    // Now extract smoothened histograms
     std::vector<TH1F*> hSmooth_combined_1D; hSmooth_combined_1D.reserve(5);
     std::vector<TH2F*> hSmooth_combined_2D; hSmooth_combined_2D.reserve(5);
     std::vector<TH3F*> hSmooth_combined_3D; hSmooth_combined_3D.reserve(5);
     if (nVars_nonKD==1){
-      TH1F* hRaw_nonKD=nullptr;
       std::vector<TH1F*> hStat_nonKD(2, nullptr);
       TH1F* hSmooth_nonKD = getSmoothHistogram(
         process_handler.getTemplateName()+"_nonKD", process_handler.getTemplateName()+"_nonKD", binning_KDvars.at(0),
         tin_cat, *(varvals.at(0)), weight, selflag,
         smearingStrengthCoeffs.at(0),
-        (hasStatUnc ? &hRaw_nonKD : nullptr),
+        nullptr,
         (hasStatUnc ? &(hStat_nonKD.front()) : nullptr), (hasStatUnc ? &(hStat_nonKD.back()) : nullptr)
       );
-
-      // Find norm dn/up
-      double scale_norm_dn=1, scale_norm_up=1;
-      if (hRaw_nonKD){
-        double integral_raw=0, integralerr_raw=0;
-        double integral_raw_dn=0, integral_raw_up=0;
-        integral_raw = HelperFunctions::getHistogramIntegralAndError(hRaw_nonKD, 0, hRaw_nonKD->GetNbinsX()+1, false, &integralerr_raw);
-        double Neff_raw = (integralerr_raw>0. ? std::pow(integral_raw/integralerr_raw, 2) : 1.);
-        StatisticsHelpers::getPoissonCountingConfidenceInterval_Frequentist(Neff_raw, VAL_CL_1SIGMA, integral_raw_dn, integral_raw_up);
-        scale_norm_dn = integral_raw_dn/Neff_raw;
-        scale_norm_up = integral_raw_up/Neff_raw;
-        MELAout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
-        MELAout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc.: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
-      }
-      delete hRaw_nonKD;
 
       // Make conditional KD templates
       if (nVars_KD==0){
@@ -324,19 +369,17 @@ void getTemplate_ZZ2L2Nu(
         // Do not clean up non-KD histograms
       } // End nKDs=0
       else if (nVars_KD==1){
-        //TH1F* hRaw_KD=nullptr;
         std::vector<TH1F*> hStat_KD(2, nullptr);
         TH1F* hSmooth_KD = getSmoothHistogram(
           process_handler.getTemplateName()+"_KD", process_handler.getTemplateName()+"_KD", binning_KDvars.at(1),
           tin_cat, *(varvals.at(1)), weight, selflag,
           smearingStrengthCoeffs.at(1),
-          /*&hRaw_KD*/nullptr,
+          nullptr,
           (hasStatUnc ? &(hStat_KD.front()) : nullptr), (hasStatUnc ? &(hStat_KD.back()) : nullptr)
         );
 
         // Normalize so that we can multiply with the non-KD shape
         hSmooth_KD->Scale(1./HelperFunctions::getHistogramIntegralAndError(hSmooth_KD, 0, hSmooth_KD->GetNbinsX()+1, false));
-        //if (hRaw_KD) hRaw_KD->Scale(1./HelperFunctions::getHistogramIntegralAndError(hRaw_KD, 0, hRaw_KD->GetNbinsX()+1, false));
         for (auto& hh:hStat_KD){ if (hh) hh->Scale(1./HelperFunctions::getHistogramIntegralAndError(hh, 0, hh->GetNbinsX()+1, false)); }
 
         for (unsigned short istat=0; istat<7; istat++){
@@ -375,20 +418,18 @@ void getTemplate_ZZ2L2Nu(
         for (auto& hh:hStat_nonKD) delete hh;
       } // End nKDs=1
       else if (nVars_KD==2){
-        //TH2F* hRaw_KD=nullptr;
         std::vector<TH2F*> hStat_KD(2, nullptr);
         TH2F* hSmooth_KD = getSmoothHistogram(
           process_handler.getTemplateName()+"_KD", process_handler.getTemplateName()+"_KD",
           binning_KDvars.at(1), binning_KDvars.at(2),
           tin_cat, *(varvals.at(1)), *(varvals.at(2)), weight, selflag,
           smearingStrengthCoeffs.at(1), smearingStrengthCoeffs.at(2),
-          /*&hRaw_KD*/nullptr,
+          nullptr,
           (hasStatUnc ? &(hStat_KD.front()) : nullptr), (hasStatUnc ? &(hStat_KD.back()) : nullptr)
         );
 
         // Normalize so that we can multiply with the non-KD shape
         hSmooth_KD->Scale(1./HelperFunctions::getHistogramIntegralAndError(hSmooth_KD, 0, hSmooth_KD->GetNbinsX()+1, 0, hSmooth_KD->GetNbinsY()+1, false));
-        //if (hRaw_KD) hRaw_KD->Scale(1./HelperFunctions::getHistogramIntegralAndError(hRaw_KD, 0, hRaw_KD->GetNbinsX()+1, 0, hRaw_KD->GetNbinsY()+1, false));
         for (auto& hh:hStat_KD){ if (hh) hh->Scale(1./HelperFunctions::getHistogramIntegralAndError(hh, 0, hh->GetNbinsX()+1, 0, hh->GetNbinsY()+1, false)); }
 
         for (unsigned short istat=0; istat<7; istat++){
@@ -431,31 +472,15 @@ void getTemplate_ZZ2L2Nu(
       } // End nKDs=2
     } // End non-KD = 1
     else if (nVars_nonKD==2){
-      TH2F* hRaw_nonKD=nullptr;
       std::vector<TH2F*> hStat_nonKD(2, nullptr);
       TH2F* hSmooth_nonKD = getSmoothHistogram(
         process_handler.getTemplateName()+"_nonKD", process_handler.getTemplateName()+"_nonKD",
         binning_KDvars.at(0), binning_KDvars.at(1),
         tin_cat, *(varvals.at(0)), *(varvals.at(1)), weight, selflag,
         smearingStrengthCoeffs.at(0), smearingStrengthCoeffs.at(1),
-        (hasStatUnc ? &hRaw_nonKD : nullptr),
+        nullptr,
         (hasStatUnc ? &(hStat_nonKD.front()) : nullptr), (hasStatUnc ? &(hStat_nonKD.back()) : nullptr)
       );
-
-      // Find norm dn/up
-      double scale_norm_dn=1, scale_norm_up=1;
-      if (hRaw_nonKD){
-        double integral_raw=0, integralerr_raw=0;
-        double integral_raw_dn=0, integral_raw_up=0;
-        integral_raw = HelperFunctions::getHistogramIntegralAndError(hRaw_nonKD, 0, hRaw_nonKD->GetNbinsX()+1, 0, hRaw_nonKD->GetNbinsY()+1, false, &integralerr_raw);
-        double Neff_raw = (integralerr_raw>0. ? std::pow(integral_raw/integralerr_raw, 2) : 1.);
-        StatisticsHelpers::getPoissonCountingConfidenceInterval_Frequentist(Neff_raw, VAL_CL_1SIGMA, integral_raw_dn, integral_raw_up);
-        scale_norm_dn = integral_raw_dn/Neff_raw;
-        scale_norm_up = integral_raw_up/Neff_raw;
-        MELAout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
-        MELAout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc.: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
-      }
-      delete hRaw_nonKD;
 
       // Make conditional KD templates
       if (nVars_KD==0){
@@ -471,19 +496,17 @@ void getTemplate_ZZ2L2Nu(
         // Do not cleanup non-KD histograms
       } // End nKDs=0
       else if (nVars_KD==1){
-        //TH1F* hRaw_KD=nullptr;
         std::vector<TH1F*> hStat_KD(2, nullptr);
         TH1F* hSmooth_KD = getSmoothHistogram(
           process_handler.getTemplateName()+"_KD", process_handler.getTemplateName()+"_KD", binning_KDvars.at(2),
           tin_cat, *(varvals.at(2)), weight, selflag,
           smearingStrengthCoeffs.at(2),
-          /*&hRaw_KD*/nullptr,
+          nullptr,
           (hasStatUnc ? &(hStat_KD.front()) : nullptr), (hasStatUnc ? &(hStat_KD.back()) : nullptr)
         );
 
         // Normalize so that we can multiply with the non-KD shape
         hSmooth_KD->Scale(1./HelperFunctions::getHistogramIntegralAndError(hSmooth_KD, 0, hSmooth_KD->GetNbinsX()+1, false));
-        //if (hRaw_KD) hRaw_KD->Scale(1./HelperFunctions::getHistogramIntegralAndError(hRaw_KD, 0, hRaw_KD->GetNbinsX()+1, false));
         for (auto& hh:hStat_KD){ if (hh) hh->Scale(1./HelperFunctions::getHistogramIntegralAndError(hh, 0, hh->GetNbinsX()+1, false)); }
 
         for (unsigned short istat=0; istat<7; istat++){

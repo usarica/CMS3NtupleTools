@@ -7,6 +7,7 @@
 #include "HelperFunctions.h"
 #include "ReweightingFunctions.h"
 #include "GenInfoHandler.h"
+#include "GenParticleSelectionHelpers.h"
 #include "MELAStreamHelpers.hh"
 
 
@@ -261,6 +262,9 @@ bool GenInfoHandler::constructGenParticles(){
       GENPARTICLE_EXTRA_VARIABLES;
 #undef GENPARTICLE_VARIABLE
 
+      // Set selection bits
+      GenParticleSelectionHelpers::setSelectionBits(*obj);
+
       if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
 
       ip++;
@@ -400,14 +404,18 @@ bool GenInfoHandler::applyGenJetCleaning(){
   if (!doGenJetsCleaning) return true;
 
   std::vector<ParticleObject*> cleaningparticles; cleaningparticles.reserve(genparticles.size());
-  // Accumulate all prompt leptons or hard-process taus
+  // Accumulate all prompt leptons and photons, or hard-process taus
+  // Require the kHardPromptFinalParticle selection bit in order to avoid soft particles,
+  // which could bias jet cleaning through combinatorics.
+  // Also add hard-process taus to cleaning.
   for (auto const& part:genparticles){
     auto const& extras = part->extras;
     cms3_id_t const& part_id = part->pdgId();
+    ParticleObject::LorentzVector_t::Scalar const part_pt = part->pt();
     if (
-      (extras.isPromptFinalState && (PDGHelpers::isALepton(part_id) || PDGHelpers::isAPhoton(part_id)))
+      part->testSelectionBit(GenParticleSelectionHelpers::kHardPromptFinalVisibleParticle)
       ||
-      (extras.isHardProcess && std::abs(part_id)==15)
+      (extras.isHardProcess && std::abs(part_id)==15 && part_pt>=GenParticleSelectionHelpers::ptThr_hardparticle_lepton)
       ) cleaningparticles.push_back(part);
   }
   // Accumulate all V->qq decays from LHE level

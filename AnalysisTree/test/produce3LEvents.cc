@@ -276,12 +276,14 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   BRANCH_COMMAND(float, leptons_eff_DF_StatUp) \
   BRANCH_COMMAND(float, leptons_eff_DF_SystDn) \
   BRANCH_COMMAND(float, leptons_eff_DF_SystUp) \
+  BRANCH_COMMAND(bool, electrons_conv_vtx_flag) \
+  BRANCH_COMMAND(bool, electrons_pass_tightCharge) \
+  BRANCH_COMMAND(cms3_electron_missinghits_t, electrons_n_missing_inner_hits) \
+  BRANCH_COMMAND(cms3_electron_missinghits_t, electrons_n_all_missing_inner_hits) \
   BRANCH_COMMAND(float, electrons_full5x5_sigmaIEtaIEta) \
   BRANCH_COMMAND(float, electrons_full5x5_sigmaIPhiIPhi) \
   BRANCH_COMMAND(float, electrons_full5x5_r9) \
   BRANCH_COMMAND(float, electrons_seedTime) \
-  BRANCH_COMMAND(cms3_electron_missinghits_t, electrons_n_missing_inner_hits) \
-  BRANCH_COMMAND(cms3_electron_missinghits_t, electrons_n_all_missing_inner_hits) \
   BRANCH_COMMAND(bool, ak4jets_is_genMatched) \
   BRANCH_COMMAND(bool, ak4jets_is_genMatched_fullCone) \
   BRANCH_COMMAND(unsigned char, ak4jets_btagWP_Bits) \
@@ -863,12 +865,14 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     if (theElectron){
       auto const& extras = theElectron->extras;
 
+      electrons_conv_vtx_flag.push_back(extras.conv_vtx_flag);
+      electrons_pass_tightCharge.push_back(HelperFunctions::test_bit(extras.charge_consistency_bits, 2));
+      electrons_n_missing_inner_hits.push_back(extras.n_missing_inner_hits);
+      electrons_n_all_missing_inner_hits.push_back(extras.n_all_missing_inner_hits);
       electrons_full5x5_sigmaIEtaIEta.push_back(extras.full5x5_sigmaIEtaIEta);
       electrons_full5x5_sigmaIPhiIPhi.push_back(extras.full5x5_sigmaIPhiIPhi);
       electrons_full5x5_r9.push_back(extras.full5x5_r9);
       electrons_seedTime.push_back(extras.seedTime);
-      electrons_n_missing_inner_hits.push_back(extras.n_missing_inner_hits);
-      electrons_n_all_missing_inner_hits.push_back(extras.n_all_missing_inner_hits);
     }
   }
 
@@ -1012,9 +1016,11 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     ParticleObject::LorentzVector_t genpromptparticles_sump4;
     auto const& genparticles = genInfoHandler->getGenParticles();
     for (auto const& part:genparticles){
-      if (part->extras.isPromptFinalState && (PDGHelpers::isAPhoton(part->pdgId()) || PDGHelpers::isANeutrino(part->pdgId()) || PDGHelpers::isALepton(part->pdgId()))){
-        genpromptparticles_sump4 += part->p4();
-      }
+      if (
+        part->testSelectionBit(GenParticleSelectionHelpers::kHardPromptFinalVisibleParticle)
+        ||
+        (part->extras.isPromptFinalState && PDGHelpers::isANeutrino(part->pdgId()))
+        ) genpromptparticles_sump4 += part->p4();
     }
 
     commonEntry.setNamedVal<float>("genpromptparticles_sump4_pt", genpromptparticles_sump4.Pt());

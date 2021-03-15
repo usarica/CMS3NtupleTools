@@ -302,38 +302,40 @@ namespace PhysicsProcessHelpers{
   }
   TString GGProcessHandler::getProcessLabel(GGProcessHandler::HypothesisType type, ACHypothesisHelpers::ACHypothesis hypo) const{
     TString const acname = ACHypothesisHelpers::getACHypothesisFLabel(hypo);
+    TString const dklabel = ACHypothesisHelpers::getDecayFinalStateLabel(dktype);
     switch (type){
     case GGBkg:
-      return "gg #rightarrow 4l bkg.";
+      return Form("gg #rightarrow %s bkg.", dklabel.Data());
     case GGSig:
-      return "gg #rightarrow 4l SM sig.";
+      return Form("gg #rightarrow %s SM sig.", dklabel.Data());
     case GGBSI:
-      return "gg #rightarrow 4l SM sig.+bkg.";
+      return Form("gg #rightarrow %s SM sig.+bkg.", dklabel.Data());
     case GGSigBSM:
-      return Form("gg #rightarrow 4l %s%s sig.", acname.Data(), "=1");
+      return Form("gg #rightarrow %s %s%s sig.", dklabel.Data(), acname.Data(), "=1");
     case GGSigBSMSMInt:
-      return Form("gg #rightarrow 4l %s%s sig.", acname.Data(), "=0.5");
+      return Form("gg #rightarrow %s %s%s sig.", dklabel.Data(), acname.Data(), "=0.5");
     case GGBBI:
-      return Form("gg #rightarrow 4l %s%s sig.+bkg.", acname.Data(), "=1");
+      return Form("gg #rightarrow %s %s%s sig.+bkg.", dklabel.Data(), acname.Data(), "=1");
     default:
       return "";
     };
   }
   TString GGProcessHandler::getProcessLabel(GGProcessHandler::TemplateType type, ACHypothesisHelpers::ACHypothesis hypo) const{
     TString const acname = ACHypothesisHelpers::getACHypothesisFLabel(hypo);
+    TString const dklabel = ACHypothesisHelpers::getDecayFinalStateLabel(dktype);
     switch (type){
     case GGTplBkg:
-      return "gg #rightarrow 4l bkg.";
+      return Form("gg #rightarrow %s bkg.", dklabel.Data());
     case GGTplSig:
-      return "gg #rightarrow 4l SM sig.";
+      return Form("gg #rightarrow %s SM sig.", dklabel.Data());
     case GGTplInt_Re:
-      return "gg #rightarrow 4l SM sig.-bkg. interference";
+      return Form("gg #rightarrow %s SM sig.-bkg. interference", dklabel.Data());
     case GGTplSigBSM:
-      return Form("gg #rightarrow 4l %s%s sig.", acname.Data(), "=1");
+      return Form("gg #rightarrow %s %s%s sig.", dklabel.Data(), acname.Data(), "=1");
     case GGTplSigBSMSMInt_Re:
-      return Form("gg #rightarrow 4l %s%s interference", acname.Data(), "=0.5");
+      return Form("gg #rightarrow %s %s%s interference", dklabel.Data(), acname.Data(), "=0.5");
     case GGTplIntBSM_Re:
-      return Form("gg #rightarrow 4l %s%s sig.-bkg. interference", acname.Data(), "=1");
+      return Form("gg #rightarrow %s %s%s sig.-bkg. interference", dklabel.Data(), acname.Data(), "=1");
     default:
       return "";
     };
@@ -475,7 +477,7 @@ namespace PhysicsProcessHelpers{
       if (hypo==ACHypothesisHelpers::kA3){
         if (type==GGTplSigBSMSMInt_Re || type==GGTplIntBSM_Re){
           if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle()) && DiscriminantClasses::usesDecInfo(hh->GetXaxis()->GetTitle())) asymAxes.push_back(0);
-          if (asymAxes.empty()) hh->Reset("ICESM"); // If no asymmetrix axes found, histogram has to be 0 itself.
+          if (asymAxes.empty()) hh->Reset("ICESM"); // If no asymmetric axes found, histogram has to be 0 itself.
         }
         else{
           if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle())) symAxes.push_back(0);
@@ -519,7 +521,7 @@ namespace PhysicsProcessHelpers{
         if (type==GGTplSigBSMSMInt_Re || type==GGTplIntBSM_Re){
           if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle()) && DiscriminantClasses::usesDecInfo(hh->GetXaxis()->GetTitle())) asymAxes.push_back(0);
           if (DiscriminantClasses::isCPSensitive(hh->GetYaxis()->GetTitle()) && DiscriminantClasses::usesDecInfo(hh->GetYaxis()->GetTitle())) asymAxes.push_back(1);
-          if (asymAxes.empty()) hh->Reset("ICESM"); // If no asymmetrix axes found, histogram has to be 0 itself.
+          if (asymAxes.empty()) hh->Reset("ICESM"); // If no asymmetric axes found, histogram has to be 0 itself.
         }
         else{
           if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle())) symAxes.push_back(0);
@@ -568,7 +570,7 @@ namespace PhysicsProcessHelpers{
           if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle()) && DiscriminantClasses::usesDecInfo(hh->GetXaxis()->GetTitle())) asymAxes.push_back(0);
           if (DiscriminantClasses::isCPSensitive(hh->GetYaxis()->GetTitle()) && DiscriminantClasses::usesDecInfo(hh->GetYaxis()->GetTitle())) asymAxes.push_back(1);
           if (DiscriminantClasses::isCPSensitive(hh->GetZaxis()->GetTitle()) && DiscriminantClasses::usesDecInfo(hh->GetZaxis()->GetTitle())) asymAxes.push_back(2);
-          if (asymAxes.empty()) hh->Reset("ICESM"); // If no asymmetrix axes found, histogram has to be 0 itself.
+          if (asymAxes.empty()) hh->Reset("ICESM"); // If no asymmetric axes found, histogram has to be 0 itself.
         }
         else{
           if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle())) symAxes.push_back(0);
@@ -1223,25 +1225,26 @@ namespace PhysicsProcessHelpers{
     }
 
     TString const acname = ACHypothesisHelpers::getACHypothesisFLabel(hypo);
+    TString const dklabel = ACHypothesisHelpers::getDecayFinalStateLabel(dktype);
     switch (type){
     case VVBkg:
-      return Form("%s #rightarrow 4l bkg.", proclabelbare.Data());
+      return Form("%s #rightarrow %s bkg.", proclabelbare.Data(), dklabel.Data());
     case VVSig:
-      return Form("%s #rightarrow 4l SM sig.", proclabelbare.Data());
+      return Form("%s #rightarrow %s SM sig.", proclabelbare.Data(), dklabel.Data());
     case VVBSI:
-      return Form("%s #rightarrow 4l SM sig.+bkg.", proclabelbare.Data());
+      return Form("%s #rightarrow %s SM sig.+bkg.", proclabelbare.Data(), dklabel.Data());
     case VVSigBSM:
-      return Form("%s #rightarrow 4l %s%s sig.", proclabelbare.Data(), acname.Data(), "=1");
+      return Form("%s #rightarrow %s %s%s sig.", proclabelbare.Data(), dklabel.Data(), acname.Data(), "=1");
     case VVSigBSMSMInt0p25:
-      return Form("%s #rightarrow 4l %s%s sig.", proclabelbare.Data(), acname.Data(), "=0.059");
+      return Form("%s #rightarrow %s %s%s sig.", proclabelbare.Data(), dklabel.Data(), acname.Data(), "=0.059");
     case VVSigBSMSMInt0p5:
-      return Form("%s #rightarrow 4l %s%s sig.", proclabelbare.Data(), acname.Data(), "=0.2");
+      return Form("%s #rightarrow %s %s%s sig.", proclabelbare.Data(), dklabel.Data(), acname.Data(), "=0.2");
     case VVSigBSMSMInt0p75:
-      return Form("%s #rightarrow 4l %s%s sig.", proclabelbare.Data(), acname.Data(), "=0.36");
+      return Form("%s #rightarrow %s %s%s sig.", proclabelbare.Data(), dklabel.Data(), acname.Data(), "=0.36");
     case VVBBI:
-      return Form("%s #rightarrow 4l %s%s sig.+bkg.", proclabelbare.Data(), acname.Data(), "=1");
+      return Form("%s #rightarrow %s %s%s sig.+bkg.", proclabelbare.Data(), dklabel.Data(), acname.Data(), "=1");
     case VVBMI:
-      return Form("%s #rightarrow 4l %s%s sig.+bkg.", proclabelbare.Data(), acname.Data(), "=0.5");
+      return Form("%s #rightarrow %s %s%s sig.+bkg.", proclabelbare.Data(), dklabel.Data(), acname.Data(), "=0.5");
     default:
       return "";
     };
@@ -1267,25 +1270,26 @@ namespace PhysicsProcessHelpers{
     }
 
     TString const acname = ACHypothesisHelpers::getACHypothesisLabel(hypo);
+    TString const dklabel = ACHypothesisHelpers::getDecayFinalStateLabel(dktype);
     switch (type){
     case VVTplBkg:
-      return Form("%s #rightarrow 4l bkg.", proclabelbare.Data());
+      return Form("%s #rightarrow %s bkg.", proclabelbare.Data(), dklabel.Data());
     case VVTplSig:
-      return Form("%s #rightarrow 4l SM sig.", proclabelbare.Data());
+      return Form("%s #rightarrow %s SM sig.", proclabelbare.Data(), dklabel.Data());
     case VVTplInt_Re:
-      return Form("%s #rightarrow 4l SM sig.-bkg. interference", proclabelbare.Data());
+      return Form("%s #rightarrow %s SM sig.-bkg. interference", proclabelbare.Data(), dklabel.Data());
     case VVTplSigBSM:
-      return Form("%s #rightarrow 4l %s sig.", proclabelbare.Data(), acname.Data());
+      return Form("%s #rightarrow %s %s sig.", proclabelbare.Data(), dklabel.Data(), acname.Data());
     case VVTplSigBSMSMInt_ai1_1_Re:
-      return Form("%s #rightarrow 4l %s%s interference", proclabelbare.Data(), acname.Data(), "^{1}");
+      return Form("%s #rightarrow %s %s%s interference", proclabelbare.Data(), dklabel.Data(), acname.Data(), "^{1}");
     case VVTplSigBSMSMInt_ai1_2_PosDef:
-      return Form("%s #rightarrow 4l %s%s interference", proclabelbare.Data(), acname.Data(), "^{2}");
+      return Form("%s #rightarrow %s %s%s interference", proclabelbare.Data(), dklabel.Data(), acname.Data(), "^{2}");
     case VVTplSigBSMSMInt_ai1_3_Re:
-      return Form("%s #rightarrow 4l %s%s interference", proclabelbare.Data(), acname.Data(), "^{3}");
+      return Form("%s #rightarrow %s %s%s interference", proclabelbare.Data(), dklabel.Data(), acname.Data(), "^{3}");
     case VVTplIntBSM_ai1_1_Re:
-      return Form("%s #rightarrow 4l %s%s sig.-bkg. interference", proclabelbare.Data(), acname.Data(), "^{1}");
+      return Form("%s #rightarrow %s %s%s sig.-bkg. interference", proclabelbare.Data(), dklabel.Data(), acname.Data(), "^{1}");
     case VVTplIntBSM_ai1_2_Re:
-      return Form("%s #rightarrow 4l %s%s sig.-bkg. interference", proclabelbare.Data(), acname.Data(), "^{2}");
+      return Form("%s #rightarrow %s %s%s sig.-bkg. interference", proclabelbare.Data(), dklabel.Data(), acname.Data(), "^{2}");
     default:
       return "";
     };
@@ -1552,7 +1556,7 @@ namespace PhysicsProcessHelpers{
       if (hypo==ACHypothesisHelpers::kA3){
         if (type==VVTplSigBSMSMInt_ai1_1_Re || type==VVTplSigBSMSMInt_ai1_3_Re || type==VVTplIntBSM_ai1_1_Re){
           if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle())) asymAxes.push_back(0);
-          if (asymAxes.empty()) hh->Reset("ICESM"); // If no asymmetrix axes found, histogram has to be 0 itself.
+          if (asymAxes.empty()) hh->Reset("ICESM"); // If no asymmetric axes found, histogram has to be 0 itself.
         }
         else{
           if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle())) symAxes.push_back(0);
@@ -1596,7 +1600,7 @@ namespace PhysicsProcessHelpers{
         if (type==VVTplSigBSMSMInt_ai1_1_Re || type==VVTplSigBSMSMInt_ai1_3_Re || type==VVTplIntBSM_ai1_1_Re){
           if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle())) asymAxes.push_back(0);
           if (DiscriminantClasses::isCPSensitive(hh->GetYaxis()->GetTitle())) asymAxes.push_back(1);
-          if (asymAxes.empty()) hh->Reset("ICESM"); // If no asymmetrix axes found, histogram has to be 0 itself.
+          if (asymAxes.empty()) hh->Reset("ICESM"); // If no asymmetric axes found, histogram has to be 0 itself.
         }
         else{
           if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle())) symAxes.push_back(0);
@@ -1645,7 +1649,7 @@ namespace PhysicsProcessHelpers{
           if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle())) asymAxes.push_back(0);
           if (DiscriminantClasses::isCPSensitive(hh->GetYaxis()->GetTitle())) asymAxes.push_back(1);
           if (DiscriminantClasses::isCPSensitive(hh->GetZaxis()->GetTitle())) asymAxes.push_back(2);
-          if (asymAxes.empty()) hh->Reset("ICESM"); // If no asymmetrix axes found, histogram has to be 0 itself.
+          if (asymAxes.empty()) hh->Reset("ICESM"); // If no asymmetric axes found, histogram has to be 0 itself.
         }
         else{
           if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle())) symAxes.push_back(0);
@@ -2200,26 +2204,28 @@ namespace PhysicsProcessHelpers{
   }
   TString TTProcessHandler::getProcessLabel(TTProcessHandler::HypothesisType type, ACHypothesisHelpers::ACHypothesis hypo) const{
     TString const acname = ACHypothesisHelpers::getACHypothesisFLabel(hypo);
+    TString const dklabel = ACHypothesisHelpers::getDecayFinalStateLabel(dktype);
     switch (type){
     case TTSig:
-      return "t#bar{t} #rightarrow 4l SM sig.";
+      return Form("t#bar{t}+%s SM sig.", dklabel.Data());
     case TTSigBSM:
-      return Form("t#bar{t} #rightarrow 4l %s%s sig.", acname.Data(), "=1");
+      return Form("t#bar{t}+%s %s%s sig.", dklabel.Data(), acname.Data(), "=1");
     case TTSigBSMSMInt:
-      return Form("t#bar{t} #rightarrow 4l %s%s sig.", acname.Data(), "=0.5");
+      return Form("t#bar{t}+%s %s%s sig.", dklabel.Data(), acname.Data(), "=0.5");
     default:
       return "";
     };
   }
   TString TTProcessHandler::getProcessLabel(TTProcessHandler::TemplateType type, ACHypothesisHelpers::ACHypothesis hypo) const{
     TString const acname = ACHypothesisHelpers::getACHypothesisFLabel(hypo);
+    TString const dklabel = ACHypothesisHelpers::getDecayFinalStateLabel(dktype);
     switch (type){
     case TTTplSig:
-      return "t#bar{t} #rightarrow 4l SM sig.";
+      return Form("t#bar{t}+%s SM sig.", dklabel.Data());
     case TTTplSigBSM:
-      return Form("t#bar{t} #rightarrow 4l %s%s sig.", acname.Data(), "=1");
+      return Form("t#bar{t}+%s %s%s sig.", dklabel.Data(), acname.Data(), "=1");
     case TTTplSigBSMSMInt_Re:
-      return Form("t#bar{t} #rightarrow 4l %s%s interference", acname.Data(), "=0.5");
+      return Form("t#bar{t}+%s %s%s interference", dklabel.Data(), acname.Data(), "=0.5");
     default:
       return "";
     };
@@ -2337,7 +2343,7 @@ namespace PhysicsProcessHelpers{
       if (hypo==ACHypothesisHelpers::kA3){
         if (type==TTTplSigBSMSMInt_Re){
           if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle()) && DiscriminantClasses::usesDecInfo(hh->GetXaxis()->GetTitle())) asymAxes.push_back(0);
-          if (asymAxes.empty()) hh->Reset("ICESM"); // If no asymmetrix axes found, histogram has to be 0 itself.
+          if (asymAxes.empty()) hh->Reset("ICESM"); // If no asymmetric axes found, histogram has to be 0 itself.
         }
         else{
           if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle())) symAxes.push_back(0);
@@ -2381,7 +2387,7 @@ namespace PhysicsProcessHelpers{
         if (type==TTTplSigBSMSMInt_Re){
           if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle()) && DiscriminantClasses::usesDecInfo(hh->GetXaxis()->GetTitle())) asymAxes.push_back(0);
           if (DiscriminantClasses::isCPSensitive(hh->GetYaxis()->GetTitle()) && DiscriminantClasses::usesDecInfo(hh->GetYaxis()->GetTitle())) asymAxes.push_back(1);
-          if (asymAxes.empty()) hh->Reset("ICESM"); // If no asymmetrix axes found, histogram has to be 0 itself.
+          if (asymAxes.empty()) hh->Reset("ICESM"); // If no asymmetric axes found, histogram has to be 0 itself.
         }
         else{
           if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle())) symAxes.push_back(0);
@@ -2430,7 +2436,7 @@ namespace PhysicsProcessHelpers{
           if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle()) && DiscriminantClasses::usesDecInfo(hh->GetXaxis()->GetTitle())) asymAxes.push_back(0);
           if (DiscriminantClasses::isCPSensitive(hh->GetYaxis()->GetTitle()) && DiscriminantClasses::usesDecInfo(hh->GetYaxis()->GetTitle())) asymAxes.push_back(1);
           if (DiscriminantClasses::isCPSensitive(hh->GetZaxis()->GetTitle()) && DiscriminantClasses::usesDecInfo(hh->GetZaxis()->GetTitle())) asymAxes.push_back(2);
-          if (asymAxes.empty()) hh->Reset("ICESM"); // If no asymmetrix axes found, histogram has to be 0 itself.
+          if (asymAxes.empty()) hh->Reset("ICESM"); // If no asymmetric axes found, histogram has to be 0 itself.
         }
         else{
           if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle())) symAxes.push_back(0);
@@ -2865,26 +2871,28 @@ namespace PhysicsProcessHelpers{
   }
   TString BBProcessHandler::getProcessLabel(BBProcessHandler::HypothesisType type, ACHypothesisHelpers::ACHypothesis hypo) const{
     TString const acname = ACHypothesisHelpers::getACHypothesisFLabel(hypo);
+    TString const dklabel = ACHypothesisHelpers::getDecayFinalStateLabel(dktype);
     switch (type){
     case BBSig:
-      return "b#bar{b} #rightarrow 4l SM sig.";
+      return Form("b#bar{b}+%s SM sig.", dklabel.Data());
     case BBSigBSM:
-      return Form("b#bar{b} #rightarrow 4l %s%s sig.", acname.Data(), "=1");
+      return Form("b#bar{b}+%s %s%s sig.", dklabel.Data(), acname.Data(), "=1");
     case BBSigBSMSMInt:
-      return Form("b#bar{b} #rightarrow 4l %s%s sig.", acname.Data(), "=0.5");
+      return Form("b#bar{b}+%s %s%s sig.", dklabel.Data(), acname.Data(), "=0.5");
     default:
       return "";
     };
   }
   TString BBProcessHandler::getProcessLabel(BBProcessHandler::TemplateType type, ACHypothesisHelpers::ACHypothesis hypo) const{
     TString const acname = ACHypothesisHelpers::getACHypothesisFLabel(hypo);
+    TString const dklabel = ACHypothesisHelpers::getDecayFinalStateLabel(dktype);
     switch (type){
     case BBTplSig:
-      return "b#bar{b} #rightarrow 4l SM sig.";
+      return Form("b#bar{b}+%s SM sig.", dklabel.Data());
     case BBTplSigBSM:
-      return Form("b#bar{b} #rightarrow 4l %s%s sig.", acname.Data(), "=1");
+      return Form("b#bar{b}+%s %s%s sig.", dklabel.Data(), acname.Data(), "=1");
     case BBTplSigBSMSMInt_Re:
-      return Form("b#bar{b} #rightarrow 4l %s%s interference", acname.Data(), "=0.5");
+      return Form("b#bar{b}+%s %s%s interference", dklabel.Data(), acname.Data(), "=0.5");
     default:
       return "";
     };
@@ -3002,7 +3010,7 @@ namespace PhysicsProcessHelpers{
       if (hypo==ACHypothesisHelpers::kA3){
         if (type==BBTplSigBSMSMInt_Re){
           if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle()) && DiscriminantClasses::usesDecInfo(hh->GetXaxis()->GetTitle())) asymAxes.push_back(0);
-          if (asymAxes.empty()) hh->Reset("ICESM"); // If no asymmetrix axes found, histogram has to be 0 itself.
+          if (asymAxes.empty()) hh->Reset("ICESM"); // If no asymmetric axes found, histogram has to be 0 itself.
         }
         else{
           if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle())) symAxes.push_back(0);
@@ -3046,7 +3054,7 @@ namespace PhysicsProcessHelpers{
         if (type==BBTplSigBSMSMInt_Re){
           if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle()) && DiscriminantClasses::usesDecInfo(hh->GetXaxis()->GetTitle())) asymAxes.push_back(0);
           if (DiscriminantClasses::isCPSensitive(hh->GetYaxis()->GetTitle()) && DiscriminantClasses::usesDecInfo(hh->GetYaxis()->GetTitle())) asymAxes.push_back(1);
-          if (asymAxes.empty()) hh->Reset("ICESM"); // If no asymmetrix axes found, histogram has to be 0 itself.
+          if (asymAxes.empty()) hh->Reset("ICESM"); // If no asymmetric axes found, histogram has to be 0 itself.
         }
         else{
           if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle())) symAxes.push_back(0);
@@ -3095,7 +3103,7 @@ namespace PhysicsProcessHelpers{
           if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle()) && DiscriminantClasses::usesDecInfo(hh->GetXaxis()->GetTitle())) asymAxes.push_back(0);
           if (DiscriminantClasses::isCPSensitive(hh->GetYaxis()->GetTitle()) && DiscriminantClasses::usesDecInfo(hh->GetYaxis()->GetTitle())) asymAxes.push_back(1);
           if (DiscriminantClasses::isCPSensitive(hh->GetZaxis()->GetTitle()) && DiscriminantClasses::usesDecInfo(hh->GetZaxis()->GetTitle())) asymAxes.push_back(2);
-          if (asymAxes.empty()) hh->Reset("ICESM"); // If no asymmetrix axes found, histogram has to be 0 itself.
+          if (asymAxes.empty()) hh->Reset("ICESM"); // If no asymmetric axes found, histogram has to be 0 itself.
         }
         else{
           if (DiscriminantClasses::isCPSensitive(hh->GetXaxis()->GetTitle())) symAxes.push_back(0);

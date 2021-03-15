@@ -422,6 +422,9 @@ void getTemplate_ZZ2L2Nu(
       nVars_KD = nKDs;
     }
 
+    // For boosted category, increase smearing strength by a factor of 2
+    if (strCatNames.at(icat) == "BoostedHadVH"){ for (auto& coef:smearingStrengthCoeffs) coef *= 2.; }
+
     unsigned int nVars = nVars_nonKD + nVars_KD;
     if (hasKDs) MELAout << "\t- Category uses KDs." << endl;
     MELAout << "\t- Number of non-KD variables: " << nVars_nonKD << endl;

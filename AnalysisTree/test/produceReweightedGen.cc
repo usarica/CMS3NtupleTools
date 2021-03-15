@@ -17,7 +17,9 @@
   BRANCH_COMMAND(float, genLeptonicDecay_pt) \
   BRANCH_COMMAND(float, genLeptonicDecay_mass)
 #define BRANCH_VECTOR_COMMANDS \
+  BRANCH_COMMAND(cms3_id_t, lhemothers_id) \
   BRANCH_COMMAND(cms3_id_t, genparticles_id) \
+  BRANCH_COMMAND(float, lhemothers_pz) \
   BRANCH_COMMAND(float, genparticles_pt) \
   BRANCH_COMMAND(float, genparticles_eta) \
   BRANCH_COMMAND(float, genparticles_phi) \
@@ -108,6 +110,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
       p4_lheLeptonicDecay = p4_lheLeptonicDecay + part->p4();
       if (std::abs(part->pdgId())==15) hasTaus = true;
       n_leps_nus++;
+    }
+    else if (part->status()==-1){
+      lhemothers_id.push_back(part->pdgId());
+      lhemothers_pz.push_back(part->pz());
     }
   }
   if (n_leps_nus!=4) return false;
@@ -729,7 +735,7 @@ void makePlots(TString strSampleSet, TString period, TString strdate){
       if (jet.pt()<30. || std::abs(jet.eta())>=4.7) continue;
       bool doSkip = false;
       for (auto const& part:genleptons_selected){
-        if (jet.deltaR(part)<0.4/* && std::abs(jet.pt()/part->pt()-1.)<0.2*/){ doSkip = true; break; }
+        if (jet.deltaR(part)<0.4){ doSkip = true; break; }
       }
       if (!doSkip) genak4jets_selected.push_back(&jet);
     }
@@ -737,11 +743,11 @@ void makePlots(TString strSampleSet, TString period, TString strdate){
     unsigned int icat = std::min(genak4jets_selected.size(), nCats-1);
 
     hlist_genmass.at(icat).Fill(
-      *LHECandMass,
-      //sump4_genleptons_selected.M(),
+      //*LHECandMass,
+      sump4_genleptons_selected.M(),
       wgt
     );
-    if ((*LHECandMass)>200.){
+    if (/*(*LHECandMass)*/sump4_genleptons_selected.M()>200.){
       for (auto const& jet:genak4jets) hlist_genak4jetpt.at(icat).Fill(jet.pt(), wgt);
       for (auto const& jet:genak4jets_selected) hlist_genak4jetselectedpt.at(icat).Fill(jet->pt(), wgt);
       if (genak4jets_selected.size()>=1){

@@ -374,6 +374,8 @@ void getTemplate_ZZ2L2Nu(
       nVars_KD = nKDs;
     }
 
+    if (strSampleSet == "tZX"){ for (unsigned int ivar=0; ivar<nVars_nonKD; ivar++) smearingStrengthCoeffs.at(ivar) *= 2.; }
+
     ExtendedBinning const& binning_mTZZ = binning_KDvars.front();
     ExtendedBinning binning_mTZZ_coarse;
     if (hasUniformHighMassKD){
@@ -819,12 +821,13 @@ void getTemplate_ZZ2L2Nu(
 #undef BRANCH_SCALAR_COMMANDS
 
 
-void runTemplateChain(TString period, TString ntupleVersion, TString strdate, bool includeBoostedHadVHCategory, bool includeResolvedHadVHCategory){
+void runTemplateChain(TString period, TString ntupleVersion, TString strdate, bool includeBoostedHadVHCategory, bool includeResolvedHadVHCategory, TString strSampleSet_target=""){
   SampleHelpers::configure(period, Form("%s:ZZTo2L2Nu/%s", "store_finaltrees", ntupleVersion.Data()));
 
   std::vector<TString> strSampleSets{ "qqZZ_offshell", "qqWZ_offshell", "tZX" };
   std::vector<cms3_id_t> const dilepton_ids{ -121, -169 };
   for(auto const& strSampleSet:strSampleSets){
+    if (strSampleSet_target!="" && strSampleSet_target!=strSampleSet) continue;
     for (auto const& dilepton_id:dilepton_ids){
       for (auto const& syst:getAllowedSysts(strSampleSet, dilepton_id)){
         for (int iac=0; iac<(int) ACHypothesisHelpers::nACHypotheses; iac++) getTemplate_ZZ2L2Nu(

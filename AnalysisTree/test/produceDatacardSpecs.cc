@@ -2,16 +2,14 @@
 #include <sstream>
 #include "common_includes.h"
 #include "OffshellCutflow.h"
-#include "TStyle.h"
-#include "TCanvas.h"
-#include "TText.h"
-#include "TPaveText.h"
-#include "TLegend.h"
+#include "PlottingHelpers.h"
 #include "TemplateHelpers.h"
-#include "HistogramKernelDensitySmoothener.h"
+#include "TColor.h"
+#include "TStyle.h"
 
 
 using namespace SystematicsHelpers;
+using namespace PlottingHelpers;
 
 
 #define BRANCH_SCALAR_COMMANDS \
@@ -173,6 +171,38 @@ template<typename T> void checkProcessSystematicsFromDistributions(
   }
 }
 
+TH1F* getHistogramProjection(TH2F const& hist, int iaxis, TString newname){
+  ExtendedBinning binning;
+  if (iaxis==0) HelperFunctions::getExtendedBinning(hist.GetXaxis(), binning);
+  else HelperFunctions::getExtendedBinning(hist.GetYaxis(), binning);
+
+  //MELAout << "getHistogramProjection: Projected histogram binning: " << binning.getBinningVector() << endl;
+
+  TH1F* res = new TH1F(newname, "", binning.getNbins(), binning.getBinning());
+  std::vector<double> vals; getProjectedValues(hist, vals, iaxis);
+  //MELAout << "\t- vals: " << vals << endl;
+  for (unsigned int ix=0; ix<vals.size(); ix++) res->SetBinContent(ix+1, vals.at(ix));
+  HelperFunctions::divideBinWidth(res);
+
+  return res;
+}
+TH1F* getHistogramProjection(TH3F const& hist, int iaxis, TString newname){
+  ExtendedBinning binning;
+  if (iaxis==0) HelperFunctions::getExtendedBinning(hist.GetXaxis(), binning);
+  else if (iaxis==1) HelperFunctions::getExtendedBinning(hist.GetYaxis(), binning);
+  else HelperFunctions::getExtendedBinning(hist.GetZaxis(), binning);
+
+  //MELAout << "getHistogramProjection: Projected histogram binning: " << binning.getBinningVector() << endl;
+
+  TH1F* res = new TH1F(newname, "", binning.getNbins(), binning.getBinning());
+  std::vector<double> vals; getProjectedValues(hist, vals, iaxis);
+  //MELAout << "\t- vals: " << vals << endl;
+  for (unsigned int ix=0; ix<vals.size(); ix++) res->SetBinContent(ix+1, vals.at(ix));
+  HelperFunctions::divideBinWidth(res);
+
+  return res;
+}
+
 TString getProcessLaTeXLabel_ZZ2L2Nu(TString const& procname){
   if (procname=="ggZZ_offshell") return "$\\glufu$ resonant";
   else if (procname=="VVVV_offshell") return "EW resonant ($\\offshell$)";
@@ -180,8 +210,91 @@ TString getProcessLaTeXLabel_ZZ2L2Nu(TString const& procname){
   else if (procname=="InstrMET") return "Instr. \\ptmiss";
   else if (procname=="NRB_2l2nu") return "Nonresonant";
   else if (procname=="qqZZ_offshell") return "$\\qqbar \\to 2\\ell2\\X$";
-  else if (procname=="qqWZ_offshell") return "$\\qqbar \\to 2\\ell+\\W$";
+  else if (procname=="qqWZ_offshell") return "$\\qqbar \\to \\W\\Z$";
   else if (procname=="tZX") return "$\\PQt \\Z + \\X$";
+  else{
+    MELAerr << "getProcessLaTeXLabel_ZZ2L2Nu: Process " << procname << " is undefined." << endl;
+    exit(1);
+  }
+  return "";
+}
+
+TString getTemplateLabel_ZZ2L2Nu(TString const& procname, ACHypothesisHelpers::ACHypothesis hypo, int itpl){
+  TString const acname = ACHypothesisHelpers::getACHypothesisLabel(hypo);
+  if (procname=="ggZZ_offshell"){
+    GGProcessHandler::TemplateType type = GGProcessHandler::castIntToTemplateType(itpl, false);
+    switch (type){
+    case GGProcessHandler::GGTplBkg:
+      return "gg #rightarrow 2l2#nu bkg.";
+    case GGProcessHandler::GGTplSig:
+      return "gg #rightarrow 2l2#nu SM sig.";
+    case GGProcessHandler::GGTplInt_Re:
+      return "gg #rightarrow 2l2#nu SM int.";
+    case GGProcessHandler::GGTplSigBSM:
+      return Form("gg #rightarrow 2l2#nu sig. (#propto |%s|^{2})", acname.Data());
+    case GGProcessHandler::GGTplSigBSMSMInt_Re:
+      return Form("gg #rightarrow 2l2#nu SM-BSM int. (#propto %s)", acname.Data());
+    case GGProcessHandler::GGTplIntBSM_Re:
+      return Form("gg #rightarrow 2l2#nu sig.-bkg. int. (#propto %s)", acname.Data());
+    default:
+      return "";
+    };
+  }
+  else if (procname=="VVVV_offshell"){
+    VVProcessHandler::TemplateType type = VVProcessHandler::castIntToTemplateType(itpl, false);
+    switch (type){
+    case VVProcessHandler::VVTplBkg:
+      return "EW off-shell bkg.";
+    case VVProcessHandler::VVTplSig:
+      return "EW off-shell SM sig.";
+    case VVProcessHandler::VVTplInt_Re:
+      return "EW off-shell SM sig.-bkg. interference";
+    case VVProcessHandler::VVTplSigBSM:
+      return Form("EW off-shell sig. (#propto |%s|^{4})", acname.Data());
+    case VVProcessHandler::VVTplSigBSMSMInt_ai1_1_Re:
+      return Form("EW off-shell SM-BSM int. (#propto %s)", acname.Data());
+    case VVProcessHandler::VVTplSigBSMSMInt_ai1_2_PosDef:
+      return Form("EW off-shell SM-BSM int. (#propto |%s|^{2})", acname.Data());
+    case VVProcessHandler::VVTplSigBSMSMInt_ai1_3_Re:
+      return Form("EW off-shell SM-BSM int. (#propto %s^{3})", acname.Data());
+    case VVProcessHandler::VVTplIntBSM_ai1_1_Re:
+      return Form("EW off-shell sig.-bkg. int. (#propto %s)", acname.Data());
+    case VVProcessHandler::VVTplIntBSM_ai1_2_Re:
+      return Form("EW off-shell sig.-bkg. int. (#propto %s^{2})", acname.Data());
+    default:
+      return "";
+    };
+  }
+  else if (procname=="VVVV_onshell"){
+    VVProcessHandler::TemplateType type = VVProcessHandler::castIntToTemplateType(itpl, false);
+    switch (type){
+    case VVProcessHandler::VVTplBkg:
+      return "EW on-shell bkg.";
+    case VVProcessHandler::VVTplSig:
+      return "EW on-shell SM sig.";
+    case VVProcessHandler::VVTplInt_Re:
+      return "EW on-shell SM sig.-bkg. interference";
+    case VVProcessHandler::VVTplSigBSM:
+      return Form("EW on-shell sig. (#propto |%s|^{4})", acname.Data());
+    case VVProcessHandler::VVTplSigBSMSMInt_ai1_1_Re:
+      return Form("EW on-shell SM-BSM int. (#propto %s)", acname.Data());
+    case VVProcessHandler::VVTplSigBSMSMInt_ai1_2_PosDef:
+      return Form("EW on-shell SM-BSM int. (#propto |%s|^{2})", acname.Data());
+    case VVProcessHandler::VVTplSigBSMSMInt_ai1_3_Re:
+      return Form("EW on-shell SM-BSM int. (#propto %s^{3})", acname.Data());
+    case VVProcessHandler::VVTplIntBSM_ai1_1_Re:
+      return Form("EW on-shell sig.-bkg. int. (#propto %s)", acname.Data());
+    case VVProcessHandler::VVTplIntBSM_ai1_2_Re:
+      return Form("EW on-shell sig.-bkg. int. (#propto %s^{2})", acname.Data());
+    default:
+      return "";
+    };
+  }
+  else if (procname=="InstrMET") return "Instr. p_{T}^{miss}";
+  else if (procname=="NRB_2l2nu") return "Nonresonant bkg.";
+  else if (procname=="qqZZ_offshell") return "q#bar{q} #rightarrow 2l2X (X=#nu, l, q)";
+  else if (procname=="qqWZ_offshell") return "q#bar{q} #rightarrow WZ";
+  else if (procname=="tZX") return "tZ+X";
   else{
     MELAerr << "getProcessLaTeXLabel_ZZ2L2Nu: Process " << procname << " is undefined." << endl;
     exit(1);
@@ -203,16 +316,34 @@ void getDCSpecs_ZZ2L2Nu(
 
   std::vector<TString> const strSampleSets{ "ggZZ_offshell", "VVVV_offshell", "VVVV_onshell", "InstrMET", "NRB_2l2nu", "qqZZ_offshell", "qqWZ_offshell", "tZX" };
   std::vector<TString> strCatNames{ "Nj_eq_0", "Nj_eq_1", "Nj_geq_2" };
-  if (includeBoostedHadVHCategory) strCatNames.push_back("BoostedHadVH");
-  if (includeResolvedHadVHCategory) strCatNames.push_back("ResolvedHadVH");
+  std::vector<TString> strCatLabels{ "N_{j}=0", "N_{j}=1", "N_{j} #geq 2" };
+  if (includeBoostedHadVHCategory){ strCatNames.push_back("BoostedHadVH"); strCatLabels.push_back("V #rightarrow J"); }
+  if (includeResolvedHadVHCategory){ strCatNames.push_back("ResolvedHadVH"); strCatLabels.push_back("V #rightarrow jj"); }
   unsigned int const nCats = strCatNames.size();
   TString const strChannel = (dilepton_id_ref==-121 ? "2e2nu" : "2mu2nu");
+  TString const strChannelLabel = (dilepton_id_ref==-121 ? "2e2#nu" : "2#mu2#nu");
   TString const strSystPerYear = Form("%sTeV_%s", SampleHelpers::getSqrtsString().Data(), SampleHelpers::getDataPeriod().Data());
   double const lumi = SampleHelpers::getIntegratedLuminosity(SampleHelpers::getDataPeriod());
-  TString const strLumi = HelperFunctions::castValueToString(lumi, 11).data();
+  TString const strLumi = HelperFunctions::castValueToString(lumi, 10, 10).data();
   MELAout << "Lumi: " << lumi << " (string: " << strLumi << ")" << endl;
   std::unordered_map<TString, PhysicsProcessHandler*> process_handler_map;
   for (auto const& strSampleSet:strSampleSets) process_handler_map[strSampleSet] = getPhysicsProcessHandler(strSampleSet, ACHypothesisHelpers::kZZ2l2nu_offshell);
+
+  // Build discriminants
+  std::vector<TString> KDnames, KDlabels;
+  {
+    std::vector<DiscriminantClasses::Type> KDtypes;
+    for (auto const& KDtype:ACHypothesisHelpers::getACHypothesisKDSet(AChypo, ACHypothesisHelpers::kVBF, ACHypothesisHelpers::kZZ2l2nu_offshell)){
+      if (!HelperFunctions::checkListVariable(KDtypes, KDtype)) KDtypes.push_back(KDtype);
+    }
+    // Construct empty KD specs with names acquired
+    std::vector<DiscriminantClasses::KDspecs> KDlist; KDlist.reserve(KDtypes.size());
+    for (auto const& KDtype:KDtypes) KDlist.emplace_back(KDtype);
+    for (auto const& KD:KDlist){
+      KDnames.push_back(KD.KDname);
+      KDlabels.push_back(KD.KDlabel);
+    }
+  }
 
   TString cinput_main = "output/Templates/" + templateVersion + "/CatScheme_Nj" + (includeBoostedHadVHCategory ? (includeResolvedHadVHCategory ? "_BoostedHadVH_ResolvedHadVH" : "_BoostedHadVH") : (includeResolvedHadVHCategory ? "_ResolvedHadVH" : "")) + "/" + ACHypothesisHelpers::getACHypothesisName(AChypo) + "/" + period;
   if (!SampleHelpers::checkFileOnWorker(cinput_main)){
@@ -228,12 +359,18 @@ void getDCSpecs_ZZ2L2Nu(
 
   TString const coutput_main = "output/DatacardSpecs/" + strdate + "/Offshell_inputs_" + strSystPerYear + "/CatScheme_Nj" + (includeBoostedHadVHCategory ? (includeResolvedHadVHCategory ? "_BoostedHadVH_ResolvedHadVH" : "_BoostedHadVH") : (includeResolvedHadVHCategory ? "_ResolvedHadVH" : "")) + "/" + ACHypothesisHelpers::getACHypothesisName(AChypo);
   gSystem->mkdir(coutput_main, true);
+  TString const coutput_plots = "output/DatacardSpecs/" + strdate + "/SystProjections/" + SampleHelpers::getDataPeriod() + "/CatScheme_Nj" + (includeBoostedHadVHCategory ? (includeResolvedHadVHCategory ? "_BoostedHadVH_ResolvedHadVH" : "_BoostedHadVH") : (includeResolvedHadVHCategory ? "_ResolvedHadVH" : "")) + "/" + ACHypothesisHelpers::getACHypothesisName(AChypo);
+  gSystem->mkdir(coutput_plots, true);
 
   for (unsigned int icat=0; icat<nCats; icat++){
     TString const& strCategory = strCatNames.at(icat);
+    TString const& strCatLabel = strCatLabels.at(icat);
     MELAout << "Examining templates for " << strCategory << ":" << endl;
-    std::vector<TString> omitted_processes;
+    std::vector<TString> omitted_processes; // Omit all processes first and remove from list afterward
     std::vector<TString> procnames = strSampleSets; // Effective list of processes
+    std::vector<TString> traversed_processes;
+
+    std::unordered_map<TString, std::unordered_map<TString, std::pair<double, double>>> lognormalsyst_procname_valpair_map;
 
     int ndims=-1;
     std::vector<TFile*> finputs;
@@ -274,6 +411,91 @@ void getDCSpecs_ZZ2L2Nu(
           HelperFunctions::extractHistogramsFromDirectory(finput, h1Ds);
           HelperFunctions::extractHistogramsFromDirectory(finput, h2Ds);
           HelperFunctions::extractHistogramsFromDirectory(finput, h3Ds);
+          // Filter out unwanted histograms
+          {
+            std::vector<std::vector<TH1F*>::iterator> tmp_its;
+            for (auto it=h1Ds.begin(); it!=h1Ds.end(); it++){
+              TString hname_lower; HelperFunctions::lowercase<TString>((*it)->GetName(), hname_lower);
+              if (hname_lower.Contains("raw") || hname_lower.Contains("belowfloor")){
+                if (hname_lower.Contains("belowfloor") && procname=="InstrMET" && systname=="Nominal"){
+                  TString tplname_nominal_lower = hname_lower; HelperFunctions::replaceString<TString, TString const>(tplname_nominal_lower, "_belowfloor", "");
+                  TH1F* hnominal = nullptr;
+                  for (auto const& hh:h1Ds){
+                    TString tmpname_lower; HelperFunctions::lowercase<TString>(hh->GetName(), tmpname_lower);
+                    if (tmpname_lower == tplname_nominal_lower){ hnominal = hh; break; }
+                  }
+                  if (hnominal){
+                    double kdn, kup=1;
+                    double integral_nominal = HelperFunctions::getHistogramIntegralAndError(hnominal, 1, hnominal->GetNbinsX(), true);
+                    double integral_belowfloor = HelperFunctions::getHistogramIntegralAndError((*it), 1, (*it)->GetNbinsX(), true);
+                    kdn = 1. - integral_belowfloor/integral_nominal;
+                    TString lnsystname = Form("CMS_stat_MCSubtraction_InstrMET_%s_%s", strCategory.Data(), SampleHelpers::getDataPeriod().Data());
+                    if (lognormalsyst_procname_valpair_map.find(lnsystname)==lognormalsyst_procname_valpair_map.end()) lognormalsyst_procname_valpair_map[lnsystname] = std::unordered_map<TString, std::pair<double, double>>();
+                    lognormalsyst_procname_valpair_map[lnsystname][procname] = std::pair<double, double>(kdn, kup);
+                  }
+                  else MELAerr << "Searched for the nominal histogram in floor systematics assignment but could not find it." << endl;
+                }
+                tmp_its.push_back(it);
+              }
+            }
+            for (int ii=tmp_its.size()-1; ii>=0; ii--) h1Ds.erase(tmp_its.at(ii));
+          }
+          {
+            std::vector<std::vector<TH2F*>::iterator> tmp_its;
+            for (auto it=h2Ds.begin(); it!=h2Ds.end(); it++){
+              TString hname_lower; HelperFunctions::lowercase<TString>((*it)->GetName(), hname_lower);
+              if (hname_lower.Contains("raw") || hname_lower.Contains("belowfloor")){
+                if (hname_lower.Contains("belowfloor") && procname=="InstrMET" && systname=="Nominal"){
+                  TString tplname_nominal_lower = hname_lower; HelperFunctions::replaceString<TString, TString const>(tplname_nominal_lower, "_belowfloor", "");
+                  TH2F* hnominal = nullptr;
+                  for (auto const& hh:h2Ds){
+                    TString tmpname_lower; HelperFunctions::lowercase<TString>(hh->GetName(), tmpname_lower);
+                    if (tmpname_lower == tplname_nominal_lower){ hnominal = hh; break; }
+                  }
+                  if (hnominal){
+                    double kdn, kup=1;
+                    double integral_nominal = HelperFunctions::getHistogramIntegralAndError(hnominal, 1, hnominal->GetNbinsX(), 1, hnominal->GetNbinsY(), true);
+                    double integral_belowfloor = HelperFunctions::getHistogramIntegralAndError((*it), 1, (*it)->GetNbinsX(), 1, (*it)->GetNbinsY(), true);
+                    kdn = 1. - integral_belowfloor/integral_nominal;
+                    TString lnsystname = Form("CMS_stat_MCSubtraction_InstrMET_%s_%s", strCategory.Data(), SampleHelpers::getDataPeriod().Data());
+                    if (lognormalsyst_procname_valpair_map.find(lnsystname)==lognormalsyst_procname_valpair_map.end()) lognormalsyst_procname_valpair_map[lnsystname] = std::unordered_map<TString, std::pair<double, double>>();
+                    lognormalsyst_procname_valpair_map[lnsystname][procname] = std::pair<double, double>(kdn, kup);
+                  }
+                  else MELAerr << "Searched for the nominal histogram in floor systematics assignment but could not find it." << endl;
+                }
+                tmp_its.push_back(it);
+              }
+            }
+            for (int ii=tmp_its.size()-1; ii>=0; ii--) h2Ds.erase(tmp_its.at(ii));
+          }
+          {
+            std::vector<std::vector<TH3F*>::iterator> tmp_its;
+            for (auto it=h3Ds.begin(); it!=h3Ds.end(); it++){
+              TString hname_lower; HelperFunctions::lowercase<TString>((*it)->GetName(), hname_lower);
+              if (hname_lower.Contains("raw") || hname_lower.Contains("belowfloor")){
+                if (hname_lower.Contains("belowfloor") && procname=="InstrMET" && systname=="Nominal"){
+                  TString tplname_nominal_lower = hname_lower; HelperFunctions::replaceString<TString, TString const>(tplname_nominal_lower, "_belowfloor", "");
+                  TH3F* hnominal = nullptr;
+                  for (auto const& hh:h3Ds){
+                    TString tmpname_lower; HelperFunctions::lowercase<TString>(hh->GetName(), tmpname_lower);
+                    if (tmpname_lower == tplname_nominal_lower){ hnominal = hh; break; }
+                  }
+                  if (hnominal){
+                    double kdn, kup=1;
+                    double integral_nominal = HelperFunctions::getHistogramIntegralAndError(hnominal, 1, hnominal->GetNbinsX(), 1, hnominal->GetNbinsY(), 1, hnominal->GetNbinsZ(), true);
+                    double integral_belowfloor = HelperFunctions::getHistogramIntegralAndError((*it), 1, (*it)->GetNbinsX(), 1, (*it)->GetNbinsY(), 1, (*it)->GetNbinsZ(), true);
+                    kdn = 1. - integral_belowfloor/integral_nominal;
+                    TString lnsystname = Form("CMS_stat_MCSubtraction_InstrMET_%s_%s", strCategory.Data(), SampleHelpers::getDataPeriod().Data());
+                    if (lognormalsyst_procname_valpair_map.find(lnsystname)==lognormalsyst_procname_valpair_map.end()) lognormalsyst_procname_valpair_map[lnsystname] = std::unordered_map<TString, std::pair<double, double>>();
+                    lognormalsyst_procname_valpair_map[lnsystname][procname] = std::pair<double, double>(kdn, kup);
+                  }
+                  else MELAerr << "Searched for the nominal histogram in floor systematics assignment but could not find it." << endl;
+                }
+                tmp_its.push_back(it);
+              }
+            }
+            for (int ii=tmp_its.size()-1; ii>=0; ii--) h3Ds.erase(tmp_its.at(ii));
+          }
           if (!h1Ds.empty()){
             ndims=1;
             if (!isSignal(procname) && !isDataDriven(procname)){
@@ -317,6 +539,8 @@ void getDCSpecs_ZZ2L2Nu(
             finput->Close();
           }
           else{
+            if (!HelperFunctions::checkListVariable(traversed_processes, procname)) traversed_processes.push_back(procname);
+
             auto it_syst_procname_map = syst_procname_map.end();
             if (!HelperFunctions::getUnorderedMapIterator(systname, syst_procname_map, it_syst_procname_map)){
               syst_procname_map[systname] = std::vector<TString>();
@@ -348,6 +572,8 @@ void getDCSpecs_ZZ2L2Nu(
         }
       }
     }
+    // Append untraversed processes as omitted
+    for (auto const& procname:procnames){ if (!HelperFunctions::checkListVariable(traversed_processes, procname)) omitted_processes.push_back(procname); }
     // Clean collections for omitted processes
     for (auto const& procname:omitted_processes){
       auto it_procnames = std::find(procnames.begin(), procnames.end(), procname);
@@ -407,6 +633,7 @@ void getDCSpecs_ZZ2L2Nu(
     MELAout << "\t- Distribution of processes for each available systematic:" << endl;
     for (auto const& systname:allsystnames) MELAout << "\t\t- Systematic " << systname << ": " << syst_procname_map.find(systname)->second << endl;
 
+    TString stroutput;
     TString stroutput_txt;
 
     /*************************/
@@ -465,6 +692,16 @@ void getDCSpecs_ZZ2L2Nu(
       if (procname.Contains("ggZZ") || procname.Contains("VVVV")) MELAout << " " << procname << ":1.02";
     }
     MELAout << endl;
+    // Custom lnN systematics
+    for (auto const& pp:lognormalsyst_procname_valpair_map){
+      auto const& lnsystname = pp.first;
+      auto const& procname_valpair_map = pp.second;
+      MELAout << "systematic " << lnsystname << " lnN";
+      for (auto const& ppp:procname_valpair_map){
+        MELAout << " " << ppp.first << ":" << HelperFunctions::castValueToString(ppp.second.first, 9, 10) << ":" << HelperFunctions::castValueToString(ppp.second.second, 9, 10);
+      }
+      MELAout << endl;
+    }
 
     MELAout << "## Shape systematics" << endl;
     // kbkg_gg
@@ -555,7 +792,7 @@ void getDCSpecs_ZZ2L2Nu(
       MELAout << " \\\\" << endl;
       for (auto const& systname:allsystnames){
         if (systname=="Nominal" || systname.Contains("Down")) continue;
-        if (systname.Contains("stat_shape") && !systname.Contains("InstrMET") && mTZZcut==200.) continue;
+        //if (systname.Contains("stat_shape") && !systname.Contains("InstrMET") && mTZZcut==200.) continue;
         TString systnamecore = systname; HelperFunctions::replaceString<TString, TString const>(systnamecore, "Up", "");
         MELAout << "# " << systnamecore;
         for (auto const& procname:procnames){
@@ -577,7 +814,23 @@ void getDCSpecs_ZZ2L2Nu(
                   MELAout << "-";
                   MELAerr << "ERROR: Nominal integral for process " << procname << " and systematic " << systname << " is 0!" << endl;
                 }
-                else MELAout << integral_dn/integral_nominal << "/" << integral_up/integral_nominal;
+                else{
+                  double kdn = integral_dn/integral_nominal-1.;
+                  double kup = integral_up/integral_nominal-1.;
+                  int isigdn = HelperFunctions::getFirstSignificantDecimalPowerBase10(kdn);
+                  int isigup = HelperFunctions::getFirstSignificantDecimalPowerBase10(kup);
+                  std::string strkdn, strkup;
+
+                  if (isigdn>=0) strkdn = HelperFunctions::castValueToString(kdn, 2);
+                  else strkdn = HelperFunctions::castValueToString(kdn, -isigdn+2);
+                  if (isigup>=0) strkup = HelperFunctions::castValueToString(kup, 2);
+                  else strkup = HelperFunctions::castValueToString(kup, -isigup+2);
+
+                  if (kdn>0.) strkdn.insert(0, 1, '+');
+                  if (kup>0.) strkup.insert(0, 1, '+');
+
+                  MELAout << strkdn << "/" << strkup;
+                }
               }
             }
           }
@@ -588,6 +841,301 @@ void getDCSpecs_ZZ2L2Nu(
     }
 
     MELAout.close();
+
+    /***************/
+    /* PROJECTIONS */
+    /***************/
+    curdir->cd();
+    gStyle->SetOptStat(0);
+    // Set a palette of colors and get colors for systematics
+    std::unordered_map<TString, int> syst_color_map;
+    std::vector<int> colors((allsystnames.size()-1)/2+1, 0);
+    {
+      double Red[]    ={ 0.0, 1.0, 0.0 };
+      double Green[]  ={ 0.0, 0.0, 0.0 };
+      double Blue[]   ={ 0.0, 0.0, 1.0 };
+      double Length[] ={ 0.00, 1./double(colors.size())+1e-5, 1.00 };
+      int FI = TColor::CreateGradientColorTable(3, Length, Red, Green, Blue, colors.size());
+      const unsigned int ncolors = gStyle->GetNumberOfColors();
+      if (FI<0) MELAout << "Failed to set the color palette." << endl;
+      else{
+        for (unsigned int ic=0; ic<colors.size(); ic++) colors.at(ic) = FI+ic;
+        gStyle->SetPalette(colors.size(), colors.data());
+      }
+      MELAout << "Ncolors: " << ncolors << endl;
+      MELAout << "Colors: " << colors << endl;
+      syst_color_map["Nominal"] = gStyle->GetColorPalette(0);
+      unsigned int icolor=1;
+      for (auto const& systname:allsystnames){
+        if (systname=="Nominal" || systname.Contains("Down")) continue;
+        TString systnamecore = systname; HelperFunctions::replaceString<TString, TString const>(systnamecore, "Up", "");
+        syst_color_map[systnamecore] = gStyle->GetColorPalette(icolor);
+        icolor++;
+      }
+      MELAout << "Color map: " << endl;
+      for (auto const& pp:syst_color_map) MELAout << "\t- " << pp << endl;
+    }
+    for (auto const& procname:procnames){
+      unsigned int const nTpls = process_handler_map[procname]->getTemplateNames(AChypo, true).size();
+
+      stroutput = coutput_plots + "/" + procname + "_" + strChannel + "_" + strCategory + ".root";
+      MELAout.open(stroutput);
+      SampleHelpers::addToCondorTransferList(stroutput);
+      TFile* foutput_proj = TFile::Open(stroutput, "recreate");
+      foutput_proj->cd();
+
+      for (unsigned short chosenTpl=0; chosenTpl<nTpls; chosenTpl++){
+        TString proclabel = getTemplateLabel_ZZ2L2Nu(procname, AChypo, chosenTpl);
+        TString tplname = procname;
+        if (nTpls>1){
+          if (ndims==1) tplname = procname_syst_h1D_map[procname]["Nominal"].at(chosenTpl)->GetName();
+          else if (ndims==2) tplname = procname_syst_h2D_map[procname]["Nominal"].at(chosenTpl)->GetName();
+          else tplname = procname_syst_h3D_map[procname]["Nominal"].at(chosenTpl)->GetName();
+        }
+        HelperFunctions::replaceString<TString, TString const>(tplname, "T_", "");
+
+        std::vector<TString> procsystlist;
+        for (auto const& systname:allsystnames){
+          if (systname=="Nominal" || systname.Contains("Down")) continue;
+          if (!HelperFunctions::checkListVariable(syst_procname_map.find(systname)->second, procname)) continue;
+          //if (!systname.Contains("stat_shape")) continue;
+          TString systnamecore = systname; HelperFunctions::replaceString<TString, TString const>(systnamecore, "Up", "");
+          procsystlist.push_back(systnamecore);
+        }
+
+        for (unsigned char idim=0; idim<ndims; idim++){
+          TString varname;
+          TString varlabel;
+          if (idim==0){
+            varname = "mTZZ";
+            varlabel = "m_{T}^{ZZ} (GeV)";
+          }
+          else if (icat!=2 && idim==1){
+            varname = "pTmiss";
+            varlabel = "p_{T}^{miss} (GeV)";
+          }
+          else{
+            assert(KDnames.size() == ndims-1);
+            varname = KDnames.at(idim-1);
+            varlabel = KDlabels.at(idim-1);
+          }
+
+          TString canvasname = TString("c_") + tplname + "_" + strChannel + "_" + strCategory + "_" + SampleHelpers::getDataPeriod() + "_" + varname;
+          PlotCanvas plot(canvasname, 512, 512, 1, 2, 0.25, 1., 0.2, 0.0875, 0., 0.1, 0.3);
+          plot.addCMSLogo(kPreliminary, theSqrts, lumi);
+          MELAout << "Preparing canvas " << canvasname << "..." << endl;
+
+          foutput_proj->cd();
+
+          TH1F* hist_nominal = nullptr;
+          std::unordered_map<TString, std::pair<TH1F*, TH1F*>> hlist_systpair;
+          std::unordered_map<TString, std::pair<TH1F*, TH1F*>> hratio_systpair;
+          if (ndims==1){
+            hist_nominal = (TH1F*) procname_syst_h1D_map[procname]["Nominal"].at(chosenTpl)->Clone("tmp_Nominal");
+            for (auto const& systname:procsystlist){
+              TH1F* hist_dn = (TH1F*) procname_syst_h1D_map[procname][systname+"Down"].at(chosenTpl)->Clone(Form("tmp_%s_Down", systname.Data()));
+              TH1F* hist_up = (TH1F*) procname_syst_h1D_map[procname][systname+"Up"].at(chosenTpl)->Clone(Form("tmp_%s_Up", systname.Data()));
+              hlist_systpair[systname] = std::pair<TH1F*, TH1F*>(hist_dn, hist_up);
+            }
+          }
+          else if (ndims==2){
+            hist_nominal = getHistogramProjection(*(procname_syst_h2D_map[procname]["Nominal"].at(chosenTpl)), idim, "tmp_Nominal");
+            for (auto const& systname:procsystlist){
+              if (idim>0 && systname.Contains("stat_norm")) continue;
+              if (!(icat==2 && idim>0) && systname.Contains("stat_shape_KD")) continue;
+              TH1F* hist_dn = getHistogramProjection(*(procname_syst_h2D_map[procname][systname+"Down"].at(chosenTpl)), idim, Form("tmp_%s_Down", systname.Data()));
+              TH1F* hist_up = getHistogramProjection(*(procname_syst_h2D_map[procname][systname+"Up"].at(chosenTpl)), idim, Form("tmp_%s_Up", systname.Data()));
+              hlist_systpair[systname] = std::pair<TH1F*, TH1F*>(hist_dn, hist_up);
+            }
+          }
+          else if (ndims==3){
+            hist_nominal = getHistogramProjection(*(procname_syst_h3D_map[procname]["Nominal"].at(chosenTpl)), idim, "tmp_Nominal");
+            for (auto const& systname:procsystlist){
+              if (idim>0 && systname.Contains("stat_norm")) continue;
+              if (!(icat==2 && idim>0) && systname.Contains("stat_shape_KD")) continue;
+              TH1F* hist_dn = getHistogramProjection(*(procname_syst_h3D_map[procname][systname+"Down"].at(chosenTpl)), idim, Form("tmp_%s_Down", systname.Data()));
+              TH1F* hist_up = getHistogramProjection(*(procname_syst_h3D_map[procname][systname+"Up"].at(chosenTpl)), idim, Form("tmp_%s_Up", systname.Data()));
+              hlist_systpair[systname] = std::pair<TH1F*, TH1F*>(hist_dn, hist_up);
+            }
+          }
+
+          // Adjust style
+          hist_nominal->SetLineColor(syst_color_map.find("Nominal")->second);
+          hist_nominal->SetMarkerColor(syst_color_map.find("Nominal")->second);
+          hist_nominal->SetLineWidth(2);
+          hist_nominal->SetTitle("");
+          hist_nominal->GetXaxis()->SetTitle("");
+          hist_nominal->GetYaxis()->SetTitle("");
+          hist_nominal->GetXaxis()->SetLabelSize(0);
+          hist_nominal->GetYaxis()->SetTitleFont(PlotCanvas::getStdFont_XYTitle());
+          hist_nominal->GetYaxis()->SetTitleSize(plot.getStdPixelSize_XYTitle());
+          hist_nominal->GetYaxis()->SetLabelFont(PlotCanvas::getStdFont_XYLabel());
+          hist_nominal->GetYaxis()->SetLabelSize(plot.getStdPixelSize_XYLabel());
+          hist_nominal->GetYaxis()->SetLabelOffset(plot.getStdOffset_YLabel());
+          if (!HelperFunctions::checkHistogramIntegrity(hist_nominal)) MELAerr << "Nominal histogram failed integrity!" << endl;
+          for (auto& pp:hlist_systpair){
+            auto const& systname = pp.first;
+            TH1F* hist_dn = pp.second.first;
+            TH1F* hist_up = pp.second.second;
+
+            int color_idx = syst_color_map.find(systname)->second;
+
+            hist_dn->SetLineWidth(2); hist_up->SetLineWidth(2);
+            hist_dn->SetLineColor(color_idx); hist_up->SetLineColor(color_idx);
+            hist_dn->SetMarkerColor(color_idx); hist_up->SetMarkerColor(color_idx);
+            hist_dn->SetLineStyle(7); hist_up->SetLineStyle(2);
+            hist_dn->SetTitle(""); hist_up->SetTitle("");
+            hist_dn->GetXaxis()->SetTitle(""); hist_up->GetXaxis()->SetTitle("");
+            hist_dn->GetYaxis()->SetTitle(""); hist_up->GetYaxis()->SetTitle("");
+            hist_dn->GetXaxis()->SetLabelSize(0);
+            hist_dn->GetYaxis()->SetTitleFont(PlotCanvas::getStdFont_XYTitle());
+            hist_dn->GetYaxis()->SetTitleSize(plot.getStdPixelSize_XYTitle());
+            hist_dn->GetYaxis()->SetLabelFont(PlotCanvas::getStdFont_XYLabel());
+            hist_dn->GetYaxis()->SetLabelSize(plot.getStdPixelSize_XYLabel());
+            hist_dn->GetYaxis()->SetLabelOffset(plot.getStdOffset_YLabel());
+            hist_dn->GetYaxis()->SetNdivisions(510);
+            hist_up->GetXaxis()->SetLabelSize(0);
+            hist_up->GetYaxis()->SetTitleFont(PlotCanvas::getStdFont_XYTitle());
+            hist_up->GetYaxis()->SetTitleSize(plot.getStdPixelSize_XYTitle());
+            hist_up->GetYaxis()->SetLabelFont(PlotCanvas::getStdFont_XYLabel());
+            hist_up->GetYaxis()->SetLabelSize(plot.getStdPixelSize_XYLabel());
+            hist_up->GetYaxis()->SetLabelOffset(plot.getStdOffset_YLabel());
+            hist_up->GetYaxis()->SetNdivisions(510);
+
+            if (!HelperFunctions::checkHistogramIntegrity(hist_dn)) MELAerr << "Syst. down histogram for " << systname << " failed integrity!" << endl;
+            if (!HelperFunctions::checkHistogramIntegrity(hist_up)) MELAerr << "Syst. up histogram for " << systname << " failed integrity!" << endl;
+
+
+            TH1F* hratio_dn = (TH1F*) hist_dn->Clone(Form("%s_over_%s", hist_dn->GetName(), hist_nominal->GetName())); hratio_dn->Reset("ICESM");
+            TH1F* hratio_up = (TH1F*) hist_up->Clone(Form("%s_over_%s", hist_up->GetName(), hist_nominal->GetName())); hratio_up->Reset("ICESM");
+            HelperFunctions::divideHistograms(hist_dn, hist_nominal, hratio_dn, false);
+            HelperFunctions::divideHistograms(hist_up, hist_nominal, hratio_up, false);
+
+            hratio_dn->GetXaxis()->SetTitleFont(PlotCanvas::getStdFont_XYTitle());
+            hratio_dn->GetXaxis()->SetTitleSize(plot.getStdPixelSize_XYTitle());
+            hratio_dn->GetXaxis()->SetLabelFont(PlotCanvas::getStdFont_XYLabel());
+            hratio_dn->GetXaxis()->SetLabelSize(plot.getStdPixelSize_XYLabel());
+            hratio_dn->GetXaxis()->SetLabelOffset(plot.getStdOffset_XLabel());
+            hratio_dn->GetYaxis()->SetTitleFont(PlotCanvas::getStdFont_XYTitle());
+            hratio_dn->GetYaxis()->SetTitleSize(plot.getStdPixelSize_XYTitle());
+            hratio_dn->GetYaxis()->SetLabelFont(PlotCanvas::getStdFont_XYLabel());
+            hratio_dn->GetYaxis()->SetLabelSize(plot.getStdPixelSize_XYLabel());
+            hratio_dn->GetYaxis()->SetLabelOffset(plot.getStdOffset_YLabel());
+            hratio_up->GetXaxis()->SetTitleFont(PlotCanvas::getStdFont_XYTitle());
+            hratio_up->GetXaxis()->SetTitleSize(plot.getStdPixelSize_XYTitle());
+            hratio_up->GetXaxis()->SetLabelFont(PlotCanvas::getStdFont_XYLabel());
+            hratio_up->GetXaxis()->SetLabelSize(plot.getStdPixelSize_XYLabel());
+            hratio_up->GetXaxis()->SetLabelOffset(plot.getStdOffset_XLabel());
+            hratio_up->GetYaxis()->SetTitleFont(PlotCanvas::getStdFont_XYTitle());
+            hratio_up->GetYaxis()->SetTitleSize(plot.getStdPixelSize_XYTitle());
+            hratio_up->GetYaxis()->SetLabelFont(PlotCanvas::getStdFont_XYLabel());
+            hratio_up->GetYaxis()->SetLabelSize(plot.getStdPixelSize_XYLabel());
+            hratio_up->GetYaxis()->SetLabelOffset(plot.getStdOffset_YLabel());
+
+            hratio_dn->GetYaxis()->SetRangeUser(0.5, 1.5);
+            hratio_up->GetYaxis()->SetRangeUser(0.5, 1.5);
+            hratio_dn->GetYaxis()->SetNdivisions(505);
+            hratio_up->GetYaxis()->SetNdivisions(505);
+
+            if (!HelperFunctions::checkHistogramIntegrity(hratio_dn)) MELAerr << "Syst. down ratio for " << systname << " failed integrity!" << endl;
+            if (!HelperFunctions::checkHistogramIntegrity(hratio_up)) MELAerr << "Syst. up ratio for " << systname << " failed integrity!" << endl;
+
+            hratio_systpair[systname] = std::pair<TH1F*, TH1F*>(hratio_dn, hratio_up);
+          }
+
+          // find plot y min/max
+          bool const useLogY = (hist_nominal->GetXaxis()->GetBinLowEdge(hist_nominal->GetNbinsX()+1)>1000.);
+          {
+            double ymin, ymax;
+            std::vector<TH1F*> tmplist; tmplist.push_back(hist_nominal);
+            for (auto& pp:hlist_systpair){ tmplist.push_back(pp.second.first); tmplist.push_back(pp.second.second); }
+            PlottingHelpers::get1DPlotYRange(tmplist, (useLogY ? 15. : 1.5), useLogY, ymin, ymax); if (ymin<1e-8) ymin = 1e-8;
+            for (auto& hh:tmplist) hh->GetYaxis()->SetRangeUser(ymin, ymax);
+          }
+
+          foutput_proj->cd();
+          std::vector<std::pair<TString, TH1F*>> hdummy;
+          hdummy.emplace_back("Nominal", (TH1F*) hist_nominal->Clone(Form("dummy_%zu", hdummy.size())));
+          for (auto const& systname:procsystlist){
+            auto it = hlist_systpair.find(systname);
+            if (it!=hlist_systpair.end()) hdummy.emplace_back(it->first, (TH1F*) it->second.first->Clone(Form("dummy_%zu", hdummy.size())));
+          }
+          for (auto& hh:hdummy) hh.second->SetLineStyle(1);
+
+          TPad* pad_legend = plot.getBorderPanels().at(3); pad_legend->cd();
+          TLegend* legend = new TLegend(
+            0.01,
+            0.,
+            0.99,
+            1.
+          );
+          legend->SetBorderSize(0);
+          legend->SetTextFont(43);
+          legend->SetTextSize(plot.getStdPixelSize_XYLabel()*0.5);
+          legend->SetLineColor(1);
+          legend->SetLineStyle(1);
+          legend->SetLineWidth(1);
+          legend->SetFillColor(0);
+          legend->SetFillStyle(0);
+          for (auto& hh:hdummy) legend->AddEntry(hh.second, hh.first, "l");
+          plot.addLegend(legend);
+          legend->Draw();
+
+          TPad* pad_hists = plot.getInsidePanels().front().back(); pad_hists->cd();
+          if (useLogY){
+            pad_hists->SetLogx();
+            pad_hists->SetLogy();
+          }
+          hist_nominal->Draw("hist");
+          for (auto& it:hlist_systpair){ it.second.first->Draw("histsame"); it.second.second->Draw("histsame"); }
+          pad_hists->cd();
+          TLatex* proctxt = new TLatex(); plot.addText(proctxt);
+          proctxt->SetTextAlign(12);
+          proctxt->SetTextFont(PlotCanvas::getStdFont_XYTitle());
+          proctxt->SetTextSize(plot.getStdPixelSize_XYLabel());
+          proctxt->DrawLatexNDC(0.25, 0.85, proclabel);
+          proctxt->DrawLatexNDC(0.25, 0.75, strChannelLabel + ", " + strCatLabel);
+
+          TPad* pad_ratios = plot.getInsidePanels().front().front(); pad_ratios->cd();
+          if (useLogY) pad_ratios->SetLogx();
+          {
+            bool isFirst = true;
+            for (auto& it:hratio_systpair){ it.second.first->Draw((isFirst ? "hist" : "histsame")); it.second.second->Draw("histsame"); isFirst=false; }
+          }
+
+          // Add x and y titles
+          TPad* pad_xtitle = plot.getBorderPanels().at(0); pad_xtitle->cd();
+          TLatex* xtitle = new TLatex(); plot.addText(xtitle);
+          xtitle->SetTextAlign(22);
+          xtitle->SetTextFont(PlotCanvas::getStdFont_XYTitle());
+          xtitle->SetTextSize(plot.getStdPixelSize_XYTitle());
+          xtitle->DrawLatexNDC(0.5, 0.5, varlabel);
+
+          TPad* pad_ytitle = plot.getBorderPanels().at(1); pad_ytitle->cd();
+          TLatex* ytitle = new TLatex(); plot.addText(ytitle);
+          ytitle->SetTextAlign(22);
+          ytitle->SetTextFont(PlotCanvas::getStdFont_XYTitle());
+          ytitle->SetTextSize(plot.getStdPixelSize_XYTitle());
+          ytitle->SetTextAngle(90);
+          ytitle->DrawLatexNDC(0.5, 1.-0.5/1.4, TString("Events / ") + (varlabel.Contains("GeV") ? TString("GeV") : varlabel));
+          ytitle->DrawLatexNDC(0.5, 0.15/1.4, "Ratios");
+
+          foutput_proj->cd();
+          plot.update();
+          foutput_proj->WriteTObject(plot.getCanvas());
+          plot.save(coutput_plots, "png");
+          plot.save(coutput_plots, "pdf");
+
+          for (auto& hh:hdummy) delete hh.second;
+          for (auto& it:hratio_systpair){ delete it.second.first; delete it.second.second; }
+          for (auto& it:hlist_systpair){ delete it.second.first; delete it.second.second; }
+          delete hist_nominal;
+        }
+      }
+
+      foutput_proj->Close();
+      curdir->cd();
+    }
 
     for (auto const& finput:finputs) finput->Close();
   }

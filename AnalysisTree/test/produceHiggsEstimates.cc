@@ -643,9 +643,11 @@ void produceSystematicsReweighting_MINLO_Pythia(
       ParticleObject::LorentzVector_t genpromptparticles_sump4;
       auto const& genparticles = genInfoHandler.getGenParticles();
       for (auto const& part:genparticles){
-        if (part->extras.isPromptFinalState && (PDGHelpers::isAPhoton(part->pdgId()) || PDGHelpers::isANeutrino(part->pdgId()) || PDGHelpers::isALepton(part->pdgId()))){
-          genpromptparticles_sump4 += part->p4();
-        }
+        if (
+          part->testSelectionBit(GenParticleSelectionHelpers::kHardPromptFinalVisibleParticle)
+          ||
+          (part->extras.isPromptFinalState && PDGHelpers::isANeutrino(part->pdgId()))
+          ) genpromptparticles_sump4 += part->p4();
       }
 
       htmp->Fill(
@@ -706,9 +708,11 @@ void produceSystematicsReweighting_MINLO_Pythia(
       ParticleObject::LorentzVector_t genpromptparticles_sump4;
       auto const& genparticles = genInfoHandler.getGenParticles();
       for (auto const& part:genparticles){
-        if (part->extras.isPromptFinalState && (PDGHelpers::isAPhoton(part->pdgId()) || PDGHelpers::isANeutrino(part->pdgId()) || PDGHelpers::isALepton(part->pdgId()))){
-          genpromptparticles_sump4 += part->p4();
-        }
+        if (
+          part->testSelectionBit(GenParticleSelectionHelpers::kHardPromptFinalVisibleParticle)
+          ||
+          (part->extras.isPromptFinalState && PDGHelpers::isANeutrino(part->pdgId()))
+          ) genpromptparticles_sump4 += part->p4();
       }
 
       htmp->Fill(
@@ -1245,18 +1249,18 @@ void runSystematicsReweightingsChain(TString strdate){
     "VBF_WWTo2L2Nu_POWHEG",
 
     "WminusH_ZZTo2L2Nu_POWHEG",
-    //"WminusH_ZZTo2L2Q_POWHEG",
+    "WminusH_ZZTo2L2Q_POWHEG",
     "WminusH_HToWW_2LOSFilter_POWHEG",
 
     "WplusH_ZZTo2L2Nu_POWHEG",
-    //"WplusH_ZZTo2L2Q_POWHEG",
+    "WplusH_ZZTo2L2Q_POWHEG",
     "WplusH_HToWW_2LOSFilter_POWHEG",
 
     "ZH_HTo2Nu2X_2LFilter_POWHEG",
     "ZH_HTo2L2Q_2LFilter_POWHEG",
     "ZH_HTo4Q_2LFilter_POWHEG",
-    "ZH_WWTo2L2Nu_POWHEG"/*,
-    "ZH_HToLNuQQ_2LFilter_POWHEG"*/
+    "ZH_WWTo2L2Nu_POWHEG",
+    "ZH_HToLNuQQ_2LFilter_POWHEG"
   };
   for (auto const& syst:allowedSysts){ for (auto const& strprocess:strprocesses) combineSystematicsReweightings(strprocess, strdate, syst); }
 }
