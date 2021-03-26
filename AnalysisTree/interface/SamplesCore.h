@@ -62,6 +62,7 @@ namespace SampleHelpers{
 
   bool checkRunOnCondor();
   void addToCondorTransferList(TString const& fname);
+  void addToCondorCompressedTransferList(TString const& dirname);
 
 }
 

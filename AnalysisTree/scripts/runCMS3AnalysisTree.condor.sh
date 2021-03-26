@@ -262,6 +262,16 @@ if [[ -f "EXTERNAL_TRANSFER_LIST.LST" ]];then
   echo -e "\n--- Begin EXTERNAL TRANSFER ---\n"
   while IFS='' read -r line || [[ -n "$line" ]]; do
     OUTFILENAME=${line}
+    # If there is an instruction to compress, convert the file/directory name into a tar file.
+    if [[ "${OUTFILENAME}" == "compress:"* ]]; then
+      OUTFILENAME=${OUTFILENAME/'compress:'}
+      if [[ "${OUTFILENAME}" == *"/" ]]; then
+        OUTFILENAME=${OUTFILENAME%?}
+      fi
+      tar Jcf ${OUTFILENAME}.tar ${OUTFILENAME}
+      OUTFILENAME=${OUTFILENAME}.tar
+    fi
+    # Begin copying the file
     echo "Copying output file ${OUTFILENAME}"
     copyFromCondorToSite.sh ${RUNDIR} ${OUTFILENAME} ${CONDORSITE} ${CONDOROUTDIR}
     TRANSFER_STATUS=$?

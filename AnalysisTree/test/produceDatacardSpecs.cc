@@ -302,6 +302,103 @@ TString getTemplateLabel_ZZ2L2Nu(TString const& procname, ACHypothesisHelpers::A
   return "";
 }
 
+bool isSystForcedNormOnly(TString const& procname, TString const& systname){
+  if (procname == "InstrMET"){
+    return (
+      systname.Contains("pdf_variation_qqbar")
+      ||
+      systname.Contains("pdf_variation_tGX")
+      ||
+      systname.Contains("pdf_asmz_qqbar")
+      ||
+      systname.Contains("pdf_asmz_tGX")
+      ||
+      systname.Contains("CMS_scale_pythia")
+      ||
+      systname.Contains("CMS_tune_pythia")
+      ||
+      systname.Contains("CMS_res_j")
+      ||
+      systname.Contains("CMS_scale_j")
+      ||
+      systname.Contains("CMS_pileup")
+      ||
+      systname.Contains("CMS_eff_pho")
+      ||
+      systname.Contains("CMS_llGnorm_ZG")
+      ||
+      systname.Contains("CMS_stat_norm_InstrMET_Data")
+      );
+  }
+  else if (systname.Contains("CMS_stat_norm")) return true;
+  return false;
+}
+template<typename T> void addToLogNormalSystsAndVetoShape(
+  std::unordered_map<TString, std::unordered_map<TString, std::vector<T*>> > const& procname_syst_hist_map,
+  std::unordered_map<TString, std::unordered_map<TString, std::pair<double, double>>>& lognormalsyst_procname_valpair_map,
+  std::vector<std::pair<TString, TString>>& vetoed_procname_systnamecore_pairs
+){
+  MELAout << "addToLogNormalSystsAndVetoShape: Analyzing systematics for log-normal components..." << endl;
+  for (auto const& it_procname_syst_hist_map:procname_syst_hist_map){
+    TString const& procname = it_procname_syst_hist_map.first;
+    auto const& syst_hist_map = it_procname_syst_hist_map.second;
+
+    double integral_nominal = 0;
+    {
+      std::vector<T*> const& hists_nominal = syst_hist_map.find("Nominal")->second;
+      std::vector<double> vals_nominal; getProjectedValues(*(hists_nominal.front()), vals_nominal, 0);
+      for (auto const& v:vals_nominal) integral_nominal += v;
+    }
+    if (integral_nominal<=0.) continue;
+    
+
+    std::vector<TString> systnamecores;
+    for (auto const& pp:syst_hist_map){
+      if (pp.first=="Nominal" || pp.first.Contains("Down")) continue;
+      TString systnamecore = pp.first;
+      HelperFunctions::replaceString<TString, TString const>(systnamecore, "Up", "");
+
+      bool isAlreadyVetoed = false;
+      for (auto const& pp:vetoed_procname_systnamecore_pairs){
+        if (pp.first == procname && pp.second == systnamecore){
+          isAlreadyVetoed = true;
+          break;
+        }
+      }
+      if (isAlreadyVetoed || !isSystForcedNormOnly(procname, systnamecore)) continue;
+      vetoed_procname_systnamecore_pairs.emplace_back(procname, systnamecore);
+
+      double integral_dn = 0;
+      double integral_up = 0;
+      {
+        std::vector<T*> const& hists_dn = syst_hist_map.find(systnamecore+"Down")->second;
+        std::vector<double> vals_dn; getProjectedValues(*(hists_dn.front()), vals_dn, 0);
+        for (auto const& v:vals_dn) integral_dn += v;
+
+        std::vector<T*> const& hists_up = syst_hist_map.find(systnamecore+"Up")->second;
+        std::vector<double> vals_up; getProjectedValues(*(hists_up.front()), vals_up, 0);
+        for (auto const& v:vals_up) integral_up += v;
+      }
+
+      double kdn = integral_dn / integral_nominal;
+      double kup = integral_up / integral_nominal;
+
+      auto it_lognormalsyst_procname_valpair_map = lognormalsyst_procname_valpair_map.find(systnamecore);
+      if (it_lognormalsyst_procname_valpair_map==lognormalsyst_procname_valpair_map.end()){
+        lognormalsyst_procname_valpair_map[systnamecore] = std::unordered_map<TString, std::pair<double, double>>();
+        it_lognormalsyst_procname_valpair_map = lognormalsyst_procname_valpair_map.find(systnamecore);
+      }
+      auto it_valpair_map = it_lognormalsyst_procname_valpair_map->second.find(procname);
+      if (it_valpair_map==it_lognormalsyst_procname_valpair_map->second.end()){
+        it_lognormalsyst_procname_valpair_map->second[procname] = std::pair<double, double>(kdn, kup);
+        MELAout << "\t- Systematic " << systnamecore << " in process " << procname << " will now vary as lnN " << kdn << "/" << kup << "." << endl;
+      }
+      else MELAerr << "\t- Systematic " << systnamecore << " in process " << procname << " is already recorded as " << it_valpair_map->second << endl;
+    }
+  }
+}
+
+
 void getDCSpecs_ZZ2L2Nu(
   TString period, TString templateVersion, TString strdate,
   ACHypothesisHelpers::ACHypothesis AChypo,
@@ -361,6 +458,7 @@ void getDCSpecs_ZZ2L2Nu(
   gSystem->mkdir(coutput_main, true);
   TString const coutput_plots = "output/DatacardSpecs/" + strdate + "/SystProjections/" + SampleHelpers::getDataPeriod() + "/CatScheme_Nj" + (includeBoostedHadVHCategory ? (includeResolvedHadVHCategory ? "_BoostedHadVH_ResolvedHadVH" : "_BoostedHadVH") : (includeResolvedHadVHCategory ? "_ResolvedHadVH" : "")) + "/" + ACHypothesisHelpers::getACHypothesisName(AChypo);
   gSystem->mkdir(coutput_plots, true);
+  SampleHelpers::addToCondorCompressedTransferList(coutput_plots);
 
   for (unsigned int icat=0; icat<nCats; icat++){
     TString const& strCategory = strCatNames.at(icat);
@@ -600,6 +698,9 @@ void getDCSpecs_ZZ2L2Nu(
       checkProcessSystematicsFromDistributions(dilepton_id_ref, procname_syst_h1D_map, vetoed_procname_systnamecore_pairs);
       checkProcessSystematicsFromDistributions(dilepton_id_ref, procname_syst_h2D_map, vetoed_procname_systnamecore_pairs);
       checkProcessSystematicsFromDistributions(dilepton_id_ref, procname_syst_h3D_map, vetoed_procname_systnamecore_pairs);
+      addToLogNormalSystsAndVetoShape(procname_syst_h1D_map, lognormalsyst_procname_valpair_map, vetoed_procname_systnamecore_pairs);
+      addToLogNormalSystsAndVetoShape(procname_syst_h2D_map, lognormalsyst_procname_valpair_map, vetoed_procname_systnamecore_pairs);
+      addToLogNormalSystsAndVetoShape(procname_syst_h3D_map, lognormalsyst_procname_valpair_map, vetoed_procname_systnamecore_pairs);
       for (auto const& pp:vetoed_procname_systnamecore_pairs){
         TString const& procname = pp.first;
         TString const& systnamecore = pp.second;

@@ -55,6 +55,7 @@ namespace SampleHelpers{
     nHiggsSampleDecayModes
   };
   HiggsSampleDecayMode getHiggsSampleDecayMode(TString const& sname);
+  bool isHiggsToWWDecay(SampleHelpers::HiggsSampleDecayMode const& dkmode);
 
   double calculateAdjustedHiggsBREff(TString const& sname, double const& sum_wgts_defaultMemberZero, double const& sum_wgts_defaultLHEEventWeight, bool hasTaus);
 }

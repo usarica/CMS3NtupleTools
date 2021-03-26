@@ -257,3 +257,9 @@ void SampleHelpers::addToCondorTransferList(TString const& fname){
   olf << fname.Data() << endl;
   olf.close();
 }
+void SampleHelpers::addToCondorCompressedTransferList(TString const& dirname){
+  if (!checkRunOnCondor()) return;
+  ofstream olf("EXTERNAL_TRANSFER_LIST.LST", ios_base::app);
+  olf << "compress:" << dirname.Data() << endl;
+  olf.close();
+}

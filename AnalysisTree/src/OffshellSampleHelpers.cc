@@ -3238,7 +3238,7 @@ SampleHelpers::HiggsSampleDecayMode SampleHelpers::getHiggsSampleDecayMode(TStri
   else if (sname.Contains("ZZTo4Q") || sname.Contains("HTo4Q")) return kZZTo4Q;
 
   else if (sname.Contains("WWTo2L2N") || sname.Contains("WW2L2N")) return kWWTo2L2Nu;
-  else if (sname.Contains("WWToLNuQQ")) return kWWToLNuQQ;
+  else if (sname.Contains("LNuQQ")) return kWWToLNuQQ;
   else if (sname.Contains("WW_2LOSFilter")) return kWWToLNuXX;
 
   else{
@@ -3246,6 +3246,9 @@ SampleHelpers::HiggsSampleDecayMode SampleHelpers::getHiggsSampleDecayMode(TStri
     assert(0);
     return nHiggsSampleDecayModes;
   }
+}
+bool SampleHelpers::isHiggsToWWDecay(SampleHelpers::HiggsSampleDecayMode const& dkmode){
+  return (dkmode==kWWTo2L2Nu || dkmode==kWWToLNuQQ || dkmode==kWWToLNuXX);
 }
 
 double SampleHelpers::calculateAdjustedHiggsBREff(TString const& sname, double const& sum_wgts_defaultMemberZero, double const& sum_wgts_defaultLHEEventWeight, bool hasTaus){
@@ -3305,7 +3308,7 @@ double SampleHelpers::calculateAdjustedHiggsBREff(TString const& sname, double c
   double const adj_br = sum_wgts_defaultLHEEventWeight/sum_wgts_defaultMemberZero;
 
   TString sname_lower = sname; HelperFunctions::lowercase(sname, sname_lower);
-  HiggsSampleDecayMode dkmode = getHiggsSampleDecayMode(sname);
+  HiggsSampleDecayMode const dkmode = getHiggsSampleDecayMode(sname);
   double sampleMH = SampleHelpers::findPoleMass(sname);
   if (!(sampleMH>=0. && sname_lower.Contains("powheg") && sname_lower.Contains("jhugen"))) return 1;
 
@@ -3447,7 +3450,7 @@ double SampleHelpers::calculateAdjustedHiggsBREff(TString const& sname, double c
     br_sum_filtered += br_MH_corr_filtered;
   }
 
-  MELAout << "SampleHelpers::calculateAdjustedHiggsBREff: Final BR before / after filter: " << adj_br*br_sum << " / " << adj_br*br_sum_filtered << endl;
+  MELAout << "SampleHelpers::calculateAdjustedHiggsBREff: Final BR before / after filter for decay mode " << dkmode << ": " << adj_br*br_sum << " / " << adj_br*br_sum_filtered << endl;
   MELAout << "\t- Filter efficiency: " << br_sum_filtered/br_sum << endl;
 
   return adj_br*br_sum_filtered;
