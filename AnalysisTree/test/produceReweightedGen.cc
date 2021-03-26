@@ -192,6 +192,11 @@ void produceReweightedGen(
 
   if (!SampleHelpers::checkRunOnCondor()) std::signal(SIGINT, SampleHelpers::setSignalInterrupt);
 
+  if (strSampleSet.Contains("/MINIAOD")){
+    MELAerr << "Processing single samples is not the design goal of produceReweightingRecords." << endl;
+    return;
+  }
+
   gStyle->SetOptStat(0);
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
@@ -205,6 +210,11 @@ void produceReweightedGen(
 
   bool isGG = strSampleSet.Contains("GluGluH") || strSampleSet.Contains("GGH");
   bool isVBF = strSampleSet.Contains("VBF");
+  bool const hasDirectHWW = (
+    strSampleSet.Contains("WminusH") || strSampleSet.Contains("WplusH")
+    ||
+    SampleHelpers::isHiggsToWWDecay(SampleHelpers::getHiggsSampleDecayMode(strSampleSet))
+    );
 
   // Get sample specifications
   std::vector<TString> sampledirs;
@@ -299,6 +309,7 @@ void produceReweightedGen(
     PhysicsProcessHandler* proc_handler = getPhysicsProcessHandler(strSampleSet, ACHypothesisHelpers::kZZ2l2nu_offshell);
     for (unsigned int iac=0; iac<(unsigned int) ACHypothesisHelpers::nACHypotheses; iac++){
       ACHypothesisHelpers::ACHypothesis hypo = (ACHypothesisHelpers::ACHypothesis) iac;
+      if (hasDirectHWW && hypo==ACHypothesisHelpers::kL1ZGs) continue;
       std::vector<TString> strMEs_hypo = proc_handler->getMELAHypothesisWeights(hypo, false);
       HelperFunctions::appendVector(strMEs, strMEs_hypo);
     }
