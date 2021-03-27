@@ -137,16 +137,34 @@ for spl in "${DataSampleList[@]}"; do
   for dataperiod in "${dataPeriods[@]}"; do
     sample="${spl}_${dataperiod}"
 
-    strargs="${arguments}"
-    strargs="${strargs/<strSampleSet>/${sample}}"
-    strargs="${strargs/<ichunk>/0}"
-    strargs="${strargs/<nchunks>/0}"
-    strargs="${strargs/<theGlobalSyst>/sNominal}"
-    strargs="${strargs/<period>/$dataperiod}"
-    strargs="${strargs/<vetoExtraNonOverlappingLeptons>/true}"
-    strargs="${strargs/<hardProcessFallback>/false}"
+    let nchunks=1
+    REQMEM=2048M
+    JOBFLAV=tomorrow
+    if [[ "${dataperiod}" == "2018D" ]] && [[ "${sample}" == *"SingleMuon"* ]]; then
+      REQMEM=4096M
+      JOBFLAV=testmatch
+      let nchunks=20
+    fi
 
-    submitCMS3AnalysisProduction.sh script="${script}" function="${function}" arguments="${strargs}" date="${jobdate}"
+    let ichunk=0
+    while [[ $ichunk -lt $nchunks ]]; do
+      strargs="${arguments}"
+      strargs="${strargs/<strSampleSet>/${sample}}"
+      strargs="${strargs/<ichunk>/${ichunk}}"
+      if [[ $nchunks -le 1 ]]; then
+        strargs="${strargs/<nchunks>/0}"
+      else
+        strargs="${strargs/<nchunks>/${nchunks}}"
+      fi
+      strargs="${strargs/<theGlobalSyst>/sNominal}"
+      strargs="${strargs/<period>/$dataperiod}"
+      strargs="${strargs/<vetoExtraNonOverlappingLeptons>/true}"
+      strargs="${strargs/<hardProcessFallback>/false}"
+
+      submitCMS3AnalysisProduction.sh script="${script}" function="${function}" arguments="${strargs}" date="${jobdate}"
+
+      let ichunk=${ichunk}+1
+    done
   done
 done
 

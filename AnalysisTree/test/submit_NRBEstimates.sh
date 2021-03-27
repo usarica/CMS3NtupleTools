@@ -4,6 +4,7 @@ date=$1
 period=$2
 prodVersion=$3
 ntupleVersion=$4
+
 script=produceNRBEstimates.cc
 function=runDistributionsChain
 jobdate="NRBEstimates_${date}"

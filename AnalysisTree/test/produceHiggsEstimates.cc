@@ -229,6 +229,11 @@ void produceReweightingRecords(
   bool const isVBF = strSampleSet.Contains("VBF");
   //bool const isVH = strSampleSet.Contains("WminusH") || strSampleSet.Contains("WplusH") || strSampleSet.Contains("ZH") || strSampleSet.Contains("HZJ");
   bool const isPowheg = strSampleSet.Contains("POWHEG");
+  bool const hasDirectHWW = (
+    strSampleSet.Contains("WminusH") || strSampleSet.Contains("WplusH")
+    ||
+    SampleHelpers::isHiggsToWWDecay(SampleHelpers::getHiggsSampleDecayMode(strSampleSet))
+    );
 
   ACHypothesisHelpers::DecayType dktype = ACHypothesisHelpers::kZZ2l2nu_offshell;
 
@@ -285,6 +290,7 @@ void produceReweightingRecords(
     PhysicsProcessHandler* proc_handler = getPhysicsProcessHandler(strSampleSet, dktype);
     for (unsigned int iac=0; iac<(unsigned int) ACHypothesisHelpers::nACHypotheses; iac++){
       ACHypothesisHelpers::ACHypothesis hypo = (ACHypothesisHelpers::ACHypothesis) iac;
+      if (hasDirectHWW && hypo==ACHypothesisHelpers::kL1ZGs) continue;
       std::vector<TString> strMEs_hypo = proc_handler->getMELAHypothesisWeights(hypo, false);
       HelperFunctions::appendVector(strMEs, strMEs_hypo);
     }
@@ -1534,6 +1540,10 @@ void getTrees_ZZTo2L2Nu(
     tout->putBranch<float>("ak8jet_leading_eta", 0.f);
     tout->putBranch<float>("ak8jet_leading_mass", -1.f);
 
+    tout->putBranch<std::vector<float>*>("ak8jets_pt200_mass60to130_pt", nullptr);
+    tout->putBranch<std::vector<float>*>("ak8jets_pt200_mass60to130_eta", nullptr);
+    tout->putBranch<std::vector<float>*>("ak8jets_pt200_mass60to130_mass", nullptr);
+
     // Values of various discriminants
     for (auto const& KDspec:KDlist) tout->putBranch<float>(KDspec.KDname, -1.f);
   }
@@ -1931,12 +1941,27 @@ void getTrees_ZZTo2L2Nu(
       }
 
       unsigned int out_n_ak8jets_pt200(0), out_n_ak8jets_pt200_mass60to110(0), out_n_ak8jets_pt200_mass60to130(0), out_n_ak8jets_pt200_mass140(0);
+      std::vector<float> out_ak8jets_pt200_mass60to130_pt, out_ak8jets_pt200_mass60to130_eta, out_ak8jets_pt200_mass60to130_mass;
       // Tight ak8 jet selection always ensures pT>=200 GeV, so we only need to look at mass.
       out_n_ak8jets_pt200 = ak8jets_mass->size();
-      for (auto const& ak8jet_mass:(*ak8jets_mass)){
-        if (ak8jet_mass>=60.f && ak8jet_mass<110.f){ out_n_ak8jets_pt200_mass60to110++; out_n_ak8jets_pt200_mass60to130++; }
-        else if (ak8jet_mass>=60.f && ak8jet_mass<130.f) out_n_ak8jets_pt200_mass60to130++;
-        else if (ak8jet_mass>=140.f) out_n_ak8jets_pt200_mass140++;
+      {
+        unsigned int ijet=0;
+        for (auto const& ak8jet_mass:(*ak8jets_mass)){
+          if (ak8jet_mass>=60.f && ak8jet_mass<110.f){
+            out_n_ak8jets_pt200_mass60to110++; out_n_ak8jets_pt200_mass60to130++;
+            out_ak8jets_pt200_mass60to130_pt.push_back(ak8jets_pt->at(ijet));
+            out_ak8jets_pt200_mass60to130_eta.push_back(ak8jets_eta->at(ijet));
+            out_ak8jets_pt200_mass60to130_mass.push_back(ak8jet_mass);
+          }
+          else if (ak8jet_mass>=60.f && ak8jet_mass<130.f){
+            out_n_ak8jets_pt200_mass60to130++;
+            out_ak8jets_pt200_mass60to130_pt.push_back(ak8jets_pt->at(ijet));
+            out_ak8jets_pt200_mass60to130_eta.push_back(ak8jets_eta->at(ijet));
+            out_ak8jets_pt200_mass60to130_mass.push_back(ak8jet_mass);
+          }
+          else if (ak8jet_mass>=140.f) out_n_ak8jets_pt200_mass140++;
+          ijet++;
+        }
       }
 
       // Update discriminants
@@ -1996,6 +2021,9 @@ void getTrees_ZZTo2L2Nu(
         tout->setVal<unsigned int>("n_ak8jets_pt200_mass60to110", out_n_ak8jets_pt200_mass60to110);
         tout->setVal<unsigned int>("n_ak8jets_pt200_mass60to130", out_n_ak8jets_pt200_mass60to130);
         tout->setVal<unsigned int>("n_ak8jets_pt200_mass140", out_n_ak8jets_pt200_mass140);
+        tout->setVal("ak8jets_pt200_mass60to130_pt", &out_ak8jets_pt200_mass60to130_pt);
+        tout->setVal("ak8jets_pt200_mass60to130_eta", &out_ak8jets_pt200_mass60to130_eta);
+        tout->setVal("ak8jets_pt200_mass60to130_mass", &out_ak8jets_pt200_mass60to130_mass);
         if (out_n_ak8jets_pt200>0){
           tout->setVal<float>("ak8jet_leading_pt", ak8jets_pt->front());
           tout->setVal<float>("ak8jet_leading_eta", ak8jets_eta->front());

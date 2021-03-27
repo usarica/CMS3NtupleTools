@@ -272,7 +272,6 @@ void getTrees(
   for (auto const& sname:sampledirs){
     isData = SampleHelpers::checkSampleIsData(sname);
     if (isData && theGlobalSyst!=sNominal) return;
-    if (isData && nchunks>0) return;
 
     isQCD = sname.Contains("QCD") && sname.Contains("HT");
     isGJets_HT = sname.Contains("GJetS_HT");
@@ -282,6 +281,34 @@ void getTrees(
   }
   haspTGRange = pTG_true_range[0]!=pTG_true_range[1];
   constexpr bool needGenParticleChecks = true; // Always turned on because we need to do gen. matching
+
+  // If data trees are used, set the run range.
+  int run_start = -1;
+  int run_end = -1;
+  if (isData && nchunks>0){
+    // Assign the range over run numbers
+    double const lumi_total = SampleHelpers::getIntegratedLuminosity(SampleHelpers::getDataPeriod());
+    auto const& runnumber_lumi_pairs = SampleHelpers::getRunNumberLumiPairsForDataPeriod(SampleHelpers::getDataPeriod());
+    int const nruns_total = runnumber_lumi_pairs.size();
+    int const nruns_inc = static_cast<int>(static_cast<double>(nruns_total) / static_cast<double>(nchunks));
+    int const nruns_rem = nruns_total - nruns_inc*nchunks;
+
+    int const idx_firstRun = nruns_inc*ichunk + std::min(nruns_rem, ichunk);
+    int const idx_firstRun_next = nruns_inc*(ichunk+1) + std::min(nruns_rem, ichunk+1);
+    run_start = (idx_firstRun>=nruns_total ? 0 : (int) runnumber_lumi_pairs.at(idx_firstRun).first);
+    run_end = (idx_firstRun_next-1>=nruns_total || idx_firstRun_next<=idx_firstRun ? 0 : (int) runnumber_lumi_pairs.at(idx_firstRun_next-1).first);
+
+    double lumi_acc = 0;
+    for (auto const& runnumber_lumi_pair:runnumber_lumi_pairs){
+      if (
+        (run_start<0 || run_start<=(int) runnumber_lumi_pair.first)
+        &&
+        (run_end<0 || run_end>=(int) runnumber_lumi_pair.first)
+        ) lumi_acc += runnumber_lumi_pair.second;
+    }
+
+    MELAout << "A real data loop will proceed. The requested run range is [" << run_start << ", " << run_end << "]. Total luminosity covered will be " << lumi_acc << " / " << lumi_total << "." << endl;
+  }
 
   TString coutput_main =
     "output/LeptonEfficiencies/SkimTrees/" + strdate
@@ -335,6 +362,18 @@ void getTrees(
     BaseTree sample_tree(SampleHelpers::getDatasetFileName(sname), "cms3ntuple/Dilepton", "cms3ntuple/Dilepton_Control", "");
     sample_tree.sampleIdentifier = SampleHelpers::getSampleIdentifier(sname);
     const int nEntries = sample_tree.getNEvents();
+
+#define RUNLUMIEVENT_VARIABLE(TYPE, NAME, DEFVAL) TYPE* NAME = nullptr;
+    RUNLUMIEVENT_VARIABLES;
+#undef RUNLUMIEVENT_VARIABLE
+    if (isData){
+#define RUNLUMIEVENT_VARIABLE(TYPE, NAME, DEFVAL) \
+      sample_tree.bookBranch<TYPE>(#NAME, 0); \
+      sample_tree.getValRef(#NAME, NAME);
+
+      RUNLUMIEVENT_VARIABLES;
+#undef RUNLUMIEVENT_VARIABLE
+    }
 
     double sum_wgts = (isData ? 1.f : 0.f);
     float xsec = 1;
@@ -528,7 +567,7 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
 
     int ev_start = 0;
     int ev_end = nEntries;
-    if (nchunks>0){
+    if (!isData && nchunks>0){
       int ev_inc = static_cast<int>(float(ev_end - ev_start)/float(nchunks));
       ev_start = ev_inc*ichunk;
       ev_end = std::min(nEntries, (ichunk == nchunks-1 ? nEntries : ev_start+ev_inc));
@@ -550,6 +589,18 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
     bool firstEvent=true;
     for (int ev=ev_start; ev<ev_end; ev++){
       HelperFunctions::progressbar(ev, nEntries);
+
+      // In data trees, check run range before calling BaseTree::getEvent.
+      if (isData && (run_start>0 || run_end>0)){
+        bool const doAccumulate = (
+          sample_tree.updateBranch(ev, "RunNumber", false)
+          &&
+          (run_start<0 || static_cast<int>(*RunNumber)>=run_start)
+          &&
+          (run_end<0 || static_cast<int>(*RunNumber)<=run_end)
+          );
+        if (!doAccumulate) continue;
+      }
       sample_tree.getEvent(ev);
 
       if (!isData && firstEvent){

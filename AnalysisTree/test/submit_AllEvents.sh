@@ -1,6 +1,6 @@
 #!/bin/bash
 
-date=210224
+date=210313
 
 
 while [[ 1 ]]; do
@@ -11,6 +11,12 @@ for d in DileptonEvents LGEvents LLGEvents SingleLeptonEvents SinglePhotonEvents
   #$scr ${date} 2018 201221_2018 only_sim useMETJERCorr=false
   #$scr ${date} 2017 201221_2017 only_sim useMETJERCorr=false
   #$scr ${date} 2016 201221_2016 only_sim useMETJERCorr=false
+
+  #if [[ ${d} == "DileptonEvents" ]] || [[ ${d} == "3LEvents" ]]; then
+  #  $scr ${date} 2018 201221_2018 only_sim_offshell all_imp_systs useMETJERCorr=false
+  #  $scr ${date} 2017 201221_2017 only_sim_offshell all_imp_systs useMETJERCorr=false
+  #  $scr ${date} 2016 201221_2016 only_sim_offshell all_imp_systs useMETJERCorr=false
+  #fi
 
   for dd in $(checkCMS3NtupleProduction.sh output/${date}_${d} singleprod | grep -e failed | awk '{print $1}' | sort | uniq); do
     resubmitCMS3NtupleProduction.sh ${dd}

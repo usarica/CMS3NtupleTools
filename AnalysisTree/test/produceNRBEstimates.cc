@@ -644,6 +644,10 @@ void getDistributions(
     tout_data->putBranch<float>("ak8jet_leading_eta", 0.f);
     tout_data->putBranch<float>("ak8jet_leading_mass", -1.f);
 
+    tout_data->putBranch<std::vector<float>*>("ak8jets_pt200_mass60to130_pt", nullptr);
+    tout_data->putBranch<std::vector<float>*>("ak8jets_pt200_mass60to130_eta", nullptr);
+    tout_data->putBranch<std::vector<float>*>("ak8jets_pt200_mass60to130_mass", nullptr);
+
     // Values of various discriminants
     for (auto const& KDspec:KDlist) tout_data->putBranch<float>(KDspec.KDname, -1.f);
 
@@ -711,10 +715,9 @@ void getDistributions(
           ExtendedBinning binning_mjj(38, 30., 600., "m_{jj} (GeV)");
           ExtendedBinning binning_Nak4jets(4, 0, 4, "N_{j}");
           ExtendedBinning binning_Nak4jets_mass60(2, 0, 2, "N_{j} (m_{j}#geq60 GeV)");
-          ExtendedBinning binning_mJ(20, 60., 260., "m_{J} (leading-p_{T}^{J}) (GeV)");
+          ExtendedBinning binning_mJ_mass60to130(20, 60., 260., "m_{J} (60 GeV#leqm_{J}<130 GeV) (GeV)");
           ExtendedBinning binning_Nak8jets(3, 0, 3, "N_{J}");
-          //ExtendedBinning binning_Nak8jets_mass60to110(3, 0, 3, "N_{J} (110 GeV>m_{J}#geq60 GeV)");
-          ExtendedBinning binning_Nak8jets_mass60to130(3, 0, 3, "N_{J} (130 GeV>m_{J}#geq60 GeV)");
+          ExtendedBinning binning_Nak8jets_mass60to130(3, 0, 3, "N_{J} (60 GeV#leqm_{J}<130 GeV)");
           ExtendedBinning binning_Nak8jets_mass140(3, 0, 3, "N_{J} (m_{J}#geq140 GeV)");
 
           ExtendedHistogram_1D_f* ehtmp = nullptr;
@@ -725,7 +728,7 @@ void getDistributions(
           ehtmp = new ExtendedHistogram_1D_f(Form("h_SR_%s_%s_%s", NAME, strCutName.Data(), sgroup.Data()), strCutTitle, BINNING); \
           ehtmp->resetProfiles(); \
           htmp = ehtmp->getHistogram(); \
-          htmp->GetYaxis()->SetTitle("Events / bin"); \
+          htmp->GetYaxis()->SetTitle(Form("%s / bin", (TString(NAME).Contains("mJ_mass60to130") ? "Events" : "Jets"))); \
           htmp->SetLineColor(scolor); htmp->SetMarkerColor(scolor); htmp->SetLineWidth(2); \
           if (!strChannelName.Contains("rewgt") && sgroup!="Data") htmp->SetFillColor(scolor); \
           else if (sgroup!="Data") htmp->SetLineStyle(2); \
@@ -745,9 +748,8 @@ void getDistributions(
             HISTOGRAM_COMMAND("mjj", binning_mjj);
             HISTOGRAM_COMMAND("Nak4jets", binning_Nak4jets);
             HISTOGRAM_COMMAND("Nak4jetsMass60", binning_Nak4jets_mass60);
-            HISTOGRAM_COMMAND("mJ", binning_mJ);
+            HISTOGRAM_COMMAND("mJ_mass60to130", binning_mJ_mass60to130);
             HISTOGRAM_COMMAND("Nak8jets", binning_Nak8jets);
-            /*HISTOGRAM_COMMAND("Nak8jetsMass60to110", binning_Nak8jets_mass60to110);*/
             HISTOGRAM_COMMAND("Nak8jetsMass60to130", binning_Nak8jets_mass60to130);
             HISTOGRAM_COMMAND("Nak8jetsMass140", binning_Nak8jets_mass140);
             for (auto const& KDspec:KDlist){
@@ -1176,14 +1178,28 @@ void getDistributions(
         }
 
         unsigned int out_n_ak8jets_pt200(0), out_n_ak8jets_pt200_mass60to110(0), out_n_ak8jets_pt200_mass60to130(0), out_n_ak8jets_pt200_mass140(0);
+        std::vector<float> out_ak8jets_pt200_mass60to130_pt, out_ak8jets_pt200_mass60to130_eta, out_ak8jets_pt200_mass60to130_mass;
         // Tight ak8 jet selection always ensures pT>=200 GeV, so we only need to look at mass.
         out_n_ak8jets_pt200 = ak8jets_mass->size();
-        for (auto const& ak8jet_mass:(*ak8jets_mass)){
-          if (ak8jet_mass>=60.f && ak8jet_mass<110.f){ out_n_ak8jets_pt200_mass60to110++; out_n_ak8jets_pt200_mass60to130++; }
-          else if (ak8jet_mass>=60.f && ak8jet_mass<130.f) out_n_ak8jets_pt200_mass60to130++;
-          else if (ak8jet_mass>=140.f) out_n_ak8jets_pt200_mass140++;
+        {
+          unsigned int ijet=0;
+          for (auto const& ak8jet_mass:(*ak8jets_mass)){
+            if (ak8jet_mass>=60.f && ak8jet_mass<110.f){
+              out_n_ak8jets_pt200_mass60to110++; out_n_ak8jets_pt200_mass60to130++;
+              out_ak8jets_pt200_mass60to130_pt.push_back(ak8jets_pt->at(ijet));
+              out_ak8jets_pt200_mass60to130_eta.push_back(ak8jets_eta->at(ijet));
+              out_ak8jets_pt200_mass60to130_mass.push_back(ak8jet_mass);
+            }
+            else if (ak8jet_mass>=60.f && ak8jet_mass<130.f){
+              out_n_ak8jets_pt200_mass60to130++;
+              out_ak8jets_pt200_mass60to130_pt.push_back(ak8jets_pt->at(ijet));
+              out_ak8jets_pt200_mass60to130_eta.push_back(ak8jets_eta->at(ijet));
+              out_ak8jets_pt200_mass60to130_mass.push_back(ak8jet_mass);
+            }
+            else if (ak8jet_mass>=140.f) out_n_ak8jets_pt200_mass140++;
+            ijet++;
+          }
         }
-
 
         // Update discriminants
         for (auto& KDspec:KDlist){
@@ -1255,7 +1271,9 @@ void getDistributions(
           if (hname.Contains("mjj") && event_n_ak4jets_pt30>1) hh->fill(p4_dijet.M(), hwgt);
           if (hname.Contains("Nak4jets")) hh->fill(event_n_ak4jets_pt30, hwgt);
           if (hname.Contains("Nak4jetsMass60")) hh->fill(out_n_ak4jets_pt30_mass60, hwgt);
-          if (hname.Contains("mJ") && out_n_ak8jets_pt200>0) hh->fill(ak8jets_mass->front(), hwgt);
+          if (hname.Contains("mJ_mass60to130") && out_n_ak8jets_pt200>0){
+            for (auto const& ak8jet_mass:(*ak8jets_mass)){ if (ak8jet_mass>=60.f && ak8jet_mass<130.f) hh->fill(ak8jet_mass, hwgt); }
+          }
           if (hname.Contains("Nak8jets")) hh->fill(out_n_ak8jets_pt200, hwgt);
           if (hname.Contains("Nak8jetsMass60to110")) hh->fill(out_n_ak8jets_pt200_mass60to110, hwgt);
           if (hname.Contains("Nak8jetsMass60to130")) hh->fill(out_n_ak8jets_pt200_mass60to130, hwgt);
@@ -1308,6 +1326,9 @@ void getDistributions(
             tout_data->setVal<unsigned int>("n_ak8jets_pt200_mass60to110", out_n_ak8jets_pt200_mass60to110);
             tout_data->setVal<unsigned int>("n_ak8jets_pt200_mass60to130", out_n_ak8jets_pt200_mass60to130);
             tout_data->setVal<unsigned int>("n_ak8jets_pt200_mass140", out_n_ak8jets_pt200_mass140);
+            tout_data->setVal("ak8jets_pt200_mass60to130_pt", &out_ak8jets_pt200_mass60to130_pt);
+            tout_data->setVal("ak8jets_pt200_mass60to130_eta", &out_ak8jets_pt200_mass60to130_eta);
+            tout_data->setVal("ak8jets_pt200_mass60to130_mass", &out_ak8jets_pt200_mass60to130_mass);
             if (out_n_ak8jets_pt200>0){
               tout_data->setVal<float>("ak8jet_leading_pt", ak8jets_pt->front());
               tout_data->setVal<float>("ak8jet_leading_eta", ak8jets_eta->front());

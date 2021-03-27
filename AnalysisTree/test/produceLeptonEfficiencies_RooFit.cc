@@ -2410,8 +2410,9 @@ void plotEffSF(TString const& coutput_main, TString cname_app, TString ptitle, T
 
   TH2D* hist = nullptr;
   {
-    ExtendedBinning xbinning = HelperFunctions::getExtendedBinning(inhist, 0);
-    ExtendedBinning ybinning = HelperFunctions::getExtendedBinning(inhist, 1);
+    ExtendedBinning xbinning, ybinning;
+    HelperFunctions::getExtendedBinning(inhist, 0, xbinning);
+    HelperFunctions::getExtendedBinning(inhist, 1, ybinning);
 
     // Patch y binning upper value
     ybinning.setBinBoundary(ybinning.getNbins(), 200);
@@ -2571,8 +2572,9 @@ std::vector<TH2D*> getPOGIDEffSF(bool is_ee, unsigned int is_data_MC_SF){
   curdir->cd();
 
   // Transpose the input histogram
-  ExtendedBinning xbinning = HelperFunctions::getExtendedBinning(inhist, (is_ee ? 0 : 1));
-  ExtendedBinning ybinning = HelperFunctions::getExtendedBinning(inhist, (is_ee ? 1 : 0));
+  ExtendedBinning xbinning, ybinning;
+  HelperFunctions::getExtendedBinning(inhist, (is_ee ? 0 : 1), xbinning);
+  HelperFunctions::getExtendedBinning(inhist, (is_ee ? 1 : 0), ybinning);
 
   for (int isyst=0; isyst<3; isyst++){
     TH2D* res = new TH2D(
@@ -2660,7 +2662,7 @@ void plotEffSFEtaSlice(TString const& coutput_main, TString cname_app, TString p
   if (checkPOGID && !hasPOGRefs) MELAerr << "plotEffSFEtaSlice: Attempted to acquire POG historams but failed." << endl;
   if (hasPOGRefs){
     grlist_POG = getEffSF_PtSliceGraphs(hlist_POG);
-    binning_eta_POG = HelperFunctions::getExtendedBinning(hlist_POG.front(), 0);
+    HelperFunctions::getExtendedBinning(hlist_POG.front(), 0, binning_eta_POG);
 
     for (int ibin=0; ibin<(int) binning_eta_POG.getNbins(); ibin++){
       float eta_low = (ibin==-1 ? -99. : binning_eta_POG.getBinLowEdge(ibin));
