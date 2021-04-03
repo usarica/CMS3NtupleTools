@@ -5,6 +5,7 @@ period=$2
 prodVersion=$3
 
 useMETJERCorr=false
+useMETcorrections=true
 declare -i doSim=1
 declare -i doData=1
 declare -i doAllSysts=0 # Do all systematics
@@ -22,10 +23,15 @@ for arg in "$@"; do
     doImpSysts=1
   elif [[ "$arg" == "useMETJERCorr="* ]]; then
     useMETJERCorr=${arg#*=}
+  elif [[ "$arg" == "useMETcorrections="* ]]; then
+    useMETcorrections=${arg#*=}
   fi
 done
 if [[ "${useMETJERCorr}" != "true" ]] && [[ "${useMETJERCorr}" != "false" ]]; then
   echo "useMETJERCorr must be 'true' or 'false'"
+fi
+if [[ "${useMETcorrections}" != "true" ]] && [[ "${useMETcorrections}" != "false" ]]; then
+  echo "useMETcorrections must be 'true' or 'false'"
 fi
 
 script=produceSinglePhotonCR.cc
@@ -42,7 +48,7 @@ arguments="${arguments/<use_MET_XYCorr>/true}"
 arguments="${arguments/<use_MET_JERCorr>/$useMETJERCorr}"
 arguments="${arguments/<use_MET_ParticleMomCorr>/true}"
 arguments="${arguments/<use_MET_p4Preservation>/true}"
-arguments="${arguments/<use_MET_corrections>/true}"
+arguments="${arguments/<use_MET_corrections>/$useMETcorrections}"
 
 declare -a dataPeriods=( $period )
 declare -a DataSampleList=( )

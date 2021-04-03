@@ -329,6 +329,9 @@ void getTrees(
 
   curdir->cd();
 
+  // Skip robust input file checks
+  BaseTree::setRobustInputCheck(false);
+
   // Get handlers
   SimEventHandler simEventHandler;
   GenInfoHandler genInfoHandler;
@@ -355,13 +358,16 @@ void getTrees(
 
   bool isFirstInputFile=true;
   for (auto const& sname:sampledirs){
-    TString coutput = SampleHelpers::getSampleIdentifier(sname);
+    TString sid = SampleHelpers::getSampleIdentifier(sname);
+    MELAout << "Processing input sample " << sid << "..." << endl;
+
+    TString coutput = sid;
     HelperFunctions::replaceString(coutput, "_MINIAODSIM", "");
     HelperFunctions::replaceString(coutput, "_MINIAOD", "");
 
     BaseTree sample_tree(SampleHelpers::getDatasetFileName(sname), "cms3ntuple/Dilepton", "cms3ntuple/Dilepton_Control", "");
-    sample_tree.sampleIdentifier = SampleHelpers::getSampleIdentifier(sname);
-    const int nEntries = sample_tree.getNEvents();
+    sample_tree.sampleIdentifier = sid;
+    MELAout << "\t- Acquired inputs..." << endl;
 
 #define RUNLUMIEVENT_VARIABLE(TYPE, NAME, DEFVAL) TYPE* NAME = nullptr;
     RUNLUMIEVENT_VARIABLES;
@@ -564,6 +570,9 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
     tout_ele->SetAutoSave(0); tout_mu->SetAutoSave(0);
 
     foutput->cd();
+
+    const int nEntries = sample_tree.getNEvents();
+    MELAout << "\t- Number of events: " << nEntries << endl;
 
     int ev_start = 0;
     int ev_end = nEntries;

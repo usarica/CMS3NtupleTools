@@ -140,10 +140,23 @@ for spl in "${DataSampleList[@]}"; do
     let nchunks=1
     REQMEM=2048M
     JOBFLAV=tomorrow
-    if [[ "${dataperiod}" == "2018D" ]] && [[ "${sample}" == *"SingleMuon"* ]]; then
+    if [[ "${dataperiod}" == "2017E" ]] || [[ "${dataperiod}" == "2017F" ]]; then
       REQMEM=4096M
       JOBFLAV=testmatch
-      let nchunks=20
+      let nchunks=1
+    elif [[ "${dataperiod}" == "2018A" ]]; then
+      REQMEM=5120M
+      JOBFLAV=testmatch
+      let nchunks=1
+    elif [[ "${dataperiod}" == "2018D" ]]; then
+      REQMEM=8192M
+      JOBFLAV=testmatch
+      let nchunks=1
+      if [[ "$sample" == "SingleMuon"* ]]; then
+        REQMEM=4096M
+        JOBFLAV=testmatch
+        let nchunks=50
+      fi
     fi
 
     let ichunk=0
@@ -151,20 +164,21 @@ for spl in "${DataSampleList[@]}"; do
       strargs="${arguments}"
       strargs="${strargs/<strSampleSet>/${sample}}"
       strargs="${strargs/<ichunk>/${ichunk}}"
-      if [[ $nchunks -le 1 ]]; then
-        strargs="${strargs/<nchunks>/0}"
-      else
+      if [[ ${nchunks} -gt 1 ]]; then
         strargs="${strargs/<nchunks>/${nchunks}}"
+      else
+        strargs="${strargs/<nchunks>/0}"
       fi
       strargs="${strargs/<theGlobalSyst>/sNominal}"
       strargs="${strargs/<period>/$dataperiod}"
       strargs="${strargs/<vetoExtraNonOverlappingLeptons>/true}"
       strargs="${strargs/<hardProcessFallback>/false}"
 
-      submitCMS3AnalysisProduction.sh script="${script}" function="${function}" arguments="${strargs}" date="${jobdate}"
+      submitCMS3AnalysisProduction.sh script="${script}" function="${function}" arguments="${strargs}" date="${jobdate}" memory="${REQMEM}" job_flavor="${JOBFLAV}"
 
-      let ichunk=${ichunk}+1
+      let ichunk=$ichunk+1
     done
+
   done
 done
 

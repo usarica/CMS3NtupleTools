@@ -27,6 +27,9 @@
 #include "RooFitResult.h"
 #include "RooHist.h"
 #include "RooCurve.h"
+#include "RooWorkspace.h"
+#include "RooCategory.h"
+#include "RooCatType.h"
 #include <PhysicsTools/TagAndProbe/interface/RooCMSShape.h>
 #include <HiggsAnalysis/CombinedLimit/interface/FastTemplateFunc.h>
 #include <HiggsAnalysis/CombinedLimit/interface/RooRealFlooredSumPdf.h>
@@ -185,120 +188,6 @@ void getMCTrees(std::vector< std::pair<TString, std::vector<TString>> >& list, S
   for (auto& pp:list) SampleHelpers::constructSamplesList(pp.first, theGlobalSyst, pp.second);
 }
 
-void getParameterErrors(RooRealVar const& par, double& errLo, double& errHi){
-  double errSym = par.getError();
-  double errAsym[2]={ errSym, errSym };
-  if (par.hasAsymError()){
-    errAsym[0] = std::abs(par.getAsymErrorLo());
-    errAsym[1] = std::abs(par.getAsymErrorHi());
-  }
-
-  errLo = errAsym[0];
-  errHi = errAsym[1];
-}
-
-void getFittedParameters(std::unordered_map< TString, triplet<double> >& res, RooFitResult const* fitResult){
-  RooArgList const& finalFloatPars = fitResult->floatParsFinal();
-  RooArgList const& constPars = fitResult->constPars();
-  TIterator* it = nullptr;
-
-  it = constPars.createIterator();
-  RooAbsArg* var;
-  while ((var = (RooAbsArg*) it->Next())){
-    RooRealVar* rvar = dynamic_cast<RooRealVar*>(var);
-
-    if (rvar){
-      double val = rvar->getVal();
-      double errLo=0, errHi=0;
-      getParameterErrors(*rvar, errLo, errHi);
-      res[rvar->GetName()] = triplet<double>(val, errLo, errHi);
-    }
-  }
-  delete it;
-}
-
-ExtendedBinning getAdaptiveBinning(RooDataSet& dset, RooRealVar& xvar, int nbinsreq=30){
-  std::vector<double> xvals;
-  double xmin=xvar.getMin();
-  double xmax=xvar.getMax();
-  int nEntries = dset.numEntries();
-  double sum_wgts = 0;
-  for (int ev=0; ev<nEntries; ev++){
-    HelperFunctions::progressbar(ev, nEntries);
-
-    RooArgSet const* vset = dset.get(ev);
-    assert(vset!=nullptr);
-
-    RooRealVar* tmp_xvar = (RooRealVar*) vset->find(xvar.GetName());
-    assert(tmp_xvar!=nullptr);
-    double xval = tmp_xvar->getVal();
-    if (xval<=xmin || xval>=xmax) continue;
-
-    xvals.push_back(xval);
-    sum_wgts += dset.weight();
-  }
-  std::sort(xvals.begin(), xvals.end());
-  MELAout << "getAdaptiveBinning: Accumulated " << xvals.size() << " / " << nEntries << " points (sum weights = " << sum_wgts << ")" << endl;
-
-  ExtendedBinning res(xvar.GetName());
-  res.addBinBoundary(xmin);
-  res.addBinBoundary(xmax);
-  int nbins = std::min(nbinsreq, (int) xvals.size()/10+1);
-  unsigned int xstep = std::max(1, (int) xvals.size()/nbins);
-  MELAout << "getAdaptiveBinning: Step size = " << xstep << ", nbins = " << nbins << endl;
-
-  for (unsigned int ix = xstep; ix < xvals.size(); ix += xstep){
-    if (ix+xstep<xvals.size()) res.addBinBoundary((xvals.at(ix) + xvals.at(ix-1))/2.);
-  }
-
-  return res;
-}
-
-void getMeanPtEta(
-  RooDataSet& dset,
-  RooRealVar const& ptvar,
-  double& pt_mean, double& pt_err,
-  RooRealVar const& etavar,
-  double& eta_mean, double& eta_err
-){
-  MELAout << "Begin getMeanPtEta(" << dset.GetName() << ")..." << endl;
-
-  int nEntries = dset.numEntries();
-  double sum_W = 0;
-  double sum_xW[2][2]={ { 0 } };
-  for (int ev=0; ev<nEntries; ev++){
-    HelperFunctions::progressbar(ev, nEntries);
-
-    RooArgSet const* vset = dset.get(ev);
-    assert(vset!=nullptr);
-
-    RooRealVar* tmp_ptvar = (RooRealVar*) vset->find(ptvar.GetName());
-    RooRealVar* tmp_etavar = (RooRealVar*) vset->find(etavar.GetName());
-
-    double pt = tmp_ptvar->getVal();
-    double eta = tmp_etavar->getVal();
-    double wgt = dset.weight();
-
-    sum_W += wgt;
-    sum_xW[0][0] += pt*wgt;
-    sum_xW[0][1] += pt*pt*wgt;
-    sum_xW[1][0] += eta*wgt;
-    sum_xW[1][1] += eta*eta*wgt;
-  }
-
-  sum_xW[0][0] /= sum_W;
-  sum_xW[0][1] /= sum_W;
-  sum_xW[1][0] /= sum_W;
-  sum_xW[1][1] /= sum_W;
-
-  pt_mean = sum_xW[0][0];
-  pt_err = std::sqrt((sum_xW[0][1] - std::pow(sum_xW[0][0], 2)) / sum_W);
-  eta_mean = sum_xW[1][0];
-  eta_err = std::sqrt((sum_xW[1][1] - std::pow(sum_xW[1][0], 2)) / sum_W);
-
-  MELAout << "\t- Mean pT, eta = " << pt_mean << " +- " << pt_err << ", " << eta_mean << " +- " << eta_err << endl;
-}
-
 void adjustPlottableMinMax(TObject* plottable, bool useLogY, double& minY, double& maxY){
   if (!plottable) return;
   RooHist* gr = dynamic_cast<RooHist*>(plottable);
@@ -340,113 +229,6 @@ void adjustPlottableMinMax(TObject* plottable, bool useLogY, double& minY, doubl
     }
   }
 }
-
-void getMCTemplatePDF(
-  TDirectory* indir,
-  RooDataSet& dset,
-  RooRealVar& xvar, RooRealVar& weightvar,
-  std::pair<FastHisto_f*, FastHistoFunc_f*>& hpdf
-){
-  using namespace ExtendedFunctions;
-
-  constexpr double GAUSSIANWIDTHPRECISION = 5;
-
-  TDirectory* curdir = gDirectory;
-
-  int nEntries = dset.numEntries();
-
-  ExtendedBinning xbinning = getAdaptiveBinning(dset, xvar);
-  RooBinning xvarbinning(xbinning.getNbins(), xbinning.getBinning());
-  xvar.setBinning(xvarbinning);
-  TH1F* hdata = new TH1F(Form("%s_%s_raw", dset.GetName(), xvar.GetName()), "", xbinning.getNbins(), xbinning.getBinningVector().data()); hdata->Sumw2();
-  for (int ev=0; ev<nEntries; ev++){
-    HelperFunctions::progressbar(ev, nEntries);
-
-    RooArgSet const* vset = dset.get(ev);
-    assert(vset!=nullptr);
-
-    RooRealVar* tmp_xvar = (RooRealVar*) vset->find(xvar.GetName());
-    assert(tmp_xvar!=nullptr);
-    double xval = tmp_xvar->getVal();
-    double wgt = dset.weight();
-
-    hdata->Fill(xval, wgt);
-  }
-  MELAout << "getMCTemplatePDF: Sum of weights of raw histogram = " << hdata->Integral(1, hdata->GetNbinsX()) << endl;
-
-  std::vector<double> Neffs(xbinning.getNbins(), 0);
-  std::vector<double> sXvals(xbinning.getNbins(), 0);
-  for (int ix=1; ix<=hdata->GetNbinsX(); ix++){
-    double bc = hdata->GetBinContent(ix);
-    double be = hdata->GetBinError(ix);
-    double& Neff = Neffs.at(ix-1);
-    if (be>0.) Neff = std::pow(bc/be, 2);
-    double& sX = sXvals.at(ix-1);
-    sX = xbinning.getBinWidth(ix-1)*(Neff>0. ? 1./std::sqrt(Neff) : 0.);
-  }
-  HelperFunctions::divideBinWidth(hdata);
-  indir->cd(); indir->WriteTObject(hdata); curdir->cd();
-  hdata->Reset("ICESM"); hdata->SetName(Form("%s_%s_smooth", dset.GetName(), xvar.GetName()));
-  for (unsigned int ix=0; ix<xbinning.getNbins(); ix++){
-    MELAout << "\t- Neff[" << xbinning.getBinLowEdge(ix) << ", " << xbinning.getBinHighEdge(ix) << "] = " << Neffs.at(ix) << " (sX = " << sXvals.at(ix) << ")" << endl;
-  }
-
-  {
-    SimpleGaussian gausX(0, 1, SimpleGaussian::kHasLowHighRange, xbinning.getBinningVector().front(), xbinning.getBinningVector().back());
-    MELAout << "getMCTemplatePDF: Looping over the MC data set with " << nEntries << " entries..." << endl;
-    for (int ev=0; ev<nEntries; ev++){
-      HelperFunctions::progressbar(ev, nEntries);
-
-      RooArgSet const* vset = dset.get(ev);
-      assert(vset!=nullptr);
-
-      RooRealVar* tmp_xvar = (RooRealVar*) vset->find(xvar.GetName());
-      assert(tmp_xvar!=nullptr);
-      double xval = tmp_xvar->getVal();
-
-      //RooRealVar* tmp_wgtvar = (RooRealVar*) vset->find(weightvar.GetName());
-      //assert(tmp_wgtvar!=nullptr);
-      //double wgt = tmp_wgtvar->getVal();
-      double wgt = dset.weight();
-
-      int ix = xbinning.getBin(xval);
-      if (ix<0 || ix>=(int) xbinning.getNbins()) continue;
-      double sX = sXvals.at(ix);
-      if (std::min(std::abs(xval-xbinning.getBinLowEdge(ix)), std::abs(xval-xbinning.getBinHighEdge(ix)))>=sX*GAUSSIANWIDTHPRECISION) sX=0.;
-
-      gausX.setMean(xval);
-      gausX.setSigma(sX);
-      for (int jx=0; jx<(int) xbinning.getNbins(); jx++){
-        if (sX==0. && jx!=ix) continue;
-
-        double const xlow = xbinning.getBinLowEdge(jx);
-        double const xhigh = xbinning.getBinHighEdge(jx);
-        double const xmid = (xlow + xhigh)/2.;
-
-        double const fX = gausX.integralNorm(xlow, xhigh);
-        assert(fX<=1. && fX>=0.);
-        double const fillwgt = wgt*fX;
-
-        if (ix == jx && (fX==0. || (sX==0. && fX!=1.))){
-          double const& Neff = Neffs.at(ix);
-          MELAerr << "Fill weight==0! Neff = " << Neff << ", sX = " << sX << ", xval = " << xval << ", xmid = " << xmid << ", gint = " << gausX.integral(xlow, xhigh) << ", gnorm = " << gausX.norm() << endl;
-        }
-
-        hdata->Fill(xmid, fillwgt);
-      }
-    }
-  }
-  MELAout << "getMCTemplatePDF: Sum of weights of smoothened histogram = " << hdata->Integral(1, hdata->GetNbinsX()) << endl;
-  HelperFunctions::divideBinWidth(hdata);
-
-  RooArgList obslist(xvar);
-  hpdf.first = new FastHisto_f(*hdata, false);
-  hpdf.second = new FastHistoFunc_f("histfcn_mct", "", obslist, *(hpdf.first));
-
-  indir->cd(); indir->WriteTObject(hdata); curdir->cd();
-  delete hdata;
-}
-
 void plotFit(
   TString const& coutput_main, TString const& strappend,
   TDirectory* outdir,
@@ -467,9 +249,16 @@ void plotFit(
   // Plot the fitted distribution
   RooPlot fit_plot(*xvar, xvar->getMin(), xvar->getMax(), xvar->getBins());
   fit_data->plotOn(&fit_plot, LineColor(kBlack), MarkerColor(kBlack), MarkerStyle(30), LineWidth(2), Name("Data"), XErrorSize(0), Binning(xvar->getBinning())/*, Rescale(rescale_factor)*/);
-  pdf->plotOn(&fit_plot, LineColor(kRed), LineWidth(2), Name("FitPdf"), Range("FitRange"), NormRange(normRange)/*, Normalization(rescale_factor, RooAbsPdf::Relative)*/);
-  if (pdf_sig) pdf->plotOn(&fit_plot, LineColor(kViolet), LineWidth(2), LineStyle(kDashed), Components(*pdf_sig), Name("SigPdf"), Range("FitRange"), NormRange(normRange)/*, Normalization(rescale_factor, RooAbsPdf::Relative)*/);
-  if (pdf_bkg) pdf->plotOn(&fit_plot, LineColor(kBlue), LineWidth(2), LineStyle(kDashed), Components(*pdf_bkg), Name("BkgPdf"), Range("FitRange"), NormRange(normRange)/*, Normalization(rescale_factor, RooAbsPdf::Relative)*/);
+  if (normRange){
+    pdf->plotOn(&fit_plot, LineColor(kRed), LineWidth(2), Name("FitPdf"), Range("FitRange"), NormRange(normRange)/*, Normalization(rescale_factor, RooAbsPdf::Relative)*/);
+    if (pdf_sig) pdf->plotOn(&fit_plot, LineColor(kViolet), LineWidth(2), LineStyle(kDashed), Components(*pdf_sig), Name("SigPdf"), Range("FitRange"), NormRange(normRange)/*, Normalization(rescale_factor, RooAbsPdf::Relative)*/);
+    if (pdf_bkg) pdf->plotOn(&fit_plot, LineColor(kBlue), LineWidth(2), LineStyle(kDashed), Components(*pdf_bkg), Name("BkgPdf"), Range("FitRange"), NormRange(normRange)/*, Normalization(rescale_factor, RooAbsPdf::Relative)*/);
+  }
+  else{
+    pdf->plotOn(&fit_plot, LineColor(kRed), LineWidth(2), Name("FitPdf"), Range("FitRange")/*, Normalization(rescale_factor, RooAbsPdf::Relative)*/);
+    if (pdf_sig) pdf->plotOn(&fit_plot, LineColor(kViolet), LineWidth(2), LineStyle(kDashed), Components(*pdf_sig), Name("SigPdf"), Range("FitRange")/*, Normalization(rescale_factor, RooAbsPdf::Relative)*/);
+    if (pdf_bkg) pdf->plotOn(&fit_plot, LineColor(kBlue), LineWidth(2), LineStyle(kDashed), Components(*pdf_bkg), Name("BkgPdf"), Range("FitRange")/*, Normalization(rescale_factor, RooAbsPdf::Relative)*/);
+  }
 
   fit_plot.SetTitle("");
   fit_plot.SetXTitle(xvar->GetTitle());
@@ -576,6 +365,296 @@ void plotFit(
   can.Close();
 
   curdir->cd();
+}
+
+void getParameterErrors(RooRealVar const& par, double& errLo, double& errHi){
+  double errSym = par.getError();
+  double errAsym[2]={ errSym, errSym };
+  if (par.hasAsymError()){
+    errAsym[0] = std::abs(par.getAsymErrorLo()); // This value is negative.
+    errAsym[1] = std::abs(par.getAsymErrorHi());
+  }
+  errLo = errAsym[0];
+  errHi = errAsym[1];
+}
+
+void getFittedParameters(std::unordered_map< TString, triplet<double> >& res, RooFitResult const* fitResult){
+  RooArgList const& finalFloatPars = fitResult->floatParsFinal();
+  RooArgList const& constPars = fitResult->constPars();
+  TIterator* it = nullptr;
+
+  it = finalFloatPars.createIterator();
+  RooAbsArg* var;
+  while ((var = (RooAbsArg*) it->Next())){
+    RooRealVar* rvar = dynamic_cast<RooRealVar*>(var);
+    if (rvar){
+      double val = rvar->getVal();
+      double errLo=0, errHi=0;
+      getParameterErrors(*rvar, errLo, errHi);
+      res[rvar->GetName()] = triplet<double>(val, errLo, errHi);
+    }
+  }
+  delete it;
+
+  it = constPars.createIterator();
+  while ((var = (RooAbsArg*) it->Next())){
+    RooRealVar* rvar = dynamic_cast<RooRealVar*>(var);
+    if (rvar){
+      double val = rvar->getVal();
+      double errLo=0, errHi=0;
+      res[rvar->GetName()] = triplet<double>(val, errLo, errHi);
+    }
+  }
+  delete it;
+}
+
+void plotFitFromHCombResult(
+  TString const& coutput_main, TString const& strappend,
+  TString const& strxvar, // xvar should exist in the ws
+  RooWorkspace* ws,
+  RooFitResult* fit_result
+){
+  RooRealVar* xvar = ws->var(strxvar);
+  if (!xvar){
+    MELAerr << "plotFitFromHCombResult: " << strxvar << " does not exist in the workspace!" << endl;
+    return;
+  }
+
+  RooCategory* cat = (RooCategory*) ws->factory("CMS_channel");
+  RooDataSet* dset = (RooDataSet*) ws->data("data_obs");
+
+  // First get the set of categories
+  std::vector<TString> strcats;
+  if (cat){
+    strcats.reserve(cat->numTypes());
+    TIterator* it = cat->typeIterator();
+    RooCatType const* catType = nullptr;
+    while ((catType = dynamic_cast<RooCatType const*>(it->Next()))) strcats.push_back(catType->GetName());
+    delete it;
+  }
+  else{
+    MELAerr << "plotFitFromHCombResult: Plotting from individual channels is not implemented." << endl;
+    return;
+  }
+
+  std::unordered_map< TString, triplet<double> > fitpars;
+  std::unordered_map< TString, double > initialpars;
+  getFittedParameters(fitpars, fit_result);
+  for (auto const& pp:fitpars){
+    RooRealVar* var = (RooRealVar*) ws->var(pp.first);
+    initialpars[pp.first] = var->getVal();
+    var->setVal(pp.second[0]);
+  }
+
+  for (auto const& strcat:strcats){
+    TString pdfname = Form("pdf_bin%s", strcat.Data());
+    RooAbsPdf* pdf = (RooAbsPdf*) ws->pdf(pdfname);
+    RooDataSet* dset_cat = (RooDataSet*) dset->reduce(Form("CMS_channel==CMS_channel::%s", strcat.Data()));
+    dset_cat->SetName(Form("dset_%s", strcat.Data()));
+    plotFit(
+      coutput_main, strappend, 
+      nullptr,
+      !strcat.Contains("MC"),
+      xvar, pdf, nullptr, nullptr,
+      dset_cat, nullptr
+    );
+    delete dset_cat;
+  }
+
+  for (auto const& pp:initialpars){
+    RooRealVar* var = (RooRealVar*) ws->var(pp.first);
+    var->setVal(pp.second);
+  }
+}
+
+
+
+ExtendedBinning getAdaptiveBinning(RooDataSet& dset, RooRealVar& xvar, int nbinsreq=30){
+  std::vector<double> xvals;
+  double xmin=xvar.getMin();
+  double xmax=xvar.getMax();
+  int nEntries = dset.numEntries();
+  double sum_wgts = 0;
+  for (int ev=0; ev<nEntries; ev++){
+    HelperFunctions::progressbar(ev, nEntries);
+
+    RooArgSet const* vset = dset.get(ev);
+    assert(vset!=nullptr);
+
+    RooRealVar* tmp_xvar = (RooRealVar*) vset->find(xvar.GetName());
+    assert(tmp_xvar!=nullptr);
+    double xval = tmp_xvar->getVal();
+    if (xval<=xmin || xval>=xmax) continue;
+
+    xvals.push_back(xval);
+    sum_wgts += dset.weight();
+  }
+  std::sort(xvals.begin(), xvals.end());
+  MELAout << "getAdaptiveBinning: Accumulated " << xvals.size() << " / " << nEntries << " points (sum weights = " << sum_wgts << ")" << endl;
+
+  ExtendedBinning res(xvar.GetName());
+  res.addBinBoundary(xmin);
+  res.addBinBoundary(xmax);
+  int nbins = std::min(nbinsreq, (int) xvals.size()/10+1);
+  unsigned int xstep = std::max(1, (int) xvals.size()/nbins);
+  MELAout << "getAdaptiveBinning: Step size = " << xstep << ", nbins = " << nbins << endl;
+
+  for (unsigned int ix = xstep; ix < xvals.size(); ix += xstep){
+    if (ix+xstep<xvals.size()) res.addBinBoundary((xvals.at(ix) + xvals.at(ix-1))/2.);
+  }
+
+  return res;
+}
+
+void getMeanPtEta(
+  RooDataSet& dset,
+  RooRealVar const& ptvar,
+  double& pt_mean, double& pt_err,
+  RooRealVar const& etavar,
+  double& eta_mean, double& eta_err
+){
+  MELAout << "Begin getMeanPtEta(" << dset.GetName() << ")..." << endl;
+
+  int nEntries = dset.numEntries();
+  double sum_W = 0;
+  double sum_xW[2][2]={ { 0 } };
+  for (int ev=0; ev<nEntries; ev++){
+    HelperFunctions::progressbar(ev, nEntries);
+
+    RooArgSet const* vset = dset.get(ev);
+    assert(vset!=nullptr);
+
+    RooRealVar* tmp_ptvar = (RooRealVar*) vset->find(ptvar.GetName());
+    RooRealVar* tmp_etavar = (RooRealVar*) vset->find(etavar.GetName());
+
+    double pt = tmp_ptvar->getVal();
+    double eta = tmp_etavar->getVal();
+    double wgt = dset.weight();
+
+    sum_W += wgt;
+    sum_xW[0][0] += pt*wgt;
+    sum_xW[0][1] += pt*pt*wgt;
+    sum_xW[1][0] += eta*wgt;
+    sum_xW[1][1] += eta*eta*wgt;
+  }
+
+  sum_xW[0][0] /= sum_W;
+  sum_xW[0][1] /= sum_W;
+  sum_xW[1][0] /= sum_W;
+  sum_xW[1][1] /= sum_W;
+
+  pt_mean = sum_xW[0][0];
+  pt_err = std::sqrt((sum_xW[0][1] - std::pow(sum_xW[0][0], 2)) / sum_W);
+  eta_mean = sum_xW[1][0];
+  eta_err = std::sqrt((sum_xW[1][1] - std::pow(sum_xW[1][0], 2)) / sum_W);
+
+  MELAout << "\t- Mean pT, eta = " << pt_mean << " +- " << pt_err << ", " << eta_mean << " +- " << eta_err << endl;
+}
+
+void getMCTemplatePDF(
+  TDirectory* indir,
+  RooDataSet& dset,
+  RooRealVar& xvar, RooRealVar& weightvar,
+  std::pair<FastHisto_f*, FastHistoFunc_f*>& hpdf
+){
+  using namespace ExtendedFunctions;
+
+  constexpr double GAUSSIANWIDTHPRECISION = 5;
+
+  TDirectory* curdir = gDirectory;
+
+  int nEntries = dset.numEntries();
+
+  ExtendedBinning xbinning = getAdaptiveBinning(dset, xvar);
+  RooBinning xvarbinning(xbinning.getNbins(), xbinning.getBinning());
+  xvar.setBinning(xvarbinning);
+  TH1F* hdata = new TH1F(Form("%s_%s_raw", dset.GetName(), xvar.GetName()), "", xbinning.getNbins(), xbinning.getBinningVector().data()); hdata->Sumw2();
+  for (int ev=0; ev<nEntries; ev++){
+    HelperFunctions::progressbar(ev, nEntries);
+
+    RooArgSet const* vset = dset.get(ev);
+    assert(vset!=nullptr);
+
+    RooRealVar* tmp_xvar = (RooRealVar*) vset->find(xvar.GetName());
+    assert(tmp_xvar!=nullptr);
+    double xval = tmp_xvar->getVal();
+    double wgt = dset.weight();
+
+    hdata->Fill(xval, wgt);
+  }
+  MELAout << "getMCTemplatePDF: Sum of weights of raw histogram = " << hdata->Integral(1, hdata->GetNbinsX()) << endl;
+
+  std::vector<double> Neffs(xbinning.getNbins(), 0);
+  std::vector<double> sXvals(xbinning.getNbins(), 0);
+  for (int ix=1; ix<=hdata->GetNbinsX(); ix++){
+    double bc = hdata->GetBinContent(ix);
+    double be = hdata->GetBinError(ix);
+    double& Neff = Neffs.at(ix-1);
+    if (be>0.) Neff = std::pow(bc/be, 2);
+    double& sX = sXvals.at(ix-1);
+    sX = xbinning.getBinWidth(ix-1)*(Neff>0. ? 1./std::sqrt(Neff) : 0.);
+  }
+  HelperFunctions::divideBinWidth(hdata);
+  indir->cd(); indir->WriteTObject(hdata); curdir->cd();
+  hdata->Reset("ICESM"); hdata->SetName(Form("%s_%s_smooth", dset.GetName(), xvar.GetName()));
+  for (unsigned int ix=0; ix<xbinning.getNbins(); ix++){
+    MELAout << "\t- Neff[" << xbinning.getBinLowEdge(ix) << ", " << xbinning.getBinHighEdge(ix) << "] = " << Neffs.at(ix) << " (sX = " << sXvals.at(ix) << ")" << endl;
+  }
+
+  {
+    SimpleGaussian gausX(0, 1, SimpleGaussian::kHasLowHighRange, xbinning.getBinningVector().front(), xbinning.getBinningVector().back());
+    MELAout << "getMCTemplatePDF: Looping over the MC data set with " << nEntries << " entries..." << endl;
+    for (int ev=0; ev<nEntries; ev++){
+      HelperFunctions::progressbar(ev, nEntries);
+
+      RooArgSet const* vset = dset.get(ev);
+      assert(vset!=nullptr);
+
+      RooRealVar* tmp_xvar = (RooRealVar*) vset->find(xvar.GetName());
+      assert(tmp_xvar!=nullptr);
+      double xval = tmp_xvar->getVal();
+
+      //RooRealVar* tmp_wgtvar = (RooRealVar*) vset->find(weightvar.GetName());
+      //assert(tmp_wgtvar!=nullptr);
+      //double wgt = tmp_wgtvar->getVal();
+      double wgt = dset.weight();
+
+      int ix = xbinning.getBin(xval);
+      if (ix<0 || ix>=(int) xbinning.getNbins()) continue;
+      double sX = sXvals.at(ix);
+      if (std::min(std::abs(xval-xbinning.getBinLowEdge(ix)), std::abs(xval-xbinning.getBinHighEdge(ix)))>=sX*GAUSSIANWIDTHPRECISION) sX=0.;
+
+      gausX.setMean(xval);
+      gausX.setSigma(sX);
+      for (int jx=0; jx<(int) xbinning.getNbins(); jx++){
+        if (sX==0. && jx!=ix) continue;
+
+        double const xlow = xbinning.getBinLowEdge(jx);
+        double const xhigh = xbinning.getBinHighEdge(jx);
+        double const xmid = (xlow + xhigh)/2.;
+
+        double const fX = gausX.integralNorm(xlow, xhigh);
+        assert(fX<=1. && fX>=0.);
+        double const fillwgt = wgt*fX;
+
+        if (ix == jx && (fX==0. || (sX==0. && fX!=1.))){
+          double const& Neff = Neffs.at(ix);
+          MELAerr << "Fill weight==0! Neff = " << Neff << ", sX = " << sX << ", xval = " << xval << ", xmid = " << xmid << ", gint = " << gausX.integral(xlow, xhigh) << ", gnorm = " << gausX.norm() << endl;
+        }
+
+        hdata->Fill(xmid, fillwgt);
+      }
+    }
+  }
+  MELAout << "getMCTemplatePDF: Sum of weights of smoothened histogram = " << hdata->Integral(1, hdata->GetNbinsX()) << endl;
+  HelperFunctions::divideBinWidth(hdata);
+
+  RooArgList obslist(xvar);
+  hpdf.first = new FastHisto_f(*hdata, false);
+  hpdf.second = new FastHistoFunc_f("histfcn_mct", "", obslist, *(hpdf.first));
+
+  indir->cd(); indir->WriteTObject(hdata); curdir->cd();
+  delete hdata;
 }
 
 void fitMCDataset(
@@ -1256,6 +1335,902 @@ void getPtEtaBinning(
   }
 }
 
+void createWSandDCs(
+  TString period, TString prodVersion, TString ntupleVersion, TString strdate,
+  bool is_ee, int eeGapCode, int resPdgId,
+  TString systOptions,
+  float minPt_tag, float fit_low, float fit_high,
+  // Options that one should normally not have to change:
+  // Jet ID options
+  bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false,
+  // MET options
+  bool use_MET_XYCorr=true, bool use_MET_JERCorr=false, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true
+){
+  constexpr bool useJetOverlapStripping = false;
+
+  const double mll_inf = PDGHelpers::Zmass - 42.;
+  const double mll_sup = PDGHelpers::Zmass + 42.;
+  if (fit_low<mll_inf+5. || fit_high>mll_sup-5. || minPt_tag<25.f) return;
+  if (is_ee && resPdgId!=23) return;
+  if (!is_ee && !(resPdgId==23 || resPdgId==443)) return;
+
+  bool useALTSig = systOptions.Contains("ALTSig");
+  bool useALTBkg2 = systOptions.Contains("ALTBkg2");
+  bool useALTBkg = systOptions.Contains("ALTBkg") && !useALTBkg2;
+  bool useTightTag = systOptions.Contains("TightTag");
+  bool useMC_2l2nu = systOptions.Contains("MC_2l2nu");
+  bool useMC_4l = systOptions.Contains("MC_4l");
+  SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
+  if (systOptions.Contains("PUDn")) theGlobalSyst = SystematicsHelpers::ePUDn;
+  else if (systOptions.Contains("PUUp")) theGlobalSyst = SystematicsHelpers::ePUUp;
+  bool doFits = (!useMC_2l2nu && !useMC_4l && theGlobalSyst==SystematicsHelpers::sNominal);
+  if (1*useALTSig + 1*useALTBkg + 1*useALTBkg2>1) return; // Exclude tight tag here
+
+  gStyle->SetOptStat(0);
+
+  if (strdate=="") strdate = HelperFunctions::todaysdate();
+
+  SampleHelpers::configure(period, "store_skims:"+prodVersion);
+
+  constexpr float minDR_l1l2 = 0.4;
+
+  // Set flags for ak4jet tight id
+  AK4JetSelectionHelpers::setPUIdWP(applyPUIdToAK4Jets ? AK4JetSelectionHelpers::kTightPUJetId : AK4JetSelectionHelpers::nSelectionBits); // Default is 'tight'
+  AK4JetSelectionHelpers::setApplyTightLeptonVetoIdToJets(applyTightLeptonVetoIdToAK4Jets); // Default is 'false'
+
+  std::vector<TString> strIdIsoTypes{
+    "failId",
+    "passId_failLooseIso",
+    "passId_failTightIso",
+    "passId_passTightIso"
+  };
+
+  TString cinput_main =
+    "output/LeptonEfficiencies/SkimTrees/" + ntupleVersion
+    + "/AK4Jets"
+    + "_" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
+    + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
+    + "_" + (useJetOverlapStripping ? "ParticleStripped" : "ParticleCleaned")
+    + "/MET_" + (use_MET_XYCorr ? "WithXY" : "NoXY")
+    + "_" + (use_MET_ParticleMomCorr ? "WithPartMomCorr" : "NoPartMomCorr")
+    + "_" + (use_MET_p4Preservation ? "P4Preserved" : "P4Default");
+  if (!SampleHelpers::checkFileOnWorker(cinput_main)){
+    MELAerr << "Directory " << cinput_main << " does no exist." << endl;
+    return;
+  }
+  TString cinput_main_MC =
+    "output/LeptonEfficiencies/SkimTrees/" + ntupleVersion
+    + "/AK4Jets"
+    + "_" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
+    + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
+    + "_" + (useJetOverlapStripping ? "ParticleStripped" : "ParticleCleaned")
+    + "/MET_" + (use_MET_XYCorr ? "WithXY" : "NoXY")
+    + "_" + (use_MET_JERCorr ? "WithJER" : "NoJER")
+    + "_" + (use_MET_ParticleMomCorr ? "WithPartMomCorr" : "NoPartMomCorr")
+    + "_" + (use_MET_p4Preservation ? "P4Preserved" : "P4Default")
+    + "_" + (use_MET_corrections ? "ResolutionCorrected" : "ResolutionUncorrected")
+    + Form("/%i", SampleHelpers::theDataYear);
+  if (!SampleHelpers::checkFileOnWorker(cinput_main_MC)){
+    MELAerr << "Directory " << cinput_main_MC << " does no exist." << endl;
+    return;
+  }
+  TString const coutput_main = "output/LeptonEfficiencies/WSandDCs/" + strdate + "/" + period;
+
+  auto const validDataPeriods = SampleHelpers::getValidDataPeriods();
+  size_t const nValidDataPeriods = validDataPeriods.size();
+
+  TDirectory* curdir = gDirectory;
+
+  std::vector<TString> samples_data;
+  std::vector< std::pair<TString, std::vector<TString>> > samples_MC;
+  getDataTrees(samples_data, is_ee, SystematicsHelpers::sNominal);
+  if (doFits || theGlobalSyst == SystematicsHelpers::ePUUp || theGlobalSyst == SystematicsHelpers::ePUDn) getMCTrees(samples_MC, theGlobalSyst, "DY");
+  else if (useMC_2l2nu) getMCTrees(samples_MC, SystematicsHelpers::sNominal, "2l2nu");
+  else if (useMC_4l) getMCTrees(samples_MC, SystematicsHelpers::sNominal, "4l");
+  else{
+    MELAerr << "Cannot determine fit option from the systematics specification " << systOptions << endl;
+    return;
+  }
+
+  ExtendedBinning binning_pt;
+  ExtendedBinning binning_eta;
+  getPtEtaBinning(
+    is_ee,
+    eeGapCode,
+    resPdgId,
+    binning_pt, binning_eta
+  );
+  unsigned int const nbins_pt = binning_pt.getNbins();
+  unsigned int const nbins_eta = binning_eta.getNbins();
+
+  gSystem->mkdir(coutput_main, true);
+
+  curdir->cd();
+
+#define BRANCH_COMMAND(type, name) type name = 0;
+  BRANCHES_COMMON;
+#undef BRANCH_COMMAND
+#define BRANCH_COMMAND(type, name) std::vector<type>* name = nullptr;
+  BRANCHES_VECTORIZED;
+  BRANCHES_DIELECTRONS;
+  BRANCHES_DIMUONS;
+#undef BRANCH_COMMAND
+
+  TString const strSigModel = "CorrRelBWxDCB";
+  TString strBkgModel = "RooCMSShape";
+  if (useALTBkg) strBkgModel = "Exponential";
+  if (useALTBkg2) strBkgModel = "Chebyshev";
+  TString strFitModel = strSigModel + "_" + strBkgModel;
+
+  TString strMCModel = "MC_DY";
+  if (useMC_2l2nu) strMCModel = "MC_2l2nu";
+  if (useMC_4l) strMCModel = "MC_4l";
+
+  TString strSystName = strFitModel + "_" + strMCModel + "_" + SystematicsHelpers::getSystName(theGlobalSyst).data();
+  if (useTightTag) strSystName += "_TightTag";
+
+  TString strFinalState = (is_ee ? "ee" : "mumu");
+  if (is_ee){
+    if (eeGapCode<0) strFinalState += "_nongap_gap";
+    else if (eeGapCode==0) strFinalState += "_nongap";
+    else strFinalState += "_gap";
+  }
+
+  TString const strnameapp = Form(
+    "%s_%s_minPtTag_%s_mll_%s_%s",
+    strFinalState.Data(),
+    strSystName.Data(),
+    convertFloatToTitleString(minPt_tag).Data(),
+    convertFloatToTitleString(fit_low).Data(), convertFloatToTitleString(fit_high).Data()
+  );
+
+  TString stroutput_counts = Form("%s/Counts_%s%s", coutput_main.Data(), strnameapp.Data(), ".root");
+  TFile* foutput_counts = TFile::Open(stroutput_counts, "recreate");
+  curdir->cd();
+
+  std::vector<TChain*> tinlist;
+  std::unordered_map<TChain*, double> norm_map;
+
+  if (doFits){
+    tinlist.push_back(new TChain((is_ee ? "Dielectrons" : "Dimuons")));
+    norm_map[tinlist.back()] = 1;
+    for (auto const& sname:samples_data){
+      for (auto const& pp:validDataPeriods){
+        if (SampleHelpers::theDataPeriod != Form("%i", SampleHelpers::theDataYear) && SampleHelpers::theDataPeriod != pp) continue;
+
+        TString cinput = SampleHelpers::getSampleIdentifier(sname);
+        HelperFunctions::replaceString(cinput, "_MINIAODSIM", "");
+        HelperFunctions::replaceString(cinput, "_MINIAOD", "");
+
+        TString strinput = Form("%s/%s/%s", cinput_main.Data(), pp.Data(), cinput.Data());
+        strinput += Form("*_%s", SystematicsHelpers::getSystName(theGlobalSyst).data());
+        strinput += ".root";
+        MELAout << "Adding " << strinput << " to the data tree chain..." << endl;
+
+        tinlist.back()->Add(strinput);
+      }
+    }
+    MELAout << "Data tree has a total of " << tinlist.back()->GetEntries() << " entries..." << endl;
+    curdir->cd();
+  }
+  unsigned int itree_MC_offset = tinlist.size();
+
+  {
+    double sum_MC_wgts = 0;
+    for (auto const& spair:samples_MC){
+      tinlist.push_back(new TChain((is_ee ? "Dielectrons" : "Dimuons")));
+      auto& tin = tinlist.back();
+      norm_map[tin] = 0;
+
+      for (auto const& sname:spair.second){
+        TString cinput = SampleHelpers::getSampleIdentifier(sname);
+        HelperFunctions::replaceString(cinput, "_MINIAODSIM", "");
+        HelperFunctions::replaceString(cinput, "_MINIAOD", "");
+
+        TString strinput = Form("%s/%s", cinput_main_MC.Data(), cinput.Data());
+        strinput += Form("*_%s", SystematicsHelpers::getSystName(theGlobalSyst).data());
+        strinput += ".root";
+        MELAout << "Adding " << strinput << " to the MC tree chain..." << endl;
+
+        tin->Add(strinput);
+
+        double sum_wgts = 0;
+        {
+          bool hasCounters = true;
+          int bin_syst = 1 + 1*(theGlobalSyst==SystematicsHelpers::ePUDn) + 2*(theGlobalSyst==SystematicsHelpers::ePUUp);
+          int bin_period = 1;
+          for (unsigned int iperiod=0; iperiod<nValidDataPeriods; iperiod++){
+            if (validDataPeriods.at(iperiod)==SampleHelpers::theDataPeriod){ bin_period += iperiod+1; break; }
+          }
+          MELAout << "Checking counters histogram bin (" << bin_syst << ", " << bin_period << ") to obtain the sum of weights if the counters histogram exists..." << endl;
+
+          std::vector<TString> inputfilenames = SampleHelpers::getDatasetFileNames(sname);
+          for (auto const& fname:inputfilenames){
+            TFile* ftmp = TFile::Open(fname, "read");
+            TH2D* hCounters = (TH2D*) ftmp->Get("cms3ntuple/Counters");
+            if (!hCounters){
+              hasCounters = false;
+              sum_wgts = 0;
+              break;
+            }
+            sum_wgts += hCounters->GetBinContent(bin_syst, bin_period);
+            ftmp->Close();
+          }
+
+          if (hasCounters) MELAout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
+          else{
+            MELAerr << "This script is designed to use skim ntuples. Aborting..." << endl;
+            assert(0);
+          }
+        }
+        norm_map[tin] += sum_wgts;
+        sum_MC_wgts += sum_wgts;
+      }
+
+      MELAout << "MC tree " << tinlist.size()-1 << " has a total of " << tinlist.back()->GetEntries() << " entries and a sum of all weights of " << norm_map[tin] << "..." << endl;
+    }
+    const double lumi_period = SampleHelpers::getIntegratedLuminosity(SampleHelpers::theDataPeriod);
+    const double lumi_total = SampleHelpers::getIntegratedLuminosity(Form("%i", SampleHelpers::theDataYear));
+    const double lumi_norm = lumi_period/lumi_total;
+    for (unsigned int it=itree_MC_offset; it<tinlist.size(); it++){
+      auto const& tin = tinlist.at(it);
+      norm_map[tin] = norm_map[tin] / sum_MC_wgts * lumi_norm;
+      MELAout << "Normalization factor for MC tree " << it << ": " << norm_map[tin] << endl;
+    }
+  }
+  curdir->cd();
+
+  for (auto const& tin:tinlist){
+    tin->SetBranchStatus("*", 0);
+#define BRANCH_COMMAND(type, name) tin->SetBranchStatus(#name, 1); tin->SetBranchAddress(#name, &name);
+    BRANCHES_COMMON;
+    BRANCHES_VECTORIZED;
+    if (is_ee){
+      BRANCHES_DIELECTRONS;
+    }
+    else{
+      BRANCHES_DIMUONS;
+    }
+#undef BRANCH_COMMAND
+  }
+
+  // Construct the data set
+  RooRealVar xvar("mll", "m_{ll} (GeV)", 91.2, fit_low, fit_high); xvar.setBins((xvar.getMax() - xvar.getMin())/0.4);
+  xvar.setRange("FitRange", fit_low, fit_high);
+  xvar.setRange("PeakMCRange", 80, 100);
+  xvar.setRange("LowMCTail", fit_low, 75);
+  xvar.setRange("HighMCTail", 105, fit_high);
+  xvar.setRange("PeakObsRange", 80, 100);
+  xvar.setRange("LowObsTail", fit_low, 75);
+  xvar.setRange("HighObsTail", 105, fit_high);
+  RooRealVar var_n_vtxs_good("var_n_vtxs_good", "N_{vtx}", 50, 0, 100); var_n_vtxs_good.removeMax();
+  RooRealVar var_mTcorr("mTcorr", "m_{T}^{l,tag} (GeV)", 50, 0, 200); var_n_vtxs_good.removeMax();
+  RooRealVar var_pt_tag("pt_tag", "p_{T}^{tag} (GeV)", 50, 0, 13000);
+  RooRealVar var_eta_tag("eta_tag", "#eta_{tag}", 0, -5, 5); var_eta_tag.removeMin(); var_eta_tag.removeMax();
+  RooRealVar var_pt_probe("pt_probe", "p_{T}^{probe} (GeV)", 50, 0, 13000);
+  RooRealVar var_eta_probe("eta_probe", "#eta_{probe}", 0, -5, 5); var_eta_probe.removeMin(); var_eta_probe.removeMax();
+  RooRealVar wgtvar("weight", "", 1, -10, 10); wgtvar.removeMin(); wgtvar.removeMax();
+  RooArgSet treevars(xvar, var_n_vtxs_good, var_mTcorr, var_pt_tag, var_eta_tag, var_pt_probe, var_eta_probe, wgtvar);
+
+  foutput_counts->cd();
+  std::vector<TH2D> hevts_MC_list; hevts_MC_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> hevts_data_list; hevts_data_list.reserve(strIdIsoTypes.size());
+  for (TString const& strIdIsoType:strIdIsoTypes){
+    hevts_MC_list.emplace_back(Form("evts_MC_%s", strIdIsoType.Data()), "", binning_pt.getNbins(), binning_pt.getBinning(), binning_eta.getNbins(), binning_eta.getBinning());
+    hevts_MC_list.back().Sumw2();
+    if (doFits){
+      hevts_data_list.emplace_back(Form("evts_data_%s", strIdIsoType.Data()), "", binning_pt.getNbins(), binning_pt.getBinning(), binning_eta.getNbins(), binning_eta.getBinning());
+      hevts_data_list.back().Sumw2();
+    }
+  }
+  curdir->cd();
+
+  std::vector<RooDataSet*> fit_data_all_list; fit_data_all_list.reserve(4);
+  std::vector<RooDataSet*> fit_MC_all_list; fit_MC_all_list.reserve(4);
+
+  RooDataSet fit_data_all_failId(Form("fit_data_%s_failId", strnameapp.Data()), "", treevars, WeightVar(wgtvar)); fit_data_all_list.push_back(&fit_data_all_failId);
+  RooDataSet fit_data_all_passId_failLooseIso(Form("fit_data_%s_passId_failLooseIso", strnameapp.Data()), "", treevars, WeightVar(wgtvar)); fit_data_all_list.push_back(&fit_data_all_passId_failLooseIso);
+  RooDataSet fit_data_all_passId_failTightIso(Form("fit_data_%s_passId_failTightIso", strnameapp.Data()), "", treevars, WeightVar(wgtvar)); fit_data_all_list.push_back(&fit_data_all_passId_failTightIso);
+  RooDataSet fit_data_all_passId_passTightIso(Form("fit_data_%s_passId_passTightIso", strnameapp.Data()), "", treevars, WeightVar(wgtvar)); fit_data_all_list.push_back(&fit_data_all_passId_passTightIso);
+
+  RooDataSet fit_MC_all_failId(Form("fit_MC_%s_failId", strnameapp.Data()), "", treevars, WeightVar(wgtvar)); fit_MC_all_list.push_back(&fit_MC_all_failId);
+  RooDataSet fit_MC_all_passId_failLooseIso(Form("fit_MC_%s_passId_failLooseIso", strnameapp.Data()), "", treevars, WeightVar(wgtvar)); fit_MC_all_list.push_back(&fit_MC_all_passId_failLooseIso);
+  RooDataSet fit_MC_all_passId_failTightIso(Form("fit_MC_%s_passId_failTightIso", strnameapp.Data()), "", treevars, WeightVar(wgtvar)); fit_MC_all_list.push_back(&fit_MC_all_passId_failTightIso);
+  RooDataSet fit_MC_all_passId_passTightIso(Form("fit_MC_%s_passId_passTightIso", strnameapp.Data()), "", treevars, WeightVar(wgtvar)); fit_MC_all_list.push_back(&fit_MC_all_passId_passTightIso);
+
+  {
+    unsigned int it=0;
+    for (auto& tin:tinlist){
+      bool isDataTree = (it<itree_MC_offset);
+      MELAout << "Looping over " << (isDataTree ? "data" : "MC") << " tree set " << it << endl;
+
+      RooDataSet& fit_dset_all_failId = (isDataTree ? fit_data_all_failId : fit_MC_all_failId);
+      RooDataSet& fit_dset_all_passId_failLooseIso = (isDataTree ? fit_data_all_passId_failLooseIso : fit_MC_all_passId_failLooseIso);
+      RooDataSet& fit_dset_all_passId_failTightIso = (isDataTree ? fit_data_all_passId_failTightIso : fit_MC_all_passId_failTightIso);
+      RooDataSet& fit_dset_all_passId_passTightIso = (isDataTree ? fit_data_all_passId_passTightIso : fit_MC_all_passId_passTightIso);
+      std::vector<TH2D>& hevts_list = (isDataTree ? hevts_data_list : hevts_MC_list);
+
+      double wgt_scale = norm_map[tin];
+      double sum_wgts = 0;
+      int const nEntries = tin->GetEntries();
+      int nPassMET=0;
+      int nPassPDGId=0;
+      int nPassTrigger=0;
+      int nPassTightTag=0;
+      int nPassMass=0;
+      int nPassPtL1=0;
+      int nPassDeltaR=0;
+      int nPassBinThrs=0;
+      int nPassEleGapOpt=0;
+      int nPassGenMatch=0;
+      int n_acc=0;
+      int nFinalValidTightPairs[3]={ 0 };
+      for (int ev=0; ev<nEntries; ev++){
+        tin->GetEntry(ev);
+        HelperFunctions::progressbar(ev, nEntries);
+
+        if (pfmet_pTmiss>=70.f) continue;
+        nPassMET++;
+
+        unsigned int nPairs = mass_ll->size(); assert(nPairs<=2);
+        if (is_ee) assert(etaSC_l2->size()==nPairs);
+        else assert(relPFIso_DR0p3_DBcorr_l2->size()==nPairs);
+
+        std::vector<std::pair<int, int>> known_bin_pairs(nPairs, std::pair<int, int>(-2, -2));
+        for (unsigned int iloop=0; iloop<2; iloop++){
+          for (unsigned int ip=0; ip<nPairs; ip++){
+            if ((!is_ee && std::abs(id_l1->at(ip))==11) || (is_ee && std::abs(id_l1->at(ip))==13)) continue;
+            if (iloop==0) nPassPDGId++;
+
+            if (!(isNominalTrigger->at(ip) || isHighPtTrigger->at(ip))) continue;
+            if (iloop==0) nPassTrigger++;
+
+            if (
+              useTightTag
+              &&
+              !(pass_extraTight_l1->at(ip) && hasTightCharge_l1->at(ip))
+              ) continue;
+            if (iloop==0) nPassTightTag++;
+
+            if (
+              is_ee
+              &&
+              !(
+                eeGapCode<0
+                ||
+                (eeGapCode==0 && !HelperFunctions::test_bit(fid_mask_l2->at(ip), EgammaFiduciality::ISGAP))
+                ||
+                (eeGapCode>0 && HelperFunctions::test_bit(fid_mask_l2->at(ip), EgammaFiduciality::ISGAP))
+                )
+              ) continue;
+            if (iloop==0) nPassEleGapOpt++;
+
+            if (mass_ll->at(ip)<xvar.getMin() || mass_ll->at(ip)>=xvar.getMax()) continue;
+            if (iloop==0) nPassMass++;
+
+            if (pt_l1->at(ip)<minPt_tag) continue;
+            if (iloop==0) nPassPtL1++;
+
+            if (dR_l1_l2->at(ip)<minDR_l1l2) continue; // Avoid overlap of cones
+            if (iloop==0) nPassDeltaR++;
+
+            float const& var_eta_binning_l1 = (is_ee ? etaSC_l1->at(ip) : eta_l1->at(ip));
+            float const& var_eta_binning_l2 = (is_ee ? etaSC_l2->at(ip) : eta_l2->at(ip));
+            if (pt_l2->at(ip)<binning_pt.getBinLowEdge(0) || pt_l2->at(ip)>=binning_pt.getBinHighEdge(binning_pt.getNbins()-1)) continue;
+            if (is_ee && (std::abs(eta_l1->at(ip))>=2.5 || std::abs(eta_l2->at(ip))>=2.5)) continue;
+            if (!is_ee && (std::abs(eta_l1->at(ip))>=2.4 || std::abs(eta_l2->at(ip))>=2.4)) continue;
+            if (iloop==0) nPassBinThrs++;
+
+            if (!isDataTree && !(isGenMatched_l1->at(ip) && isGenMatched_l2->at(ip) && dR_genMatch_l1->at(ip)<0.2 && dR_genMatch_l2->at(ip)<0.2)) continue;
+            if (iloop==0) nPassGenMatch++;
+
+            if (iloop==0) known_bin_pairs.at(ip) = std::pair<int, int>(binning_pt.getBin(pt_l2->at(ip)), binning_eta.getBin(var_eta_binning_l2));
+
+            if (iloop==0) continue;
+
+            /*************************************************/
+            /* NO MORE CONTINUE STATEMENTS AFTER THIS POINT! */
+            /*************************************************/
+
+            double nValidPairs = 0;
+            auto const& own_bin_pair = known_bin_pairs.at(ip);
+            for (auto const& pp:known_bin_pairs){
+              if (pp.first == own_bin_pair.first && pp.second == own_bin_pair.second) nValidPairs += 1;
+            }
+            if (nValidPairs==2 && ip==1) continue; // Instead of biasing the error estimate, skip the second pair if both pairs correspond to the same bin.
+
+            double wgt = event_wgt*event_wgt_SFs * wgt_scale;
+            if (!isDataTree) wgt = std::abs(wgt);
+
+            bool pass_looseIso_l2 = true;
+            if (is_ee){
+              switch (ElectronSelectionHelpers::isoType_preselection){
+              case ElectronSelectionHelpers::kMiniIso:
+                pass_looseIso_l2 = (miniIso_l2->at(ip)<ElectronSelectionHelpers::isoThr_fakeable);
+                break;
+              case ElectronSelectionHelpers::kPFIsoDR0p3:
+                pass_looseIso_l2 = (relPFIso_DR0p3_EAcorr_l2->at(ip)<ElectronSelectionHelpers::isoThr_fakeable);
+                break;
+              case ElectronSelectionHelpers::kPFIsoDR0p4:
+                pass_looseIso_l2 = (relPFIso_DR0p4_EAcorr_l2->at(ip)<ElectronSelectionHelpers::isoThr_fakeable);
+                break;
+              default:
+                break;
+              }
+            }
+            else{
+              switch (MuonSelectionHelpers::isoType_preselection){
+              case MuonSelectionHelpers::kMiniIso:
+                pass_looseIso_l2 = (miniIso_l2->at(ip)<MuonSelectionHelpers::isoThr_fakeable);
+                break;
+              case MuonSelectionHelpers::kPFIsoDR0p3:
+                pass_looseIso_l2 = (relPFIso_DR0p3_DBcorr_l2->at(ip)<MuonSelectionHelpers::isoThr_fakeable);
+                break;
+              case MuonSelectionHelpers::kPFIsoDR0p3_EACorrected:
+                pass_looseIso_l2 = (relPFIso_DR0p3_EAcorr_l2->at(ip)<MuonSelectionHelpers::isoThr_fakeable);
+                break;
+              case MuonSelectionHelpers::kPFIsoDR0p4:
+                pass_looseIso_l2 = (relPFIso_DR0p4_DBcorr_l2->at(ip)<MuonSelectionHelpers::isoThr_fakeable);
+                break;
+              case MuonSelectionHelpers::kPFIsoDR0p4_EACorrected:
+                pass_looseIso_l2 = (relPFIso_DR0p4_EAcorr_l2->at(ip)<MuonSelectionHelpers::isoThr_fakeable);
+                break;
+              default:
+                break;
+              }
+            }
+
+            bool passProbeId_failProbeLooseIso = (
+              pass_preselectionId_l2->at(ip)
+              &&
+              !pass_looseIso_l2
+              );
+            bool passProbeId_failProbeTightIso = (
+              pass_preselectionId_l2->at(ip)
+              &&
+              pass_looseIso_l2
+              &&
+              !pass_preselectionIso_l2->at(ip)
+              );
+            bool passProbeId_passProbeTightIso = (
+              pass_preselectionId_l2->at(ip)
+              &&
+              pass_looseIso_l2
+              &&
+              pass_preselectionIso_l2->at(ip)
+              );
+
+            ParticleObject::LorentzVector_t p4_METcorr; p4_METcorr = ParticleObject::PolarLorentzVector_t(pfmet_pTmiss, 0., pfmet_phimiss, 0.);
+            ParticleObject::LorentzVector_t p4_probe; p4_probe = ParticleObject::PolarLorentzVector_t(pt_l2->at(ip), 0., phi_l2->at(ip), 0.);
+            p4_METcorr = p4_METcorr + p4_probe;
+            double mTcorr = std::sqrt(2.*pt_l1->at(ip)*p4_METcorr.Pt()*(1.f - std::cos(phi_l1->at(ip) - p4_METcorr.Phi())));
+
+            xvar.setVal(mass_ll->at(ip));
+            var_n_vtxs_good.setVal(event_nvtxs_good);
+            var_mTcorr.setVal(mTcorr);
+            var_pt_tag.setVal(pt_l1->at(ip));
+            var_eta_tag.setVal(var_eta_binning_l1);
+            var_pt_probe.setVal(pt_l2->at(ip));
+            var_eta_probe.setVal(var_eta_binning_l2);
+            wgtvar.setVal(wgt);
+
+            if (passProbeId_passProbeTightIso){
+              fit_dset_all_passId_passTightIso.add(treevars, wgt);
+              hevts_list.at(3).Fill(pt_l2->at(ip), var_eta_binning_l2, wgt);
+              nFinalValidTightPairs[std::min((int) nValidPairs-1, 2)]++;
+            }
+            else if (passProbeId_failProbeTightIso){
+              fit_dset_all_passId_failTightIso.add(treevars, wgt);
+              hevts_list.at(2).Fill(pt_l2->at(ip), var_eta_binning_l2, wgt);
+            }
+            else if (passProbeId_failProbeLooseIso){
+              fit_dset_all_passId_failLooseIso.add(treevars, wgt);
+              hevts_list.at(1).Fill(pt_l2->at(ip), var_eta_binning_l2, wgt);
+            }
+            else{
+              fit_dset_all_failId.add(treevars, wgt);
+              hevts_list.at(0).Fill(pt_l2->at(ip), var_eta_binning_l2, wgt);
+            }
+
+            sum_wgts += wgt;
+            n_acc++;
+          }
+        }
+      }
+      delete tin; tin=nullptr;
+      MELAout << "Total accumulated pairs / events: " << n_acc << " / " << nEntries << endl;
+      MELAout << "\t- MET selection (events): " << nPassMET << endl;
+      MELAout << "\t- PDG id: " << nPassPDGId << endl;
+      MELAout << "\t- Trigger: " << nPassTrigger << endl;
+      MELAout << "\t- Tight tag: " << nPassTightTag << endl;
+      MELAout << "\t- Probe electron gap selection: " << nPassEleGapOpt << endl;
+      MELAout << "\t- mll window: " << nPassMass << endl;
+      MELAout << "\t- pT_l1: " << nPassPtL1 << endl;
+      MELAout << "\t- dR_l1_l2: " << nPassDeltaR << endl;
+      MELAout << "\t- Bin thresholds: " << nPassBinThrs << endl;
+      MELAout << "\t- Gen. matching: " << nPassGenMatch << endl;
+      MELAout << "\t- Final sum of weights: " << sum_wgts << endl;
+      MELAout << "\t- Number of valid pairs: " << nFinalValidTightPairs[0] << " (1), " << nFinalValidTightPairs[1] << " (2), " << nFinalValidTightPairs[2] << " (>2)" << endl;
+
+      it++;
+    }
+
+    if (doFits){
+      for (auto& dset:fit_data_all_list){
+        ExtendedBinning adaptivebins = getAdaptiveBinning(*dset, var_pt_probe, 150);
+        MELAout << "Data set " << dset->GetName() << " is best to have the probe pT binning " << adaptivebins.getBinningVector() << endl;
+      }
+    }
+  }
+  tinlist.clear();
+
+  foutput_counts->cd();
+  for (auto& h:hevts_data_list){
+    HelperFunctions::wipeOverUnderFlows(&h, false, true);
+    foutput_counts->WriteTObject(&h);
+  }
+  for (auto& h:hevts_MC_list){
+    HelperFunctions::wipeOverUnderFlows(&h, false, true);
+    foutput_counts->WriteTObject(&h);
+  }
+  hevts_data_list.clear();
+  hevts_MC_list.clear();
+  foutput_counts->Close();
+  SampleHelpers::addToCondorTransferList(stroutput_counts);
+
+  curdir->cd();
+
+  bool firstBin = true;
+  for (unsigned int ix=0; ix<nbins_pt; ix++){
+    if (!doFits) break;
+    //continue;
+    float pt_low = binning_pt.getBinLowEdge(ix);
+    float pt_high = (ix==nbins_pt-1 ? -1. : binning_pt.getBinHighEdge(ix));
+    TString strbinning_pt = "pt_";
+    TString strcut_pt;
+    if (pt_low<0.f){
+      strbinning_pt += Form("lt_%s", convertFloatToTitleString(pt_high).Data());
+      strcut_pt = Form("%s<%s", var_pt_probe.GetName(), convertFloatToString(pt_high).Data());
+    }
+    else if (pt_high<0.f){
+      strbinning_pt += Form("ge_%s", convertFloatToTitleString(pt_low).Data());
+      strcut_pt = Form("%s>=%s", var_pt_probe.GetName(), convertFloatToString(pt_low).Data());
+    }
+    else{
+      strbinning_pt += Form("%s_%s", convertFloatToTitleString(pt_low).Data(), convertFloatToTitleString(pt_high).Data());
+      strcut_pt = Form("%s>=%s && %s<%s", var_pt_probe.GetName(), convertFloatToString(pt_low).Data(), var_pt_probe.GetName(), convertFloatToString(pt_high).Data());
+    }
+
+    for (unsigned int iy=0; iy<nbins_eta; iy++){
+      float eta_low = (iy==0 ? -99. : binning_eta.getBinLowEdge(iy));
+      float eta_high = (iy==nbins_eta-1 ? 99. : binning_eta.getBinHighEdge(iy));
+      float etaOpp_low = -eta_high;
+      float etaOpp_high = -eta_low;
+      TString strbinning_eta = "eta_";
+      TString strcut_eta;
+      TString strbinning_etaOpp = "etaOpp_";
+      TString strcut_etaOpp;
+      if (eta_low<-10.f){
+        strbinning_eta += Form("lt_%s", convertFloatToTitleString(eta_high).Data());
+        strcut_eta = Form("%s<%s", var_eta_probe.GetName(), convertFloatToString(eta_high).Data());
+      }
+      else if (eta_high>10.f){
+        strbinning_eta += Form("ge_%s", convertFloatToTitleString(eta_low).Data());
+        strcut_eta = Form("%s>=%s", var_eta_probe.GetName(), convertFloatToString(eta_low).Data());
+      }
+      else{
+        strbinning_eta += Form("%s_%s", convertFloatToTitleString(eta_low).Data(), convertFloatToTitleString(eta_high).Data());
+        strcut_eta = Form("%s>=%s && %s<%s", var_eta_probe.GetName(), convertFloatToString(eta_low).Data(), var_eta_probe.GetName(), convertFloatToString(eta_high).Data());
+      }
+      if (etaOpp_low<-10.f){
+        strbinning_etaOpp += Form("lt_%s", convertFloatToTitleString(etaOpp_high).Data());
+        strcut_etaOpp = Form("%s<%s", var_eta_probe.GetName(), convertFloatToString(etaOpp_high).Data());
+      }
+      else if (etaOpp_high>10.f){
+        strbinning_etaOpp += Form("ge_%s", convertFloatToTitleString(etaOpp_low).Data());
+        strcut_etaOpp = Form("%s>=%s", var_eta_probe.GetName(), convertFloatToString(etaOpp_low).Data());
+      }
+      else{
+        strbinning_etaOpp += Form("%s_%s", convertFloatToTitleString(etaOpp_low).Data(), convertFloatToTitleString(etaOpp_high).Data());
+        strcut_etaOpp = Form("%s>=%s && %s<%s", var_eta_probe.GetName(), convertFloatToString(etaOpp_low).Data(), var_eta_probe.GetName(), convertFloatToString(etaOpp_high).Data());
+      }
+
+      MELAout << "strcut_pt = " << strcut_pt << ", strcut_eta = " << strcut_eta << ", strcut_etaOpp = " << strcut_etaOpp << endl;
+
+      /***** PREPARE PDFS *****/
+      curdir->cd();
+
+      /* PREPARE DATA SETS */
+      std::vector<RooDataSet*> fit_data_list; fit_data_list.reserve(4);
+      std::vector<RooDataSet*> fit_MC_list; fit_MC_list.reserve(4);
+      std::vector<RooDataSet*> fit_MC_etaOpp_list; fit_MC_etaOpp_list.reserve(4);
+      MELAout << "Creating the observed id, iso failed data set for " << strbinning_pt << " and " << strbinning_eta << "..." << endl;
+      RooDataSet* fit_data_bin_failId = (RooDataSet*) fit_data_all_failId.reduce(
+        Cut(Form("%s && %s", strcut_pt.Data(), strcut_eta.Data())),
+        Name(Form("%s_%s_%s", fit_data_all_failId.GetName(), strbinning_pt.Data(), strbinning_eta.Data()))
+      );
+      MELAout << "\t- Remaining events: " << fit_data_bin_failId->sumEntries() << " / " << fit_data_all_failId.sumEntries() << endl;
+      fit_data_list.push_back(fit_data_bin_failId);
+      MELAout << "Creating the simulation id, iso failed data set for " << strbinning_pt << " and " << strbinning_eta << "..." << endl;
+      RooDataSet* fit_MC_bin_failId = (RooDataSet*) fit_MC_all_failId.reduce(
+        Cut(Form("%s && %s", strcut_pt.Data(), strcut_eta.Data())),
+        Name(Form("%s_%s_%s", fit_MC_all_failId.GetName(), strbinning_pt.Data(), strbinning_eta.Data()))
+      );
+      MELAout << "\t- Remaining events: " << fit_MC_bin_failId->sumEntries() << " / " << fit_MC_all_failId.sumEntries() << endl;
+      fit_MC_list.push_back(fit_MC_bin_failId);
+      MELAout << "Creating the simulation id, iso failed data set with abs(eta) for " << strbinning_pt << " and " << strbinning_etaOpp << "..." << endl;
+      RooDataSet* fit_MC_etaOpp_bin_failId = (RooDataSet*) fit_MC_all_failId.reduce(
+        Cut(Form("%s && %s", strcut_pt.Data(), strcut_etaOpp.Data())),
+        Name(Form("%s_%s_%s", fit_MC_all_failId.GetName(), strbinning_pt.Data(), strbinning_etaOpp.Data()))
+      );
+      MELAout << "\t- Remaining events: " << fit_MC_etaOpp_bin_failId->sumEntries() << " / " << fit_MC_all_failId.sumEntries() << endl;
+      fit_MC_etaOpp_list.push_back(fit_MC_etaOpp_bin_failId);
+
+      MELAout << "Creating the observed id pass, loose iso fail data set for " << strbinning_pt << " and " << strbinning_eta << "..." << endl;
+      RooDataSet* fit_data_bin_passId_failLooseIso = (RooDataSet*) fit_data_all_passId_failLooseIso.reduce(
+        Cut(Form("%s && %s", strcut_pt.Data(), strcut_eta.Data())),
+        Name(Form("%s_%s_%s", fit_data_all_passId_failLooseIso.GetName(), strbinning_pt.Data(), strbinning_eta.Data()))
+      );
+      MELAout << "\t- Remaining events: " << fit_data_bin_passId_failLooseIso->sumEntries() << " / " << fit_data_all_passId_failLooseIso.sumEntries() << endl;
+      fit_data_list.push_back(fit_data_bin_passId_failLooseIso);
+      MELAout << "Creating the simulation id pass, loose iso fail data set for " << strbinning_pt << " and " << strbinning_eta << "..." << endl;
+      RooDataSet* fit_MC_bin_passId_failLooseIso = (RooDataSet*) fit_MC_all_passId_failLooseIso.reduce(
+        Cut(Form("%s && %s", strcut_pt.Data(), strcut_eta.Data())),
+        Name(Form("%s_%s_%s", fit_MC_all_passId_failLooseIso.GetName(), strbinning_pt.Data(), strbinning_eta.Data()))
+      );
+      MELAout << "\t- Remaining events: " << fit_MC_bin_passId_failLooseIso->sumEntries() << " / " << fit_MC_all_passId_failLooseIso.sumEntries() << endl;
+      fit_MC_list.push_back(fit_MC_bin_passId_failLooseIso);
+      MELAout << "Creating the simulation id pass, loose iso fail data set with abs(eta) for " << strbinning_pt << " and " << strbinning_etaOpp << "..." << endl;
+      RooDataSet* fit_MC_etaOpp_bin_passId_failLooseIso = (RooDataSet*) fit_MC_all_passId_failLooseIso.reduce(
+        Cut(Form("%s && %s", strcut_pt.Data(), strcut_etaOpp.Data())),
+        Name(Form("%s_%s_%s", fit_MC_all_passId_failLooseIso.GetName(), strbinning_pt.Data(), strbinning_etaOpp.Data()))
+      );
+      MELAout << "\t- Remaining events: " << fit_MC_etaOpp_bin_passId_failLooseIso->sumEntries() << " / " << fit_MC_all_passId_failLooseIso.sumEntries() << endl;
+      fit_MC_etaOpp_list.push_back(fit_MC_etaOpp_bin_passId_failLooseIso);
+
+      MELAout << "Creating the observed id pass, tight iso fail data set for " << strbinning_pt << " and " << strbinning_eta << "..." << endl;
+      RooDataSet* fit_data_bin_passId_failTightIso = (RooDataSet*) fit_data_all_passId_failTightIso.reduce(
+        Cut(Form("%s && %s", strcut_pt.Data(), strcut_eta.Data())),
+        Name(Form("%s_%s_%s", fit_data_all_passId_failTightIso.GetName(), strbinning_pt.Data(), strbinning_eta.Data()))
+      );
+      MELAout << "\t- Remaining events: " << fit_data_bin_passId_failTightIso->sumEntries() << " / " << fit_data_all_passId_failTightIso.sumEntries() << endl;
+      fit_data_list.push_back(fit_data_bin_passId_failTightIso);
+      MELAout << "Creating the simulation id pass, tight iso fail data set for " << strbinning_pt << " and " << strbinning_eta << "..." << endl;
+      RooDataSet* fit_MC_bin_passId_failTightIso = (RooDataSet*) fit_MC_all_passId_failTightIso.reduce(
+        Cut(Form("%s && %s", strcut_pt.Data(), strcut_eta.Data())),
+        Name(Form("%s_%s_%s", fit_MC_all_passId_failTightIso.GetName(), strbinning_pt.Data(), strbinning_eta.Data()))
+      );
+      MELAout << "\t- Remaining events: " << fit_MC_bin_passId_failTightIso->sumEntries() << " / " << fit_MC_all_passId_failTightIso.sumEntries() << endl;
+      fit_MC_list.push_back(fit_MC_bin_passId_failTightIso);
+      MELAout << "Creating the simulation id pass, tight iso fail data set with abs(eta) for " << strbinning_pt << " and " << strbinning_etaOpp << "..." << endl;
+      RooDataSet* fit_MC_etaOpp_bin_passId_failTightIso = (RooDataSet*) fit_MC_all_passId_failTightIso.reduce(
+        Cut(Form("%s && %s", strcut_pt.Data(), strcut_etaOpp.Data())),
+        Name(Form("%s_%s_%s", fit_MC_all_passId_failTightIso.GetName(), strbinning_pt.Data(), strbinning_etaOpp.Data()))
+      );
+      MELAout << "\t- Remaining events: " << fit_MC_etaOpp_bin_passId_failTightIso->sumEntries() << " / " << fit_MC_all_passId_failTightIso.sumEntries() << endl;
+      fit_MC_etaOpp_list.push_back(fit_MC_etaOpp_bin_passId_failTightIso);
+
+      MELAout << "Creating the observed id, tight iso pass data set for " << strbinning_pt << " and " << strbinning_eta << "..." << endl;
+      RooDataSet* fit_data_bin_passId_passTightIso = (RooDataSet*) fit_data_all_passId_passTightIso.reduce(
+        Cut(Form("%s && %s", strcut_pt.Data(), strcut_eta.Data())),
+        Name(Form("%s_%s_%s", fit_data_all_passId_passTightIso.GetName(), strbinning_pt.Data(), strbinning_eta.Data()))
+      );
+      MELAout << "\t- Remaining events: " << fit_data_bin_passId_passTightIso->sumEntries() << " / " << fit_data_all_passId_passTightIso.sumEntries() << endl;
+      fit_data_list.push_back(fit_data_bin_passId_passTightIso);
+      MELAout << "Creating the simulation id, tight iso pass data set for " << strbinning_pt << " and " << strbinning_eta << "..." << endl;
+      RooDataSet* fit_MC_bin_passId_passTightIso = (RooDataSet*) fit_MC_all_passId_passTightIso.reduce(
+        Cut(Form("%s && %s", strcut_pt.Data(), strcut_eta.Data())),
+        Name(Form("%s_%s_%s", fit_MC_all_passId_passTightIso.GetName(), strbinning_pt.Data(), strbinning_eta.Data()))
+      );
+      MELAout << "\t- Remaining events: " << fit_MC_bin_passId_passTightIso->sumEntries() << " / " << fit_MC_all_passId_passTightIso.sumEntries() << endl;
+      fit_MC_list.push_back(fit_MC_bin_passId_passTightIso);
+      MELAout << "Creating the simulation id, tight iso pass data set with abs(eta) for " << strbinning_pt << " and " << strbinning_etaOpp << "..." << endl;
+      RooDataSet* fit_MC_etaOpp_bin_passId_passTightIso = (RooDataSet*) fit_MC_all_passId_passTightIso.reduce(
+        Cut(Form("%s && %s", strcut_pt.Data(), strcut_etaOpp.Data())),
+        Name(Form("%s_%s_%s", fit_MC_all_passId_passTightIso.GetName(), strbinning_pt.Data(), strbinning_etaOpp.Data()))
+      );
+      MELAout << "\t- Remaining events: " << fit_MC_etaOpp_bin_passId_passTightIso->sumEntries() << " / " << fit_MC_all_passId_passTightIso.sumEntries() << endl;
+      fit_MC_etaOpp_list.push_back(fit_MC_etaOpp_bin_passId_passTightIso);
+
+      for (unsigned int itype=0; itype<strIdIsoTypes.size(); itype++){
+        //continue;
+        TString const& strIdIsoType = strIdIsoTypes.at(itype);
+        RooDataSet* const& fit_data = fit_data_list.at(itype);
+        RooDataSet* const& fit_MC = fit_MC_list.at(itype);
+        RooDataSet* const& fit_MC_etaOpp = fit_MC_etaOpp_list.at(itype);
+
+        //TString cdirname = Form("%s_%s_%s", strbinning_pt.Data(), strbinning_eta.Data(), strIdIsoType.Data());
+        //TString cplotsdir = coutput_plots + '/' + cdirname;
+
+        curdir->cd();
+
+        RooConstVar mPole("mPole", "", PDGHelpers::Zmass);
+        RooConstVar GaPole("GaPole", "", PDGHelpers::Zwidth);
+
+        RooGenericPdf pdf_relBW("relBW", "", "@0/(pow(@0*@0 - @1*@1,2) + pow(@1*@2, 2))", RooArgList(xvar, mPole, GaPole));
+
+        RooRealVar mean_CB("mean_CB", "", 0, -5, 5);
+        RooRealVar mean_CB_datashift("mean_CB_datashift", "", 0, -0.5, 0.5);
+        RooFormulaVar mean_CB_data("mean_CB_data", "@0+@1", RooArgList(mean_CB, mean_CB_datashift));
+        RooRealVar sigma_CB("sigma_CB", "", 1, 0.5, 5);
+        RooRealVar sigma_CB_datamult("sigma_CB_datamult", "", 1, 0.7, 1.3);
+        RooFormulaVar sigma_CB_data("sigma_CB_data", "@0*@1", RooArgList(sigma_CB, sigma_CB_datamult));
+        RooRealVar alpha_CB("alpha_CB", "", 1.5, 0.05, 10);
+        RooRealVar nvar_CB("nvar_CB", "", 1, 0., 10);
+        RooRealVar alpha2_CB("alpha2_CB", "", 1.5, 0.05, 10);
+        RooRealVar nvar2_CB("nvar2_CB", "", 1, 0., 10);
+
+        RooDoubleCB pdf_DCB("DCB", "", xvar, mean_CB, sigma_CB, alpha_CB, nvar_CB, alpha2_CB, nvar2_CB);
+        RooDoubleCB pdf_DCB_data("DCB_data", "", xvar, mean_CB_data, sigma_CB_data, alpha_CB, nvar_CB, alpha2_CB, nvar2_CB);
+
+        RooRealVar alpha_SigPtSupp("alpha_SigPtSupp", "", 70, (is_ee ? 30 : 10), 90);
+        RooRealVar beta_SigPtSupp("beta_SigPtSupp", "", 1./10., 0., 1./4.);
+        RooRealVar gamma_SigPtSupp("gamma_SigPtSupp", "", 0., 0, 1./4.);
+        if (pt_low<30.){
+          beta_SigPtSupp.setRange(0, 1.);
+          gamma_SigPtSupp.setRange(0, 1.);
+        }
+        else{
+          beta_SigPtSupp.setVal(0.);
+          gamma_SigPtSupp.setVal(0.);
+        }
+        if (pt_low+minPt_tag<alpha_SigPtSupp.getMax()-10.){
+          alpha_SigPtSupp.setVal(pt_low+minPt_tag-5.);
+        }
+        else{
+          alpha_SigPtSupp.setRange(pt_low+minPt_tag-20., pt_low+minPt_tag+30.);
+          alpha_SigPtSupp.setVal(pt_low+minPt_tag);
+        }
+
+        RooGenericPdf pdf_corrRelBW("corrRelBW", "", " (@0/(pow(@0*@0 - @1*@1,2) + pow(@1*@2, 2))) * TMath::Erfc((@3 - @0) * @4) * exp(-@5*(@0 - @6))", RooArgList(xvar, mPole, GaPole, alpha_SigPtSupp, beta_SigPtSupp, gamma_SigPtSupp, mPole));
+        RooFFTConvPdf pdf_corrRelBWxDCB("corrRelBWxDCB", "", xvar, pdf_corrRelBW, pdf_DCB);
+        RooFFTConvPdf pdf_corrRelBWxDCB_data("corrRelBWxDCB_data", "", xvar, pdf_corrRelBW, pdf_DCB_data);
+
+        RooRealVar a1var("a1var", "", 0, -10, 10);
+        RooRealVar a2var("a2var", "", 0, -10, 10);
+        //RooRealVar a3var("a3var", "", 0, -10, 10);
+        RooChebychev pdf_Chebyshev3("Chebyshev3", "", xvar, RooArgList(a1var, a2var));
+
+        RooRealVar alpha_CMSShape("alpha_CMSShape", "", 80, 20, 100);
+        RooRealVar beta_CMSShape("beta_CMSShape", "", 0.04, 0., 1./10.);
+        RooRealVar gamma_CMSShape("gamma_CMSShape", "", 0.01, 0, 0.1);
+        if (pt_low<30.){
+          beta_CMSShape.setRange(0, 1.);
+          gamma_CMSShape.setRange(0, 1.);
+        }
+        else{
+          beta_CMSShape.setVal(0.);
+          gamma_CMSShape.setVal(0.);
+        }
+
+        if (is_ee && pt_low<15. && std::abs(std::min(std::abs(eta_low), std::abs(eta_high)) - 1.4442)<0.01 && std::abs(std::max(std::abs(eta_low), std::abs(eta_high)) - 1.566)<0.01 && itype==1){
+          alpha_CMSShape.setVal(0.); alpha_CMSShape.setConstant(true);
+          beta_CMSShape.setVal(0.); beta_CMSShape.setConstant(true);
+        }
+        else if (pt_low+minPt_tag<alpha_CMSShape.getMax()-10.){
+          alpha_CMSShape.setVal(pt_low+minPt_tag);
+        }
+        else{
+          alpha_CMSShape.setRange(pt_low+minPt_tag-20., pt_low+minPt_tag+30.);
+          alpha_CMSShape.setVal(pt_low+minPt_tag);
+        }
+
+        RooCMSShape pdf_CMSShape("CMSShape", "", xvar, alpha_CMSShape, beta_CMSShape, gamma_CMSShape, mPole);
+
+        RooRealVar gamma_Exp("gamma_Exp", "", 0., -1./4., 1./4.);
+        RooGenericPdf pdf_Exp("pdf_Exp", "", "Exp(@1*(@0 - @2))", RooArgList(xvar, gamma_Exp, mPole));
+
+        RooRealVar frac_sig("frac_sig", "", 1, 0, 1);
+        frac_sig.setVal(std::min(0.9, fit_MC->sumEntries() / fit_data->sumEntries()*0.9));
+
+        RooAbsPdf* pdf_sig = &pdf_corrRelBWxDCB;
+        RooAbsPdf* pdf_sig_data = &pdf_corrRelBWxDCB_data;
+        RooAbsPdf* pdf_bkg = nullptr;
+        if (strBkgModel == "RooCMSShape") pdf_bkg = &pdf_CMSShape;
+        else if (strBkgModel == "Chebyshev") pdf_bkg = &pdf_Chebyshev3;
+        else if (strBkgModel == "Exponential") pdf_bkg = &pdf_Exp;
+
+        RooAbsPdf* pdf_MC = pdf_sig;
+
+        RooAddPdf pdf_data_ref("pdf_data", "", RooArgList(*pdf_sig_data, *pdf_bkg), RooArgList(frac_sig), true);
+        RooAbsPdf* pdf_data = &pdf_data_ref;
+
+        RooWorkspace* ws = nullptr;
+        TString stroutput_txt;
+
+        // Common file to contain w_MC and w_Data.
+        TString stroutputcore = "WSDCs_" + strnameapp + "_" + strbinning_pt + "_" + strbinning_eta + "_" + strIdIsoType;
+        TString stroutputdir = coutput_main + "/" + stroutputcore;
+        gSystem->mkdir(stroutputdir, true);
+
+        // Add the directory itself as a compressed directory
+        SampleHelpers::addToCondorCompressedTransferList(stroutputdir);
+
+        // Make the workspace file
+        TString stroutput = stroutputdir + "/workspace.root";
+        TFile* foutput = TFile::Open(stroutput, "recreate");
+
+        // Make the MC output files for combine
+        stroutput_txt = stroutput; HelperFunctions::replaceString<TString, char const*>(stroutput_txt, "workspace.root", "datacard.txt");
+        // Write the DC
+        MELAout.open(stroutput_txt);
+        MELAout << R"(imax *
+jmax *
+kmax *
+------------ 
+shapes * ch_Data workspace.root w_Data:$PROCESS
+shapes * ch_MC workspace.root w_MC:$PROCESS
+shapes * ch_MC_etaOpp workspace.root w_MC_etaOpp:$PROCESS
+------------
+bin ch_Data ch_MC ch_MC_etaOpp 
+)";
+        MELAout << Form("observation %.0f %.5f %.5f", fit_data->sumEntries(), fit_MC->sumEntries(), fit_MC_etaOpp->sumEntries()) << endl;
+        MELAout << R"(------------
+bin ch_Data ch_MC ch_MC_etaOpp 
+process Data MC MC_etaOpp
+process -2 -1 0 
+)";
+        MELAout << Form("rate %.0f %.5f %.5f\n------------", fit_data->sumEntries(), fit_MC->sumEntries(), fit_MC_etaOpp->sumEntries()) << endl;
+        MELAout.close();
+
+        // Write the data WS
+        ws = new RooWorkspace("w_Data");
+        {
+          TString pdfname = pdf_data->GetName();
+          pdf_data->SetName("Data");
+
+          ws->importClassCode(RooCMSShape::Class(), true);
+          ws->import(*pdf_data, RooFit::RecycleConflictNodes());
+          ws->import(*fit_data, RooFit::Rename("data_obs"));
+
+          pdf_data->SetName(pdfname);
+        }
+        foutput->WriteTObject(ws);
+        delete ws;
+        // Write the MC WS
+        ws = new RooWorkspace("w_MC");
+        {
+          TString pdfname = pdf_MC->GetName();
+          pdf_MC->SetName("MC");
+
+          ws->importClassCode(RooCMSShape::Class(), true);
+          ws->import(*pdf_MC, RooFit::RecycleConflictNodes());
+          ws->import(*fit_MC, RooFit::Rename("data_obs"));
+
+          pdf_MC->SetName(pdfname);
+        }
+        foutput->WriteTObject(ws);
+        delete ws;
+        // Write the MC ooposite eta WS
+        ws = new RooWorkspace("w_MC_etaOpp");
+        {
+          TString pdfname = pdf_MC->GetName();
+          pdf_MC->SetName("MC_etaOpp");
+
+          ws->importClassCode(RooCMSShape::Class(), true);
+          ws->import(*pdf_MC, RooFit::RecycleConflictNodes());
+          ws->import(*fit_MC_etaOpp, RooFit::Rename("data_obs"));
+
+          pdf_MC->SetName(pdfname);
+        }
+        foutput->WriteTObject(ws);
+        delete ws;
+
+        // Close the output file and return back to the current directory
+        foutput->Close();
+        curdir->cd();
+      }
+
+      for (auto& dset:fit_MC_etaOpp_list) delete dset;
+      for (auto& dset:fit_MC_list) delete dset;
+      for (auto& dset:fit_data_list) delete dset;
+
+      firstBin = false;
+    }
+  }
+
+}
+
 void getEfficiencies(
   TString period, TString prodVersion, TString strdate,
   bool is_ee, int eeGapCode, int resPdgId,
@@ -1870,7 +2845,7 @@ void getEfficiencies(
 
   bool firstBin = true;
   for (int ix=0; ix<(int) binning_pt.getNbins(); ix++){
-    if (!doFits) continue;
+    if (!doFits) break;
     //continue;
     float pt_low = (ix==-1 ? -1. : binning_pt.getBinLowEdge(ix));
     float pt_high = (ix==(int) binning_pt.getNbins() ? -1. : binning_pt.getBinHighEdge(ix));
