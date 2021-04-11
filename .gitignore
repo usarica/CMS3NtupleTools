@@ -13,6 +13,7 @@
 **/*.d
 **/*.a
 **/*.pcm
+**/combine_logger.out
 ./*.root
 **/test/*.root
 *.log

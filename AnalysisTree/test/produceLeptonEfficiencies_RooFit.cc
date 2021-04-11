@@ -439,12 +439,15 @@ void plotFitFromHCombResult(
 
   std::unordered_map< TString, triplet<double> > fitpars;
   std::unordered_map< TString, double > initialpars;
-  getFittedParameters(fitpars, fit_result);
-  for (auto const& pp:fitpars){
-    RooRealVar* var = (RooRealVar*) ws->var(pp.first);
-    initialpars[pp.first] = var->getVal();
-    var->setVal(pp.second[0]);
+  if (fit_result){
+    getFittedParameters(fitpars, fit_result);
+    for (auto const& pp:fitpars){
+      RooRealVar* var = (RooRealVar*) ws->var(pp.first);
+      initialpars[pp.first] = var->getVal();
+      var->setVal(pp.second[0]);
+    }
   }
+  else ws->loadSnapshot("MultiDimFit");
 
   for (auto const& strcat:strcats){
     TString pdfname = Form("pdf_bin%s", strcat.Data());
@@ -461,10 +464,13 @@ void plotFitFromHCombResult(
     delete dset_cat;
   }
 
-  for (auto const& pp:initialpars){
-    RooRealVar* var = (RooRealVar*) ws->var(pp.first);
-    var->setVal(pp.second);
+  if (fit_result){
+    for (auto const& pp:initialpars){
+      RooRealVar* var = (RooRealVar*) ws->var(pp.first);
+      var->setVal(pp.second);
+    }
   }
+  else ws->loadSnapshot("clean");
 }
 
 
@@ -2118,7 +2124,7 @@ void createWSandDCs(
         RooCMSShape pdf_CMSShape("CMSShape", "", xvar, alpha_CMSShape, beta_CMSShape, gamma_CMSShape, mPole);
 
         RooRealVar gamma_Exp("gamma_Exp", "", 0., -1./4., 1./4.);
-        RooGenericPdf pdf_Exp("pdf_Exp", "", "Exp(@1*(@0 - @2))", RooArgList(xvar, gamma_Exp, mPole));
+        RooGenericPdf pdf_Exp("pdf_Exp", "", "exp(@1*(@0 - @2))", RooArgList(xvar, gamma_Exp, mPole));
 
         RooRealVar frac_sig("frac_sig", "", 1, 0, 1);
         frac_sig.setVal(std::min(0.9, fit_MC->sumEntries() / fit_data->sumEntries()*0.9));
@@ -2230,6 +2236,51 @@ process -2 -1 0
   }
 
 }
+
+
+void checkInvalidFits(
+  TString period, TString fitVersion
+){
+  TString cinput_main = "output/LeptonEfficiencies/DataFits/" + fitVersion + "/" + period;
+  if (!SampleHelpers::checkFileOnWorker(cinput_main)){
+    MELAerr << "Directory " << cinput_main << " does not exist." << endl;
+    return;
+  }
+
+  std::vector<TString> strfailed_minos;
+  auto indirs = SampleHelpers::lsdir(cinput_main);
+  unsigned int const nindirs = indirs.size();
+  unsigned int idx_indir=0;
+  for (auto const& indir:indirs){
+    HelperFunctions::progressbar(idx_indir, nindirs); idx_indir++;
+
+    TString strinput = cinput_main + "/" + indir + "/combined_withSnapshot.root";
+    TFile* finput = TFile::Open(strinput, "read");
+    if (!finput || finput->IsZombie()){
+      if (finput) finput->Close();
+      continue;
+    }
+
+    RooWorkspace* w = (RooWorkspace*) finput->Get("w");
+    w->loadSnapshot("MultiDimFit");
+    RooRealVar* fsig = (RooRealVar*) w->var("frac_sig");
+    double errLo=0, errHi=0;
+    getParameterErrors(*fsig, errLo, errHi);
+    if (errLo==0. && errHi==0.){
+      strfailed_minos.push_back(strinput);
+      MELAout << strinput << " did not run Minos properly. Parameter = " << fsig->getVal() << " -" << errLo << " / +" << errHi << endl;
+    }
+    finput->Close();
+  }
+  MELAout << "Total failed: " << endl;
+  MELAout << "\t- MINOS: " << strfailed_minos.size() << endl;
+  /*
+  For failed fits, use robust fit directly:
+  combine combined_withSnapshot.root  -M MultiDimFit --freezeParameters r --redefineSignalPOIs frac_sig -v 3 --alignEdges=1 --saveNLL --saveSpecifiedNuis=rgx{.*} --algo singles -n SnapshotRecovery --snapshotName=MultiDimFit --cminDefaultMinimizerStrategy 0 --robustFit=1
+  */
+}
+
+
 
 void getEfficiencies(
   TString period, TString prodVersion, TString strdate,
@@ -3079,7 +3130,7 @@ void getEfficiencies(
         RooCMSShape pdf_CMSShape("CMSShape", "", xvar, alpha_CMSShape, beta_CMSShape, gamma_CMSShape, mPole);
 
         RooRealVar gamma_Exp("gamma_Exp", "", 0., -1./4., 1./4.);
-        RooGenericPdf pdf_Exp("pdf_Exp", "", "Exp(@1*(@0 - @2))", RooArgList(xvar, gamma_Exp, mPole));
+        RooGenericPdf pdf_Exp("pdf_Exp", "", "exp(@1*(@0 - @2))", RooArgList(xvar, gamma_Exp, mPole));
 
         RooRealVar frac_sig("frac_sig", "", 1, 0, 1);
         frac_sig.setVal(std::min(0.9, fit_MC->sumEntries() / fit_data->sumEntries()*0.9));

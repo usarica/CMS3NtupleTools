@@ -44,9 +44,12 @@ fi
 
 tar Jcvf ${TARFILE} ${extraTarFile} \
 lib/*/*CombinedLimit* \
+lib/*/libCMSDataToolsAnalysisTree.so \
+lib/*/libJHUGenMELAMELA.so \
 biglib \
 bin \
 src/HiggsAnalysis/CombinedLimit \
+src/JHUGenMELA/MELA/data/${SCRAM_ARCH}/lib*.so \
 --exclude=src/*/*/src \
 --exclude=src/*/*/bin \
 --exclude=src/*/*/scripts \

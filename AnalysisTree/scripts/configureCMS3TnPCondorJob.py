@@ -35,6 +35,7 @@ class BatchManager:
       self.parser.add_option("--required_memory", type="string", default="2048M", help="Required RAM for the job")
       self.parser.add_option("--job_flavor", type="string", default="tomorrow", help="Time limit for job (tomorrow = 1 day, workday = 8 hours, see https://batchdocs.web.cern.ch/local/submit.html#job-flavours for more)")
 
+      self.parser.add_option("--robust_fit", action="store_true", default=False, help="Re-run the robust fit iterations")
       self.parser.add_option("--dry", dest="dryRun", action="store_true", default=False, help="Do not submit jobs, just set up the files")
 
       (self.opt,self.args) = self.parser.parse_args()
@@ -80,6 +81,10 @@ class BatchManager:
       if "slc7" in scramver:
          singularityver = "cms:rhel7"
 
+      uploads = [ self.opt.tarfile ]
+      if not self.opt.robust_fit:
+         uploads.append(self.opt.wstarfile)
+
       scriptargs = {
          "home" : os.path.expanduser("~"),
          "uid" : os.getuid(),
@@ -94,17 +99,19 @@ class BatchManager:
          "CMSSWVERSION" : os.getenv("CMSSW_VERSION"),
          "SCRAMARCH" : scramver,
          "SUBMITDIR" : currendir_noCMSSWsrc,
+         "UPLOADS" : ",".join(uploads),
          "TARFILE" : self.opt.tarfile,
-         "WSTARFILE" : self.opt.wstarfile,
+         "WSTARFILE" : (self.opt.wstarfile if not self.opt.robust_fit else "NONE"),
+         "ROBUSTFIT" : ("rerun_with_robustfit" if self.opt.robust_fit else ""),
          "REQMEM" : self.opt.required_memory,
          "JOBFLAVOR" : self.opt.job_flavor
       }
 
       scriptcontents = """
 universe={QUEUE}
-+DESIRED_Sites="T2_US_UCSD"
++DESIRED_Sites="T2_US_UCSD,T2_US_Caltech,T2_US_MIT,T3_US_UCR,T3_US_Baylor,T3_US_Colorado,T3_US_NotreDame,T3_US_Cornell,T3_US_Rice,T3_US_Rutgers,T3_US_UCD,T3_US_TAMU,T3_US_TTU,T3_US_FIU,T3_US_FIT,T3_US_UMD,T3_US_OSU,T3_US_OSG,T3_US_UMiss,T3_US_PuertoRico"
 executable              = {batchScript}
-arguments               = {CMSSWVERSION} {SCRAMARCH} {TARFILE} {WSTARFILE} {CONDORSITE} {CONDOROUTDIR}
+arguments               = {CMSSWVERSION} {SCRAMARCH} {TARFILE} {WSTARFILE} {CONDORSITE} {CONDOROUTDIR} {ROBUSTFIT}
 Initialdir              = {outDir}
 output                  = {outLog}.$(ClusterId).$(ProcId).txt
 error                   = {errLog}.$(ClusterId).$(ProcId).err
@@ -115,7 +122,7 @@ x509userproxy           = {home}/x509up_u{uid}
 #https://www-auth.cs.wisc.edu/lists/htcondor-users/2010-September/msg00009.shtml
 periodic_remove         = JobStatus == 5
 transfer_executable=True
-transfer_input_files    = {TARFILE},{WSTARFILE}
+transfer_input_files    = {UPLOADS}
 transfer_output_files = ""
 +Owner = undefined
 +project_Name = "cmssurfandturf"
