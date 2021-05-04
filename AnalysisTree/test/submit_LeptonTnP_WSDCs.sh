@@ -18,7 +18,7 @@ declare -a minPtTags_mumu
 declare -a systOptions
 
 systOptions=( \
-  "" "ALTBkg" "ALTBkg2" "TightTag" "TightTag.ALTBkg" "TightTag.ALTBkg2" \
+  "" "ALTBkg" "ALTBkg2" "ALTBkg3" "TightTag" "TightTag.ALTBkg" "TightTag.ALTBkg2" "TightTag.ALTBkg3" \
 
   "MC_2l2nu" "MC_2l2nu.TightTag" \
   "MC_4l" "MC_4l.TightTag" \

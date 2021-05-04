@@ -1144,7 +1144,7 @@ void getDCSpecs_ZZ2L2Nu(
             hratio_systpair[systname] = std::pair<TH1F*, TH1F*>(hratio_dn, hratio_up);
           }
 
-          // find plot y min/max
+          // Find plot y min/max
           bool const useLogY = (hist_nominal->GetXaxis()->GetBinLowEdge(hist_nominal->GetNbinsX()+1)>1000.);
           {
             double ymin, ymax;

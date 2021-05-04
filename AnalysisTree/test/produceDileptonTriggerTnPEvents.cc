@@ -717,7 +717,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     float etaSC = (theElectron ? theElectron->etaSC() : theMuon->eta());
 
     leptons_id.push_back(part->pdgId());
-    leptons_is_genMatched_prompt.push_back(part->pdgId());
+    leptons_is_genMatched_prompt.push_back(is_genMatched_prompt);
     leptons_pt.push_back(part->pt());
     leptons_eta.push_back(part->eta());
     leptons_etaSC.push_back(etaSC);

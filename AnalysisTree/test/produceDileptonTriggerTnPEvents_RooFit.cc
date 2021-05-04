@@ -6,6 +6,7 @@
 #include "TCanvas.h"
 #include "TText.h"
 #include "TPaveText.h"
+#include "PlottingHelpers.h"
 
 
 #define BRANCH_SCALAR_COMMANDS \
@@ -335,12 +336,15 @@ using namespace SystematicsHelpers;
 void getEfficiencyHistograms(
   TString period, TString prodVersion, TString strdate,
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal,
+  bool allowDileptonLLX=true, bool allowDileptonOrthogonal=true,
   // Jet ID options
   bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false,
   // MET options
   bool use_MET_Puppi=false,
   bool use_MET_XYCorr=true, bool use_MET_JERCorr=false, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true
 ){
+  if (!allowDileptonLLX && !allowDileptonOrthogonal) return;
+
   if (!SampleHelpers::checkRunOnCondor()) std::signal(SIGINT, SampleHelpers::setSignalInterrupt);
 
   gStyle->SetOptStat(0);
@@ -405,6 +409,8 @@ void getEfficiencyHistograms(
   TDirectory* curdir = gDirectory;
 
   TString coutput_main = "output/DileptonTriggerTnPEvents/Efficiencies/" + strdate + "/" + period + "/Combined";
+  if (allowDileptonLLX && !allowDileptonOrthogonal) coutput_main += "_DileptonOnlyLLX";
+  else if (!allowDileptonLLX && allowDileptonOrthogonal) coutput_main += "_DileptonOnlyOrthogonal";
   gSystem->mkdir(coutput_main, true);
   curdir->cd();
 
@@ -974,6 +980,9 @@ void getEfficiencyHistograms(
             }
           }
         }
+
+        if (!allowDileptonLLX) wgt_triggers_tag=0;
+        if (!allowDileptonOrthogonal){ wgt_triggers_controls=wgt_triggers_controls_wcuts=0; }
 
         // Fill trigger efficiency histograms for dileptons
         if (wgt_triggers_tag>0.f || wgt_triggers_controls>0.f){
@@ -1844,8 +1853,11 @@ void findZMinMax(std::vector<TH2F*> const& hlist, double& minZ, double& maxZ){
 
 
 void collectEfficiencies(
-  TString period, TString prodVersion, TString strdate
+  TString period, TString prodVersion, TString strdate,
+  bool allowDileptonLLX=true, bool allowDileptonOrthogonal=true
 ){
+  if (!allowDileptonLLX && !allowDileptonOrthogonal) return;
+
   if (!SampleHelpers::checkRunOnCondor()) std::signal(SIGINT, SampleHelpers::setSignalInterrupt);
 
   gStyle->SetOptStat(0);
@@ -1869,6 +1881,14 @@ void collectEfficiencies(
 
   TString coutput_main = "output/DileptonTriggerTnPEvents/Efficiencies/" + strdate + "/" + period + "/Efficiencies";
   TString coutput_plots = "output/DileptonTriggerTnPEvents/Plots/" + strdate + "/" + period;
+  if (allowDileptonLLX && !allowDileptonOrthogonal){
+    coutput_main += "_DileptonOnlyLLX";
+    coutput_plots += "/DileptonOnlyLLX";
+  }
+  else if (!allowDileptonLLX && allowDileptonOrthogonal){
+    coutput_main += "_DileptonOnlyOrthogonal";
+    coutput_plots += "/DileptonOnlyOrthogonal";
+  }
   gSystem->mkdir(coutput_main, true);
   gSystem->mkdir(coutput_plots, true);
   curdir->cd();
@@ -1883,6 +1903,8 @@ void collectEfficiencies(
   for (auto const& syst:getAllowedSysts()){
     TString strSyst = SystematicsHelpers::getSystName(syst).data();
     TString cinput_main = "output/DileptonTriggerTnPEvents/Efficiencies/" + strdate + "/" + period + "/Combined";
+    if (allowDileptonLLX && !allowDileptonOrthogonal) cinput_main += "_DileptonOnlyLLX";
+    else if (!allowDileptonLLX && allowDileptonOrthogonal) cinput_main += "_DileptonOnlyOrthogonal";
     TString strinput = cinput_main + Form("/histograms_%s.root", strSyst.Data());
     TFile* finput = TFile::Open(strinput, "read");
 
@@ -2342,17 +2364,298 @@ void collectEfficiencies(
   SampleHelpers::addToCondorTransferList(stroutput);
 }
 
+TGraphAsymmErrors* getEfficiencyGraph(TH1F* hdenom, TH1F* hnum){
+  TGraphAsymmErrors* res=nullptr;
+
+  int nbins = hdenom->GetNbinsX();
+  std::vector<std::pair<double, double>> points(nbins, std::pair<double, double>(0, 0)), errorDns(nbins, std::pair<double, double>(0, 0)), errorUps(nbins, std::pair<double, double>(0, 0));
+  for (int ipt=0; ipt<nbins; ipt++){
+    points.at(ipt).first = hdenom->GetXaxis()->GetBinCenter(ipt+1);
+
+    double tp = hdenom->GetBinContent(ipt+1);
+    double tpsq = std::pow(hdenom->GetBinError(ipt+1), 2);
+    double pp = hnum->GetBinContent(ipt+1);
+    double edn=0, eup=0;
+
+    double vv = (tp!=0. ? pp/tp : 0.);
+    if (tp!=0.) StatisticsHelpers::getPoissonEfficiencyConfidenceInterval_Frequentist(tp, pp, tpsq, StatisticsHelpers::VAL_CL_1SIGMA, edn, eup);
+    edn -= vv; eup -= vv;
+
+    points.at(ipt).second = vv;
+    errorDns.at(ipt).second = -edn;
+    errorUps.at(ipt).second = eup;
+  }
+
+  TString grname = hdenom->GetName();
+  HelperFunctions::replaceString<TString, TString const>(grname, "h_", "gr_");
+  HelperFunctions::replaceString<TString, TString const>(grname, "_denom", "_ratio");
+  res = HelperFunctions::makeGraphAsymErrFromPair(points, errorDns, errorUps, grname);
+  res->SetTitle(Form(";%s;%s", hdenom->GetXaxis()->GetTitle(), hdenom->GetYaxis()->GetTitle()));
+  res->GetXaxis()->SetRangeUser(hdenom->GetXaxis()->GetBinLowEdge(1)+1e-6, hdenom->GetXaxis()->GetBinLowEdge(nbins+1)-1e-6);
+  res->GetYaxis()->SetRangeUser(0.95, 1.0);
+  res->GetXaxis()->SetTitle(hdenom->GetXaxis()->GetTitle());
+  res->GetYaxis()->SetTitle(hdenom->GetYaxis()->GetTitle());
+  res->SetLineWidth(2);
+  res->SetLineColor(kBlack);
+  res->SetMarkerColor(kBlack);
+
+  return res;
+}
+void compareDileptonCombinedOrthogonalCounts(TString period, TString prodVersion, TString strdate){
+  using namespace PlottingHelpers;
+
+  if (!SampleHelpers::checkRunOnCondor()) std::signal(SIGINT, SampleHelpers::setSignalInterrupt);
+
+  gStyle->SetOptStat(0);
+
+  if (strdate=="") strdate = HelperFunctions::todaysdate();
+
+  SampleHelpers::configure(period, Form("store_skims:%s", prodVersion.Data()));
+
+  const float lumi = SampleHelpers::getIntegratedLuminosity(SampleHelpers::getDataPeriod());
+  std::vector<TString> const validDataPeriods = SampleHelpers::getValidDataPeriods();
+  size_t const nValidDataPeriods = validDataPeriods.size();
+
+  std::vector<TString> strChannelNames{ "mumu", "mue", "ee" };
+  std::vector<TString> strChannelTitles{ "#mu#mu", "#mue", "ee" };
+  const unsigned int nchannels = strChannelNames.size();
+
+  std::vector<TString> strEtaRangeNames{ "barrel", "endcap" };
+  const unsigned int nEtaRanges = strEtaRangeNames.size();
+
+  TDirectory* curdir = gDirectory;
+
+  TString coutput_plots = "output/DileptonTriggerTnPEvents/Plots/DileptonOrthogonalCounts/" + strdate + "/" + period;
+  gSystem->mkdir(coutput_plots, true);
+  curdir->cd();
+
+
+  std::vector<TString> const strVarNames{ "MET", "HT", "MHT" };
+  for (auto const& syst:getAllowedSysts()){
+    TString strSyst = SystematicsHelpers::getSystName(syst).data();
+    TString cinput_main = "output/DileptonTriggerTnPEvents/Efficiencies/" + strdate + "/" + period + "/Combined_DileptonOnlyOrthogonal";
+    TString strinput = cinput_main + Form("/histograms_%s.root", strSyst.Data());
+    TFile* finput = TFile::Open(strinput, "read");
+
+    finput->cd();
+    TDirectory* subdir_Dileptons = (TDirectory*) finput->Get("Dileptons");
+    TDirectory* subdir_Dileptons_wcuts = (TDirectory*) finput->Get("Dileptons_wCuts");
+
+    for (auto const& strVarName:strVarNames){
+      TDirectory* subdir_Dileptons_var = (TDirectory*) subdir_Dileptons->Get(strVarName);
+      std::vector<TH1F*> hcounts_combined[2][2][2];
+      {
+        subdir_Dileptons_var->cd();
+        std::vector<TH1F*> tmplist;
+        HelperFunctions::extractHistogramsFromDirectory(subdir_Dileptons_var, tmplist, TVar::SILENT);
+        for (auto& hh:tmplist){
+          TString hname = hh->GetName();
+          short idatasim = -1;
+          if (hname.Contains("_Data")) idatasim = 0;
+          else if (hname.Contains("_DY_2l")) idatasim = 1;
+          else continue;
+          short idenum=-1;
+          if (hname.Contains("_denom")) idenum = 0;
+          else if (hname.Contains("_num")) idenum = 1;
+          else continue;
+          if (idatasim>=0 && idenum>=0){
+            TString hname = hh->GetName();
+            HelperFunctions::replaceString(hname, "_Data", "_data");
+            HelperFunctions::replaceString(hname, "_DY_2l", "_MC");
+            hname = Form("%s_%s", hname.Data(), strSyst.Data());
+            hh->SetName(hname);
+            hh->SetLineColor(kRed);
+            hh->SetLineWidth(2);
+            hh->SetLineStyle((idenum==0 ? 7 : 1));
+            hh->SetFillStyle(0);
+            hcounts_combined[0][idatasim][idenum].push_back(hh);
+          }
+        }
+      }
+
+      TDirectory* subdir_Dileptons_wcuts_var = (TDirectory*) subdir_Dileptons_wcuts->Get(strVarName);
+      {
+        subdir_Dileptons_wcuts_var->cd();
+        std::vector<TH1F*> tmplist;
+        HelperFunctions::extractHistogramsFromDirectory(subdir_Dileptons_wcuts_var, tmplist, TVar::SILENT);
+        for (auto& hh:tmplist){
+          TString hname = hh->GetName();
+          short idatasim = -1;
+          if (hname.Contains("_Data")) idatasim = 0;
+          else if (hname.Contains("_DY_2l")) idatasim = 1;
+          else continue;
+          short idenum=-1;
+          if (hname.Contains("_denom")) idenum = 0;
+          else if (hname.Contains("_num")) idenum = 1;
+          else continue;
+          if (idatasim>=0 && idenum>=0){
+            TString hname = hh->GetName();
+            HelperFunctions::replaceString(hname, "_Data", "_data");
+            HelperFunctions::replaceString(hname, "_DY_2l", "_MC");
+            hname = Form("%s_%s", hname.Data(), strSyst.Data());
+            hh->SetName(hname);
+            hh->SetLineColor(kBlue);
+            hh->SetLineWidth(2);
+            hh->SetLineStyle((idenum==0 ? 7 : 1));
+            hh->SetFillStyle(0);
+            hcounts_combined[1][idatasim][idenum].push_back(hh);
+          }
+        }
+      }
+
+      curdir->cd();
+
+      unsigned short const nchannels = hcounts_combined[0][0][0].size();
+      MELAout << "Plotting nchannels = " << nchannels << endl;
+      for (unsigned int ich=0; ich<nchannels; ich++){
+        TGraphAsymmErrors* gratios[2][2];
+        for (unsigned short ic=0; ic<2; ic++){
+          for (unsigned short ids=0; ids<2; ids++){
+            TH1F* const& hdenom = hcounts_combined[ic][ids][0].at(ich);
+            TH1F* const& hnum = hcounts_combined[ic][ids][1].at(ich);
+
+            gratios[ic][ids] = getEfficiencyGraph(hdenom, hnum);
+            if (ic==0){
+              gratios[ic][ids]->SetMarkerColor(kRed);
+              gratios[ic][ids]->SetLineColor(kRed);
+            }
+            else{
+              gratios[ic][ids]->SetMarkerColor(kBlue);
+              gratios[ic][ids]->SetLineColor(kBlue);
+            }
+          }
+        }
+
+        TString canvasname = hcounts_combined[0][0][0].at(ich)->GetName();
+        HelperFunctions::replaceString<TString, TString const>(canvasname, "h_", "c_");
+        HelperFunctions::replaceString<TString, TString const>(canvasname, "_denom", "");
+        HelperFunctions::replaceString<TString, TString const>(canvasname, "_data", "");
+        HelperFunctions::replaceString<TString, TString const>(canvasname, "_Data", "");
+        PlotCanvas plot(
+          canvasname, 512, 512,
+          2, 2,
+          0.25, 1.0, 0.2, 0.0875,
+          0.1, 0.1, 0.3
+        );
+        plot.addCMSLogo(kPreliminary, theSqrts, lumi);
+
+        TString strxtitle = hcounts_combined[0][0][0].at(ich)->GetXaxis()->GetTitle();
+        TString strytitle = hcounts_combined[0][0][0].at(ich)->GetYaxis()->GetTitle();
+
+        for (unsigned short ids=0; ids<2; ids++){
+          bool firstHist = true;
+          bool firstGraph = true;
+          for (unsigned short ic=0; ic<2; ic++){
+            TPad* pad_main = plot.getInsidePanels().at(ids).back(); pad_main->cd();
+            for (unsigned short idn=0; idn<2; idn++){
+              hcounts_combined[ic][ids][idn].at(ich)->GetXaxis()->SetLabelSize(0);
+              hcounts_combined[ic][ids][idn].at(ich)->GetYaxis()->SetTitleFont(PlotCanvas::getStdFont_XYTitle());
+              hcounts_combined[ic][ids][idn].at(ich)->GetYaxis()->SetTitleSize(plot.getStdPixelSize_XYTitle());
+              hcounts_combined[ic][ids][idn].at(ich)->GetYaxis()->SetLabelFont(PlotCanvas::getStdFont_XYLabel());
+              if (ids==0) hcounts_combined[ic][ids][idn].at(ich)->GetYaxis()->SetLabelSize(plot.getStdPixelSize_XYLabel());
+              else hcounts_combined[ic][ids][idn].at(ich)->GetYaxis()->SetLabelSize(0);
+              hcounts_combined[ic][ids][idn].at(ich)->GetYaxis()->SetLabelOffset(plot.getStdOffset_YLabel());
+              hcounts_combined[ic][ids][idn].at(ich)->GetYaxis()->SetNdivisions(510);
+              hcounts_combined[ic][ids][idn].at(ich)->GetYaxis()->SetNdivisions(510);
+              hcounts_combined[ic][ids][idn].at(ich)->GetXaxis()->SetTitle("");
+              hcounts_combined[ic][ids][idn].at(ich)->GetYaxis()->SetTitle("");
+              hcounts_combined[ic][ids][idn].at(ich)->Draw((firstHist ? "hist" : "histsame"));
+              firstHist = false;
+            }
+
+            TPad* pad_ratio = plot.getInsidePanels().at(ids).front(); pad_ratio->cd();
+            gratios[ic][ids]->GetXaxis()->SetTitleFont(PlotCanvas::getStdFont_XYTitle());
+            gratios[ic][ids]->GetXaxis()->SetTitleSize(plot.getStdPixelSize_XYTitle());
+            gratios[ic][ids]->GetXaxis()->SetLabelFont(PlotCanvas::getStdFont_XYLabel());
+            gratios[ic][ids]->GetXaxis()->SetLabelSize(plot.getStdPixelSize_XYLabel());
+            gratios[ic][ids]->GetXaxis()->SetLabelOffset(plot.getStdOffset_XLabel());
+            gratios[ic][ids]->GetYaxis()->SetTitleFont(PlotCanvas::getStdFont_XYTitle());
+            gratios[ic][ids]->GetYaxis()->SetTitleSize(plot.getStdPixelSize_XYTitle());
+            gratios[ic][ids]->GetYaxis()->SetLabelFont(PlotCanvas::getStdFont_XYLabel());
+            if (ids==0) gratios[ic][ids]->GetYaxis()->SetLabelSize(plot.getStdPixelSize_XYLabel());
+            else gratios[ic][ids]->GetYaxis()->SetLabelSize(0);
+            gratios[ic][ids]->GetYaxis()->SetLabelOffset(plot.getStdOffset_YLabel());
+            gratios[ic][ids]->GetYaxis()->SetNdivisions(505);
+            gratios[ic][ids]->GetXaxis()->SetNdivisions(505);
+            gratios[ic][ids]->GetXaxis()->SetTitle("");
+            gratios[ic][ids]->GetYaxis()->SetTitle("");
+            gratios[ic][ids]->Draw((firstGraph ? "ae1pl" : "e1plsame"));
+            firstGraph = false;
+          }
+        }
+
+        TPad* pad_legend = plot.getBorderPanels().at(3);
+        pad_legend->cd();
+        TLegend* legend = new TLegend(
+          0.01,
+          0.72,
+          0.99,
+          1.
+        );
+        legend->SetBorderSize(0);
+        legend->SetTextFont(43);
+        legend->SetTextSize(plot.getStdPixelSize_XYLabel());
+        legend->SetLineColor(1);
+        legend->SetLineStyle(1);
+        legend->SetLineWidth(1);
+        legend->SetFillColor(0);
+        legend->SetFillStyle(0);
+        legend->AddEntry(hcounts_combined[0][0][0].at(ich), "Data w/o orthg. sel.", "l");
+        legend->AddEntry(hcounts_combined[0][0][1].at(ich), "Data w/o orthg. sel. + ll trig.", "l");
+        legend->AddEntry(hcounts_combined[1][0][0].at(ich), "Data w/ orthg. sel.", "l");
+        legend->AddEntry(hcounts_combined[1][0][1].at(ich), "Data w/ orthg. sel. + ll trig.", "l");
+        plot.addLegend(legend);
+        legend->Draw();
+
+        // Add x and y titles
+        TPad* pad_xtitle = plot.getBorderPanels().at(0); pad_xtitle->cd();
+        TLatex* xtitle = new TLatex(); plot.addText(xtitle);
+        xtitle->SetTextAlign(22);
+        xtitle->SetTextFont(PlotCanvas::getStdFont_XYTitle());
+        xtitle->SetTextSize(plot.getStdPixelSize_XYTitle());
+        xtitle->DrawLatexNDC(0.5, 0.5, strxtitle);
+
+        TPad* pad_ytitle = plot.getBorderPanels().at(1); pad_ytitle->cd();
+        TLatex* ytitle = new TLatex(); plot.addText(ytitle);
+        ytitle->SetTextAlign(22);
+        ytitle->SetTextFont(PlotCanvas::getStdFont_XYTitle());
+        ytitle->SetTextSize(plot.getStdPixelSize_XYTitle());
+        ytitle->SetTextAngle(90);
+        ytitle->DrawLatexNDC(0.5, 1.-0.5/1.4, strytitle);
+        ytitle->DrawLatexNDC(0.5, 0.15/1.4, "Ratios");
+
+        plot.update();
+        plot.save(coutput_plots, "png");
+        plot.save(coutput_plots, "pdf");
+
+        for (unsigned short ic=0; ic<2; ic++){
+          for (unsigned short ids=0; ids<2; ids++) delete gratios[ic][ids];
+        }
+      }
+
+    }
+
+    finput->Close();
+    curdir->cd();
+  }
+
+
+}
+
+
 void runChain(
-  TString period, TString prodVersion, TString strdate
+  TString period, TString prodVersion, TString strdate,
+  bool allowDileptonLLX=true, bool allowDileptonOrthogonal=true
 ){
   for (auto const& syst:getAllowedSysts()) getEfficiencyHistograms(
     period, prodVersion, strdate,
     syst,
+    allowDileptonLLX, allowDileptonOrthogonal,
     // Jet ID options
     true, false,
     // MET options
     false,
     true, false, true, true, true
   );
-  collectEfficiencies(period, prodVersion, strdate);
+  collectEfficiencies(period, prodVersion, strdate, allowDileptonLLX, allowDileptonOrthogonal);
 }
