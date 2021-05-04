@@ -62,7 +62,7 @@ src/JHUGenMELA/MELA/data/${SCRAM_ARCH}/lib*.so \
 --exclude=src/*/*/test/*.DAT \
 --exclude=src/*/*/test/tmp* \
 --exclude=src/*/*/test/temp* \
---exclude={.git,.gitignore,__init__.py,*.tar,*.pyc,*.mod,*.out}
+--exclude={.git,.gitignore,__init__.py,*.tar,*.pyc,*.mod,*.out,*.bkp}
 
 
 if [[ ! -z "$extraTarFile" ]];then

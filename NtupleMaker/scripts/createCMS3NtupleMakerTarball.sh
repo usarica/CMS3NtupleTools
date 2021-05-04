@@ -41,7 +41,7 @@ src/CMS3 \
 --exclude=src/CMS3/NtupleMaker/test/*.csv \
 --exclude=src/CMS3/NtupleMaker/test/*.md \
 --exclude=src/CMS3/NtupleMaker/test/*.sh \
---exclude={.git,.gitignore,__init__.py,*.tar,libmcfm*,*.d,*.a,*.o,*.pcm,*.so,*.pyc,*.mod}
+--exclude={.git,.gitignore,__init__.py,*.tar,libmcfm*,*.d,*.a,*.o,*.pcm,*.so,*.pyc,*.mod,*.bkp}
 
 mv $TARFILE $HERE/
 

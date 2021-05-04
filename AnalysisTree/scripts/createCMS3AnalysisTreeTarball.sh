@@ -86,7 +86,7 @@ src/CMS3/MELAHelpers \
 --exclude=src/CMS3/AnalysisTree/test/*.o \
 --exclude=src/CMS3/AnalysisTree/test/*.so \
 --exclude=src/CMS3/AnalysisTree/test/*.pcm \
---exclude={.git,.gitignore,__init__.py,*.tar,*.pyc,*.mod,*.out}
+--exclude={.git,.gitignore,__init__.py,*.tar,*.pyc,*.mod,*.out,*.bkp}
 
 
 if [[ ! -z "$extraTarFile" ]];then
