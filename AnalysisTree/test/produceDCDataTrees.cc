@@ -122,7 +122,7 @@ void getTrees_ZZTo2L2Nu(
 
   int icat_boostedHadVH = -1;
   int icat_resolvedHadVH = -1;
-  std::vector<TString> strCatNames{ "Nj_eq_0", "Nj_eq_1", "Nj_geq_2" };
+  std::vector<TString> strCatNames{ "Nj_eq_0", "Nj_eq_1", "Nj_geq_2_pTmiss_lt_200", "Nj_geq_2_pTmiss_ge_200" };
   if (includeBoostedHadVHCategory){ strCatNames.push_back("BoostedHadVH"); icat_boostedHadVH=strCatNames.size()-1; }
   if (includeResolvedHadVHCategory){ strCatNames.push_back("ResolvedHadVH"); icat_resolvedHadVH=strCatNames.size()-1; }
   unsigned int const nCats = strCatNames.size();
@@ -312,7 +312,7 @@ void getTrees_ZZTo2L2Nu(
         icat=icat_resolvedHadVH;
       }
       else if (event_n_ak4jets_pt30>=2){
-        icat=2;
+        icat=(event_pTmiss<200.f ? 2 : 3);
         if (KDlist.size()>0) KD1 = *(KDlist.at(0).KD);
         if (KDlist.size()>1) KD2 = *(KDlist.at(1).KD);
       }

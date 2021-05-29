@@ -1,6 +1,6 @@
 #!/bin/bash
 
-declare -r chkdir=$1
+declare -r chkdir="$1"
 declare -i multiprod=1
 declare -i islongfile=0
 declare -i skiplongfile=0

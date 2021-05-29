@@ -24,7 +24,7 @@ arguments="${arguments/<ntupleVersion>/$ntupleVersion}"
 arguments="${arguments/<skipIntermediates>/$skipIntermediates}"
 
 for includeBoostedHadVHCategory in false true; do
-for includeResolvedHadVHCategory in false true; do
+for includeResolvedHadVHCategory in false; do
 for AChypo in kSM kA3 kA2 kL1 kL1ZGs; do
 for dilepton_id in -121 -169; do
   strargs="${arguments}"

@@ -1,26 +1,23 @@
 #!/bin/bash
 
-date=210313
+date=210504
 
 
-while [[ 1 ]]; do
 #for d in DileptonEvents DileptonTriggerTnPEvents LGEvents LLGEvents SingleLeptonEvents SinglePhotonEGTnP SinglePhotonEvents 3LEvents LeptonTnP; do
-for d in DileptonEvents LGEvents LLGEvents SingleLeptonEvents SinglePhotonEvents 3LEvents; do
+for d in DileptonEvents LLGEvents SingleLeptonEvents SinglePhotonEvents 3LEvents; do
   scr="./submit_${d}.sh"
 
-  #$scr ${date} 2018 201221_2018 only_sim useMETJERCorr=false
-  #$scr ${date} 2017 201221_2017 only_sim useMETJERCorr=false
-  #$scr ${date} 2016 201221_2016 only_sim useMETJERCorr=false
-
-  #if [[ ${d} == "DileptonEvents" ]] || [[ ${d} == "3LEvents" ]]; then
-  #  $scr ${date} 2018 201221_2018 only_sim_offshell all_imp_systs useMETJERCorr=false
-  #  $scr ${date} 2017 201221_2017 only_sim_offshell all_imp_systs useMETJERCorr=false
-  #  $scr ${date} 2016 201221_2016 only_sim_offshell all_imp_systs useMETJERCorr=false
-  #fi
-
-  for dd in $(checkCMS3NtupleProduction.sh output/${date}_${d} singleprod | grep -e failed | awk '{print $1}' | sort | uniq); do
-    resubmitCMS3NtupleProduction.sh ${dd}
+  for yy in 2016 2017 2018; do
+    $scr ${date} $yy 201221_$yy all_imp_systs useMETJERCorr=false &
   done
-done
-sleep 1800
+
+  wait
+
+  parallelizeCMS3Jobs.py --oldjobdir=output/${date}_${d}/*/* --newjobdir=output/${date}_${d}_parallel --nsubjobs=100 --nthreads=12
+  resubmitCMS3NtupleProduction.sh output/${date}_${d}_parallel
+
+
+  #for dd in $(checkCMS3NtupleProduction.sh output/${date}_${d} singleprod | grep -e failed | awk '{print $1}' | sort | uniq); do
+  #  resubmitCMS3NtupleProduction.sh ${dd}
+  #done
 done

@@ -37,16 +37,9 @@ CMSSWVERSION="$1"
 SCRAMARCH="$2"
 SUBMIT_DIR="$3" # Must be within $CMSSW_BASE/src/
 TARFILE="$4"
-SCRIPT="$5"
-FCN="$6"
-FCNARGS="$7"
-CONDORSITE="$8"
-CONDOROUTDIR="$9"
-
-if [[ "${FCNARGS}" == "<NONE>" ]];then
-  FCNARGS=""
-fi
-
+SCRIPT="pebbleRoutine.cc"
+FCN="pebbleRoutine"
+FCNARGS=""
 
 export SCRAM_ARCH=${SCRAMARCH}
 
@@ -58,8 +51,6 @@ echo "TARFILE: $TARFILE"
 echo "SCRIPT: $SCRIPT"
 echo "FCN: $FCN"
 echo "FCNARGS: $FCNARGS"
-echo "CONDORSITE: $CONDORSITE"
-echo "CONDOROUTDIR: $CONDOROUTDIR"
 
 echo "GLIDEIN_CMSSite: $GLIDEIN_CMSSite"
 echo "hostname: $(hostname)"
@@ -231,18 +222,19 @@ cp -f ${CMSSW_BASE}/src/JHUGenMELA/MELA/data/input.DAT ./
 cp -rf ${CMSSW_BASE}/src/JHUGenMELA/MELA/data/Pdfdata ./
 # Run the script
 LOADLIB="loadLib.C"
-if [[ -d ${CMSSW_BASE}/src/HiggsAnalysis/CombinedLimit ]]; then
-  LOADLIB="loadLibExtra.C"
-fi
 RUN_CMD=$(runGenericROOTCommand.py --loadlib="$LOADLIB" --script="$SCRIPT" --function="$FCN" --command="$FCNARGS" --recompile --dry) # Must force recompilation
 if [[ "$RUN_CMD" == "Running "* ]];then
   echo "$RUN_CMD"
-  RUN_CMD=${RUN_CMD//"Running "}
+  RUN_CMD=${RUN_CMD//"Running "/"timeout -s SIGKILL 10m "}
   eval "$RUN_CMD"
   RUN_STATUS=$?
   if [ $RUN_STATUS != 0 ]; then
     echo "Run has crashed with exit code ${RUN_STATUS}"
+    sleep 1d
     exit 1
+  else
+    echo "Run succeeded. Pending for 20 min. to allow other pebbles to fill gaps..."
+    sleep 20m
   fi
 else
   echo "Run command ${RUN_CMD} is invalid."
@@ -250,42 +242,6 @@ else
 fi
 
 echo -e "\n--- End RUN ---\n"
-
-echo "Submission directory after running all steps before file transfers: ls -lrth"
-ls -lrth
-
-##################
-# TRANSFER FILES #
-##################
-# In cases where transfer through the script fails
-if [[ -f "EXTERNAL_TRANSFER_LIST.LST" ]];then
-  cat EXTERNAL_TRANSFER_LIST.LST | sort | uniq >> EXTERNAL_TRANSFER_LIST.LST.NEW
-  mv EXTERNAL_TRANSFER_LIST.LST.NEW EXTERNAL_TRANSFER_LIST.LST
-
-  echo -e "\n--- Begin EXTERNAL TRANSFER ---\n"
-  while IFS='' read -r line || [[ -n "$line" ]]; do
-    OUTFILENAME=${line}
-    # If there is an instruction to compress, convert the file/directory name into a tar file.
-    if [[ "${OUTFILENAME}" == "compress:"* ]]; then
-      OUTFILENAME=${OUTFILENAME/'compress:'}
-      if [[ "${OUTFILENAME}" == *"/" ]]; then
-        OUTFILENAME=${OUTFILENAME%?}
-      fi
-      tar Jcf ${OUTFILENAME}.tar ${OUTFILENAME}
-      OUTFILENAME=${OUTFILENAME}.tar
-    fi
-    # Begin copying the file
-    echo "Copying output file ${OUTFILENAME}"
-    copyFromCondorToSite.sh ${RUNDIR} ${OUTFILENAME} ${CONDORSITE} ${CONDOROUTDIR}
-    TRANSFER_STATUS=$?
-    if [ $TRANSFER_STATUS != 0 ]; then
-      echo " - Transfer crashed with exit code ${TRANSFER_STATUS}"
-    fi
-  done < "EXTERNAL_TRANSFER_LIST.LST"
-  echo -e "\n--- End EXTERNAL TRANSFER ---\n"
-fi
-##############
-
 
 echo "Submission directory after running all steps: ls -lrth"
 ls -lrth

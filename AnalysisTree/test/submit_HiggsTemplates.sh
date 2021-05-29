@@ -48,7 +48,7 @@ fi
 
 for syst in "${systs[@]}"; do
 for includeBoostedHadVHCategory in false true; do
-for includeResolvedHadVHCategory in false true; do
+for includeResolvedHadVHCategory in false; do
 for hypo in kSM kA3 kA2 kL1 kL1ZGs; do
   strargs="${arguments}"
   strargs="${strargs/<strSampleSet>/${proc}}"

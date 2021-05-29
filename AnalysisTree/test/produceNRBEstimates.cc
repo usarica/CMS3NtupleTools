@@ -260,6 +260,7 @@ void getMCSampleDirs(
   BRANCH_COMMAND(cms3_id_t, dilepton_id) \
   BRANCH_COMMAND(float, dilepton_pt) \
   BRANCH_COMMAND(float, dilepton_eta) \
+  BRANCH_COMMAND(float, dilepton_phi) \
   BRANCH_COMMAND(float, dilepton_mass) \
   BRANCH_COMMAND(float, dPhi_pTboson_pTmiss) \
   BRANCH_COMMAND(float, dPhi_pTbosonjets_pTmiss) \
@@ -737,7 +738,7 @@ void getDistributions(
           if (!fast_mode){
             HISTOGRAM_COMMAND("mTZZ", binning_mTZZ);
             HISTOGRAM_COMMAND("mll", binning_mll);
-            HISTOGRAM_COMMAND("pTll", binning_pTll);
+            /*HISTOGRAM_COMMAND("pTll", binning_pTll)*/;
             HISTOGRAM_COMMAND("pTl1", binning_pTl1);
             HISTOGRAM_COMMAND("pTl2", binning_pTl2);
             HISTOGRAM_COMMAND("pTmiss", binning_pTmiss);
@@ -747,11 +748,11 @@ void getDistributions(
             HISTOGRAM_COMMAND("min_abs_dPhi_pTj_pTmiss", binning_min_abs_dPhi_pTj_pTmiss);
             HISTOGRAM_COMMAND("mjj", binning_mjj);
             HISTOGRAM_COMMAND("Nak4jets", binning_Nak4jets);
-            HISTOGRAM_COMMAND("Nak4jetsMass60", binning_Nak4jets_mass60);
+            /*HISTOGRAM_COMMAND("Nak4jetsMass60", binning_Nak4jets_mass60)*/;
             HISTOGRAM_COMMAND("mJ_mass60to130", binning_mJ_mass60to130);
-            HISTOGRAM_COMMAND("Nak8jets", binning_Nak8jets);
+            /*HISTOGRAM_COMMAND("Nak8jets", binning_Nak8jets)*/;
             HISTOGRAM_COMMAND("Nak8jetsMass60to130", binning_Nak8jets_mass60to130);
-            HISTOGRAM_COMMAND("Nak8jetsMass140", binning_Nak8jets_mass140);
+            /*HISTOGRAM_COMMAND("Nak8jetsMass140", binning_Nak8jets_mass140)*/;
             for (auto const& KDspec:KDlist){
               ExtendedBinning binning_KD(10, 0, 1, KDspec.KDlabel);
               HISTOGRAM_COMMAND(KDspec.KDname.Data(), binning_KD);
@@ -1912,7 +1913,11 @@ void makePlots_fcorr(
 
   TDirectory* curdir = gDirectory;
 
-  TString const cinput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Histograms/" + period;
+  TString cinput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Histograms/" + period;
+  if (!SampleHelpers::checkFileOnWorker(cinput_main)){
+    MELAerr << "Input folder " << cinput_main << " does not exist locally and on the worker directory." << endl;
+    exit(1);
+  }
   TString const coutput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Plots/" + period + "/fcorr";
   gSystem->mkdir(coutput_main, true);
 
@@ -2086,7 +2091,11 @@ void makePlots(
 
   TDirectory* curdir = gDirectory;
 
-  TString const cinput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Histograms/" + period;
+  TString cinput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Histograms/" + period;
+  if (!SampleHelpers::checkFileOnWorker(cinput_main)){
+    MELAerr << "Input folder " << cinput_main << " does not exist locally and on the worker directory." << endl;
+    exit(1);
+  }
   TString const coutput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Plots/" + period + "/Distributions";
   gSystem->mkdir(coutput_main, true);
 
@@ -2264,6 +2273,13 @@ void makePlots(
               selectionLabels,
               "hist", false, -1
             );
+            if (varname=="mll"){
+              for (unsigned int ip=0; ip<hplot.size(); ip++){
+                if (hlabels.at(ip).Contains("Observed") || hlabels.at(ip).Contains("All non-res.") || hlabels.at(ip).Contains("Other")){
+                  MELAout << hlabels.at(ip) << " integral: " << hplot.at(ip)->Integral() << endl;
+                }
+              }
+            }
 
           }
         }

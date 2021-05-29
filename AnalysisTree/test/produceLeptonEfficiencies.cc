@@ -506,6 +506,8 @@ BRANCH_COMMAND(float, eta_genMatch_l1) \
 BRANCH_COMMAND(float, phi_genMatch_l1) \
 BRANCH_COMMAND(float, dR_genMatch_l1) \
 BRANCH_COMMAND(bool, hasTightCharge_l1) \
+BRANCH_COMMAND(float, relPFIso_DR0p3_EAcorr_l1) \
+BRANCH_COMMAND(float, relPFIso_DR0p4_EAcorr_l1) \
 BRANCH_COMMAND(int, id_l2) \
 BRANCH_COMMAND(float, pt_l2) \
 BRANCH_COMMAND(float, eta_l2) \
@@ -543,6 +545,8 @@ BRANCH_COMMAND(float, etaSC_l2)
 #define BRANCHES_DIMUONS \
 BRANCH_COMMAND(bool, passTiming_l1) \
 BRANCH_COMMAND(float, minDR_electron_l1) \
+BRANCH_COMMAND(float, relPFIso_DR0p3_DBcorr_l1) \
+BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l1) \
 BRANCH_COMMAND(bool, passTiming_l2) \
 BRANCH_COMMAND(float, minDR_electron_l2) \
 BRANCH_COMMAND(float, relPFIso_DR0p3_DBcorr_l2) \
@@ -1010,6 +1014,10 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
           etaSC_l1 = get_etaSC(lepton_tag);
           hasTightCharge_l1 = get_tightCharge(lepton_tag);
           passTiming_l1 = testTiming(lepton_tag);
+          relPFIso_DR0p3_DBcorr_l1 = getPFIsoDR0p3_DBcorr(lepton_tag);
+          relPFIso_DR0p4_DBcorr_l1 = getPFIsoDR0p4_DBcorr(lepton_tag);
+          relPFIso_DR0p3_EAcorr_l1 = getPFIsoDR0p3_EAcorr(lepton_tag);
+          relPFIso_DR0p4_EAcorr_l1 = getPFIsoDR0p4_EAcorr(lepton_tag);
           // L2
           id_l2 = lepton_probe->pdgId();
           pt_l2 = lepton_probe->pt();

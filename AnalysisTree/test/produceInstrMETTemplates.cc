@@ -158,13 +158,16 @@ void getTemplateIntermediate_ZZ2L2Nu(
   using namespace PhysicsProcessHelpers;
   using namespace HistogramKernelDensitySmoothener;
 
+  constexpr double stddev_stat = 3;
+  constexpr bool useSymmetric = true;
+
   TDirectory* curdir = gDirectory;
 
   SampleHelpers::configure(period, Form("%s:ZZTo2L2Nu/%s", "store_finaltrees", ntupleVersion.Data()));
 
   int icat_boostedHadVH = -1;
   int icat_resolvedHadVH = -1;
-  std::vector<TString> strCatNames{ "Nj_eq_0", "Nj_eq_1", "Nj_geq_2" };
+  std::vector<TString> strCatNames{ "Nj_eq_0", "Nj_eq_1", "Nj_geq_2_pTmiss_lt_200", "Nj_geq_2_pTmiss_ge_200" };
   if (includeBoostedHadVHCategory){ strCatNames.push_back("BoostedHadVH"); icat_boostedHadVH=strCatNames.size()-1; }
   if (includeResolvedHadVHCategory){ strCatNames.push_back("ResolvedHadVH"); icat_resolvedHadVH=strCatNames.size()-1; }
   unsigned int const nCats = strCatNames.size();
@@ -187,35 +190,8 @@ void getTemplateIntermediate_ZZ2L2Nu(
     }
   }
   
-
   // Build process
   GenericBkgProcessHandler process_handler("InstrMET", strSampleSet, ACHypothesisHelpers::kZZ2l2nu_offshell);
-  // The two options are purely due to statitics of the MC and how far the processes reach.
-  bool applyConditionalKD=false, applyUniformKDAtHighMass=false;
-  std::vector<double> KDsplit_mTZZvals; KDsplit_mTZZvals.reserve(1);
-  if (strSampleSet=="Data"){
-    applyConditionalKD = true;
-    KDsplit_mTZZvals.push_back(400);
-  }
-  else if (strSampleSet=="WG"){
-    applyUniformKDAtHighMass = true;
-    KDsplit_mTZZvals.push_back(400);
-  }
-  else if (strSampleSet=="ZG"){
-    applyUniformKDAtHighMass = true;
-    KDsplit_mTZZvals.push_back(700);
-  }
-  else if (strSampleSet=="VVG" || strSampleSet=="tGX"){
-    applyConditionalKD = true;
-  }
-  else if (strSampleSet=="SingleElectron"){
-    applyUniformKDAtHighMass = true;
-    KDsplit_mTZZvals.push_back(500);
-  }
-  if (applyUniformKDAtHighMass && KDsplit_mTZZvals.size()!=1){
-    MELAerr << "getTemplate_ZZ2L2Nu: Please revise the high mass KD split for process " << strSampleSet << "." << endl;
-    return;
-  }
 
   // Build discriminants
   std::vector<DiscriminantClasses::Type> KDtypes;
@@ -284,12 +260,13 @@ void getTemplateIntermediate_ZZ2L2Nu(
   }
 
   // Set up output
-  TString const coutput_main = "output/TemplateIntermediates/" + strdate + "/CatScheme_Nj" + (includeBoostedHadVHCategory ? (includeResolvedHadVHCategory ? "_BoostedHadVH_ResolvedHadVH" : "_BoostedHadVH") : (includeResolvedHadVHCategory ? "_ResolvedHadVH" : "")) + "/" + ACHypothesisHelpers::getACHypothesisName(AChypo) + "/" + period;
+  TString coutput_main = "output/TemplateIntermediates/" + strdate + "/CatScheme_Nj" + (includeBoostedHadVHCategory ? (includeResolvedHadVHCategory ? "_BoostedHadVH_ResolvedHadVH" : "_BoostedHadVH") : (includeResolvedHadVHCategory ? "_ResolvedHadVH" : "")) + "/" + ACHypothesisHelpers::getACHypothesisName(AChypo) + "/" + period;
+  if (SampleHelpers::checkRunOnCondor()) coutput_main += Form("/InstrMET_%s", strChannel.Data());
   gSystem->mkdir(coutput_main, true);
 
   TString stroutput_txt = coutput_main + "/" + strIntermediateProcName + "_" + strChannel + "_" + strSystDC + ".txt";
   MELAout.open(stroutput_txt.Data());
-  SampleHelpers::addToCondorTransferList(stroutput_txt);
+  //SampleHelpers::addToCondorTransferList(stroutput_txt);
 
   TString stroutput_commons = coutput_main + "/" + strIntermediateProcName + "_" + strChannel + "_" + strSystDC + "_commons.root";
   TFile* foutput_common = TFile::Open(stroutput_commons, "recreate");
@@ -323,7 +300,8 @@ void getTemplateIntermediate_ZZ2L2Nu(
         unsigned int icat=0;
         if (icat_boostedHadVH>=0 && isMVJ) icat=icat_boostedHadVH;
         else if (icat_resolvedHadVH>=0 && isMVjj) icat=icat_resolvedHadVH;
-        else if (n_ak4jets_pt30>=2) icat=2;
+        else if (n_ak4jets_pt30>=2 && pTmiss<200.f) icat=2;
+        else if (n_ak4jets_pt30>=2 && pTmiss>=200.f) icat=3;
         else if (n_ak4jets_pt30==1) icat=1;
         else icat=0;
         tin_split.at(icat)->Fill();
@@ -336,73 +314,99 @@ void getTemplateIntermediate_ZZ2L2Nu(
   curdir->cd();
 
   for (unsigned int icat=0; icat<nCats; icat++){
-    MELAout << "Producing templates for " << strCatNames.at(icat) << ":" << endl;
+    TString const& strCatName = strCatNames.at(icat);
+    MELAout << "Producing templates for " << strCatName << ":" << endl;
+
+    // The two options are purely due to statitics of the MC and how far the processes reach.
+    bool applyConditionalKD=false, applyUniformKDAtHighMass=false;
+    std::vector<double> KDsplit_mTZZvals; KDsplit_mTZZvals.reserve(1);
+    if (strSampleSet=="Data"){
+      applyConditionalKD = true;
+    }
+    else if (strSampleSet=="WG"){
+      applyUniformKDAtHighMass = true;
+      if (!strCatName.Contains("Nj_geq_2_pTmiss_ge_200")){
+        KDsplit_mTZZvals.push_back(400);
+      }
+    }
+    else if (strSampleSet=="ZG"){
+      applyUniformKDAtHighMass = true;
+      KDsplit_mTZZvals.push_back(700);
+    }
+    else if (strSampleSet=="VVG" || strSampleSet=="tGX"){
+      applyConditionalKD = true;
+    }
+    else if (strSampleSet=="SingleElectron"){
+      applyUniformKDAtHighMass = true;
+      if (!strCatName.Contains("Nj_geq_2_pTmiss_ge_200")){
+        KDsplit_mTZZvals.push_back(500);
+      }
+    }
 
     TTree*& tin_cat = tin_split.at(icat);
     MELAout << "\t- Category tree has " << tin_cat->GetEntries() << " entries." << endl;
 
     ACHypothesisHelpers::ProductionType prod_type;
     if (icat<2) prod_type = ACHypothesisHelpers::kGG;
-    else if (icat==2) prod_type = ACHypothesisHelpers::kVBF;
+    else if (icat==2 || icat==3) prod_type = ACHypothesisHelpers::kVBF;
     else prod_type = ACHypothesisHelpers::kHadVH;
 
     // Hack syst name to introduce category indicator
     TString strSystDCcat = strSystDC;
-    if (strSystDC.Contains("llGnorm_ZG")) HelperFunctions::replaceString<TString, TString const>(strSystDCcat, "llGnorm_ZG", Form("llGnorm_ZG_%s", strCatNames.at(icat).Data()));
+    if (strSystDC.Contains("llGnorm_ZG")) HelperFunctions::replaceString<TString, TString const>(strSystDCcat, "llGnorm_ZG", Form("llGnorm_ZG_%s", strCatName.Data()));
 
-    TString stroutput = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), strIntermediateProcName, strSystDCcat);
+    TString stroutput = coutput_main + "/" + getTemplateFileName(strChannel, strCatName, strIntermediateProcName, strSystDCcat);
     std::vector<TFile*> foutputs; foutputs.reserve(9);
     foutputs.push_back(TFile::Open(stroutput, "recreate"));
-    SampleHelpers::addToCondorTransferList(stroutput);
+    //SampleHelpers::addToCondorTransferList(stroutput);
 
     std::unordered_map<TString, TFile*> lumisyst_foutput_map;
 
     bool hasStatUnc = false;
-    bool hasKDs = (icat==2);
+    bool hasKDs = (prod_type == ACHypothesisHelpers::kVBF);
     bool hasKDsplit = (hasKDs && applyConditionalKD);
     bool hasUniformHighMassKD = (hasKDs && applyUniformKDAtHighMass);
     if (strSyst=="Nominal"){
       hasStatUnc = true;
       TString stroutput_var;
       // Statistical variations should be correlated between ee and mumu, so there should be no channel name.
-      TString proc_chan_cat_syst_indicator = strIntermediateProcName + "_" + strCatNames.at(icat) + "_" + period;
+      TString proc_chan_cat_syst_indicator = strIntermediateProcName + "_" + strCatName + "_" + period;
 
-      stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), strIntermediateProcName, Form("CMS_stat_norm_%sDown", proc_chan_cat_syst_indicator.Data()));
+      stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatName, strIntermediateProcName, Form("CMS_stat_norm_%sDown", proc_chan_cat_syst_indicator.Data()));
       foutputs.push_back(TFile::Open(stroutput_var, "recreate"));
-      SampleHelpers::addToCondorTransferList(stroutput_var);
+      //SampleHelpers::addToCondorTransferList(stroutput_var);
 
-      stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), strIntermediateProcName, Form("CMS_stat_norm_%sUp", proc_chan_cat_syst_indicator.Data()));
+      stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatName, strIntermediateProcName, Form("CMS_stat_norm_%sUp", proc_chan_cat_syst_indicator.Data()));
       foutputs.push_back(TFile::Open(stroutput_var, "recreate"));
-      SampleHelpers::addToCondorTransferList(stroutput_var);
+      //SampleHelpers::addToCondorTransferList(stroutput_var);
 
-
-      stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), strIntermediateProcName, Form("CMS_stat_shape_%sDown", proc_chan_cat_syst_indicator.Data()));
+      stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatName, strIntermediateProcName, Form("CMS_stat_shape_%sDown", proc_chan_cat_syst_indicator.Data()));
       foutputs.push_back(TFile::Open(stroutput_var, "recreate"));
-      SampleHelpers::addToCondorTransferList(stroutput_var);
+      //SampleHelpers::addToCondorTransferList(stroutput_var);
 
-      stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), strIntermediateProcName, Form("CMS_stat_shape_%sUp", proc_chan_cat_syst_indicator.Data()));
+      stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatName, strIntermediateProcName, Form("CMS_stat_shape_%sUp", proc_chan_cat_syst_indicator.Data()));
       foutputs.push_back(TFile::Open(stroutput_var, "recreate"));
-      SampleHelpers::addToCondorTransferList(stroutput_var);
+      //SampleHelpers::addToCondorTransferList(stroutput_var);
 
       if (hasKDsplit){
         for (int ikdstat=-1; ikdstat<(int) KDsplit_mTZZvals.size(); ikdstat++){
           TString strKDShapeSystNameCore;
           if (KDsplit_mTZZvals.empty()) strKDShapeSystNameCore = Form("CMS_stat_shape_KD_%s", proc_chan_cat_syst_indicator.Data());
           else strKDShapeSystNameCore = Form("CMS_stat_shape_KD_bin%i_%s", ikdstat+2, proc_chan_cat_syst_indicator.Data());
-          stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), strIntermediateProcName, Form("%sDown", strKDShapeSystNameCore.Data()));
+          stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatName, strIntermediateProcName, Form("%sDown", strKDShapeSystNameCore.Data()));
           foutputs.push_back(TFile::Open(stroutput_var, "recreate"));
-          SampleHelpers::addToCondorTransferList(stroutput_var);
+          //SampleHelpers::addToCondorTransferList(stroutput_var);
 
-          stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), strIntermediateProcName, Form("%sUp", strKDShapeSystNameCore.Data()));
+          stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatName, strIntermediateProcName, Form("%sUp", strKDShapeSystNameCore.Data()));
           foutputs.push_back(TFile::Open(stroutput_var, "recreate"));
-          SampleHelpers::addToCondorTransferList(stroutput_var);
+          //SampleHelpers::addToCondorTransferList(stroutput_var);
         }
       }
 
       // Assign lumi. unc. to MC-only contributions
       for (auto& it_lumisyst_lumiscale_map:lumisyst_lumiscale_map){
         auto const& lumisyst = it_lumisyst_lumiscale_map.first;
-        stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), strIntermediateProcName, lumisyst);
+        stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatName, strIntermediateProcName, lumisyst);
         lumisyst_foutput_map[lumisyst] = TFile::Open(stroutput_var, "recreate");
       }
     }
@@ -445,19 +449,33 @@ void getTemplateIntermediate_ZZ2L2Nu(
       nVars_KD = nKDs;
     }
 
-    // For all categories, smearing coefficients for (mTZZ, pTmiss) in the single photon data should be increased by a factor of 2 except in the KD dimensions.
-    if (strSampleSet=="Data"){
-      for (unsigned int ivar=0; ivar<nVars_nonKD; ivar++){
-        if (ivar>0 || strCatNames.at(icat)=="BoostedHadVH") smearingStrengthCoeffs.at(ivar) *= 2.;
-      }
+    if (
+      strSampleSet=="Data"
+      &&
+      (
+        (SampleHelpers::getDataYear()==2016 && (strCatName=="Nj_eq_0" || strCatName=="Nj_eq_1"))
+        ||
+        (SampleHelpers::getDataYear()==2017 && (strCatName=="Nj_eq_0"))
+        ||
+        (SampleHelpers::getDataYear()==2018 && (strCatName=="Nj_eq_0" || strCatName=="Nj_geq_2_pTmiss_ge_200"))
+        )
+      ){
+      smearingStrengthCoeffs.at(0) *= 2.;
     }
 
     ExtendedBinning const& binning_mTZZ = binning_KDvars.front();
     ExtendedBinning binning_mTZZ_coarse;
     if (hasUniformHighMassKD){
-      binning_mTZZ_coarse = binning_mTZZ;
-      for (int ix=binning_mTZZ.getNbins()-1; ix>=0; ix--){
-        if (binning_mTZZ_coarse.getBinLowEdge(ix)>KDsplit_mTZZvals.front()) binning_mTZZ_coarse.removeBinLowEdge(ix);
+      if (!KDsplit_mTZZvals.empty()){
+        binning_mTZZ_coarse = binning_mTZZ;
+        for (int ix=binning_mTZZ.getNbins()-1; ix>=0; ix--){
+          if (binning_mTZZ_coarse.getBinLowEdge(ix)>KDsplit_mTZZvals.front()) binning_mTZZ_coarse.removeBinLowEdge(ix);
+        }
+      }
+      else{
+        binning_mTZZ_coarse = ExtendedBinning(binning_mTZZ.getName(), binning_mTZZ.getLabel());
+        binning_mTZZ_coarse.addBinBoundary(binning_mTZZ.getMin());
+        binning_mTZZ_coarse.addBinBoundary(binning_mTZZ.getMax());
       }
     }
     else if (hasKDsplit){
@@ -493,7 +511,7 @@ void getTemplateIntermediate_ZZ2L2Nu(
           process_handler.getTemplateName()+"_Raw", process_handler.getTemplateName()+"_Raw", binning_KDvars.at(0),
           tin_cat, *(varvals.at(0)), weight, selflag,
           0,
-          nullptr, nullptr, nullptr
+          nullptr, nullptr, nullptr, stddev_stat, useSymmetric
         );
 
         integral_raw = HelperFunctions::getHistogramIntegralAndError(hRaw, 0, hRaw->GetNbinsX()+1, false, &integralerr_raw);
@@ -506,7 +524,7 @@ void getTemplateIntermediate_ZZ2L2Nu(
           process_handler.getTemplateName()+"_Raw", process_handler.getTemplateName()+"_Raw", binning_KDvars.at(0), binning_KDvars.at(1),
           tin_cat, *(varvals.at(0)), *(varvals.at(1)), weight, selflag,
           0, 0,
-          nullptr, nullptr, nullptr
+          nullptr, nullptr, nullptr, stddev_stat, useSymmetric
         );
 
         integral_raw = HelperFunctions::getHistogramIntegralAndError(hRaw, 0, hRaw->GetNbinsX()+1, 0, hRaw->GetNbinsY()+1, false, &integralerr_raw);
@@ -519,7 +537,7 @@ void getTemplateIntermediate_ZZ2L2Nu(
           process_handler.getTemplateName()+"_Raw", process_handler.getTemplateName()+"_Raw", binning_KDvars.at(0), binning_KDvars.at(1), binning_KDvars.at(2),
           tin_cat, *(varvals.at(0)), *(varvals.at(1)), *(varvals.at(2)), weight, selflag,
           0, 0, 0,
-          nullptr, nullptr, nullptr
+          nullptr, nullptr, nullptr, stddev_stat, useSymmetric
         );
 
         integral_raw = HelperFunctions::getHistogramIntegralAndError(hRaw, 0, hRaw->GetNbinsX()+1, 0, hRaw->GetNbinsY()+1, 0, hRaw->GetNbinsZ()+1, false, &integralerr_raw);
@@ -529,11 +547,11 @@ void getTemplateIntermediate_ZZ2L2Nu(
       }
 
       double Neff_raw = (integralerr_raw>0. ? std::pow(integral_raw/integralerr_raw, 2) : 1.);
-      StatisticsHelpers::getPoissonCountingConfidenceInterval_Frequentist(Neff_raw, VAL_CL_1SIGMA, integral_raw_dn, integral_raw_up);
+      StatisticsHelpers::getPoissonCountingConfidenceInterval_Frequentist(Neff_raw, VAL_CL_5SIGMA, integral_raw_dn, integral_raw_up);
       scale_norm_dn = integral_raw_dn/Neff_raw;
       scale_norm_up = integral_raw_up/Neff_raw;
       MELAout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
-      MELAout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc.: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
+      MELAout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc., 5-sigma: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
 
       dir_raw->Close();
       foutputs.front()->cd();
@@ -554,7 +572,7 @@ void getTemplateIntermediate_ZZ2L2Nu(
           tin_cat, *(varvals.at(0)), weight, selflag,
           smearingStrengthCoeffs.at(0),
           nullptr,
-          (hasStatUnc ? &(hStat.front()) : nullptr), (hasStatUnc ? &(hStat.back()) : nullptr)
+          (hasStatUnc ? &(hStat.front()) : nullptr), (hasStatUnc ? &(hStat.back()) : nullptr), stddev_stat, useSymmetric
         );
 
         hSmooth_combined_1D.push_back(hSmooth);
@@ -577,7 +595,7 @@ void getTemplateIntermediate_ZZ2L2Nu(
           tin_cat, *(varvals.at(0)), *(varvals.at(1)), weight, selflag,
           smearingStrengthCoeffs.at(0), smearingStrengthCoeffs.at(1),
           nullptr,
-          (hasStatUnc ? &(hStat.front()) : nullptr), (hasStatUnc ? &(hStat.back()) : nullptr)
+          (hasStatUnc ? &(hStat.front()) : nullptr), (hasStatUnc ? &(hStat.back()) : nullptr), stddev_stat, useSymmetric
         );
 
         hSmooth_combined_2D.push_back(hSmooth);
@@ -600,7 +618,7 @@ void getTemplateIntermediate_ZZ2L2Nu(
           tin_cat, *(varvals.at(0)), *(varvals.at(1)), *(varvals.at(2)), weight, selflag,
           smearingStrengthCoeffs.at(0), smearingStrengthCoeffs.at(1), smearingStrengthCoeffs.at(2),
           nullptr,
-          (hasStatUnc ? &(hStat.front()) : nullptr), (hasStatUnc ? &(hStat.back()) : nullptr)
+          (hasStatUnc ? &(hStat.front()) : nullptr), (hasStatUnc ? &(hStat.back()) : nullptr), stddev_stat, useSymmetric
         );
 
         hSmooth_combined_3D.push_back(hSmooth);
@@ -624,7 +642,7 @@ void getTemplateIntermediate_ZZ2L2Nu(
           tin_cat, *(varvals.at(0)), weight, selflag,
           smearingStrengthCoeffs.at(0),
           nullptr,
-          (hasStatUnc ? &(hStat_nonKD.front()) : nullptr), (hasStatUnc ? &(hStat_nonKD.back()) : nullptr)
+          (hasStatUnc ? &(hStat_nonKD.front()) : nullptr), (hasStatUnc ? &(hStat_nonKD.back()) : nullptr), stddev_stat, useSymmetric
         );
 
         if (nVars_KD==1){
@@ -634,7 +652,7 @@ void getTemplateIntermediate_ZZ2L2Nu(
             tin_cat, *(varvals.at(0)), *(varvals.at(1)), weight, selflag,
             (hasKDsplit ? 0. : smearingStrengthCoeffs.at(0)), smearingStrengthCoeffs.at(1),
             nullptr,
-            (hasStatUnc ? &(hStat_KD.front()) : nullptr), (hasStatUnc ? &(hStat_KD.back()) : nullptr)
+            (hasStatUnc ? &(hStat_KD.front()) : nullptr), (hasStatUnc ? &(hStat_KD.back()) : nullptr), stddev_stat, useSymmetric
           );
 
           // Normalize so that we can multiply with the non-KD shape
@@ -690,7 +708,7 @@ void getTemplateIntermediate_ZZ2L2Nu(
             tin_cat, *(varvals.at(0)), *(varvals.at(1)), *(varvals.at(2)), weight, selflag,
             (hasKDsplit ? 0. : smearingStrengthCoeffs.at(0)), smearingStrengthCoeffs.at(1), smearingStrengthCoeffs.at(2),
             nullptr,
-            (hasStatUnc ? &(hStat_KD.front()) : nullptr), (hasStatUnc ? &(hStat_KD.back()) : nullptr)
+            (hasStatUnc ? &(hStat_KD.front()) : nullptr), (hasStatUnc ? &(hStat_KD.back()) : nullptr), stddev_stat, useSymmetric
           );
 
           // Normalize so that we can multiply with the non-KD shape
@@ -754,7 +772,7 @@ void getTemplateIntermediate_ZZ2L2Nu(
           tin_cat, *(varvals.at(0)), *(varvals.at(1)), weight, selflag,
           smearingStrengthCoeffs.at(0), smearingStrengthCoeffs.at(1),
           nullptr,
-          (hasStatUnc ? &(hStat_nonKD.front()) : nullptr), (hasStatUnc ? &(hStat_nonKD.back()) : nullptr)
+          (hasStatUnc ? &(hStat_nonKD.front()) : nullptr), (hasStatUnc ? &(hStat_nonKD.back()) : nullptr), stddev_stat, useSymmetric
         );
 
         {
@@ -764,7 +782,7 @@ void getTemplateIntermediate_ZZ2L2Nu(
             tin_cat, *(varvals.at(0)), *(varvals.at(1)), *(varvals.at(2)), weight, selflag,
             (hasKDsplit ? 0. : smearingStrengthCoeffs.at(0)), smearingStrengthCoeffs.at(1), smearingStrengthCoeffs.at(2),
             nullptr,
-            (hasStatUnc ? &(hStat_KD.front()) : nullptr), (hasStatUnc ? &(hStat_KD.back()) : nullptr)
+            (hasStatUnc ? &(hStat_KD.front()) : nullptr), (hasStatUnc ? &(hStat_KD.back()) : nullptr), stddev_stat, useSymmetric
           );
 
           // Normalize so that we can multiply with the non-KD shape
@@ -914,6 +932,8 @@ void getTemplateIntermediate_ZZ2L2Nu(
   for (auto& finput:finputs) finput->Close();
 
   curdir->cd();
+
+  SampleHelpers::addToCondorCompressedTransferList(coutput_main);
 }
 
 
@@ -921,6 +941,295 @@ void getTemplateIntermediate_ZZ2L2Nu(
 #undef BRANCH_VECTOR_COMMANDS
 #undef BRANCH_SCALAR_COMMANDS
 
+void regularizeCombinedHistogram(TH2F*& hist){
+  MELAout << "Regularizing " << hist->GetName() << "..." << endl;
+  int const nbinsx = hist->GetNbinsX();
+  int const nbinsy = hist->GetNbinsY();
+
+  double const integral_old = HelperFunctions::getHistogramIntegralAndError(hist, 1, nbinsx, 1, nbinsy, true, nullptr);
+  MELAout << "\t- Old integral: " << integral_old << endl;
+
+  HelperFunctions::multiplyBinWidth(hist);
+
+  std::vector<std::pair<int, int>> slice_bin_ranges; slice_bin_ranges.reserve((nbinsx+1)/2);
+  for (int ix=1; ix<=nbinsx; ix+=2){
+    if (ix==nbinsx) break;
+    int ii=ix, jj=ix+1;
+    if (ix==nbinsx-2) jj++;
+    slice_bin_ranges.emplace_back(ii, jj);
+  }
+
+  double sum_abs_delta_bc = 0;
+  for (auto const& slice_bin_range:slice_bin_ranges){
+    int const& ii = slice_bin_range.first;
+    int const& jj = slice_bin_range.second;
+    TString hname = Form("h_wide_slice_%i_%i", ii, jj);
+    TH1F* hslice = HelperFunctions::getHistogramSlice(hist, 1, ii, jj, hname);
+    double integral_slice = HelperFunctions::getHistogramIntegralAndError(hslice, 1, nbinsy, false, nullptr);
+    if (integral_slice==0.) continue;
+    hslice->Scale(1./integral_slice);
+    for (int ix=ii; ix<=jj; ix++){
+      double integral_original = HelperFunctions::getHistogramIntegralAndError(hist, ix, ix, 1, nbinsy, false, nullptr);
+      for (int iy=1; iy<=nbinsy; iy++){
+        double bc_old = hist->GetBinContent(ix, iy);
+        double bc_new = integral_original*hslice->GetBinContent(iy);
+        sum_abs_delta_bc += std::abs(bc_new - bc_old);
+        hist->SetBinContent(ix, iy, bc_new);
+        hist->SetBinError(ix, iy, 0.);
+      }
+    }
+    delete hslice;
+  }
+
+  HelperFunctions::divideBinWidth(hist);
+
+  if (!HelperFunctions::checkHistogramIntegrity(hist)){
+    MELAerr << "regularizeCombinedHistogram: New histogram failed integrity!" << endl;
+    exit(1);
+  }
+
+  double const integral_new = HelperFunctions::getHistogramIntegralAndError(hist, 1, nbinsx, 1, nbinsy, true, nullptr);
+  MELAout << "\t- New integral: " << integral_new << endl;
+  MELAout << "\t- delta: " << sum_abs_delta_bc << endl;
+}
+void regularizeCombinedHistogram(TH3F*& hist){
+  MELAout << "Regularizing " << hist->GetName() << "..." << endl;
+  int const nbinsx = hist->GetNbinsX();
+  int const nbinsy = hist->GetNbinsY();
+  int const nbinsz = hist->GetNbinsZ();
+
+  double const integral_old = HelperFunctions::getHistogramIntegralAndError(hist, 1, nbinsx, 1, nbinsy, 1, nbinsz, true, nullptr);
+  MELAout << "\t- Old integral: " << integral_old << endl;
+
+  HelperFunctions::multiplyBinWidth(hist);
+
+  std::vector<std::pair<int, int>> slice_bin_ranges; slice_bin_ranges.reserve((nbinsx+1)/2);
+  for (int ix=1; ix<=nbinsx; ix+=2){
+    if (ix==nbinsx) break;
+    int ii=ix, jj=ix+1;
+    if (ix==nbinsx-2) jj++;
+    slice_bin_ranges.emplace_back(ii, jj);
+  }
+
+  double sum_abs_delta_bc = 0;
+  for (auto const& slice_bin_range:slice_bin_ranges){
+    int const& ii = slice_bin_range.first;
+    int const& jj = slice_bin_range.second;
+    TString hname = Form("h_wide_slice_%i_%i", ii, jj);
+    TH2F* hslice = HelperFunctions::getHistogramSlice(hist, 1, 2, ii, jj, hname);
+    double integral_slice = HelperFunctions::getHistogramIntegralAndError(hslice, 1, nbinsy, 1, nbinsz, false, nullptr);
+    if (integral_slice==0.) continue;
+    hslice->Scale(1./integral_slice);
+    for (int ix=ii; ix<=jj; ix++){
+      double integral_original = HelperFunctions::getHistogramIntegralAndError(hist, ix, ix, 1, nbinsy, 1, nbinsz, false, nullptr);
+      for (int iy=1; iy<=nbinsy; iy++){
+        for (int iz=1; iz<=nbinsz; iz++){
+          double bc_old = hist->GetBinContent(ix, iy, iz);
+          double bc_new = integral_original*hslice->GetBinContent(iy, iz);
+          sum_abs_delta_bc += std::abs(bc_new - bc_old);
+          hist->SetBinContent(ix, iy, iz, bc_new);
+          hist->SetBinError(ix, iy, iz, 0.);
+        }
+      }
+    }
+    delete hslice;
+  }
+
+  HelperFunctions::divideBinWidth(hist);
+
+  if (!HelperFunctions::checkHistogramIntegrity(hist)){
+    MELAerr << "regularizeCombinedHistogram: New histogram failed integrity!" << endl;
+    exit(1);
+  }
+
+  double const integral_new = HelperFunctions::getHistogramIntegralAndError(hist, 1, nbinsx, 1, nbinsy, 1, nbinsz, true, nullptr);
+  MELAout << "\t- New integral: " << integral_new << endl;
+  MELAout << "\t- delta: " << sum_abs_delta_bc << endl;
+}
+
+void adjustWideBinVariation(std::vector<ExtendedBinning> const& binning_vars, TString const& systname, TH1F* h_nominal, TH1F* h_var, bool useWidth){
+  if (binning_vars.size()!=1){ MELAerr << "adjustWideBinVariation ERROR: Using the wrong binning dimension!" << endl; return; }
+  if (binning_vars.front().getName()!="mTZZ") return;
+  if (!h_nominal){ MELAerr << "adjustWideBinVariation ERROR: Nominal histogram is null!" << endl; return; }
+  if (!h_var){ MELAerr << "adjustWideBinVariation ERROR: Variation histogram is null!" << endl; return; }
+
+  double adj_factor = 1;
+  // Norm. uncs. are defined at 5-sigma
+  if (systname.Contains("CMS_stat_norm")) adj_factor = 5;
+
+  MELAout
+    << "adjustWideBinVariation: Integral of the variation before adjustment = "
+    << HelperFunctions::getHistogramIntegralAndError(h_var, 1, binning_vars.front().getNbins(), useWidth)
+    << endl;
+  MELAout << "\t- Adjustment factor: " << adj_factor << endl;
+
+  std::vector<int> const xbin_boundaries{ 1, binning_vars.front().getBin(450.)+1, static_cast<int>(binning_vars.front().getNbins()+1) };
+  MELAout << "\t- X wide bin boundaries: " << xbin_boundaries << endl;
+
+  for (unsigned int ibb=0; ibb<xbin_boundaries.size()-1; ibb++){
+    double const int_nominal = HelperFunctions::getHistogramIntegralAndError(h_nominal, xbin_boundaries.at(ibb), xbin_boundaries.at(ibb+1)-1, useWidth);
+    double const int_var = HelperFunctions::getHistogramIntegralAndError(h_var, xbin_boundaries.at(ibb), xbin_boundaries.at(ibb+1)-1, useWidth);
+    double int_ratio = 1;
+    if (int_nominal!=0.) int_ratio = 1. + (int_var / int_nominal-1.)/adj_factor;
+    for (int ix=xbin_boundaries.at(ibb); ix<xbin_boundaries.at(ibb+1); ix++){
+      double const v_nom = h_nominal->GetBinContent(ix);
+      double const e_nom = h_nominal->GetBinError(ix);
+      h_var->SetBinContent(ix, v_nom*int_ratio);
+      h_var->SetBinError(ix, e_nom*int_ratio);
+    }
+  }
+
+  MELAout
+    << "adjustWideBinVariation: Integral of the variation after adjustment = "
+    << HelperFunctions::getHistogramIntegralAndError(h_var, 1, binning_vars.front().getNbins(), useWidth)
+    << endl;
+}
+void adjustWideBinVariation(std::vector<ExtendedBinning> const& binning_vars, TString const& systname, TH2F* h_nominal, TH2F* h_var, bool useWidth){
+  unsigned int const ndims = binning_vars.size();
+  if (ndims!=2){ MELAerr << "adjustWideBinVariation ERROR: Using the wrong binning dimension!" << endl; return; }
+  if (!h_nominal){ MELAerr << "adjustWideBinVariation ERROR: Nominal histogram is null!" << endl; return; }
+  if (!h_var){ MELAerr << "adjustWideBinVariation ERROR: Variation histogram is null!" << endl; return; }
+
+  double adj_factor = 1;
+  // Norm. uncs. are defined at 5-sigma
+  if (systname.Contains("CMS_stat_norm")) adj_factor = 5;
+
+  MELAout
+    << "adjustWideBinVariation: Integral of the variation before adjustment = "
+    << HelperFunctions::getHistogramIntegralAndError(h_var, 1, binning_vars.at(0).getNbins(), 1, binning_vars.at(1).getNbins(), useWidth)
+    << endl;
+  MELAout << "\t- Adjustment factor: " << adj_factor << endl;
+
+  std::vector< std::vector<int> > bin_boundaries_list(ndims, std::vector<int>());
+  for (unsigned int idim=0; idim<ndims; idim++){
+    std::vector<int>& bin_boundaries = bin_boundaries_list.at(idim);
+    bin_boundaries.reserve(binning_vars.at(idim).getNbins());
+    TString strvar = binning_vars.at(idim).getName();
+    if (strvar=="mTZZ") bin_boundaries = std::vector<int>{ 1, binning_vars.at(idim).getBin(450.)+1, static_cast<int>(binning_vars.at(idim).getNbins()+1) };
+    else if (strvar=="pTmiss") bin_boundaries = std::vector<int>{ 1, binning_vars.at(idim).getBin(200.)+1, static_cast<int>(binning_vars.at(idim).getNbins()+1) };
+    else if (strvar==DiscriminantClasses::getKDName(DiscriminantClasses::kDjjVBF) || strvar==DiscriminantClasses::getKDName(DiscriminantClasses::kDjjVBFL1) || strvar==DiscriminantClasses::getKDName(DiscriminantClasses::kDjjVBFL1ZGs)){
+      bin_boundaries = std::vector<int>{ 1, binning_vars.at(idim).getBin(0.1)+1, binning_vars.at(idim).getBin(0.8)+1, static_cast<int>(binning_vars.at(idim).getNbins()+1) };
+    }
+    else if (strvar==DiscriminantClasses::getKDName(DiscriminantClasses::kDjjVBFa2) || strvar==DiscriminantClasses::getKDName(DiscriminantClasses::kDjjVBFa3)){
+      bin_boundaries = std::vector<int>{ 1, binning_vars.at(idim).getBin(0.2)+1, binning_vars.at(idim).getBin(0.8)+1, static_cast<int>(binning_vars.at(idim).getNbins()+1) };
+    }
+    else{ for (int ib=0; ib<=(int) binning_vars.at(idim).getNbins(); ib++) bin_boundaries.push_back(ib+1); }
+  }
+
+  std::vector<int> const& xbin_boundaries = bin_boundaries_list.at(0);
+  std::vector<int> const& ybin_boundaries = bin_boundaries_list.at(1);
+  MELAout << "\t- X wide bin boundaries: " << xbin_boundaries << endl;
+  MELAout << "\t- Y wide bin boundaries: " << ybin_boundaries << endl;
+
+  for (unsigned int ibb=0; ibb<xbin_boundaries.size()-1; ibb++){
+    for (unsigned int jbb=0; jbb<ybin_boundaries.size()-1; jbb++){
+      double const int_nominal = HelperFunctions::getHistogramIntegralAndError(
+        h_nominal,
+        xbin_boundaries.at(ibb), xbin_boundaries.at(ibb+1)-1,
+        ybin_boundaries.at(jbb), ybin_boundaries.at(jbb+1)-1,
+        useWidth
+      );
+      double const int_var = HelperFunctions::getHistogramIntegralAndError(
+        h_var,
+        xbin_boundaries.at(ibb), xbin_boundaries.at(ibb+1)-1,
+        ybin_boundaries.at(jbb), ybin_boundaries.at(jbb+1)-1,
+        useWidth
+      );
+      double int_ratio = 1;
+      if (int_nominal!=0.) int_ratio = 1. + (int_var / int_nominal-1.)/adj_factor;
+      for (int ix=xbin_boundaries.at(ibb); ix<xbin_boundaries.at(ibb+1); ix++){
+        for (int iy=ybin_boundaries.at(jbb); iy<ybin_boundaries.at(jbb+1); iy++){
+          double const v_nom = h_nominal->GetBinContent(ix, iy);
+          double const e_nom = h_nominal->GetBinError(ix, iy);
+          h_var->SetBinContent(ix, iy, v_nom*int_ratio);
+          h_var->SetBinError(ix, iy, e_nom*int_ratio);
+        }
+      }
+    }
+  }
+
+  MELAout
+    << "adjustWideBinVariation: Integral of the variation after adjustment = "
+    << HelperFunctions::getHistogramIntegralAndError(h_var, 1, binning_vars.at(0).getNbins(), 1, binning_vars.at(1).getNbins(), useWidth)
+    << endl;
+}
+void adjustWideBinVariation(std::vector<ExtendedBinning> const& binning_vars, TString const& systname, TH3F* h_nominal, TH3F* h_var, bool useWidth){
+  unsigned int const ndims = binning_vars.size();
+  if (ndims!=3){ MELAerr << "adjustWideBinVariation ERROR: Using the wrong binning dimension!" << endl; return; }
+  if (!h_nominal){ MELAerr << "adjustWideBinVariation ERROR: Nominal histogram is null!" << endl; return; }
+  if (!h_var){ MELAerr << "adjustWideBinVariation ERROR: Variation histogram is null!" << endl; return; }
+
+  double adj_factor = 1;
+  // Norm. uncs. are defined at 5-sigma
+  if (systname.Contains("CMS_stat_norm")) adj_factor = 5;
+
+  MELAout
+    << "adjustWideBinVariation: Integral of the variation before adjustment = "
+    << HelperFunctions::getHistogramIntegralAndError(h_var, 1, binning_vars.at(0).getNbins(), 1, binning_vars.at(1).getNbins(), 1, binning_vars.at(2).getNbins(), useWidth)
+    << endl;
+  MELAout << "\t- Adjustment factor: " << adj_factor << endl;
+
+  std::vector< std::vector<int> > bin_boundaries_list(ndims, std::vector<int>());
+  for (unsigned int idim=0; idim<ndims; idim++){
+    std::vector<int>& bin_boundaries = bin_boundaries_list.at(idim);
+    bin_boundaries.reserve(binning_vars.at(idim).getNbins());
+    TString strvar = binning_vars.at(idim).getName();
+    if (strvar=="mTZZ") bin_boundaries = std::vector<int>{ 1, binning_vars.at(idim).getBin(450.)+1, static_cast<int>(binning_vars.at(idim).getNbins()+1) };
+    else if (strvar=="pTmiss") bin_boundaries = std::vector<int>{ 1, binning_vars.at(idim).getBin(200.)+1, static_cast<int>(binning_vars.at(idim).getNbins()+1) };
+    else if (strvar==DiscriminantClasses::getKDName(DiscriminantClasses::kDjjVBF) || strvar==DiscriminantClasses::getKDName(DiscriminantClasses::kDjjVBFL1) || strvar==DiscriminantClasses::getKDName(DiscriminantClasses::kDjjVBFL1ZGs)){
+      bin_boundaries = std::vector<int>{ 1, binning_vars.at(idim).getBin(0.1)+1, binning_vars.at(idim).getBin(0.8)+1, static_cast<int>(binning_vars.at(idim).getNbins()+1) };
+    }
+    else if (strvar==DiscriminantClasses::getKDName(DiscriminantClasses::kDjjVBFa2) || strvar==DiscriminantClasses::getKDName(DiscriminantClasses::kDjjVBFa3)){
+      bin_boundaries = std::vector<int>{ 1, binning_vars.at(idim).getBin(0.2)+1, binning_vars.at(idim).getBin(0.8)+1, static_cast<int>(binning_vars.at(idim).getNbins()+1) };
+    }
+    else{ for (int ib=0; ib<=(int) binning_vars.at(idim).getNbins(); ib++) bin_boundaries.push_back(ib+1); }
+  }
+
+  std::vector<int> const& xbin_boundaries = bin_boundaries_list.at(0);
+  std::vector<int> const& ybin_boundaries = bin_boundaries_list.at(1);
+  std::vector<int> const& zbin_boundaries = bin_boundaries_list.at(2);
+  MELAout << "\t- X wide bin boundaries: " << xbin_boundaries << endl;
+  MELAout << "\t- Y wide bin boundaries: " << ybin_boundaries << endl;
+  MELAout << "\t- Z wide bin boundaries: " << zbin_boundaries << endl;
+
+  for (unsigned int ibb=0; ibb<xbin_boundaries.size()-1; ibb++){
+    for (unsigned int jbb=0; jbb<ybin_boundaries.size()-1; jbb++){
+      for (unsigned int kbb=0; kbb<zbin_boundaries.size()-1; kbb++){
+        double const int_nominal = HelperFunctions::getHistogramIntegralAndError(
+          h_nominal,
+          xbin_boundaries.at(ibb), xbin_boundaries.at(ibb+1)-1,
+          ybin_boundaries.at(jbb), ybin_boundaries.at(jbb+1)-1,
+          zbin_boundaries.at(kbb), zbin_boundaries.at(kbb+1)-1,
+          useWidth
+        );
+        double const int_var = HelperFunctions::getHistogramIntegralAndError(
+          h_var,
+          xbin_boundaries.at(ibb), xbin_boundaries.at(ibb+1)-1,
+          ybin_boundaries.at(jbb), ybin_boundaries.at(jbb+1)-1,
+          zbin_boundaries.at(kbb), zbin_boundaries.at(kbb+1)-1,
+          useWidth
+        );
+        double int_ratio = 1;
+        if (int_nominal!=0.) int_ratio = 1. + (int_var / int_nominal-1.)/adj_factor;
+        for (int ix=xbin_boundaries.at(ibb); ix<xbin_boundaries.at(ibb+1); ix++){
+          for (int iy=ybin_boundaries.at(jbb); iy<ybin_boundaries.at(jbb+1); iy++){
+            for (int iz=zbin_boundaries.at(kbb); iz<zbin_boundaries.at(kbb+1); iz++){
+              double const v_nom = h_nominal->GetBinContent(ix, iy, iz);
+              double const e_nom = h_nominal->GetBinError(ix, iy, iz);
+              h_var->SetBinContent(ix, iy, iz, v_nom*int_ratio);
+              h_var->SetBinError(ix, iy, iz, e_nom*int_ratio);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  MELAout
+    << "adjustWideBinVariation: Integral of the variation after adjustment = "
+    << HelperFunctions::getHistogramIntegralAndError(h_var, 1, binning_vars.at(0).getNbins(), 1, binning_vars.at(1).getNbins(), 1, binning_vars.at(2).getNbins(), useWidth)
+    << endl;
+}
 
 void getTemplate_ZZ2L2Nu(
   TString period, TString ntupleVersion, TString strdate,
@@ -930,14 +1239,12 @@ void getTemplate_ZZ2L2Nu(
 ){
   using namespace PhysicsProcessHelpers;
 
-  constexpr double thr_mTZZ = 700;
-
   TDirectory* curdir = gDirectory;
 
   SampleHelpers::configure(period, Form("%s:ZZTo2L2Nu/%s", "store_finaltrees", ntupleVersion.Data()));
 
   std::vector<TString> const strSampleSets{ "Data", "WG", "ZG", "VVG", "SingleElectron", "tGX" };
-  std::vector<TString> strCatNames{ "Nj_eq_0", "Nj_eq_1", "Nj_geq_2" };
+  std::vector<TString> strCatNames{ "Nj_eq_0", "Nj_eq_1", "Nj_geq_2_pTmiss_lt_200", "Nj_geq_2_pTmiss_ge_200" };
   if (includeBoostedHadVHCategory) strCatNames.push_back("BoostedHadVH");
   if (includeResolvedHadVHCategory) strCatNames.push_back("ResolvedHadVH");
   unsigned int const nCats = strCatNames.size();
@@ -947,6 +1254,7 @@ void getTemplate_ZZ2L2Nu(
   GenericBkgProcessHandler process_handler("InstrMET", "", ACHypothesisHelpers::kZZ2l2nu_offshell);
 
   TString cinput_main = "output/TemplateIntermediates/" + strdate + "/CatScheme_Nj" + (includeBoostedHadVHCategory ? (includeResolvedHadVHCategory ? "_BoostedHadVH_ResolvedHadVH" : "_BoostedHadVH") : (includeResolvedHadVHCategory ? "_ResolvedHadVH" : "")) + "/" + ACHypothesisHelpers::getACHypothesisName(AChypo) + "/" + period;
+  if (SampleHelpers::checkRunOnCondor()) cinput_main += Form("/InstrMET_%s", strChannel.Data());
   if (!SampleHelpers::checkFileOnWorker(cinput_main)){
     MELAerr << "Cannot find " << cinput_main << "..." << endl;
     exit(1);
@@ -974,6 +1282,27 @@ void getTemplate_ZZ2L2Nu(
 
   for (unsigned int icat=0; icat<nCats; icat++){
     MELAout << "Producing templates for " << strCatNames.at(icat) << ":" << endl;
+
+    const double thr_mTZZ = (icat==2 ? 450 : -1);
+
+    ACHypothesisHelpers::ProductionType prod_type;
+    if (icat<2) prod_type = ACHypothesisHelpers::kGG;
+    else if (icat==2 || icat==3) prod_type = ACHypothesisHelpers::kVBF;
+    else prod_type = ACHypothesisHelpers::kHadVH;
+    bool const hasKDs = (prod_type == ACHypothesisHelpers::kVBF);
+
+    std::vector<ExtendedBinning> binning_KDvars; binning_KDvars.reserve(3);
+    // Add mTZZ
+    binning_KDvars.emplace_back(TemplateHelpers::getDiscriminantFineBinning("mTZZ", AChypo, prod_type, process_handler.getProcessDecayType()));
+    // Add pTmiss
+    if (icat<2) binning_KDvars.emplace_back(TemplateHelpers::getDiscriminantFineBinning("pTmiss", AChypo, prod_type, process_handler.getProcessDecayType()));
+    // Add KDs as the remaining dimensions if they are supposed to be used.
+    if (hasKDs){
+      for (unsigned int iKD=0; iKD<nKDs; iKD++){
+        auto const& KD = KDlist.at(iKD);
+        binning_KDvars.emplace_back(TemplateHelpers::getDiscriminantFineBinning(KD.KDname, AChypo, prod_type, process_handler.getProcessDecayType()));
+      }
+    }
 
     TString stroutput_txt = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), "InstrMET", "Nominal");
     HelperFunctions::replaceString<TString, TString const>(stroutput_txt, "_Nominal.root", ".txt");
@@ -1029,12 +1358,21 @@ void getTemplate_ZZ2L2Nu(
       }
     }
     MELAout << "\t- List of processes for the available systematics:" << endl;
-    for (auto const& pp:syst_procname_map) MELAout << "\t\t- Systematic " << pp.first << ": " << pp.second << endl;
-    for (auto const& syst_procname_pair:syst_procname_map){
-      MELAout << "\t- Processing " << syst_procname_pair.first << "..." << endl;
 
-      TString stroutput = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), "InstrMET", syst_procname_pair.first);
+    // Maps of template, below-floor histograms
+    std::unordered_map<TString, std::pair<TH1F*, TH1F*>> syst_h1D_pair_map;
+    std::unordered_map<TString, std::pair<TH2F*, TH2F*>> syst_h2D_pair_map;
+    std::unordered_map<TString, std::pair<TH3F*, TH3F*>> syst_h3D_pair_map;
+    for (auto const& pp:syst_procname_map) MELAout << "\t\t- Systematic " << pp.first << ": " << pp.second << endl;
+
+    std::unordered_map<TString, TFile*> syst_outfile_map;
+    for (auto const& syst_procname_pair:syst_procname_map){
+      TString const& systname = syst_procname_pair.first;
+      MELAout << "\t- Processing " << systname << "..." << endl;
+
+      TString stroutput = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), "InstrMET", systname);
       TFile* foutput = TFile::Open(stroutput, "recreate");
+      syst_outfile_map[systname] = foutput;
       SampleHelpers::addToCondorTransferList(stroutput);
 
       foutput->cd();
@@ -1042,9 +1380,12 @@ void getTemplate_ZZ2L2Nu(
       TH1F* h1D = nullptr;
       TH2F* h2D = nullptr;
       TH3F* h3D = nullptr;
+      TH1F* h1D_floored = nullptr;
+      TH2F* h2D_floored = nullptr;
+      TH3F* h3D_floored = nullptr;
       for (auto const& procname:strSampleSets){
         TString activeSyst = "Nominal";
-        if (HelperFunctions::checkListVariable(syst_procname_map[syst_procname_pair.first], procname)) activeSyst = syst_procname_pair.first;
+        if (HelperFunctions::checkListVariable(syst_procname_map[systname], procname)) activeSyst = systname;
 
         switch (ndims){
         case 1:
@@ -1091,11 +1432,10 @@ void getTemplate_ZZ2L2Nu(
           h1D->SetBinContent(ix, bc);
           h1D->SetBinError(ix, 0.);
         }
-        foutput->WriteTObject(h1D);
-        hFloored->Scale(-1.); foutput->WriteTObject(hFloored);
+        hFloored->Scale(-1.);
+        h1D_floored = hFloored;
         MELAout << "\t\t- Final integral: " << HelperFunctions::getHistogramIntegralAndError(h1D, 1, h1D->GetNbinsX(), true) << endl;
         MELAout << "\t\t- Floor bias in integral: " << -HelperFunctions::getHistogramIntegralAndError(hFloored, 1, hFloored->GetNbinsX(), true) << endl;
-        delete hFloored;
       }
       if (h2D){
         TH2F* hFloored = (TH2F*) h2D->Clone(Form("%s_belowfloor", h2D->GetName()));
@@ -1108,32 +1448,37 @@ void getTemplate_ZZ2L2Nu(
             h2D->SetBinError(ix, iy, 0);
           }
         }
-        if (icat==2 && nKDs==1){
+        if ((icat==2 || icat==3) && nKDs==1){
           // Regularize KD shape above thr_mTZZ
-          int jx = h2D->GetXaxis()->FindBin(thr_mTZZ+1e-6);
+          int jx = (thr_mTZZ<0. ? 1 : h2D->GetXaxis()->FindBin(thr_mTZZ+1e-6));
           int nx = h2D->GetNbinsX();
-          std::vector<double> int_KD;
-          {
-            double sum_int_KD = 0;
-            for (int iy=1; iy<=h2D->GetNbinsY(); iy++){ int_KD.push_back(HelperFunctions::getHistogramIntegralAndError(h2D, jx, nx, iy, iy, true)); sum_int_KD += int_KD.back(); }
-            for (auto& vv:int_KD) vv /= sum_int_KD;
-          }
-          for (int ix=jx; ix<=nx; ix++){
-            double xwidth = h2D->GetXaxis()->GetBinWidth(ix);
-            double int_x = HelperFunctions::getHistogramIntegralAndError(h2D, ix, ix, 1, h2D->GetNbinsY(), true);
-            //MELAout << "Integral before: " << int_x << endl;
-            for (int iy=1; iy<=h2D->GetNbinsY(); iy++){
-              double ywidth = h2D->GetYaxis()->GetBinWidth(iy);
-              h2D->SetBinContent(ix, iy, int_x * int_KD.at(iy-1) / (xwidth * ywidth));
+          for (unsigned int ilh=0; ilh<2; ilh++){
+            if (icat==2 && ilh==0) continue; // Do not regularize low-mTZZ for icat==2
+            if (jx==1 && ilh==0) continue;
+
+            std::vector<double> int_KD;
+            {
+              double sum_int_KD = 0;
+              for (int iy=1; iy<=h2D->GetNbinsY(); iy++){ int_KD.push_back(HelperFunctions::getHistogramIntegralAndError(h2D, (ilh==1 ? jx : 1), (ilh==1 ? nx : jx-1), iy, iy, true)); sum_int_KD += int_KD.back(); }
+              for (auto& vv:int_KD) vv /= sum_int_KD;
             }
-            //MELAout << "Integral after: " << HelperFunctions::getHistogramIntegralAndError(h2D, ix, ix, 1, h2D->GetNbinsY(), true) << endl;
+            for (int ix=(ilh==1 ? jx : 1); ix<=(ilh==1 ? nx : jx-1); ix++){
+              double xwidth = h2D->GetXaxis()->GetBinWidth(ix);
+              double int_x = HelperFunctions::getHistogramIntegralAndError(h2D, ix, ix, 1, h2D->GetNbinsY(), true);
+              //MELAout << "Integral before: " << int_x << endl;
+              for (int iy=1; iy<=h2D->GetNbinsY(); iy++){
+                double ywidth = h2D->GetYaxis()->GetBinWidth(iy);
+                h2D->SetBinContent(ix, iy, int_x * int_KD.at(iy-1) / (xwidth * ywidth));
+              }
+              //MELAout << "Integral after: " << HelperFunctions::getHistogramIntegralAndError(h2D, ix, ix, 1, h2D->GetNbinsY(), true) << endl;
+            }
           }
         }
-        foutput->WriteTObject(h2D);
-        hFloored->Scale(-1.); foutput->WriteTObject(hFloored);
+        regularizeCombinedHistogram(h2D);
+        hFloored->Scale(-1.);
+        h2D_floored = hFloored;
         MELAout << "\t\t- Final integral: " << HelperFunctions::getHistogramIntegralAndError(h2D, 1, h2D->GetNbinsX(), 1, h2D->GetNbinsY(), true) << endl;
         MELAout << "\t\t- Floor bias in integral: " << -HelperFunctions::getHistogramIntegralAndError(hFloored, 1, hFloored->GetNbinsX(), 1, hFloored->GetNbinsY(), true) << endl;
-        delete hFloored;
       }
       if (h3D){
         TH3F* hFloored = (TH3F*) h3D->Clone(Form("%s_belowfloor", h3D->GetName()));
@@ -1148,71 +1493,151 @@ void getTemplate_ZZ2L2Nu(
             }
           }
         }
-        if (icat==2){
+        if (icat==2 || icat==3){
           // Regularize KD shape above thr_mTZZ
-          int jx = h3D->GetXaxis()->FindBin(thr_mTZZ+1e-6);
+          int jx = (thr_mTZZ<0. ? 1 : h3D->GetXaxis()->FindBin(thr_mTZZ+1e-6));
           int nx = h3D->GetNbinsX();
           int ny = h3D->GetNbinsY();
           int nz = h3D->GetNbinsZ();
-          if (nKDs==1){
-            std::vector<double> int_KD;
-            {
-              double sum_int_KD = 0;
-              for (int iz=1; iz<=nz; iz++){ int_KD.push_back(HelperFunctions::getHistogramIntegralAndError(h3D, jx, nx, 1, ny, iz, iz, true)); sum_int_KD += int_KD.back(); }
-              for (auto& vv:int_KD) vv /= sum_int_KD;
-            }
-            for (int ix=jx; ix<=nx; ix++){
-              double xwidth = h3D->GetXaxis()->GetBinWidth(ix);
-              for (int iy=1; iy<=ny; iy++){
-                double ywidth = h3D->GetYaxis()->GetBinWidth(iy);
-                double int_xy = HelperFunctions::getHistogramIntegralAndError(h3D, ix, ix, iy, iy, 1, nz, true);
-                //MELAout << "Integral before: " << int_xy << endl;
-                for (int iz=1; iz<=nz; iz++){
-                  double zwidth = h3D->GetZaxis()->GetBinWidth(iz);
-                  h3D->SetBinContent(ix, iy, iz, int_xy * int_KD.at(iz-1) / (xwidth * ywidth * zwidth));
-                }
-                //MELAout << "Integral after: " << HelperFunctions::getHistogramIntegralAndError(h3D, ix, ix, iy, iy, 1, nz, true) << endl;
+          for (unsigned int ilh=0; ilh<2; ilh++){
+            if (icat==2 && ilh==0) continue; // Do not regularize low-mTZZ for icat==2
+            if (jx==1 && ilh==0) continue;
+
+            if (nKDs==1){
+              std::vector<double> int_KD;
+              {
+                double sum_int_KD = 0;
+                for (int iz=1; iz<=nz; iz++){ int_KD.push_back(HelperFunctions::getHistogramIntegralAndError(h3D, (ilh==1 ? jx : 1), (ilh==1 ? nx : jx-1), 1, ny, iz, iz, true)); sum_int_KD += int_KD.back(); }
+                for (auto& vv:int_KD) vv /= sum_int_KD;
               }
-            }
-          }
-          else if (nKDs==2){
-            std::vector<std::vector<double>> int_KD(ny, std::vector<double>());
-            {
-              double sum_int_KD = 0;
-              for (int iy=1; iy<=ny; iy++){
-                for (int iz=1; iz<=nz; iz++){ int_KD.at(iy-1).push_back(HelperFunctions::getHistogramIntegralAndError(h3D, jx, nx, iy, iy, iz, iz, true)); sum_int_KD += int_KD.at(iy-1).back(); }
-              }
-              for (auto& v:int_KD){ for (auto& vv:v) vv /= sum_int_KD; }
-            }
-            for (int ix=jx; ix<=nx; ix++){
-              double xwidth = h3D->GetXaxis()->GetBinWidth(ix);
-              double int_x = HelperFunctions::getHistogramIntegralAndError(h3D, ix, ix, 1, ny, 1, nz, true);
-              //MELAout << "Integral before: " << int_x << endl;
-              for (int iy=1; iy<=ny; iy++){
-                double ywidth = h3D->GetYaxis()->GetBinWidth(iy);
-                for (int iz=1; iz<=nz; iz++){
-                  double zwidth = h3D->GetZaxis()->GetBinWidth(iz);
-                  h3D->SetBinContent(ix, iy, iz, int_x * int_KD.at(iy-1).at(iz-1) / (xwidth * ywidth * zwidth));
+              for (int ix=(ilh==1 ? jx : 1); ix<=(ilh==1 ? nx : jx-1); ix++){
+                double xwidth = h3D->GetXaxis()->GetBinWidth(ix);
+                for (int iy=1; iy<=ny; iy++){
+                  double ywidth = h3D->GetYaxis()->GetBinWidth(iy);
+                  double int_xy = HelperFunctions::getHistogramIntegralAndError(h3D, ix, ix, iy, iy, 1, nz, true);
+                  //MELAout << "Integral before: " << int_xy << endl;
+                  for (int iz=1; iz<=nz; iz++){
+                    double zwidth = h3D->GetZaxis()->GetBinWidth(iz);
+                    h3D->SetBinContent(ix, iy, iz, int_xy * int_KD.at(iz-1) / (xwidth * ywidth * zwidth));
+                  }
+                  //MELAout << "Integral after: " << HelperFunctions::getHistogramIntegralAndError(h3D, ix, ix, iy, iy, 1, nz, true) << endl;
                 }
               }
-              //MELAout << "Integral after: " << HelperFunctions::getHistogramIntegralAndError(h3D, ix, ix, 1, ny, 1, nz, true) << endl;
+            }
+            else if (nKDs==2){
+              std::vector<std::vector<double>> int_KD(ny, std::vector<double>());
+              {
+                double sum_int_KD = 0;
+                for (int iy=1; iy<=ny; iy++){
+                  for (int iz=1; iz<=nz; iz++){ int_KD.at(iy-1).push_back(HelperFunctions::getHistogramIntegralAndError(h3D, (ilh==1 ? jx : 1), (ilh==1 ? nx : jx-1), iy, iy, iz, iz, true)); sum_int_KD += int_KD.at(iy-1).back(); }
+                }
+                for (auto& v:int_KD){ for (auto& vv:v) vv /= sum_int_KD; }
+              }
+              for (int ix=(ilh==1 ? jx : 1); ix<=(ilh==1 ? nx : jx-1); ix++){
+                double xwidth = h3D->GetXaxis()->GetBinWidth(ix);
+                double int_x = HelperFunctions::getHistogramIntegralAndError(h3D, ix, ix, 1, ny, 1, nz, true);
+                //MELAout << "Integral before: " << int_x << endl;
+                for (int iy=1; iy<=ny; iy++){
+                  double ywidth = h3D->GetYaxis()->GetBinWidth(iy);
+                  for (int iz=1; iz<=nz; iz++){
+                    double zwidth = h3D->GetZaxis()->GetBinWidth(iz);
+                    h3D->SetBinContent(ix, iy, iz, int_x * int_KD.at(iy-1).at(iz-1) / (xwidth * ywidth * zwidth));
+                  }
+                }
+                //MELAout << "Integral after: " << HelperFunctions::getHistogramIntegralAndError(h3D, ix, ix, 1, ny, 1, nz, true) << endl;
+              }
             }
           }
         }
-        foutput->WriteTObject(h3D);
-        hFloored->Scale(-1.); foutput->WriteTObject(hFloored);
+        regularizeCombinedHistogram(h3D);
+        hFloored->Scale(-1.);
+        h3D_floored = hFloored;
         MELAout << "\t\t- Final integral: " << HelperFunctions::getHistogramIntegralAndError(h3D, 1, h3D->GetNbinsX(), 1, h3D->GetNbinsY(), 1, h3D->GetNbinsZ(), true) << endl;
         MELAout << "\t\t- Floor bias in integral: " << -HelperFunctions::getHistogramIntegralAndError(hFloored, 1, hFloored->GetNbinsX(), 1, hFloored->GetNbinsY(), 1, hFloored->GetNbinsZ(), true) << endl;
-        delete hFloored;
       }
 
-      delete h1D;
-      delete h2D;
-      delete h3D;
+      switch (ndims){
+      case 1:
+        syst_h1D_pair_map[systname] = std::pair<TH1F*, TH1F*>(h1D, h1D_floored);
+        break;
+      case 2:
+        syst_h2D_pair_map[systname] = std::pair<TH2F*, TH2F*>(h2D, h2D_floored);
+        break;
+      case 3:
+        syst_h3D_pair_map[systname] = std::pair<TH3F*, TH3F*>(h3D, h3D_floored);
+        break;
+      default:
+        break;
+      }
 
-      foutput->Close();
       curdir->cd();
     }
+
+    for (auto const& syst_procname_pair:syst_procname_map){
+      TString const& systname = syst_procname_pair.first;
+      if (systname=="Nominal" || systname.Contains("stat_shape_KD")) continue;
+      MELAout << "\t- Finalizing " << systname << "..." << endl;
+      switch (ndims){
+      case 1:
+      {
+        TH1F*& h_nominal = syst_h1D_pair_map.find("Nominal")->second.first;
+        TH1F*& h_syst = syst_h1D_pair_map.find(systname)->second.first;
+        adjustWideBinVariation(binning_KDvars, systname, h_nominal, h_syst, true);
+        break;
+      }
+      case 2:
+      {
+        TH2F*& h_nominal = syst_h2D_pair_map.find("Nominal")->second.first;
+        TH2F*& h_syst = syst_h2D_pair_map.find(systname)->second.first;
+        adjustWideBinVariation(binning_KDvars, systname, h_nominal, h_syst, true);
+        break;
+      }
+      case 3:
+      {
+        TH3F*& h_nominal = syst_h3D_pair_map.find("Nominal")->second.first;
+        TH3F*& h_syst = syst_h3D_pair_map.find(systname)->second.first;
+        adjustWideBinVariation(binning_KDvars, systname, h_nominal, h_syst, true);
+        break;
+      }
+      default:
+        break;
+      }
+    }
+    for (auto const& syst_procname_pair:syst_procname_map){
+      TString const& systname = syst_procname_pair.first;
+      MELAout << "\t- Recording " << systname << "..." << endl;
+      TFile*& foutput = syst_outfile_map.find(systname)->second;
+      switch (ndims){
+      case 1:
+      {
+        TH1F*& h_syst = syst_h1D_pair_map.find(systname)->second.first;
+        TH1F*& h_syst_floored = syst_h1D_pair_map.find(systname)->second.second;
+        foutput->WriteTObject(h_syst); delete h_syst;
+        foutput->WriteTObject(h_syst_floored); delete h_syst_floored;
+        break;
+      }
+      case 2:
+      {
+        TH2F*& h_syst = syst_h2D_pair_map.find(systname)->second.first;
+        TH2F*& h_syst_floored = syst_h2D_pair_map.find(systname)->second.second;
+        foutput->WriteTObject(h_syst); delete h_syst;
+        foutput->WriteTObject(h_syst_floored); delete h_syst_floored;
+        break;
+      }
+      case 3:
+      {
+        TH3F*& h_syst = syst_h3D_pair_map.find(systname)->second.first;
+        TH3F*& h_syst_floored = syst_h3D_pair_map.find(systname)->second.second;
+        foutput->WriteTObject(h_syst); delete h_syst;
+        foutput->WriteTObject(h_syst_floored); delete h_syst_floored;
+        break;
+      }
+      default:
+        break;
+      }
+      foutput->Close();
+    }
+
 
     for (auto const& finput:finputs) finput->Close();
 
@@ -1250,4 +1675,69 @@ void runTemplateChain(
     dilepton_id,
     includeBoostedHadVHCategory, includeResolvedHadVHCategory
   );
+}
+
+void createFinalTemplateSlices(TString cinput, TString coutput_main){
+  if (coutput_main=="") return;
+  TString cinput_core = cinput(cinput.Last('/')+1, cinput.Length());
+  TString coutput = coutput_main + "/" + Form("slices_%s", cinput_core.Data());
+
+  TFile* finput = TFile::Open(cinput, "read");
+  if (!finput || finput->IsZombie()){
+    delete finput;
+    exit(1);
+  }
+
+  TH2F* hist_2D = dynamic_cast<TH2F*>(finput->Get("T_InstrMET"));
+  TH3F* hist_3D = dynamic_cast<TH3F*>(finput->Get("T_InstrMET"));
+
+  TFile* foutput = TFile::Open(coutput, "recreate");
+
+  if (hist_2D){
+    int const nbinsx = hist_2D->GetNbinsX();
+
+    foutput->WriteTObject(hist_2D);
+    for (int ix=1; ix<=nbinsx; ix++){
+      TString hname = Form("h_slice_old_%i", ix);
+      TH1F* hslice = HelperFunctions::getHistogramSlice(hist_2D, 1, ix, ix, hname);
+      foutput->WriteTObject(hslice);
+      delete hslice;
+    }
+
+    regularizeCombinedHistogram(hist_2D);
+    hist_2D->SetName(Form("%s_new", hist_2D->GetName()));
+
+    foutput->WriteTObject(hist_2D);
+    for (int ix=1; ix<=nbinsx; ix++){
+      TString hname = Form("h_slice_new_%i", ix);
+      TH1F* hslice = HelperFunctions::getHistogramSlice(hist_2D, 1, ix, ix, hname);
+      foutput->WriteTObject(hslice);
+      delete hslice;
+    }
+  }
+  else if (hist_3D){
+    int const nbinsx = hist_3D->GetNbinsX();
+
+    foutput->WriteTObject(hist_3D);
+    for (int ix=1; ix<=nbinsx; ix++){
+      TString hname = Form("h_slice_old_%i", ix);
+      TH2F* hslice = HelperFunctions::getHistogramSlice(hist_3D, 1, 2, ix, ix, hname);
+      foutput->WriteTObject(hslice);
+      delete hslice;
+    }
+
+    regularizeCombinedHistogram(hist_3D);
+    hist_3D->SetName(Form("%s_new", hist_3D->GetName()));
+
+    foutput->WriteTObject(hist_3D);
+    for (int ix=1; ix<=nbinsx; ix++){
+      TString hname = Form("h_slice_new_%i", ix);
+      TH2F* hslice = HelperFunctions::getHistogramSlice(hist_3D, 1, 2, ix, ix, hname);
+      foutput->WriteTObject(hslice);
+      delete hslice;
+    }
+  }
+
+  foutput->Close();
+  finput->Close();
 }

@@ -94,6 +94,8 @@ BRANCH_COMMAND(float, eta_genMatch_l1) \
 BRANCH_COMMAND(float, phi_genMatch_l1) \
 BRANCH_COMMAND(float, dR_genMatch_l1) \
 BRANCH_COMMAND(bool, hasTightCharge_l1) \
+BRANCH_COMMAND(float, relPFIso_DR0p3_EAcorr_l1) \
+BRANCH_COMMAND(float, relPFIso_DR0p4_EAcorr_l1) \
 BRANCH_COMMAND(int, id_l2) \
 BRANCH_COMMAND(float, pt_l2) \
 BRANCH_COMMAND(float, eta_l2) \
@@ -125,6 +127,8 @@ BRANCH_COMMAND(float, etaSC_l2)
 #define BRANCHES_DIMUONS \
 BRANCH_COMMAND(bool, passTiming_l1) \
 BRANCH_COMMAND(float, minDR_electron_l1) \
+BRANCH_COMMAND(float, relPFIso_DR0p3_DBcorr_l1) \
+BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l1) \
 BRANCH_COMMAND(bool, passTiming_l2) \
 BRANCH_COMMAND(float, minDR_electron_l2) \
 BRANCH_COMMAND(float, relPFIso_DR0p3_DBcorr_l2) \
@@ -1823,7 +1827,8 @@ void createWSandDCs(
   // Jet ID options
   bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false,
   // MET options
-  bool use_MET_XYCorr=true, bool use_MET_JERCorr=false, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true
+  bool use_MET_XYCorr=true, bool use_MET_JERCorr=false, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true, bool use_MET_corrections=true,
+  std::vector<int> bins_pt = std::vector<int>(), std::vector<int> bins_eta = std::vector<int>()
 ){
   constexpr bool useJetOverlapStripping = false;
 
@@ -1838,6 +1843,7 @@ void createWSandDCs(
   bool useALTBkg2 = systOptions.Contains("ALTBkg2");
   bool useALTBkg = systOptions.Contains("ALTBkg") && !(useALTBkg2 || useALTBkg3);
   bool useTightTag = systOptions.Contains("TightTag");
+  bool useTightIsoTag = systOptions.Contains("TightIsoTag");
   bool useMC_2l2nu = systOptions.Contains("MC_2l2nu");
   bool useMC_4l = systOptions.Contains("MC_4l");
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
@@ -1845,6 +1851,7 @@ void createWSandDCs(
   else if (systOptions.Contains("PUUp")) theGlobalSyst = SystematicsHelpers::ePUUp;
   bool doFits = (!useMC_2l2nu && !useMC_4l && theGlobalSyst==SystematicsHelpers::sNominal);
   if (1*useALTSig + 1*useALTBkg + 1*useALTBkg2 + 1*useALTBkg3>1) return; // Exclude tight tag here
+  if (!doFits && (!bins_pt.empty() || !bins_eta.empty())) return;
 
   gStyle->SetOptStat(0);
 
@@ -1949,6 +1956,7 @@ void createWSandDCs(
 
   TString strSystName = strFitModel + "_" + strMCModel + "_" + SystematicsHelpers::getSystName(theGlobalSyst).data();
   if (useTightTag) strSystName += "_TightTag";
+  if (useTightIsoTag) strSystName += "_TightIsoTag";
 
   TString strFinalState = (is_ee ? "ee" : "mumu");
   if (is_ee){
@@ -1964,6 +1972,7 @@ void createWSandDCs(
     convertFloatToTitleString(minPt_tag).Data(),
     convertFloatToTitleString(fit_low).Data(), convertFloatToTitleString(fit_high).Data()
   );
+  MELAout << "Output name suffix: " << strnameapp << endl;
 
   TString stroutput_counts = Form("%s/Counts_%s%s", coutput_main.Data(), strnameapp.Data(), ".root");
   TFile* foutput_counts = TFile::Open(stroutput_counts, "recreate");
@@ -2063,7 +2072,7 @@ void createWSandDCs(
 
   for (auto const& tin:tinlist){
     tin->SetBranchStatus("*", 0);
-#define BRANCH_COMMAND(type, name) tin->SetBranchStatus(#name, 1); tin->SetBranchAddress(#name, &name);
+#define BRANCH_COMMAND(type, name)  if (SampleHelpers::branchExists(tin, #name)){ tin->SetBranchStatus(#name, 1); tin->SetBranchAddress(#name, &name); }
     BRANCHES_COMMON;
     BRANCHES_VECTORIZED;
     if (is_ee){
@@ -2170,6 +2179,15 @@ void createWSandDCs(
               useTightTag
               &&
               !(pass_extraTight_l1->at(ip) && hasTightCharge_l1->at(ip))
+              ) continue;
+            if (
+              useTightIsoTag
+              &&
+              (
+                (is_ee && relPFIso_DR0p3_EAcorr_l1->at(ip)>=0.065f)
+                ||
+                (!is_ee && relPFIso_DR0p3_DBcorr_l1->at(ip)>=0.085f)
+                )
               ) continue;
             if (iloop==0) nPassTightTag++;
 
@@ -2365,6 +2383,7 @@ void createWSandDCs(
   for (unsigned int ix=0; ix<nbins_pt; ix++){
     if (!doFits) break;
     //continue;
+    if (!bins_pt.empty() && !HelperFunctions::checkListVariable(bins_pt, static_cast<int>(ix))) continue;
     float pt_low = binning_pt.getBinLowEdge(ix);
     float pt_high = (ix==nbins_pt-1 ? -1. : binning_pt.getBinHighEdge(ix));
     TString strbinning_pt = "pt_";
@@ -2383,6 +2402,7 @@ void createWSandDCs(
     }
 
     for (unsigned int iy=0; iy<nbins_eta; iy++){
+      if (!bins_eta.empty() && !HelperFunctions::checkListVariable(bins_eta, static_cast<int>(iy))) continue;
       float eta_low = (iy==0 ? -99. : binning_eta.getBinLowEdge(iy));
       float eta_high = (iy==nbins_eta-1 ? 99. : binning_eta.getBinHighEdge(iy));
       float etaOpp_low = -eta_high;
@@ -5106,7 +5126,7 @@ void combineEfficiencies(
     double zmax_SF=-9e9;
 
     for (unsigned int bin_pt=0; bin_pt<nbins_pt; bin_pt++){
-      for (unsigned int bin_eta=0; bin_eta<nbins_pt; bin_eta++){
+      for (unsigned int bin_eta=0; bin_eta<nbins_eta; bin_eta++){
 #define HIST_COMMAND(name) \
         double val_##name = h_##name##_list.at(osel).GetBinContent(bin_eta+1, bin_pt+1); if (val_##name>0.) zmin_eff = std::min(zmin_eff, val_##name);
         HIST_COMMAND(eff_data_Nominal);
@@ -5135,6 +5155,7 @@ void combineEfficiencies(
         double val_SF_AltMCDn = (val_eff_MC_AltMCDn==0. ? 0. : val_eff_data_Nominal / val_eff_MC_AltMCDn);
         double val_SF_AltMCUp = (val_eff_MC_AltMCUp==0. ? 0. : val_eff_data_Nominal / val_eff_MC_AltMCUp);
 #define HIST_COMMAND(name) \
+        if (!HelperFunctions::checkVarNanInf(val_##name)) MELAerr << "BIN " << bin_eta+1 << ", " << bin_pt+1 << "HAS NAN/INF FOR " << #name << " " << strIdIsoOutTypes.at(osel) << "." << endl; \
         h_##name##_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, val_##name); if (val_##name>0.){ zmin_SF = std::min(zmin_SF, val_##name); zmax_SF = std::max(zmax_SF, val_##name); }
         HIST_COMMAND(SF_Nominal);
         HIST_COMMAND(SF_StatDn);

@@ -7,7 +7,7 @@ ntupleVersion=$4
 
 script=produceNRBEstimates.cc
 function=runDistributionsChain
-jobdate="NRBEstimates_${date}"
+jobdate="${date}_NRBEstimates"
 arguments='"<period>","<prodVersion>","<ntupleVersion>","<strdate>",<theGlobalSyst>,<fast_mode>,<applyPUIdToAK4Jets>,<applyTightLeptonVetoIdToAK4Jets>,<use_MET_Puppi>,<use_MET_XYCorr>,<use_MET_JERCorr>,<use_MET_ParticleMomCorr>,<use_MET_p4Preservation>,<use_MET_corrections>'
 arguments="${arguments/<period>/$period}"
 arguments="${arguments/<strdate>/$date}"

@@ -15,7 +15,7 @@ arguments="${arguments/<prodVersion>/$prodVersion}"
 arguments="${arguments/<ntupleVersion>/$ntupleVersion}"
 
 for includeBoostedHadVHCategory in false true; do
-for includeResolvedHadVHCategory in false true; do
+for includeResolvedHadVHCategory in false; do
 for hypo in kSM kA3 kA2 kL1 kL1ZGs; do
   strargs="${arguments}"
   strargs="${strargs/<AChypo>/${hypo}}"

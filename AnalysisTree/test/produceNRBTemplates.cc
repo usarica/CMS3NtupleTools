@@ -83,6 +83,157 @@ TString getTemplateFileName(TString strdecay, TString strcat, TString strproc, T
   return Form("Hto%s_%s_FinalTemplates_%s_%s.root", strdecay.Data(), strcat.Data(), strproc.Data(), strSystDC.Data());
 }
 
+
+void adjustWideBinVariation(std::vector<ExtendedBinning> const& binning_vars, TH1F* h_nominal, TH1F* h_var, bool useWidth){
+  if (binning_vars.size()!=1){ MELAerr << "adjustWideBinVariation ERROR: Using the wrong binning dimension!" << endl; return; }
+  if (binning_vars.front().getName()!="mTZZ") return;
+
+  MELAout
+    << "adjustWideBinVariation: Integral of the variation before adjustment = "
+    << HelperFunctions::getHistogramIntegralAndError(h_var, 1, binning_vars.front().getNbins(), useWidth)
+    << endl;
+
+  std::vector<int> const xbin_boundaries{ 1, binning_vars.front().getBin(400.)+1, static_cast<int>(binning_vars.front().getNbins()+1) };
+  MELAout << "\t- X wide bin boundaries: " << xbin_boundaries << endl;
+
+  for (unsigned int ibb=0; ibb<xbin_boundaries.size()-1; ibb++){
+    double const int_nominal = HelperFunctions::getHistogramIntegralAndError(h_nominal, xbin_boundaries.at(ibb), xbin_boundaries.at(ibb+1)-1, useWidth);
+    double const int_var = HelperFunctions::getHistogramIntegralAndError(h_var, xbin_boundaries.at(ibb), xbin_boundaries.at(ibb+1)-1, useWidth);
+    double int_ratio = 1;
+    if (int_nominal!=0.) int_ratio = int_var / int_nominal;
+    for (int ix=xbin_boundaries.at(ibb); ix<xbin_boundaries.at(ibb+1); ix++){
+      double const v_nom = h_nominal->GetBinContent(ix);
+      double const e_nom = h_nominal->GetBinError(ix);
+      h_var->SetBinContent(ix, v_nom*int_ratio);
+      h_var->SetBinError(ix, e_nom*int_ratio);
+    }
+  }
+
+  MELAout
+    << "adjustWideBinVariation: Integral of the variation after adjustment = "
+    << HelperFunctions::getHistogramIntegralAndError(h_var, 1, binning_vars.front().getNbins(), useWidth)
+    << endl;
+}
+void adjustWideBinVariation(std::vector<ExtendedBinning> const& binning_vars, TH2F* h_nominal, TH2F* h_var, bool useWidth){
+  unsigned int const ndims = binning_vars.size();
+  if (ndims!=2){ MELAerr << "adjustWideBinVariation ERROR: Using the wrong binning dimension!" << endl; return; }
+
+  MELAout
+    << "adjustWideBinVariation: Integral of the variation before adjustment = "
+    << HelperFunctions::getHistogramIntegralAndError(h_var, 1, binning_vars.at(0).getNbins(), 1, binning_vars.at(1).getNbins(), useWidth)
+    << endl;
+
+  std::vector< std::vector<int> > bin_boundaries_list(ndims, std::vector<int>());
+  for (unsigned int idim=0; idim<ndims; idim++){
+    std::vector<int>& bin_boundaries = bin_boundaries_list.at(idim);
+    bin_boundaries.reserve(binning_vars.at(idim).getNbins());
+    if (binning_vars.at(idim).getName()=="mTZZ") bin_boundaries = std::vector<int>{ 1, binning_vars.at(idim).getBin(400.)+1, static_cast<int>(binning_vars.at(idim).getNbins()+1) };
+    else if (binning_vars.at(idim).getName()=="pTmiss") bin_boundaries = std::vector<int>{ 1, binning_vars.at(idim).getBin(200.)+1, static_cast<int>(binning_vars.at(idim).getNbins()+1) };
+    else{ for (int ib=0; ib<=(int) binning_vars.at(idim).getNbins(); ib++) bin_boundaries.push_back(ib+1); }
+  }
+
+  std::vector<int> const& xbin_boundaries = bin_boundaries_list.at(0);
+  std::vector<int> const& ybin_boundaries = bin_boundaries_list.at(1);
+  MELAout << "\t- X wide bin boundaries: " << xbin_boundaries << endl;
+  MELAout << "\t- Y wide bin boundaries: " << ybin_boundaries << endl;
+
+  for (unsigned int ibb=0; ibb<xbin_boundaries.size()-1; ibb++){
+    for (unsigned int jbb=0; jbb<ybin_boundaries.size()-1; jbb++){
+      double const int_nominal = HelperFunctions::getHistogramIntegralAndError(
+        h_nominal,
+        xbin_boundaries.at(ibb), xbin_boundaries.at(ibb+1)-1,
+        ybin_boundaries.at(jbb), ybin_boundaries.at(jbb+1)-1,
+        useWidth
+      );
+      double const int_var = HelperFunctions::getHistogramIntegralAndError(
+        h_var,
+        xbin_boundaries.at(ibb), xbin_boundaries.at(ibb+1)-1,
+        ybin_boundaries.at(jbb), ybin_boundaries.at(jbb+1)-1,
+        useWidth
+      );
+      double int_ratio = 1;
+      if (int_nominal!=0.) int_ratio = int_var / int_nominal;
+      for (int ix=xbin_boundaries.at(ibb); ix<xbin_boundaries.at(ibb+1); ix++){
+        for (int iy=ybin_boundaries.at(jbb); iy<ybin_boundaries.at(jbb+1); iy++){
+          double const v_nom = h_nominal->GetBinContent(ix, iy);
+          double const e_nom = h_nominal->GetBinError(ix, iy);
+          h_var->SetBinContent(ix, iy, v_nom*int_ratio);
+          h_var->SetBinError(ix, iy, e_nom*int_ratio);
+        }
+      }
+    }
+  }
+
+  MELAout
+    << "adjustWideBinVariation: Integral of the variation after adjustment = "
+    << HelperFunctions::getHistogramIntegralAndError(h_var, 1, binning_vars.at(0).getNbins(), 1, binning_vars.at(1).getNbins(), useWidth)
+    << endl;
+}
+void adjustWideBinVariation(std::vector<ExtendedBinning> const& binning_vars, TH3F* h_nominal, TH3F* h_var, bool useWidth){
+  unsigned int const ndims = binning_vars.size();
+  if (ndims!=3){ MELAerr << "adjustWideBinVariation ERROR: Using the wrong binning dimension!" << endl; return; }
+
+  MELAout
+    << "adjustWideBinVariation: Integral of the variation before adjustment = "
+    << HelperFunctions::getHistogramIntegralAndError(h_var, 1, binning_vars.at(0).getNbins(), 1, binning_vars.at(1).getNbins(), 1, binning_vars.at(2).getNbins(), useWidth)
+    << endl;
+
+  std::vector< std::vector<int> > bin_boundaries_list(ndims, std::vector<int>());
+  for (unsigned int idim=0; idim<ndims; idim++){
+    std::vector<int>& bin_boundaries = bin_boundaries_list.at(idim);
+    bin_boundaries.reserve(binning_vars.at(idim).getNbins());
+    if (binning_vars.at(idim).getName()=="mTZZ") bin_boundaries = std::vector<int>{ 1, binning_vars.at(idim).getBin(400.)+1, static_cast<int>(binning_vars.at(idim).getNbins()+1) };
+    else if (binning_vars.at(idim).getName()=="pTmiss") bin_boundaries = std::vector<int>{ 1, binning_vars.at(idim).getBin(200.)+1, static_cast<int>(binning_vars.at(idim).getNbins()+1) };
+    else{ for (int ib=0; ib<=(int) binning_vars.at(idim).getNbins(); ib++) bin_boundaries.push_back(ib+1); }
+  }
+
+  std::vector<int> const& xbin_boundaries = bin_boundaries_list.at(0);
+  std::vector<int> const& ybin_boundaries = bin_boundaries_list.at(1);
+  std::vector<int> const& zbin_boundaries = bin_boundaries_list.at(2);
+  MELAout << "\t- X wide bin boundaries: " << xbin_boundaries << endl;
+  MELAout << "\t- Y wide bin boundaries: " << ybin_boundaries << endl;
+  MELAout << "\t- Z wide bin boundaries: " << zbin_boundaries << endl;
+
+  for (unsigned int ibb=0; ibb<xbin_boundaries.size()-1; ibb++){
+    for (unsigned int jbb=0; jbb<ybin_boundaries.size()-1; jbb++){
+      for (unsigned int kbb=0; kbb<zbin_boundaries.size()-1; kbb++){
+        double const int_nominal = HelperFunctions::getHistogramIntegralAndError(
+          h_nominal,
+          xbin_boundaries.at(ibb), xbin_boundaries.at(ibb+1)-1,
+          ybin_boundaries.at(jbb), ybin_boundaries.at(jbb+1)-1,
+          zbin_boundaries.at(kbb), zbin_boundaries.at(kbb+1)-1,
+          useWidth
+        );
+        double const int_var = HelperFunctions::getHistogramIntegralAndError(
+          h_var,
+          xbin_boundaries.at(ibb), xbin_boundaries.at(ibb+1)-1,
+          ybin_boundaries.at(jbb), ybin_boundaries.at(jbb+1)-1,
+          zbin_boundaries.at(kbb), zbin_boundaries.at(kbb+1)-1,
+          useWidth
+        );
+        double int_ratio = 1;
+        if (int_nominal!=0.) int_ratio = int_var / int_nominal;
+        for (int ix=xbin_boundaries.at(ibb); ix<xbin_boundaries.at(ibb+1); ix++){
+          for (int iy=ybin_boundaries.at(jbb); iy<ybin_boundaries.at(jbb+1); iy++){
+            for (int iz=zbin_boundaries.at(kbb); iz<zbin_boundaries.at(kbb+1); iz++){
+              double const v_nom = h_nominal->GetBinContent(ix, iy, iz);
+              double const e_nom = h_nominal->GetBinError(ix, iy, iz);
+              h_var->SetBinContent(ix, iy, iz, v_nom*int_ratio);
+              h_var->SetBinError(ix, iy, iz, e_nom*int_ratio);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  MELAout
+    << "adjustWideBinVariation: Integral of the variation after adjustment = "
+    << HelperFunctions::getHistogramIntegralAndError(h_var, 1, binning_vars.at(0).getNbins(), 1, binning_vars.at(1).getNbins(), 1, binning_vars.at(2).getNbins(), useWidth)
+    << endl;
+}
+
+
 using namespace ACHypothesisHelpers;
 void getTemplate_ZZ2L2Nu(
   TString period, TString ntupleVersion, TString strdate,
@@ -96,13 +247,16 @@ void getTemplate_ZZ2L2Nu(
   using namespace PhysicsProcessHelpers;
   using namespace HistogramKernelDensitySmoothener;
 
+  constexpr double stddev_stat = 3;
+  constexpr bool useSymmetric = true;
+
   TDirectory* curdir = gDirectory;
 
   SampleHelpers::configure(period, Form("%s:ZZTo2L2Nu/%s", "store_finaltrees", ntupleVersion.Data()));
 
   int icat_boostedHadVH = -1;
   int icat_resolvedHadVH = -1;
-  std::vector<TString> strCatNames{ "Nj_eq_0", "Nj_eq_1", "Nj_geq_2" };
+  std::vector<TString> strCatNames{ "Nj_eq_0", "Nj_eq_1", "Nj_geq_2_pTmiss_lt_200", "Nj_geq_2_pTmiss_ge_200" };
   if (includeBoostedHadVHCategory){ strCatNames.push_back("BoostedHadVH"); icat_boostedHadVH=strCatNames.size()-1; }
   if (includeResolvedHadVHCategory){ strCatNames.push_back("ResolvedHadVH"); icat_resolvedHadVH=strCatNames.size()-1; }
   unsigned int const nCats = strCatNames.size();
@@ -178,61 +332,63 @@ void getTemplate_ZZ2L2Nu(
     unsigned int icat=0;
     if (icat_boostedHadVH>=0 && isMVJ) icat=icat_boostedHadVH;
     else if (icat_resolvedHadVH>=0 && isMVjj) icat=icat_resolvedHadVH;
-    else if (n_ak4jets_pt30>=2) icat=2;
+    else if (n_ak4jets_pt30>=2 && pTmiss<200.f) icat=2;
+    else if (n_ak4jets_pt30>=2 && pTmiss>=200.f) icat=3;
     else if (n_ak4jets_pt30==1) icat=1;
     else icat=0;
     tin_split.at(icat)->Fill();
   }
 
   for (unsigned int icat=0; icat<nCats; icat++){
-    MELAout << "Producing templates for " << strCatNames.at(icat) << ":" << endl;
+    TString const& strCatName = strCatNames.at(icat);
+    MELAout << "Producing templates for " << strCatName << ":" << endl;
 
     TTree*& tin_cat = tin_split.at(icat);
     MELAout << "\t- Category tree has " << tin_cat->GetEntries() << " entries." << endl;
 
     ACHypothesisHelpers::ProductionType prod_type;
     if (icat<2) prod_type = ACHypothesisHelpers::kGG;
-    else if (icat==2) prod_type = ACHypothesisHelpers::kVBF;
+    else if (icat==2 || icat==3) prod_type = ACHypothesisHelpers::kVBF;
     else prod_type = ACHypothesisHelpers::kHadVH;
 
-    TString stroutput = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), process_handler.getProcessName(), strSystDC);
+    TString stroutput = coutput_main + "/" + getTemplateFileName(strChannel, strCatName, process_handler.getProcessName(), strSystDC);
     std::vector<TFile*> foutputs; foutputs.reserve(7);
     foutputs.push_back(TFile::Open(stroutput, "recreate"));
     SampleHelpers::addToCondorTransferList(stroutput);
 
     bool hasStatUnc = false;
-    bool hasKDs = (icat==2);
+    bool hasKDs = (prod_type == ACHypothesisHelpers::kVBF);
     if (strSyst=="Nominal"){
       hasStatUnc = true;
       TString stroutput_var;
       // Statistical variations should be correlated between ee and mumu, so there should be no channel name.
-      TString proc_chan_cat_syst_indicator = process_handler.getProcessName() + "_" + strCatNames.at(icat) + "_" + period;
+      TString proc_chan_cat_syst_indicator = process_handler.getProcessName() + "_" + strCatName + "_" + period;
       HelperFunctions::replaceString<TString, TString const>(proc_chan_cat_syst_indicator, "2l2nu", "emu");
 
-      stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), process_handler.getProcessName(), Form("CMS_stat_norm_%sDown", proc_chan_cat_syst_indicator.Data()));
+      stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatName, process_handler.getProcessName(), Form("CMS_stat_norm_%sDown", proc_chan_cat_syst_indicator.Data()));
       foutputs.push_back(TFile::Open(stroutput_var, "recreate"));
       SampleHelpers::addToCondorTransferList(stroutput_var);
 
-      stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), process_handler.getProcessName(), Form("CMS_stat_norm_%sUp", proc_chan_cat_syst_indicator.Data()));
+      stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatName, process_handler.getProcessName(), Form("CMS_stat_norm_%sUp", proc_chan_cat_syst_indicator.Data()));
       foutputs.push_back(TFile::Open(stroutput_var, "recreate"));
       SampleHelpers::addToCondorTransferList(stroutput_var);
 
 
-      stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), process_handler.getProcessName(), Form("CMS_stat_shape_%sDown", proc_chan_cat_syst_indicator.Data()));
+      stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatName, process_handler.getProcessName(), Form("CMS_stat_shape_%sDown", proc_chan_cat_syst_indicator.Data()));
       foutputs.push_back(TFile::Open(stroutput_var, "recreate"));
       SampleHelpers::addToCondorTransferList(stroutput_var);
 
-      stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), process_handler.getProcessName(), Form("CMS_stat_shape_%sUp", proc_chan_cat_syst_indicator.Data()));
+      stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatName, process_handler.getProcessName(), Form("CMS_stat_shape_%sUp", proc_chan_cat_syst_indicator.Data()));
       foutputs.push_back(TFile::Open(stroutput_var, "recreate"));
       SampleHelpers::addToCondorTransferList(stroutput_var);
 
 
       if (hasKDs){
-        stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), process_handler.getProcessName(), Form("CMS_stat_shape_KD_%sDown", proc_chan_cat_syst_indicator.Data()));
+        stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatName, process_handler.getProcessName(), Form("CMS_stat_shape_KD_%sDown", proc_chan_cat_syst_indicator.Data()));
         foutputs.push_back(TFile::Open(stroutput_var, "recreate"));
         SampleHelpers::addToCondorTransferList(stroutput_var);
 
-        stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), process_handler.getProcessName(), Form("CMS_stat_shape_KD_%sUp", proc_chan_cat_syst_indicator.Data()));
+        stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatName, process_handler.getProcessName(), Form("CMS_stat_shape_KD_%sUp", proc_chan_cat_syst_indicator.Data()));
         foutputs.push_back(TFile::Open(stroutput_var, "recreate"));
         SampleHelpers::addToCondorTransferList(stroutput_var);
       }
@@ -273,6 +429,14 @@ void getTemplate_ZZ2L2Nu(
       nVars_KD = nKDs;
     }
 
+    if (
+      (SampleHelpers::getDataYear()==2016 && (strCatName=="Nj_eq_0" || strCatName=="Nj_eq_1"))
+      ||
+      (SampleHelpers::getDataYear()==2017 && (strCatName=="Nj_eq_0" || strCatName=="Nj_geq_2_pTmiss_ge_200"))
+      ){
+      smearingStrengthCoeffs.at(0) *= 2.;
+    }
+
     if (hasKDs) MELAout << "\t- Category uses KDs." << endl;
     MELAout << "\t- Number of non-KD variables: " << nVars_nonKD << endl;
     MELAout << "\t- Number of KD variables: " << nVars_KD << endl;
@@ -295,7 +459,7 @@ void getTemplate_ZZ2L2Nu(
           process_handler.getTemplateName()+"_Raw", process_handler.getTemplateName()+"_Raw", binning_KDvars.at(0),
           tin_cat, *(varvals.at(0)), weight, selflag,
           0,
-          nullptr, nullptr, nullptr
+          nullptr, nullptr, nullptr, stddev_stat, useSymmetric
         );
 
         integral_raw = HelperFunctions::getHistogramIntegralAndError(hRaw, 0, hRaw->GetNbinsX()+1, false, &integralerr_raw);
@@ -308,7 +472,7 @@ void getTemplate_ZZ2L2Nu(
           process_handler.getTemplateName()+"_Raw", process_handler.getTemplateName()+"_Raw", binning_KDvars.at(0), binning_KDvars.at(1),
           tin_cat, *(varvals.at(0)), *(varvals.at(1)), weight, selflag,
           0, 0,
-          nullptr, nullptr, nullptr
+          nullptr, nullptr, nullptr, stddev_stat, useSymmetric
         );
 
         integral_raw = HelperFunctions::getHistogramIntegralAndError(hRaw, 0, hRaw->GetNbinsX()+1, 0, hRaw->GetNbinsY()+1, false, &integralerr_raw);
@@ -321,7 +485,7 @@ void getTemplate_ZZ2L2Nu(
           process_handler.getTemplateName()+"_Raw", process_handler.getTemplateName()+"_Raw", binning_KDvars.at(0), binning_KDvars.at(1), binning_KDvars.at(2),
           tin_cat, *(varvals.at(0)), *(varvals.at(1)), *(varvals.at(2)), weight, selflag,
           0, 0, 0,
-          nullptr, nullptr, nullptr
+          nullptr, nullptr, nullptr, stddev_stat, useSymmetric
         );
 
         integral_raw = HelperFunctions::getHistogramIntegralAndError(hRaw, 0, hRaw->GetNbinsX()+1, 0, hRaw->GetNbinsY()+1, 0, hRaw->GetNbinsZ()+1, false, &integralerr_raw);
@@ -342,9 +506,9 @@ void getTemplate_ZZ2L2Nu(
     }
 
     // Now extract smoothened histograms
-    std::vector<TH1F*> hSmooth_combined_1D; hSmooth_combined_1D.reserve(5);
-    std::vector<TH2F*> hSmooth_combined_2D; hSmooth_combined_2D.reserve(5);
-    std::vector<TH3F*> hSmooth_combined_3D; hSmooth_combined_3D.reserve(5);
+    std::vector<TH1F*> hSmooth_combined_1D; hSmooth_combined_1D.reserve(7);
+    std::vector<TH2F*> hSmooth_combined_2D; hSmooth_combined_2D.reserve(7);
+    std::vector<TH3F*> hSmooth_combined_3D; hSmooth_combined_3D.reserve(7);
     if (nVars_nonKD==1){
       std::vector<TH1F*> hStat_nonKD(2, nullptr);
       TH1F* hSmooth_nonKD = getSmoothHistogram(
@@ -352,7 +516,7 @@ void getTemplate_ZZ2L2Nu(
         tin_cat, *(varvals.at(0)), weight, selflag,
         smearingStrengthCoeffs.at(0),
         nullptr,
-        (hasStatUnc ? &(hStat_nonKD.front()) : nullptr), (hasStatUnc ? &(hStat_nonKD.back()) : nullptr)
+        (hasStatUnc ? &(hStat_nonKD.front()) : nullptr), (hasStatUnc ? &(hStat_nonKD.back()) : nullptr), stddev_stat, useSymmetric
       );
 
       // Make conditional KD templates
@@ -375,7 +539,7 @@ void getTemplate_ZZ2L2Nu(
           tin_cat, *(varvals.at(1)), weight, selflag,
           smearingStrengthCoeffs.at(1),
           nullptr,
-          (hasStatUnc ? &(hStat_KD.front()) : nullptr), (hasStatUnc ? &(hStat_KD.back()) : nullptr)
+          (hasStatUnc ? &(hStat_KD.front()) : nullptr), (hasStatUnc ? &(hStat_KD.back()) : nullptr), stddev_stat, useSymmetric
         );
 
         // Normalize so that we can multiply with the non-KD shape
@@ -425,7 +589,7 @@ void getTemplate_ZZ2L2Nu(
           tin_cat, *(varvals.at(1)), *(varvals.at(2)), weight, selflag,
           smearingStrengthCoeffs.at(1), smearingStrengthCoeffs.at(2),
           nullptr,
-          (hasStatUnc ? &(hStat_KD.front()) : nullptr), (hasStatUnc ? &(hStat_KD.back()) : nullptr)
+          (hasStatUnc ? &(hStat_KD.front()) : nullptr), (hasStatUnc ? &(hStat_KD.back()) : nullptr), stddev_stat, useSymmetric
         );
 
         // Normalize so that we can multiply with the non-KD shape
@@ -479,7 +643,7 @@ void getTemplate_ZZ2L2Nu(
         tin_cat, *(varvals.at(0)), *(varvals.at(1)), weight, selflag,
         smearingStrengthCoeffs.at(0), smearingStrengthCoeffs.at(1),
         nullptr,
-        (hasStatUnc ? &(hStat_nonKD.front()) : nullptr), (hasStatUnc ? &(hStat_nonKD.back()) : nullptr)
+        (hasStatUnc ? &(hStat_nonKD.front()) : nullptr), (hasStatUnc ? &(hStat_nonKD.back()) : nullptr), stddev_stat, useSymmetric
       );
 
       // Make conditional KD templates
@@ -502,7 +666,7 @@ void getTemplate_ZZ2L2Nu(
           tin_cat, *(varvals.at(2)), weight, selflag,
           smearingStrengthCoeffs.at(2),
           nullptr,
-          (hasStatUnc ? &(hStat_KD.front()) : nullptr), (hasStatUnc ? &(hStat_KD.back()) : nullptr)
+          (hasStatUnc ? &(hStat_KD.front()) : nullptr), (hasStatUnc ? &(hStat_KD.back()) : nullptr), stddev_stat, useSymmetric
         );
 
         // Normalize so that we can multiply with the non-KD shape
@@ -548,6 +712,22 @@ void getTemplate_ZZ2L2Nu(
         for (auto& hh:hStat_nonKD) delete hh;
       } // End nKDs=1
     } // End non-KD = 2
+
+    if (hasStatUnc){
+      MELAout << "\t- Adjusting shape variations..." << endl;
+      if (!hSmooth_combined_1D.empty()){
+        adjustWideBinVariation(binning_KDvars, hSmooth_combined_1D.front(), hSmooth_combined_1D.at(3), false);
+        adjustWideBinVariation(binning_KDvars, hSmooth_combined_1D.front(), hSmooth_combined_1D.at(4), false);
+      }
+      if (!hSmooth_combined_2D.empty()){
+        adjustWideBinVariation(binning_KDvars, hSmooth_combined_2D.front(), hSmooth_combined_2D.at(3), false);
+        adjustWideBinVariation(binning_KDvars, hSmooth_combined_2D.front(), hSmooth_combined_2D.at(4), false);
+      }
+      if (!hSmooth_combined_3D.empty()){
+        adjustWideBinVariation(binning_KDvars, hSmooth_combined_3D.front(), hSmooth_combined_3D.at(3), false);
+        adjustWideBinVariation(binning_KDvars, hSmooth_combined_3D.front(), hSmooth_combined_3D.at(4), false);
+      }
+    }
 
     for (unsigned short istat=0; istat<7; istat++){
       if (foutputs.size()<=istat) break;

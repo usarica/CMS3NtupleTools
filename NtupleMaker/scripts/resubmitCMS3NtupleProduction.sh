@@ -1,6 +1,6 @@
 #!/bin/bash
 
-declare -r chkdir=$1
+declare -r chkdir="$1"
 declare -i jobprio=0
 declare -i maxparallel=1
 for farg in "$@"; do

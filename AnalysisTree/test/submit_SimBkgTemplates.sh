@@ -3,13 +3,6 @@
 date=$1
 period=$2
 ntupleVersion=$3
-strSampleSet_target=""
-for arg in "$@"; do
-  if [[ "$arg" == "do_only="* ]]; then
-    strSampleSet_target=${arg#*=}
-  fi
-done
-
 
 script=produceSimBkgTemplates.cc
 function=runTemplateChain
@@ -18,14 +11,16 @@ arguments='"<period>","<ntupleVersion>","<strdate>",<includeBoostedHadVHCategory
 arguments="${arguments/<strdate>/$date}"
 arguments="${arguments/<period>/$period}"
 arguments="${arguments/<ntupleVersion>/$ntupleVersion}"
-arguments="${arguments/<strSampleSet_target>/$strSampleSet_target}"
 
 for includeBoostedHadVHCategory in false true; do
-for includeResolvedHadVHCategory in false true; do
+for includeResolvedHadVHCategory in false; do
+for strSampleSet_target in qqZZ_offshell qqWZ_offshell tZX; do
   strargs="${arguments}"
   strargs="${strargs/<includeBoostedHadVHCategory>/${includeBoostedHadVHCategory}}"
   strargs="${strargs/<includeResolvedHadVHCategory>/${includeResolvedHadVHCategory}}"
+  strargs="${strargs/<strSampleSet_target>/${strSampleSet_target}}"
 
   submitCMS3AnalysisProduction.sh script="${script}" function="${function}" arguments="${strargs}" date="${jobdate}" memory="${REQMEM}" job_flavor="${JOBFLAV}"
+done
 done
 done

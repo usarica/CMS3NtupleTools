@@ -7,7 +7,6 @@ prodVersion=$3
 useMETJERCorr=false
 declare -i doSim=1
 declare -i doData=1
-declare -i doSysts=0 # Do systematics
 for arg in "$@"; do
   if [[ "$arg" == "only_data" ]]; then
     doSim=0
@@ -15,8 +14,6 @@ for arg in "$@"; do
   elif [[ "$arg" == "only_sim" ]]; then
     doSim=1
     doData=0
-  elif [[ "$arg" == "all_systs" ]] || [[ "$arg" == "all_imp_systs" ]]; then
-    doSysts=1
   elif [[ "$arg" == "useMETJERCorr="* ]]; then
     useMETJERCorr=${arg#*=}
   fi
@@ -25,13 +22,12 @@ if [[ "${useMETJERCorr}" != "true" ]] && [[ "${useMETJERCorr}" != "false" ]]; th
   echo "useMETJERCorr must be 'true' or 'false'"
 fi
 
-script=produceSinglePhotonEGTnP.cc
+script=produceOrthogonalTriggerEfficiencies.cc
 function=getTrees
-jobdate="${date}_SinglePhotonEGTnP"
-arguments='"<strSampleSet>","<period>","<prodVersion>","<strdate>",<ichunk>,<nchunks>,<theGlobalSyst>,<hardProcessFallback>,<applyPUIdToAK4Jets>,<applyTightLeptonVetoIdToAK4Jets>,<use_MET_Puppi>,<use_MET_XYCorr>,<use_MET_JERCorr>,<use_MET_ParticleMomCorr>,<use_MET_p4Preservation>,<use_MET_corrections>'
+jobdate="${date}_OrthogonalTriggerEfficiencies"
+arguments='"<strSampleSet>","<period>","<prodVersion>","<strdate>",<ichunk>,<nchunks>,<theGlobalSyst>,<applyPUIdToAK4Jets>,<applyTightLeptonVetoIdToAK4Jets>,<use_MET_Puppi>,<use_MET_XYCorr>,<use_MET_JERCorr>,<use_MET_ParticleMomCorr>,<use_MET_p4Preservation>,<use_MET_corrections>'
 arguments="${arguments/<strdate>/$date}"
 arguments="${arguments/<prodVersion>/$prodVersion}"
-arguments="${arguments/<hardProcessFallback>/false}"
 arguments="${arguments/<applyPUIdToAK4Jets>/true}"
 arguments="${arguments/<applyTightLeptonVetoIdToAK4Jets>/false}"
 arguments="${arguments/<use_MET_Puppi>/false}"
@@ -41,52 +37,56 @@ arguments="${arguments/<use_MET_ParticleMomCorr>/true}"
 arguments="${arguments/<use_MET_p4Preservation>/true}"
 arguments="${arguments/<use_MET_corrections>/true}"
 
-declare -a dataPeriods=( )
+declare -a dataPeriods=( $period )
+declare -a DataSampleList=( )
 declare -a MCDataPeriods=( $period )
-declare -a DataSampleList=( EGamma )
-declare -a MCSampleList=( )
-
-if [[ "$period" == "2018" ]]; then
-  dataPeriods=( 2018A 2018B 2018C 2018D )
-  MCSampleList=( \
-    /DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM \
-    /DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext2-v1/MINIAODSIM \
-  )
-elif [[ "$period" == "2017" ]]; then
-  dataPeriods=( 2017B 2017C 2017D 2017E 2017F )
-  MCSampleList=( \
-    /DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14-v1/MINIAODSIM \
-    /DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14_ext1-v1/MINIAODSIM \
-  )
-elif [[ "$period" == "2016" ]]; then
-  dataPeriods=( 2016B 2016C 2016D 2016E 2016F 2016G 2016H )
-  MCSampleList=( \
-    /DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext2-v1/MINIAODSIM \
-  )
-fi
-
 declare -a MCSysts=( sNominal )
-# Does not matter which flag is used...
-if [[ $doSysts -eq 1 ]]; then
-  MCSysts+=( \
-    ePUDn ePUUp \
-  )
+declare -i dataYear
+
+DataSampleList=( SingleLepton )
+
+if [[ "$period" == "2018"* ]]; then
+  dataYear=2018
+  if [[ "$period" == "2018" ]]; then
+    dataPeriods=( 2018A 2018B 2018C 2018D )
+  fi
+elif [[ "$period" == "2017"* ]]; then
+  dataYear=2017
+  if [[ "$period" == "2017" ]]; then
+    dataPeriods=( 2017B 2017C 2017D 2017E 2017F )
+  fi
+elif [[ "$period" == "2016"* ]]; then
+  dataYear=2016
+  if [[ "$period" == "2016" ]]; then
+    dataPeriods=( 2016B 2016C 2016D 2016E 2016F 2016G 2016H )
+  fi
 fi
 
+MCDataPeriods=( $period )
 
+csvfile="skimSamples_${dataYear}.csv"
 maindir="/store/user/usarica/Offshell_2L2Nu"
 maindir=$( ExecuteCompiledCommand GetStandardHostPathToStore ${maindir} t2.ucsd.edu )
 
 if [[ $doSim -eq 1 ]]; then
 
-for sample in "${MCSampleList[@]}"; do
+for sample in $(readCMS3SkimSamplesFromCSV.py --csv=${csvfile} --sim --tree_req="SingleLepton"); do
+  if [[ "$sample" != "/WJetsToLNu"* ]] || [[ "$sample" != *"amcatnlo"* ]]; then
+    continue
+  fi
+
   sampleDir=${sample//MINIAODSIM}
 
   echo "====="
   skimdir="${maindir}/Skims/${prodVersion}/${sampleDir}"
+  proddir="${maindir}/Production/${prodVersion}/${sampleDir}"
   if [[ "$( ExecuteCompiledCommand DirectoryExists ${skimdir} )" == "false" ]]; then
     echo "$skimdir does not exist"
     skimdir="${maindir}/Skims/${prodVersion}_partial/${sampleDir}"
+  fi
+  if [[ "$( ExecuteCompiledCommand DirectoryExists ${skimdir} )" == "false" ]]; then
+    echo "$skimdir does not exist"
+    skimdir=$proddir
   fi
   if [[ "$( ExecuteCompiledCommand DirectoryExists ${skimdir} )" == "false" ]]; then
     continue
@@ -104,12 +104,16 @@ for sample in "${MCSampleList[@]}"; do
   if [[ $nchunks -eq 0 ]]; then
     echo "Oh-uh..."
   fi
+  if [[ $nchunks -lt 80 ]]; then
+    nchunks=80
+  fi
 
   for dataperiod in "${MCDataPeriods[@]}"; do
     for syst in "${MCSysts[@]}"; do
 
       let ichunk=0
       while [[ $ichunk -lt $nchunks ]]; do
+
         strargs="${arguments}"
         strargs="${strargs/<strSampleSet>/${sample}}"
         strargs="${strargs/<ichunk>/${ichunk}}"
@@ -117,7 +121,9 @@ for sample in "${MCSampleList[@]}"; do
         strargs="${strargs/<theGlobalSyst>/${syst}}"
         strargs="${strargs/<period>/$dataperiod}"
 
+
         submitCMS3AnalysisProduction.sh script="${script}" function="${function}" arguments="${strargs}" date="${jobdate}"
+
         let ichunk=$ichunk+1
       done
 
@@ -133,23 +139,37 @@ if [[ $doData -eq 1 ]]; then
 
 for spl in "${DataSampleList[@]}"; do
   for dataperiod in "${dataPeriods[@]}"; do
-    sample="${spl}_${dataperiod}"
+    sss=${spl}
+    if [[ "${dataperiod}" == "2018"* ]] && [[ "${sss}" == "SingleElectron" ]]; then
+       sss="EGamma"
+    fi
+    sample="${sss}_${dataperiod}"
 
-    strargs="${arguments}"
-    strargs="${strargs/<strSampleSet>/${sample}}"
-    strargs="${strargs/<ichunk>/0}"
-    strargs="${strargs/<nchunks>/0}"
-    strargs="${strargs/<theGlobalSyst>/sNominal}"
-    strargs="${strargs/<period>/$dataperiod}"
-
+    let nchunks=15
     REQMEM=4096M
     JOBFLAV=tomorrow
-    if [[ "${dataperiod}" == "2017E" ]] || [[ "${dataperiod}" == "2017F" ]] || [[ "${dataperiod}" == "2018A" ]] || [[ "${dataperiod}" == "2018D" ]]; then
-      REQMEM=8192M
-      JOBFLAV=testmatch
+    if [[ "${dataperiod}" == "2017E" ]] || [[ "${dataperiod}" == "2017F" ]]; then
+      let nchunks=30
+    elif [[ "${dataperiod}" == "2018A" ]]; then
+      let nchunks=30
+    elif [[ "${dataperiod}" == "2018D" ]]; then
+      let nchunks=50
     fi
 
-    submitCMS3AnalysisProduction.sh script="${script}" function="${function}" arguments="${strargs}" date="${jobdate}" memory="${REQMEM}" job_flavor="${JOBFLAV}"
+    let ichunk=0
+    while [[ $ichunk -lt $nchunks ]]; do
+      strargs="${arguments}"
+      strargs="${strargs/<strSampleSet>/${sample}}"
+      strargs="${strargs/<ichunk>/${ichunk}}"
+      strargs="${strargs/<nchunks>/${nchunks}}"
+      strargs="${strargs/<theGlobalSyst>/sNominal}"
+      strargs="${strargs/<period>/$dataperiod}"
+
+      submitCMS3AnalysisProduction.sh script="${script}" function="${function}" arguments="${strargs}" date="${jobdate}" memory="${REQMEM}" job_flavor="${JOBFLAV}"
+
+      let ichunk=$ichunk+1
+    done
+
   done
 done
 

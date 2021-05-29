@@ -90,7 +90,7 @@ ExtendedBinning TemplateHelpers::getDiscriminantFineBinning(TString const& strva
         res.addBinBoundary(13000);
       }
       else{*/
-        res.addBinBoundary(200);
+        //res.addBinBoundary(200);
         res.addBinBoundary(300);
         res.addBinBoundary(350);
         res.addBinBoundary(400);
@@ -148,5 +148,5 @@ float TemplateHelpers::getSmearingStrengthCoefficient(TString const& strvar, ACH
   // pTmiss is used together with mTZZ, and both are somewhat correlated.
   if (strvar.Contains("pTmiss")) return 1;
 
-  return 2;
+  return 1;
 }

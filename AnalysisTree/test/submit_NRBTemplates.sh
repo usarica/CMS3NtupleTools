@@ -13,7 +13,7 @@ arguments="${arguments/<period>/$period}"
 arguments="${arguments/<ntupleVersion>/$ntupleVersion}"
 
 for includeBoostedHadVHCategory in false true; do
-for includeResolvedHadVHCategory in false true; do
+for includeResolvedHadVHCategory in false; do
   strargs="${arguments}"
   strargs="${strargs/<includeBoostedHadVHCategory>/${includeBoostedHadVHCategory}}"
   strargs="${strargs/<includeResolvedHadVHCategory>/${includeResolvedHadVHCategory}}"

@@ -312,6 +312,11 @@ void getTrees_ZZTo2L2Nu(
   std::vector<TString> const validDataPeriods = SampleHelpers::getValidDataPeriods();
   size_t const nValidDataPeriods = validDataPeriods.size();
 
+  TString cinput_main = "output/DileptonEvents/SkimTrees/" + ntupleVersion;
+  if (!SampleHelpers::checkFileOnWorker(cinput_main)){
+    MELAerr << "Input folder " << cinput_main << " does not exist locally and on the worker directory." << endl;
+    exit(1);
+  }
   TString const coutput_main = "output/SimBkgEstimates_ZZTo2L2Nu/" + strdate + "/FinalTrees/" + period;
 
   TDirectory* curdir = gDirectory;
@@ -425,7 +430,6 @@ void getTrees_ZZTo2L2Nu(
   }
 
   // Get input trees
-  TString const cinput_main = "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/DileptonEvents/SkimTrees/" + ntupleVersion;
   std::unordered_map<TChain*, double> norm_map;
   std::unordered_map<TChain*, double> xsec_scale_map;
   std::vector<std::pair<TString, TChain*>> samples_all;

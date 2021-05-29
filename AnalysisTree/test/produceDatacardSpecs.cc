@@ -103,14 +103,13 @@ template<typename T> void checkProcessSystematicsFromDistributions(
   std::unordered_map<TString, std::unordered_map<TString, std::vector<T*>> > const& procname_syst_hist_map,
   std::vector<std::pair<TString, TString>>& vetoed_procname_systnamecore_pairs
 ){
-  constexpr double thr = 0.001;
   for (auto const& it_procname_syst_hist_map:procname_syst_hist_map){
     TString const& procname = it_procname_syst_hist_map.first;
     auto const& syst_hist_map = it_procname_syst_hist_map.second;
 
     //MELAout << "checkProcessSystematicsFromDistributions: Checking process " << procname << endl;
 
-    std::vector<TString> systnamecores;
+    std::vector< std::pair<TString, double> > systnamecore_thr_pairs; systnamecore_thr_pairs.reserve((syst_hist_map.size()+1)/2);
     for (auto const& pp:syst_hist_map){
       if (pp.first=="Nominal" || pp.first.Contains("Down")) continue;
       TString systnamecore = pp.first;
@@ -119,10 +118,10 @@ template<typename T> void checkProcessSystematicsFromDistributions(
       // Skip checking some of the systematics
       if (
         systnamecore.Contains("stat_shape_KD")
-        ||
-        systnamecore.Contains("res_MET")
-        ||
-        systnamecore.Contains("eff_trigger_singleelectron")
+        //||
+        //systnamecore.Contains("res_MET")
+        //||
+        //systnamecore.Contains("eff_trigger_singleelectron")
         ) continue;
       if (
         procname.Contains("NRB")
@@ -136,13 +135,23 @@ template<typename T> void checkProcessSystematicsFromDistributions(
       if (dilepton_id_ref==-121 && (systnamecore.Contains("eff_syst_e") || systnamecore.Contains("eff_stat_e") || systnamecore.Contains("eff_altMC_e"))) continue;
       if (dilepton_id_ref==-169 && (systnamecore.Contains("eff_syst_mu") || systnamecore.Contains("eff_stat_mu") || systnamecore.Contains("eff_altMC_mu"))) continue;
 
-      systnamecores.push_back(systnamecore);
+      double thr = 0.01;
+      if (systnamecore.Contains("eff_trigger_singleelectron")) thr = 0.005;
+      else if (
+        (dilepton_id_ref==-121 && (systnamecore.Contains("eff_syst_mu") || systnamecore.Contains("eff_stat_mu") || systnamecore.Contains("eff_altMC_mu")))
+        ||
+        (dilepton_id_ref==-169 && (systnamecore.Contains("eff_syst_e") || systnamecore.Contains("eff_stat_e") || systnamecore.Contains("eff_altMC_e")))
+        ) thr = 0.003;
+
+      systnamecore_thr_pairs.emplace_back(systnamecore, thr);
     }
     std::vector<T*> const& hists_nominal = syst_hist_map.find("Nominal")->second;
     std::vector<double> vals_nominal;
     for (auto const& hist:hists_nominal) getProjectedValues(*hist, vals_nominal, 0);
     unsigned int nbins = vals_nominal.size();
-    for (auto const& systnamecore:systnamecores){
+    for (auto const& systnamecore_thr_pair:systnamecore_thr_pairs){
+      auto const& systnamecore = systnamecore_thr_pair.first;
+      double const& thr = systnamecore_thr_pair.second;
       //MELAout << "\t- Systematic " << systnamecore << "..." << endl;
 
       std::vector<T*> const& hists_dn = syst_hist_map.find(systnamecore+"Down")->second;
@@ -164,7 +173,7 @@ template<typename T> void checkProcessSystematicsFromDistributions(
         if (!hasSmallUnc) break;
       }
       if (hasSmallUnc){
-        MELAout << "Uncertainty " << systnamecore << " in " << procname << " is <0.1% in all bins. Excluding it..." << endl;
+        MELAout << "Uncertainty " << systnamecore << " in " << procname << " is <" << thr*100. << "% in all bins. Excluding it..." << endl;
         vetoed_procname_systnamecore_pairs.emplace_back(procname, systnamecore);
       }
     }
@@ -302,43 +311,200 @@ TString getTemplateLabel_ZZ2L2Nu(TString const& procname, ACHypothesisHelpers::A
   return "";
 }
 
-bool isSystForcedNormOnly(TString const& procname, TString const& systname){
+bool isSystForcedNormOnly(TString const& strCategory, TString const& procname, TString const& systname, bool isMultiProcess, bool applyAdditionalInstrSystMETVeto){
   if (procname == "InstrMET"){
     return (
-      systname.Contains("pdf_variation_qqbar")
+      isMultiProcess
       ||
-      systname.Contains("pdf_variation_tGX")
-      ||
-      systname.Contains("pdf_asmz_qqbar")
-      ||
-      systname.Contains("pdf_asmz_tGX")
-      ||
-      systname.Contains("CMS_scale_pythia")
-      ||
-      systname.Contains("CMS_tune_pythia")
-      ||
-      systname.Contains("CMS_res_j")
-      ||
-      systname.Contains("CMS_scale_j")
-      ||
-      systname.Contains("CMS_pileup")
-      ||
-      systname.Contains("CMS_eff_pho")
-      ||
-      systname.Contains("CMS_llGnorm_ZG")
-      ||
-      systname.Contains("CMS_stat_norm_InstrMET_Data")
+      (
+        applyAdditionalInstrSystMETVeto && (
+          systname.Contains("pdf_variation_tGX")
+          ||
+          systname.Contains("pdf_asmz_tGX")
+          ||
+          systname.Contains("CMS_llGnorm_ZG")
+          ||
+          systname.Contains("CMS_stat_norm_InstrMET_Data")
+          )
+        )
       );
   }
   else if (systname.Contains("CMS_stat_norm")) return true;
+  else if (
+    !(procname.Contains("ggZZ") || procname.Contains("VVVV"))
+    && (
+      systname.Contains("CMS_eff_trigger_mumu") || systname.Contains("CMS_eff_trigger_ee") || systname.Contains("CMS_eff_trigger_mue")
+      ||
+      systname.Contains("CMS_eff_pho")
+      ||
+      systname == "CMS_scale_pythia"
+      )
+    ) return true;
+  else if (procname == "tZX" && (!systname.Contains("tZX") || isMultiProcess || systname.Contains("QCDscale") || systname.Contains("pdf"))) return true;
   return false;
 }
+bool doInterpretProcessShapeSystAsNormOnly(
+  TString const& strCategory, TString const& procname, TString const& systname
+){
+  if (procname == "VVVV_onshell"){
+    // All non-stat. shape systematics in VVVV_onshell in the Nj>=2 categories need to be norm.-only
+    // Because statistics is already terrible.
+    if ((strCategory.Contains("Nj_geq_2") || strCategory.Contains("BoostedHadVH") || strCategory.Contains("ResolvedHadVH")) && !systname.Contains("CMS_stat_shape")) return true;
+    // Do not auto-return because stat_shape would accidentally be a norm.-syst otherwise.
+  }
+  if (
+    (procname.Contains("ggZZ") || procname.Contains("VVVV"))
+    &&
+    (
+      systname.Contains("CMS_eff_trigger_mumu") || systname.Contains("CMS_eff_trigger_ee") || systname.Contains("CMS_eff_trigger_mue")
+      ||
+      systname.Contains("CMS_eff_pho")
+      ||
+      systname == "CMS_scale_pythia"
+      )
+    ) return true;
+  return false;
+}
+
+template<typename T> void getValidSystRange(TString const& systname, T* h_nom, T* h_dn, T* h_up, bool isNormOnly, double& kappa);
+template<> void getValidSystRange(TString const& systname, TH1F* h_nom, TH1F* h_dn, TH1F* h_up, bool isNormOnly, double& kappa){
+  if (isNormOnly){
+    double v_nom = HelperFunctions::getHistogramIntegralAndError(h_nom, 1, h_nom->GetNbinsX(), true);
+    double v_dn = HelperFunctions::getHistogramIntegralAndError(h_dn, 1, h_dn->GetNbinsX(), true);
+    double v_up = HelperFunctions::getHistogramIntegralAndError(h_up, 1, h_up->GetNbinsX(), true);
+    if (v_nom<=0.){
+      if (v_dn>0. || v_up>0.) cerr
+        << "getValidSystRange[" << h_nom->GetName() << ", " << systname
+        << "] integral is invalid: " << v_nom << ", " << v_dn << ", " << v_up
+        << endl;
+    }
+    else if (v_dn<v_nom || v_up<v_nom){
+      kappa = std::min(kappa, std::abs(v_nom/(std::min(v_dn, v_up)-v_nom)));
+    }
+  }
+  else{
+    for (int ix=1; ix<=h_nom->GetNbinsX(); ix++){
+      double v_nom = HelperFunctions::getHistogramIntegralAndError(h_nom, ix, ix, true);
+      double v_dn = HelperFunctions::getHistogramIntegralAndError(h_dn, ix, ix, true);
+      double v_up = HelperFunctions::getHistogramIntegralAndError(h_up, ix, ix, true);
+      //if (v_nom<1e-4 || v_dn<1e-4 || v_up<1e-4) continue;
+      if (v_nom<=0.){
+        if (v_dn>0. || v_up>0.) cerr
+          << "getValidSystRange[" << h_nom->GetName() << ", " << systname
+          << "] bin " << ix
+          << " values are invalid: " << v_nom << ", " << v_dn << ", " << v_up
+          << endl;
+        continue;
+      }
+      if (v_nom<0. || v_dn<0. || v_up<0.) continue;
+      if (v_dn<v_nom || v_up<v_nom){
+        kappa = std::min(kappa, std::abs(v_nom/(std::min(v_dn, v_up)-v_nom)));
+      }
+    }
+  }
+}
+template<> void getValidSystRange(TString const& systname, TH2F* h_nom, TH2F* h_dn, TH2F* h_up, bool isNormOnly, double& kappa){
+  if (isNormOnly){
+    double v_nom = HelperFunctions::getHistogramIntegralAndError(h_nom, 1, h_nom->GetNbinsX(), 1, h_nom->GetNbinsY(), true);
+    double v_dn = HelperFunctions::getHistogramIntegralAndError(h_dn, 1, h_dn->GetNbinsX(), 1, h_dn->GetNbinsY(), true);
+    double v_up = HelperFunctions::getHistogramIntegralAndError(h_up, 1, h_up->GetNbinsX(), 1, h_up->GetNbinsY(), true);
+    if (v_nom<=0.){
+      if (v_dn>0. || v_up>0.) cerr
+        << "getValidSystRange[" << h_nom->GetName() << ", " << systname
+        << "] integral is invalid: " << v_nom << ", " << v_dn << ", " << v_up
+        << endl;
+    }
+    else if (v_dn<v_nom || v_up<v_nom){
+      kappa = std::min(kappa, std::abs(v_nom/(std::min(v_dn, v_up)-v_nom)));
+    }
+  }
+  else{
+    for (int ix=1; ix<=h_nom->GetNbinsX(); ix++){
+      for (int iy=1; iy<=h_nom->GetNbinsY(); iy++){
+        double v_nom = HelperFunctions::getHistogramIntegralAndError(h_nom, ix, ix, iy, iy, true);
+        double v_dn = HelperFunctions::getHistogramIntegralAndError(h_dn, ix, ix, iy, iy, true);
+        double v_up = HelperFunctions::getHistogramIntegralAndError(h_up, ix, ix, iy, iy, true);
+        //if (v_nom<1e-4 || v_dn<1e-4 || v_up<1e-4) continue;
+        if (v_nom<=0.){
+          if (v_dn>0. || v_up>0.) cerr
+            << "getValidSystRange[" << h_nom->GetName() << ", " << systname
+            << "] bin " << ix << ", " << iy
+            << " values are invalid: " << v_nom << ", " << v_dn << ", " << v_up
+            << endl;
+          continue;
+        }
+        if (v_nom<0. || v_dn<0. || v_up<0.) continue;
+        if (v_dn<v_nom || v_up<v_nom){
+          kappa = std::min(kappa, std::abs(v_nom/(std::min(v_dn, v_up)-v_nom)));
+        }
+      }
+    }
+  }
+}
+template<> void getValidSystRange(TString const& systname, TH3F* h_nom, TH3F* h_dn, TH3F* h_up, bool isNormOnly, double& kappa){
+  if (isNormOnly){
+    double v_nom = HelperFunctions::getHistogramIntegralAndError(h_nom, 1, h_nom->GetNbinsX(), 1, h_nom->GetNbinsY(), 1, h_nom->GetNbinsZ(), true);
+    double v_dn = HelperFunctions::getHistogramIntegralAndError(h_dn, 1, h_dn->GetNbinsX(), 1, h_dn->GetNbinsY(), 1, h_dn->GetNbinsZ(), true);
+    double v_up = HelperFunctions::getHistogramIntegralAndError(h_up, 1, h_up->GetNbinsX(), 1, h_up->GetNbinsY(), 1, h_up->GetNbinsZ(), true);
+    if (v_nom<=0.){
+      if (v_dn>0. || v_up>0.) cerr
+        << "getValidSystRange[" << h_nom->GetName() << ", " << systname
+        << "] integral is invalid: " << v_nom << ", " << v_dn << ", " << v_up
+        << endl;
+    }
+    else if (v_dn<v_nom || v_up<v_nom){
+      kappa = std::min(kappa, std::abs(v_nom/(std::min(v_dn, v_up)-v_nom)));
+    }
+  }
+  else{
+    for (int ix=1; ix<=h_nom->GetNbinsX(); ix++){
+      for (int iy=1; iy<=h_nom->GetNbinsY(); iy++){
+        for (int iz=1; iz<=h_nom->GetNbinsZ(); iz++){
+          double v_nom = HelperFunctions::getHistogramIntegralAndError(h_nom, ix, ix, iy, iy, iz, iz, true);
+          double v_dn = HelperFunctions::getHistogramIntegralAndError(h_dn, ix, ix, iy, iy, iz, iz, true);
+          double v_up = HelperFunctions::getHistogramIntegralAndError(h_up, ix, ix, iy, iy, iz, iz, true);
+          //if (v_nom<1e-4 || v_dn<1e-4 || v_up<1e-4) continue;
+          if (v_nom<=0.){
+            if (v_dn>0. || v_up>0.) cerr
+              << "getValidSystRange[" << h_nom->GetName() << ", " << systname
+              << "] bin " << ix << ", " << iy << ", " << iz
+              << " values are invalid: " << v_nom << ", " << v_dn << ", " << v_up
+              << endl;
+            continue;
+          }
+          if (v_nom<0. || v_dn<0. || v_up<0.) continue;
+          if (v_dn<v_nom || v_up<v_nom){
+            kappa = std::min(kappa, std::abs(v_nom/(std::min(v_dn, v_up)-v_nom)));
+          }
+        }
+      }
+    }
+  }
+}
+
+bool applyExceptionalSystVeto(TString const& strCategory, TString const& procname, TString const& systname){
+  if (procname == "VVVV_onshell"){
+    // Nj>=2 in VVVV_onshell should not have the crazy shape variations.
+    // Normalization systemaic is already pretty large on it.
+    if ((strCategory.Contains("Nj_geq_2") || strCategory.Contains("BoostedHadVH") || strCategory.Contains("ResolvedHadVH")) && systname.Contains("CMS_stat_shape")) return true;
+  }
+  if (systname.Contains("CMS_stat_shape_tZX")) return true;
+  //if (procname == "tZX" && (systname.Contains("QCDscale") || systname.Contains("pdf"))) return true;
+  if (procname == "qqWZ_offshell" && (systname.Contains("CMS_eff_trigger_ee") || systname.Contains("CMS_eff_trigger_mumu"))) return true;
+  // Something went wrong with the down variation, so remove this systematic for now.
+  if ((procname.Contains("ggZZ") || procname.Contains("VVVV")) && (systname.Contains("CMS_eff_trigger_mumu") || systname.Contains("CMS_eff_trigger_ee"))) return true;
+  return false;
+}
+
 template<typename T> void addToLogNormalSystsAndVetoShape(
+  TString const& strCategory,
+  std::unordered_map<TString, std::vector<TString>> const& syst_procname_map,
   std::unordered_map<TString, std::unordered_map<TString, std::vector<T*>> > const& procname_syst_hist_map,
   std::unordered_map<TString, std::unordered_map<TString, std::pair<double, double>>>& lognormalsyst_procname_valpair_map,
-  std::vector<std::pair<TString, TString>>& vetoed_procname_systnamecore_pairs
+  std::vector<std::pair<TString, TString>>& vetoed_procname_systnamecore_pairs,
+  bool applyAdditionalInstrSystMETVeto
 ){
-  MELAout << "addToLogNormalSystsAndVetoShape: Analyzing systematics for log-normal components..." << endl;
+  MELAout << "addToLogNormalSystsAndVetoShape: Analyzing systematics for log-normal components in category " << strCategory << "..." << endl;
   for (auto const& it_procname_syst_hist_map:procname_syst_hist_map){
     TString const& procname = it_procname_syst_hist_map.first;
     auto const& syst_hist_map = it_procname_syst_hist_map.second;
@@ -355,8 +521,13 @@ template<typename T> void addToLogNormalSystsAndVetoShape(
     std::vector<TString> systnamecores;
     for (auto const& pp:syst_hist_map){
       if (pp.first=="Nominal" || pp.first.Contains("Down")) continue;
-      TString systnamecore = pp.first;
+      TString const& systname = pp.first;
+      TString systnamecore = systname;
       HelperFunctions::replaceString<TString, TString const>(systnamecore, "Up", "");
+
+      bool isMultiProcess = false;
+      auto const& it_allprocs = syst_procname_map.find(systname);
+      if (it_allprocs!=syst_procname_map.end()) isMultiProcess = it_allprocs->second.size()>1;
 
       bool isAlreadyVetoed = false;
       for (auto const& pp:vetoed_procname_systnamecore_pairs){
@@ -365,7 +536,14 @@ template<typename T> void addToLogNormalSystsAndVetoShape(
           break;
         }
       }
-      if (isAlreadyVetoed || !isSystForcedNormOnly(procname, systnamecore)) continue;
+
+      if (applyExceptionalSystVeto(strCategory, procname, systnamecore)){
+        if (!isAlreadyVetoed){
+          vetoed_procname_systnamecore_pairs.emplace_back(procname, systnamecore);
+          isAlreadyVetoed = true;
+        }
+      }
+      if (isAlreadyVetoed || !isSystForcedNormOnly(strCategory, procname, systnamecore, isMultiProcess, applyAdditionalInstrSystMETVeto)) continue;
       vetoed_procname_systnamecore_pairs.emplace_back(procname, systnamecore);
 
       double integral_dn = 0;
@@ -382,6 +560,11 @@ template<typename T> void addToLogNormalSystsAndVetoShape(
 
       double kdn = integral_dn / integral_nominal;
       double kup = integral_up / integral_nominal;
+      if ((kdn-1.)*(kup-1.)>0.){
+        MELAerr << "addToLogNormalSystsAndVetoShape: WARNING! (kdn, kup) = (" << kdn << ", " << kup << ") in systematic " << systnamecore << " for process " << procname << "." << endl;
+        if (std::abs(kdn-1.)<std::abs(kup-1.)) kdn = 1.;
+        else kup = 1.;
+      }
 
       auto it_lognormalsyst_procname_valpair_map = lognormalsyst_procname_valpair_map.find(systnamecore);
       if (it_lognormalsyst_procname_valpair_map==lognormalsyst_procname_valpair_map.end()){
@@ -403,7 +586,8 @@ void getDCSpecs_ZZ2L2Nu(
   TString period, TString templateVersion, TString strdate,
   ACHypothesisHelpers::ACHypothesis AChypo,
   cms3_id_t dilepton_id_ref,
-  bool includeBoostedHadVHCategory, bool includeResolvedHadVHCategory
+  bool includeBoostedHadVHCategory, bool includeResolvedHadVHCategory,
+  bool applyAdditionalInstrSystMETVeto
 ){
   using namespace PhysicsProcessHelpers;
 
@@ -412,8 +596,8 @@ void getDCSpecs_ZZ2L2Nu(
   SampleHelpers::configure(period, Form("%s:ZZTo2L2Nu/%s", "store_finaltrees", templateVersion.Data()));
 
   std::vector<TString> const strSampleSets{ "ggZZ_offshell", "VVVV_offshell", "VVVV_onshell", "InstrMET", "NRB_2l2nu", "qqZZ_offshell", "qqWZ_offshell", "tZX" };
-  std::vector<TString> strCatNames{ "Nj_eq_0", "Nj_eq_1", "Nj_geq_2" };
-  std::vector<TString> strCatLabels{ "N_{j}=0", "N_{j}=1", "N_{j} #geq 2" };
+  std::vector<TString> strCatNames{ "Nj_eq_0", "Nj_eq_1", "Nj_geq_2_pTmiss_lt_200", "Nj_geq_2_pTmiss_ge_200" };
+  std::vector<TString> strCatLabels{ "N_{j}=0", "N_{j}=1", "N_{j} #geq 2, p_{T}^{miss}<200 GeV", "N_{j} #geq 2, p_{T}^{miss} #geq 200 GeV" };
   if (includeBoostedHadVHCategory){ strCatNames.push_back("BoostedHadVH"); strCatLabels.push_back("V #rightarrow J"); }
   if (includeResolvedHadVHCategory){ strCatNames.push_back("ResolvedHadVH"); strCatLabels.push_back("V #rightarrow jj"); }
   unsigned int const nCats = strCatNames.size();
@@ -698,19 +882,21 @@ void getDCSpecs_ZZ2L2Nu(
       checkProcessSystematicsFromDistributions(dilepton_id_ref, procname_syst_h1D_map, vetoed_procname_systnamecore_pairs);
       checkProcessSystematicsFromDistributions(dilepton_id_ref, procname_syst_h2D_map, vetoed_procname_systnamecore_pairs);
       checkProcessSystematicsFromDistributions(dilepton_id_ref, procname_syst_h3D_map, vetoed_procname_systnamecore_pairs);
-      addToLogNormalSystsAndVetoShape(procname_syst_h1D_map, lognormalsyst_procname_valpair_map, vetoed_procname_systnamecore_pairs);
-      addToLogNormalSystsAndVetoShape(procname_syst_h2D_map, lognormalsyst_procname_valpair_map, vetoed_procname_systnamecore_pairs);
-      addToLogNormalSystsAndVetoShape(procname_syst_h3D_map, lognormalsyst_procname_valpair_map, vetoed_procname_systnamecore_pairs);
+      addToLogNormalSystsAndVetoShape(strCategory, syst_procname_map, procname_syst_h1D_map, lognormalsyst_procname_valpair_map, vetoed_procname_systnamecore_pairs, applyAdditionalInstrSystMETVeto);
+      addToLogNormalSystsAndVetoShape(strCategory, syst_procname_map, procname_syst_h2D_map, lognormalsyst_procname_valpair_map, vetoed_procname_systnamecore_pairs, applyAdditionalInstrSystMETVeto);
+      addToLogNormalSystsAndVetoShape(strCategory, syst_procname_map, procname_syst_h3D_map, lognormalsyst_procname_valpair_map, vetoed_procname_systnamecore_pairs, applyAdditionalInstrSystMETVeto);
       for (auto const& pp:vetoed_procname_systnamecore_pairs){
         TString const& procname = pp.first;
         TString const& systnamecore = pp.second;
 
         for (unsigned char isyst=0; isyst<2; isyst++){
           TString systname = systnamecore + (isyst==0 ? "Down" : "Up");
+          MELAout << "Erasing shape systematic " << systname << " for " << procname << ":" << endl;
           {
             std::vector<TString>& procnames = syst_procname_map.find(systname)->second;
             procnames.erase(std::find(procnames.begin(), procnames.end(), procname));
             if (procnames.empty()) syst_procname_map.erase(syst_procname_map.find(systname));
+            MELAout << "\t- Removed from syst_procname_map..." << endl;
           }
 
           auto it_h1D = procname_syst_h1D_map.find(procname);
@@ -719,6 +905,7 @@ void getDCSpecs_ZZ2L2Nu(
           if (it_h2D!=procname_syst_h2D_map.end()) it_h2D->second.erase(it_h2D->second.find(systname));
           auto it_h3D = procname_syst_h3D_map.find(procname);
           if (it_h3D!=procname_syst_h3D_map.end()) it_h3D->second.erase(it_h3D->second.find(systname));
+          MELAout << "\t- Removed from procname_syst_hist_maps..." << endl;
         }
       }
     }
@@ -754,7 +941,7 @@ void getDCSpecs_ZZ2L2Nu(
     MELAout << "lumi " << strLumi << endl;
     for (auto const& procname:procnames){
       if (procname=="ggZZ_offshell" || procname=="VVVV_offshell") MELAout << "channel " << procname << " 1 -1 2 Options:includeslumi" << endl;
-      else if (procname=="ggZZ_onshell" || procname=="VVVV_onshell") MELAout << "channel " << procname << " 1 -1 2 Options:nobsint;forceonshell;includeslumi" << endl;
+      else if (procname=="ggZZ_onshell" || procname=="VVVV_onshell") MELAout << "channel " << procname << " 1 -1 1 Options:forceonshell;includeslumi" << endl;
       else if (procname=="NRB_2l2nu" || procname=="InstrMET") MELAout << "channel " << procname << " 1 -1 0 Options:datadriven" << endl;
       else MELAout << "channel " << procname << " 1 -1 0 Options:includeslumi" << endl;
     }
@@ -815,20 +1002,127 @@ void getDCSpecs_ZZ2L2Nu(
       auto const& procnames = syst_procname_map.find(systname)->second;
       HelperFunctions::replaceString<TString, TString const>(systname, "Up", "");
 
-      MELAout << "systematic " << systname << " template";
-      for (auto const& procname:procnames) MELAout << " " << procname << ":0:1";
-      if (systname.Contains("pythia")) MELAout << " Range:-2:2";
-      else if (systname == "QCDscale_ggH2in") MELAout << " Range:-1:1";
+      std::unordered_map<TString, double> procname_rescale_map;
+      std::vector<TString> procnames_normonly;
+      std::vector<TString> option_args;
+      TString range_arg;
+      for (auto const& procname:procnames){
+        procname_rescale_map[procname]=1.;
+        if (doInterpretProcessShapeSystAsNormOnly(strCategory, procname, systname)) procnames_normonly.push_back(procname);
+      }
+      if (!procnames_normonly.empty()){
+        TString stropt="normonly=";
+        for (unsigned short ip=0; ip<procnames_normonly.size(); ip++){
+          if (ip>0) stropt  = stropt + ",";
+          stropt += procnames_normonly.at(ip);
+        }
+        option_args.push_back(stropt);
+      }
+      else{
+        if (systname.Contains("stat_norm")){
+          // Parametrix norm. uncs.
+          if (!systname.Contains("InstrMET")) option_args.push_back("normonly");
+        }
+        else if (systname.Contains("stat_shape")){
+          // Non-KD or KD shape uncs.
+          if (!systname.Contains("InstrMET")) option_args.push_back("shapeonly");
+        }
+        else if (systname.Contains("L1prefiring")) option_args.push_back("normonly");
+      }
+
+      double kappa_default = -1;
+      if (systname.Contains("pythia")) kappa_default = 2;
+      else if (
+        systname == "QCDscale_ggH2in"
+        ||
+        systname == "QCDscale_ren_VG"
+        ||
+        systname == "pdf_variation_tGX"
+        //||
+        //systname == "pdf_asmz_tGX"
+        ||
+        systname.Contains("CMS_eff_pho")
+        ) kappa_default = 1;
       else if (systname.Contains("stat_norm")){
-        if (!systname.Contains("InstrMET")) MELAout << " Options:normonly";
-        MELAout << " Range:-4:4";
+        if (!systname.Contains("InstrMET")) kappa_default = 4;
+        else kappa_default = 5;
       }
       else if (systname.Contains("stat_shape")){
-        // Non-KD or KD shape uncs.
-        if (!systname.Contains("InstrMET")) MELAout << " Options:shapeonly";
-        MELAout << " Range:-3:3";
+        if (systname.Contains("InstrMET") || systname.Contains("NRB")) kappa_default = 2;
+        else kappa_default = 3;
       }
-      else if (systname.Contains("L1prefiring")) MELAout << " Options:normonly";
+      else if (procnames.size()==1 && procnames.front().Contains("InstrMET") && !(systname.Contains("stat_shape") || systname.Contains("stat_norm"))){
+        kappa_default = 3;
+      }
+
+      bool findNuisanceRescale = (
+        (systname.Contains("stat_norm") && systname.Contains("InstrMET"))
+        ||
+        (systname.Contains("stat_shape") && !(systname.Contains("VVVV") || systname.Contains("ggZZ")))
+        ||
+        (procnames.size()==1 && procnames.front().Contains("InstrMET") && !(systname.Contains("stat_shape") || systname.Contains("stat_norm")))
+        );
+      bool nuisanceRescaleIsNorm = (findNuisanceRescale && systname.Contains("stat_norm") && !systname.Contains("InstrMET"));
+      if (findNuisanceRescale && kappa_default>0.){
+        for (auto const& procname:procnames){
+          if (procname.Contains("VVVV") || procname.Contains("ggZZ")) continue;
+
+          double kappa = kappa_default;
+          //cout << "Checking " << procname << ":" << systname << " " << (nuisanceRescaleIsNorm ? "norm" : "shape") << " range:" << endl;
+          switch (ndims){
+          case 1:
+            getValidSystRange(
+              systname,
+              procname_syst_h1D_map.find(procname)->second.find("Nominal")->second.front(),
+              procname_syst_h1D_map.find(procname)->second.find(systname+"Down")->second.front(),
+              procname_syst_h1D_map.find(procname)->second.find(systname+"Up")->second.front(),
+              nuisanceRescaleIsNorm,
+              kappa
+            );
+            break;
+          case 2:
+            getValidSystRange(
+              systname,
+              procname_syst_h2D_map.find(procname)->second.find("Nominal")->second.front(),
+              procname_syst_h2D_map.find(procname)->second.find(systname+"Down")->second.front(),
+              procname_syst_h2D_map.find(procname)->second.find(systname+"Up")->second.front(),
+              nuisanceRescaleIsNorm,
+              kappa
+            );
+            break;
+          case 3:
+            getValidSystRange(
+              systname,
+              procname_syst_h3D_map.find(procname)->second.find("Nominal")->second.front(),
+              procname_syst_h3D_map.find(procname)->second.find(systname+"Down")->second.front(),
+              procname_syst_h3D_map.find(procname)->second.find(systname+"Up")->second.front(),
+              nuisanceRescaleIsNorm,
+              kappa
+            );
+            break;
+          default:
+            break;
+          }
+          //cout << "\t- " << kappa << " | " << kappa_default << endl;
+          kappa_default = std::min(kappa, kappa_default);
+        }
+        kappa_default = static_cast<double>(static_cast<int>(kappa_default*10.))/10.; // No digits beyond a precision of 0.1
+      }
+
+      MELAout << "systematic " << systname << " template";
+      for (auto const& procname:procnames){
+        MELAout << " " << procname << ":0:" << procname_rescale_map[procname];
+      }
+
+      if (!option_args.empty()){
+        MELAout << " Options:";
+        for (unsigned short iopt=0; iopt<option_args.size(); iopt++){
+          if (iopt>0) MELAout << ",";
+          MELAout << option_args.at(iopt);
+        }
+      }
+      if (kappa_default>0.) MELAout << " Range:" << -kappa_default << ":" << kappa_default;
+
       MELAout << endl;
     }
 
@@ -840,7 +1134,7 @@ void getDCSpecs_ZZ2L2Nu(
       auto const& process_handler = process_handler_map.find(procname)->second;
       MELAout << "# Order of templates for " << procname << ": " << process_handler->getTemplateNames(AChypo, true) << endl;
     }
-    for (auto const& mTZZcut:std::vector<double>{ 200., 350. }){
+    for (auto const& mTZZcut:std::vector<double>{ /*200., 350.*/ 300., 450. }){
       std::unordered_map< TString, std::unordered_map<TString, std::vector<double>> > systname_procname_integrals_map;
       for (auto const& systname:allsystnames){
         systname_procname_integrals_map[systname] = std::unordered_map<TString, std::vector<double>>();
@@ -1011,7 +1305,7 @@ void getDCSpecs_ZZ2L2Nu(
             varname = "mTZZ";
             varlabel = "m_{T}^{ZZ} (GeV)";
           }
-          else if (icat!=2 && idim==1){
+          else if (icat<2 && idim==1){
             varname = "pTmiss";
             varlabel = "p_{T}^{miss} (GeV)";
           }
@@ -1042,8 +1336,8 @@ void getDCSpecs_ZZ2L2Nu(
           else if (ndims==2){
             hist_nominal = getHistogramProjection(*(procname_syst_h2D_map[procname]["Nominal"].at(chosenTpl)), idim, "tmp_Nominal");
             for (auto const& systname:procsystlist){
-              if (idim>0 && systname.Contains("stat_norm")) continue;
-              if (!(icat==2 && idim>0) && systname.Contains("stat_shape_KD")) continue;
+              if (idim>0 && systname.Contains("stat_norm") && !procname.Contains("InstrMET")) continue;
+              if (!(strCategory.Contains("Nj_geq_2") && idim>0) && systname.Contains("stat_shape_KD")) continue;
               TH1F* hist_dn = getHistogramProjection(*(procname_syst_h2D_map[procname][systname+"Down"].at(chosenTpl)), idim, Form("tmp_%s_Down", systname.Data()));
               TH1F* hist_up = getHistogramProjection(*(procname_syst_h2D_map[procname][systname+"Up"].at(chosenTpl)), idim, Form("tmp_%s_Up", systname.Data()));
               hlist_systpair[systname] = std::pair<TH1F*, TH1F*>(hist_dn, hist_up);
@@ -1052,8 +1346,8 @@ void getDCSpecs_ZZ2L2Nu(
           else if (ndims==3){
             hist_nominal = getHistogramProjection(*(procname_syst_h3D_map[procname]["Nominal"].at(chosenTpl)), idim, "tmp_Nominal");
             for (auto const& systname:procsystlist){
-              if (idim>0 && systname.Contains("stat_norm")) continue;
-              if (!(icat==2 && idim>0) && systname.Contains("stat_shape_KD")) continue;
+              if (idim>0 && systname.Contains("stat_norm") && !procname.Contains("InstrMET")) continue;
+              if (!(strCategory.Contains("Nj_geq_2") && idim>0) && systname.Contains("stat_shape_KD")) continue;
               TH1F* hist_dn = getHistogramProjection(*(procname_syst_h3D_map[procname][systname+"Down"].at(chosenTpl)), idim, Form("tmp_%s_Down", systname.Data()));
               TH1F* hist_up = getHistogramProjection(*(procname_syst_h3D_map[procname][systname+"Up"].at(chosenTpl)), idim, Form("tmp_%s_Up", systname.Data()));
               hlist_systpair[systname] = std::pair<TH1F*, TH1F*>(hist_dn, hist_up);
@@ -1244,7 +1538,7 @@ void getDCSpecs_ZZ2L2Nu(
   for (auto& it_process_handler_map:process_handler_map) delete it_process_handler_map.second;
 }
 
-void runDatacardChain(TString period, TString templateVersion, TString strdate, bool includeBoostedHadVHCategory, bool includeResolvedHadVHCategory){
+void runDatacardChain(TString period, TString templateVersion, TString strdate, bool includeBoostedHadVHCategory, bool includeResolvedHadVHCategory, bool applyAdditionalInstrSystMETVeto=true){
   SampleHelpers::configure(period, Form("%s:ZZTo2L2Nu/%s", "store_finaltrees", templateVersion.Data()));
 
   std::vector<cms3_id_t> const dilepton_ids{ -121, -169 };
@@ -1255,7 +1549,8 @@ void runDatacardChain(TString period, TString templateVersion, TString strdate, 
       getDCSpecs_ZZ2L2Nu(
         period, templateVersion, strdate,
         AChypo, dilepton_id,
-        includeBoostedHadVHCategory, includeResolvedHadVHCategory
+        includeBoostedHadVHCategory, includeResolvedHadVHCategory,
+        applyAdditionalInstrSystMETVeto
       );
     }
   }

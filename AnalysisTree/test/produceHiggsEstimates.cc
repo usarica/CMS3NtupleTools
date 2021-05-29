@@ -1353,7 +1353,7 @@ void getTrees_ZZTo2L2Nu(
   TString strinput_weights = Form("%s/%s%s", cinput_rewgtRcd.Data(), strSampleSet.Data(), ".root");
   if (!SampleHelpers::checkFileOnWorker(strinput_weights)){
     MELAerr << "Reweighting file " << strinput_weights << " does not exist locally and on the worker directory." << endl;
-    assert(0);
+    exit(1);
   }
 
   TDirectory* curdir = gDirectory;
@@ -1363,6 +1363,11 @@ void getTrees_ZZTo2L2Nu(
   bool const isVBF = strSampleSet.Contains("VBF");
   bool const isVH = strSampleSet.Contains("WminusH") || strSampleSet.Contains("WplusH") || strSampleSet.Contains("ZH") || strSampleSet.Contains("HZJ");
   bool const hasPartialAsMZ = (isGG || isVBF) && SampleHelpers::getDataYear()==2016;
+  bool const hasDirectHWW = (
+    strSampleSet.Contains("WminusH") || strSampleSet.Contains("WplusH")
+    ||
+    SampleHelpers::isHiggsToWWDecay(SampleHelpers::getHiggsSampleDecayMode(strSampleSet))
+    );
 
   PhysicsProcessHandler* proc_handler = getPhysicsProcessHandler(strSampleSet, dktype);
   double const proc_norm_scale = proc_handler->getProcessScale();
@@ -1486,8 +1491,9 @@ void getTrees_ZZTo2L2Nu(
     // Branch weights
     for (unsigned int iac=0; iac<(unsigned int) ACHypothesisHelpers::nACHypotheses; iac++){
       ACHypothesisHelpers::ACHypothesis hypo = (ACHypothesisHelpers::ACHypothesis) iac;
-      TString strHypoName = ACHypothesisHelpers::getACHypothesisName(hypo);
+      if (hasDirectHWW && hypo==ACHypothesisHelpers::kL1ZGs) continue;
 
+      TString strHypoName = ACHypothesisHelpers::getACHypothesisName(hypo);
       std::vector<TString> strMEs = proc_handler->getMELAHypothesisWeights(hypo, false);
       HelperFunctions::appendVector(strMEs_allhypos, strMEs);
       std::vector<TString> strOutTreeNames = proc_handler->getOutputTreeNames(hypo, false);
