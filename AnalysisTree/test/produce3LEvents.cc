@@ -20,7 +20,7 @@ namespace LooperFunctionHelpers{
   bool use_MET_JERCorr = true;
   bool use_MET_ParticleMomCorr = true;
   bool use_MET_p4Preservation = true;
-  bool use_MET_corrections =true;
+  bool use_MET_corrections = true;
 
   void setMETOptions(bool use_MET_Puppi_, bool use_MET_XYCorr_, bool use_MET_JERCorr_, bool use_MET_ParticleMomCorr_, bool use_MET_p4Preservation_, bool use_MET_corrections_);
 
@@ -1348,18 +1348,22 @@ void getTrees(
 
   std::vector<BaseTree*> sample_trees; sample_trees.reserve(sampledirs.size());
   for (auto const& sname:sampledirs){
+    bool const include_SingleLepton = !sname.Contains("ZZTo4L");
+    std::vector<TString> inskimtrees;
+    if (include_SingleLepton) inskimtrees = std::vector<TString>{
+      "cms3ntuple/Dilepton", // 3P + 2P1F
+      "cms3ntuple/SingleLepton", // Needed for 1P2F
+      "cms3ntuple/Dilepton_Control" // Needed for residual events from systematics migrations
+    };
+    else inskimtrees = std::vector<TString>{
+      "cms3ntuple/Dilepton",
+      "cms3ntuple/Dilepton_Control"
+    };
+
     TString strdsetfname = SampleHelpers::getDatasetFileName(sname);
     MELAout << "=> Accessing the input trees from " << strdsetfname << "..." << endl;
     BaseTree* sample_tree;
-    if (useSkims) sample_tree = new BaseTree(
-      strdsetfname,
-      {
-        "cms3ntuple/Dilepton", // 3P + 2P1F
-        "cms3ntuple/SingleLepton", // Needed for 1P2F
-        "cms3ntuple/Dilepton_Control" // Needed for residual events from systematics migrations
-      },
-      ""
-    );
+    if (useSkims) sample_tree = new BaseTree(strdsetfname, inskimtrees, "");
     else sample_tree = new BaseTree(strdsetfname, "cms3ntuple/Events", "", "");
     sample_trees.push_back(sample_tree);
     sample_tree->sampleIdentifier = SampleHelpers::getSampleIdentifier(sname);

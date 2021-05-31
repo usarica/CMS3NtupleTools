@@ -114,10 +114,32 @@ if [[ $doSim -eq 1 ]]; then
 declare -a SimSamples=()
 if [[ $doStdSim -eq 1 ]]; then
   SimSamples+=( $(readCMS3SkimSamplesFromCSV.py --csv=${csvfile} --sim --tree_req="Dilepton,Dilepton_Control,SingleLepton") )
+  if [[ "$period" == "2016"* ]]; then
+    SimSamples+=( \
+      /ZZTo4L_13TeV_powheg_pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v1/MINIAODSIM \
+      /ZZTo4L_13TeV_powheg_pythia8_ext1/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM \
+    )
+  elif [[ "$period" == "2017"* ]]; then
+    SimSamples+=( \
+      /ZZTo4L_13TeV_powheg_pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14-v1/MINIAODSIM \
+      /ZZTo4L_13TeV_powheg_pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext2-v1/MINIAODSIM \
+    )
+  elif [[ "$period" == "2018"* ]]; then
+    SimSamples+=( \
+      /ZZTo4L_TuneCP5_13TeV_powheg_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext2-v2/MINIAODSIM \
+    )
+  else
+    echo "Please add the ZZTo4L samples manually to this script and rerun."
+    exit 1
+  fi
 fi
 if [[ $doOffshellSim -eq 1 ]]; then
   strSampleGroup="WminusH_HToWW_2LOSFilter_POWHEG"
+  strSampleGroup="${strSampleGroup},WminusH_ZZTo2L2Nu_POWHEG"
+  strSampleGroup="${strSampleGroup},WminusH_ZZTo2L2Q_POWHEG"
   strSampleGroup="${strSampleGroup},WplusH_HToWW_2LOSFilter_POWHEG"
+  strSampleGroup="${strSampleGroup},WplusH_ZZTo2L2Nu_POWHEG"
+  strSampleGroup="${strSampleGroup},WplusH_ZZTo2L2Q_POWHEG"
   strSampleGroup="${strSampleGroup},ZH_WWTo2L2Nu_POWHEG"
   strSampleGroup="${strSampleGroup},ZH_HToLNuQQ_2LFilter_POWHEG"
   SimSamples+=( $(printCMS3SampleGroup $strSampleGroup $period $prodVersion stdout) )

@@ -34,7 +34,7 @@ namespace OffshellCutflow{
   }
 
   bool check_min_abs_dPhi_pTj_pTmiss(float const& val, int njets=-1){
-    const float thr = (njets<2 ? 0.25f : 0.5f);
+    const float thr = (njets<2 || activeFinalState==fs_ZW_3l1nu ? 0.25f : 0.5f);
     return std::abs(val)>=thr;
   }
 
@@ -45,8 +45,6 @@ namespace OffshellCutflow{
       thr=(njets<2 ? 125.f : 140.f);
       break;
     case fs_WW_2l2nu:
-      thr=20.f;
-      break;
     case fs_ZW_3l1nu:
       thr=20.f;
       break;
@@ -113,6 +111,74 @@ namespace OffshellCutflow{
       break;
     }
     return val>=thr;
+  }
+
+  bool check_pTZ1(float const& val){
+    float thr=-1;
+    switch (activeFinalState){
+    case fs_ZW_3l1nu:
+      thr=30.f;
+      break;
+    case fs_ZZ_2l2nu:
+      return check_pTl1(val);
+    case fs_WW_2l2nu:
+      break;
+    default:
+      MELAerr << "OffshellCutflow::check_pTZ1: The active final state " << activeFinalState << " is not specified." << endl;
+      assert(0);
+      break;
+    }
+    return val>=thr;
+  }
+  bool check_pTZ2(float const& val){
+    float thr=-1;
+    switch (activeFinalState){
+    case fs_ZW_3l1nu:
+      thr=20.f;
+      break;
+    case fs_ZZ_2l2nu:
+      return check_pTl2(val);
+    case fs_WW_2l2nu:
+      break;
+    default:
+      MELAerr << "OffshellCutflow::check_pTZ2: The active final state " << activeFinalState << " is not specified." << endl;
+      assert(0);
+      break;
+    }
+    return val>=thr;
+  }
+  bool check_pTlW(float const& val){
+    float thr=-1;
+    switch (activeFinalState){
+    case fs_ZW_3l1nu:
+      thr=20.f;
+      break;
+    case fs_ZZ_2l2nu:
+    case fs_WW_2l2nu:
+      break;
+    default:
+      MELAerr << "OffshellCutflow::check_pTlW: The active final state " << activeFinalState << " is not specified." << endl;
+      assert(0);
+      break;
+    }
+    return val>=thr;
+  }
+  bool check_mTlW_pTmiss(cms3_id_t const& id_l3, float const& mTlW, float const& pTmiss){
+    cms3_absid_t abs_id = std::abs(id_l3);
+    const double A = (abs_id==11 ? 90. : 75.);
+    const double B = 120.;
+    const double thr_mTlW = (abs_id==11 ? 10. : 20.);
+    switch (activeFinalState){
+    case fs_ZW_3l1nu:
+      return (mTlW/A + pTmiss/B)>=1. && mTlW>=thr_mTlW;
+    case fs_ZZ_2l2nu:
+    case fs_WW_2l2nu:
+      return true;
+    default:
+      MELAerr << "OffshellCutflow::check_mTlW_pTmiss: The active final state " << activeFinalState << " is not specified." << endl;
+      assert(0);
+      return true;
+    }
   }
 
   // Please don't rename this function to check_pTll... It becomes painful to distinguish from the pTl1 version (and multiple bugs appeared in the past because of this).

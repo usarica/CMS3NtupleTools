@@ -6,8 +6,8 @@ prodVersion=$3
 ntupleVersion=$4
 
 script=produceSimBkgEstimates.cc
-function=runDistributionsChain
-jobdate="${date}_SimBkgEstimates"
+function=produceSimBkgEstimates_ZZTo2L2Nu
+jobdate="${date}_SimBkgEstimates_ZZTo2L2Nu"
 arguments='"<period>","<prodVersion>","<ntupleVersion>","<strdate>",<theGlobalSyst>,<applyPUIdToAK4Jets>,<applyTightLeptonVetoIdToAK4Jets>,<use_MET_Puppi>,<use_MET_XYCorr>,<use_MET_JERCorr>,<use_MET_ParticleMomCorr>,<use_MET_p4Preservation>,<use_MET_corrections>'
 arguments="${arguments/<period>/$period}"
 arguments="${arguments/<strdate>/$date}"
