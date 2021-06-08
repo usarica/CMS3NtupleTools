@@ -146,7 +146,7 @@ TString getTemplateFileName(TString strdecay, TString strcat, TString strproc, T
 }
 
 using namespace ACHypothesisHelpers;
-void getTemplateIntermediate_ZZ2L2Nu(
+void getTemplateIntermediate_ZZTo2L2Nu(
   TString strSampleSet, // Whatever is defined in the if-conditions of getProcessCollection.
   TString period, TString ntupleVersion, TString strdate,
   ACHypothesisHelpers::ACHypothesis AChypo,
@@ -187,6 +187,11 @@ void getTemplateIntermediate_ZZ2L2Nu(
       strSystPerYear = Form("lumi_%sTeV_2015_2016", SampleHelpers::getSqrtsString().Data());
       lumisyst_lumiscale_map[strSystPerYear+"Down"] = 1.-getLumiUncertainty_Correlated_2015_2016();
       lumisyst_lumiscale_map[strSystPerYear+"Up"] = 1.+getLumiUncertainty_Correlated_2015_2016();
+    }
+    if (SampleHelpers::getDataYear()==2017 || SampleHelpers::getDataYear()==2018){
+      strSystPerYear = Form("lumi_%sTeV_2017_2018", SampleHelpers::getSqrtsString().Data());
+      lumisyst_lumiscale_map[strSystPerYear+"Down"] = 1.-getLumiUncertainty_Correlated_2017_2018();
+      lumisyst_lumiscale_map[strSystPerYear+"Up"] = 1.+getLumiUncertainty_Correlated_2017_2018();
     }
   }
   
@@ -1231,7 +1236,7 @@ void adjustWideBinVariation(std::vector<ExtendedBinning> const& binning_vars, TS
     << endl;
 }
 
-void getTemplate_ZZ2L2Nu(
+void getTemplate_ZZTo2L2Nu(
   TString period, TString ntupleVersion, TString strdate,
   ACHypothesisHelpers::ACHypothesis AChypo,
   cms3_id_t dilepton_id_ref,
@@ -1659,7 +1664,7 @@ void runTemplateChain(
   if (!skipIntermediates){
     for (auto const& strSampleSet:strSampleSets){
       for (auto const& syst_pair:getAllowedSysts(strSampleSet, dilepton_id)){
-        getTemplateIntermediate_ZZ2L2Nu(
+        getTemplateIntermediate_ZZTo2L2Nu(
           strSampleSet,
           period, ntupleVersion, strdate,
           AChypo,
@@ -1669,7 +1674,7 @@ void runTemplateChain(
       }
     }
   }
-  getTemplate_ZZ2L2Nu(
+  getTemplate_ZZTo2L2Nu(
     period, ntupleVersion, strdate,
     AChypo,
     dilepton_id,

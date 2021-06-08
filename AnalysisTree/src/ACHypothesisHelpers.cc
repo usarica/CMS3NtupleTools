@@ -308,6 +308,10 @@ std::vector<DiscriminantClasses::Type> ACHypothesisHelpers::getACHypothesisKDSet
     }
     */
   }
+  else if (decay_type==kZW3l1nu){
+    // First dimension, "mass", should be added separately.
+    // There are no discriminants involved in the ZW analysis.
+  }
 
   return res;
 }
@@ -319,6 +323,8 @@ TString ACHypothesisHelpers::getDecayFinalStateLabel(ACHypothesisHelpers::DecayT
     return "4l";
   case kZZ2l2nu_offshell:
     return "2l2#nu";
+  case kZW3l1nu:
+    return "3l1#nu";
   default:
     MELAerr << "ACHypothesisHelpers::getDecayFinalStateLabel: Decay type " << dktype << " is not recognized. Please fix the implementation." << endl;
     assert(0);

@@ -2,7 +2,6 @@
 #define PRODUCESIMBKGESTIMATES_ZW3L1NU_H
 
 
-// Selection of recorded variables from produceDileptonEvents.cc
 #define BRANCH_SCALAR_COMMANDS \
   BRANCH_COMMAND(float, event_wgt) \
   BRANCH_COMMAND(float, event_wgt_L1PrefiringDn) \
@@ -305,7 +304,8 @@ void produceSimBkgEstimates_ZWTo3L1Nu(
 
   // Get list of samples
   std::vector< std::pair<TString, std::vector<std::pair<TString, TString>>> > sgroup_sname_sfname_pairs_MC;
-  getMCSampleDirs(sgroup_sname_sfname_pairs_MC, theGlobalSyst, _JETMETARGS_);
+  std::unordered_map<TString, TString> externalCorrections;
+  getMCSampleDirs(sgroup_sname_sfname_pairs_MC, theGlobalSyst, externalCorrections, _JETMETARGS_);
   // Only keep ZG if iCRSF!=0
   if (iCRSF!=0){
     std::vector< std::pair<TString, std::vector<std::pair<TString, TString>>> > sgroup_sname_sfname_pairs_MC_new;
@@ -361,6 +361,10 @@ void produceSimBkgEstimates_ZWTo3L1Nu(
     tout->putBranch<float>("pTmiss", 0.f);
     tout->putBranch<float>("phimiss", 0.f);
 
+    //tout->putBranch<float>("min_abs_dPhi_pTj_pTmiss", TMath::Pi());
+    //tout->putBranch<float>("dPhi_pTboson_pTmiss", TMath::Pi());
+    //tout->putBranch<float>("dPhi_pTleptons_pTmiss", TMath::Pi());
+
     tout->putBranch<unsigned int>("n_ak4jets_pt30", 0); // Number of ak4 jets with pT>=30 GeV
     tout->putBranch<unsigned int>("n_ak4jets_pt30_mass60", 0); // Number of ak4 jets with pT>=30 GeV AND mass>=60 GeV
 
@@ -400,7 +404,9 @@ void produceSimBkgEstimates_ZWTo3L1Nu(
     curdir->cd();
   }
 
-  // Get input trees
+  // Get input trees and corrections
+  std::vector<TFile*> finput_corrections;
+  std::unordered_map<TChain*, TH3F*> tin_corr3D_map;
   std::unordered_map<TChain*, double> norm_map;
   std::unordered_map<TChain*, double> xsec_scale_map;
   std::vector<std::pair<TString, TChain*>> samples_all;
@@ -422,6 +428,10 @@ void produceSimBkgEstimates_ZWTo3L1Nu(
       TChain* tin = new TChain("SkimTree");
       int nfiles = tin->Add(cinput);
       xsec_scale_map[tin] = xsec_scale;
+      if (nfiles==0){
+        MELAerr << "\t- Access error (most likely): No files were added." << endl;
+        exit(1);
+      }
       MELAout << "\t- Successfully added " << nfiles << " files for " << sname << " from " << cinput << "..." << endl;
       samples_all.emplace_back(sgroup, tin);
       tins_collected.push_back(tin);
@@ -454,6 +464,17 @@ void produceSimBkgEstimates_ZWTo3L1Nu(
         norm_map[tin] += sum_wgts;
       }
       curdir->cd();
+
+      auto it_corr = externalCorrections.find(sname);
+      if (it_corr!=externalCorrections.end()){
+        TString const& strCorrFile = it_corr->second;
+        TFile* finput_corr = TFile::Open(strCorrFile, "read"); finput_corrections.push_back(finput_corr);
+        TH3F* htmp = dynamic_cast<TH3F*>(finput_corr->Get("h_ratio"));
+        tin_corr3D_map[tin] = htmp;
+        if (htmp) MELAout << "\t- Acquired external corrections from " << strCorrFile << endl;
+        else MELAerr << "\t- External corrections histogram from " << strCorrFile << " is null." << endl;
+        curdir->cd();
+      }
     }
     {
       double sum_wgts_MC = 0;
@@ -546,8 +567,7 @@ void produceSimBkgEstimates_ZWTo3L1Nu(
     "After pT_Z1",
     "After pT_Z2",
     "After pT_lW",
-    "After trigger",
-    "After gen. match"
+    "After trigger"
   };
   for (auto const& sgroup:sgroups){
     sgroup_sumwgts_map[sgroup] = std::pair<double, double>(0, 0);
@@ -573,11 +593,31 @@ void produceSimBkgEstimates_ZWTo3L1Nu(
     // Reset ME and K factor values
     for (auto& it:ME_Kfactor_values) it.second = -1;
     bool const is_qqVV = sgroup.Contains("qqZZ") || sgroup.Contains("qqWZ") || sgroup.Contains("qqWW");
+    bool const is_qqZG = sgroup.Contains("qqZG");
     bool const is_ggVV = sgroup.Contains("ggZZ") || sgroup.Contains("ggWW") || sgroup.Contains("GGH");
     bool const isData = (sgroup == "Data");
 
-    bool const useNNPDF30 = !isData && sgroup.Contains("TZ_2l");
-    bool const requireGenMatchedLeptons = (sgroup.Contains("TTZ_2l2nu") || sgroup.Contains("TZ_2l"));
+    bool const useNNPDF30 = !isData && !(sgroup.Contains("TZ_2l") || sgroup.Contains("TW_l") || sgroup.Contains("DY_2l") || sgroup.Contains("qqZG"));
+    bool usePythiaScaleWeights = true;
+
+    TH3F* hcorr3D = nullptr;
+    {
+      auto it_hcorr3D = tin_corr3D_map.find(tin);
+      if (it_hcorr3D!=tin_corr3D_map.end()) hcorr3D = it_hcorr3D->second;
+    }
+    std::vector<float*> vars_corr; vars_corr.reserve(3);
+    if (hcorr3D){
+      if (is_qqVV && (theGlobalSyst==tPythiaScaleDn || theGlobalSyst==tPythiaScaleUp)){
+        usePythiaScaleWeights = false;
+        vars_corr.push_back(&(ME_Kfactor_values.find("KFactor_EW_NLO_qqVV_Bkg_arg_mass")->second));
+        vars_corr.push_back(&(ME_Kfactor_values.find("KFactor_EW_NLO_qqVV_Bkg_arg_pthat")->second));
+        vars_corr.push_back(&(ME_Kfactor_values.find("KFactor_EW_NLO_qqVV_Bkg_arg_that")->second));
+      }
+      else{
+        MELAerr << "Undefined external corrections for tree in group " << sgroup << "." << endl;
+        exit(1);
+      }
+    }
 
     float* val_Kfactor_QCD = nullptr;
     float* val_Kfactor_EW = nullptr;
@@ -661,10 +701,10 @@ void produceSimBkgEstimates_ZWTo3L1Nu(
         ptr_event_wgt_syst_adjustment = (!useNNPDF30 ? &event_wgt_adjustment_PDFReplicaUp : &event_wgt_adjustment_NNPDF30_PDFReplicaUp);
         break;
       case tPythiaScaleDn:
-        ptr_event_wgt_syst_adjustment = &event_wgt_adjustment_PythiaScaleDn;
+        if (usePythiaScaleWeights) ptr_event_wgt_syst_adjustment = &event_wgt_adjustment_PythiaScaleDn;
         break;
       case tPythiaScaleUp:
-        ptr_event_wgt_syst_adjustment = &event_wgt_adjustment_PythiaScaleUp;
+        if (usePythiaScaleWeights) ptr_event_wgt_syst_adjustment = &event_wgt_adjustment_PythiaScaleUp;
         break;
 
       case eEleEffStatDn:
@@ -813,10 +853,6 @@ void produceSimBkgEstimates_ZWTo3L1Nu(
         ) continue;
       cutlabel_sumevts_map["After trigger"]++;
 
-      bool const hasGenMatchedPair = isData || (leptons_is_genMatched_prompt->front() && leptons_is_genMatched_prompt->back() && leptons_is_genMatched_prompt->at(1));
-      if (requireGenMatchedLeptons && !hasGenMatchedPair) continue;
-      cutlabel_sumevts_map["After gen. match"]++;
-
       *ptr_event_wgt_SFs_PUJetId = std::min(*ptr_event_wgt_SFs_PUJetId, 3.f);
       double wgt_adjustment = (ptr_event_wgt_adjustment ? *ptr_event_wgt_adjustment : 1.f) * (ptr_event_wgt_syst_adjustment ? *ptr_event_wgt_syst_adjustment : 1.f);
       if (std::abs(wgt_adjustment)>10.f) wgt_adjustment = 10./std::abs(wgt_adjustment);
@@ -838,6 +874,16 @@ void produceSimBkgEstimates_ZWTo3L1Nu(
         );
         wgt *= SFself;
       }
+      if (is_qqZG) wgt *= sfs_ZG_Njets.at(std::min(event_n_ak4jets_pt30, static_cast<unsigned int>(2)));
+
+      // Apply external correction if present.
+      if (hcorr3D){
+        int icx = std::max(1, std::min(hcorr3D->GetNbinsX(), hcorr3D->GetXaxis()->FindBin(*(vars_corr.at(0)))));
+        int icy = std::max(1, std::min(hcorr3D->GetNbinsY(), hcorr3D->GetYaxis()->FindBin(*(vars_corr.at(1)))));
+        int icz = std::max(1, std::min(hcorr3D->GetNbinsZ(), hcorr3D->GetZaxis()->FindBin(*(vars_corr.at(2)))));
+        float wgt_extcorr = hcorr3D->GetBinContent(icx, icy, icz);
+        wgt *= wgt_extcorr;
+      }
 
       // NO MORE MODIFICATION TO wgt BEYOND THIS POINT!
       float const wgtsq = std::pow(wgt, 2);
@@ -850,9 +896,12 @@ void produceSimBkgEstimates_ZWTo3L1Nu(
       p4_miss.SetCoordinates(event_pTmiss, 0.f, event_phimiss, 0.f);
 
       ROOT::Math::PtEtaPhiMVector p4_lW;
-      p4_miss.SetCoordinates(pTlW, etalW, leptons_phi->at(idx_lW), leptons_mass->at(idx_lW));
+      p4_lW.SetCoordinates(pTlW, etalW, leptons_phi->at(idx_lW), leptons_mass->at(idx_lW));
 
       ROOT::Math::PtEtaPhiMVector p4_W = p4_miss + p4_lW;
+
+      //float dPhi_pTleptons_pTmiss = TMath::Pi();
+      //HelperFunctions::deltaPhi<float>((p4_dilepton+p4_lW).Phi(), event_phimiss, dPhi_pTleptons_pTmiss);
 
       float out_mTWZ = std::sqrt(
         std::pow(
@@ -929,6 +978,10 @@ void produceSimBkgEstimates_ZWTo3L1Nu(
       tout->setVal<float>("pTmiss", event_pTmiss);
       tout->setVal<float>("phimiss", event_phimiss);
 
+      //tout->setVal<float>("min_abs_dPhi_pTj_pTmiss", min_abs_dPhi_pTj_pTmiss);
+      //tout->setVal<float>("dPhi_pTboson_pTmiss", dPhi_pTboson_pTmiss);
+      //tout->setVal<float>("dPhi_pTleptons_pTmiss", dPhi_pTleptons_pTmiss);
+
       tout->setVal<unsigned int>("n_ak4jets_pt30", event_n_ak4jets_pt30);
       tout->setVal<unsigned int>("n_ak4jets_pt30_mass60", out_n_ak4jets_pt30_mass60);
       // No need to set value if njets<2; this is why default values are provided and BaseTree::resetBranches() is called.
@@ -971,6 +1024,9 @@ void produceSimBkgEstimates_ZWTo3L1Nu(
 
     curdir->cd();
   }
+
+  // Close external correction files
+  for (auto& ftmp:finput_corrections) ftmp->Close();
 
   for (auto const& sgroup:sgroups){
     MELAout << "Finalizing " << sgroup << ":" << endl;

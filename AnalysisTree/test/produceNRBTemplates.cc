@@ -64,8 +64,8 @@ TString getSystDatacardName(TString const& syst, cms3_id_t const& dilepton_id_re
   TString res;
   if (systcore=="ElectronEff_Stat") res = Form("CMS_eff_stat_e_%s", strSystPerYear.Data());
   else if (systcore=="ElectronEff_Syst") res = Form("CMS_eff_syst_e_%s", strSystPerYear.Data());
-  else if (systcore=="MuonEff_Stat") res = Form("CMS_eff_stat_mu_%s", strSystPerYear.Data());
-  else if (systcore=="MuonEff_Syst") res = Form("CMS_eff_syst_mu_%s", strSystPerYear.Data());
+  else if (systcore=="MuonEff_Stat") res = Form("CMS_eff_stat_m_%s", strSystPerYear.Data());
+  else if (systcore=="MuonEff_Syst") res = Form("CMS_eff_syst_m_%s", strSystPerYear.Data());
   else if (systcore=="SidebandEff") res = Form("CMS_stat_NRB_sideband_%s_%s", (dilepton_id_ref==-121 ? "ee" : "mumu"), strSystPerYear.Data());
   else if (systcore=="TriggerEff_mue") res = Form("CMS_eff_trigger_mue_%s", strSystPerYear.Data());
   else if (systcore=="TriggerEff_mumu") res = Form("CMS_eff_trigger_mumu_%s", strSystPerYear.Data());

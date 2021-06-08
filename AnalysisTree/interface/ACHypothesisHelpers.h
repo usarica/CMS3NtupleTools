@@ -23,6 +23,7 @@ namespace ACHypothesisHelpers{
     kZZ4l_onshell,
     kZZ4l_offshell,
     kZZ2l2nu_offshell,
+    kZW3l1nu,
     nDecayTypes
   };
 

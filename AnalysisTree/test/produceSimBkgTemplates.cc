@@ -14,33 +14,31 @@
 using namespace SystematicsHelpers;
 
 
-#define BRANCH_SCALAR_COMMANDS \
-  BRANCH_COMMAND(float, weight) \
-  BRANCH_COMMAND(cms3_id_t, dilepton_id) \
-  BRANCH_COMMAND(float, mTZZ) \
-  BRANCH_COMMAND(float, pTmiss) \
-  BRANCH_COMMAND(unsigned int, n_ak4jets_pt30) \
-  BRANCH_COMMAND(float, dijet_mass) \
-  BRANCH_COMMAND(unsigned int, n_ak8jets_pt200_mass60to130)
-#define BRANCH_VECTOR_COMMANDS
-#define BRANCH_COMMANDS \
-  BRANCH_SCALAR_COMMANDS \
-  BRANCH_VECTOR_COMMANDS
-
-
 void getProcessCollection(TString const& strSampleSet, std::vector<TString>& snames){
-  if (strSampleSet=="qqZZ_offshell"){
+  if (strSampleSet=="qqZZ_offshell" || strSampleSet=="qqZZ"){
     snames.push_back("qqZZ_2l2nu");
     snames.push_back("qqZZ_4l");
     // qqZZ_2l2q does not have a lot of statistics. No need to include it and deal with artifical peaks.
   }
-  else if (strSampleSet=="qqWZ_offshell"){
+  else if (strSampleSet=="qqWZ_offshell" || strSampleSet=="qqWZ"){
     snames.push_back("qqWZ_3lnu");
-    snames.push_back("qqWZ_2l2q");
+    if (OffshellCutflow::activeFinalState == OffshellCutflow::fs_ZZ_2l2nu) snames.push_back("qqWZ_2l2q");
+  }
+  else if (strSampleSet=="qqZG"){
+    snames.push_back("qqZG");
   }
   else if (strSampleSet=="tZX"){
     snames.push_back("TTZ_2l2nu");
     snames.push_back("TZ_2l_4f");
+  }
+  else if (strSampleSet=="tWX"){
+    snames.push_back("TTW_lnu");
+  }
+  else if (strSampleSet=="ttbar_2l2nu"){
+    snames.push_back("TT_2l2nu");
+  }
+  else if (strSampleSet=="DY_2l"){
+    snames.push_back("DY_2l");
   }
 }
 
@@ -69,7 +67,7 @@ std::vector<SystematicsHelpers::SystematicVariationTypes> getAllowedSysts(TStrin
   };
   // Systematics for lepton id/iso
   // Notice that extra-lepton processes should contain both sets regardless of channel
-  if (strSampleSet.Contains("qqWZ") || strSampleSet.Contains("tZX")){
+  if (dilepton_id_ref==0 || strSampleSet.Contains("qqWZ") || strSampleSet.Contains("tZX")){
     HelperFunctions::appendVector(
       res, std::vector<SystematicVariationTypes>{
         eEleEffStatDn, eEleEffStatUp,
@@ -108,7 +106,7 @@ std::vector<SystematicsHelpers::SystematicVariationTypes> getAllowedSysts(TStrin
     }
   }
   if (SampleHelpers::getDataYear()==2016 || SampleHelpers::getDataYear()==2017) HelperFunctions::appendVector(res, std::vector<SystematicVariationTypes>{ eL1PrefiringDn, eL1PrefiringUp });
-  if (strSampleSet.Contains("qqZZ") || strSampleSet.Contains("qqWZ")) HelperFunctions::appendVector(res, std::vector<SystematicVariationTypes>{ tEWDn, tEWUp });
+  if (strSampleSet.Contains("qqZZ") || strSampleSet.Contains("qqWZ") || strSampleSet.Contains("qqWW")) HelperFunctions::appendVector(res, std::vector<SystematicVariationTypes>{ tEWDn, tEWUp });
   return res;
 }
 
@@ -116,11 +114,17 @@ TString getSystDatacardName(TString const& strSampleSet, cms3_id_t const& dilept
   using namespace SystematicsHelpers;
 
   TString proc_syst_indicator;
-  if (strSampleSet.Contains("qqZZ") || strSampleSet.Contains("qqWZ")){
+  if (strSampleSet.Contains("qqZZ") || strSampleSet.Contains("qqWZ") || strSampleSet.Contains("qqWW")){
     proc_syst_indicator = "qqbar";
     if (syst==tEWDn || syst==tEWUp || syst==tPDFScaleDn || syst==tPDFScaleUp || syst==tQCDScaleDn || syst==tQCDScaleUp) proc_syst_indicator = "VV";
   }
+  else if (strSampleSet.Contains("qqZG")){
+    proc_syst_indicator = "qqbar";
+    if (syst==tPDFScaleDn || syst==tPDFScaleUp || syst==tQCDScaleDn || syst==tQCDScaleUp) proc_syst_indicator = "VG";
+  }
   else if (strSampleSet=="tZX" || strSampleSet.BeginsWith("TZ") || strSampleSet.BeginsWith("TTZ")) proc_syst_indicator = "tZX";
+  else if (strSampleSet=="tWX" || strSampleSet.BeginsWith("TW") || strSampleSet.BeginsWith("TTW")) proc_syst_indicator = "tWX";
+  else if (strSampleSet.BeginsWith("ttbar") || strSampleSet.BeginsWith("TT_2l2nu")) proc_syst_indicator = "ttbar";
   if (syst==eTriggerEffDn || syst==eTriggerEffUp) proc_syst_indicator = (dilepton_id_ref==-121 ? "ee" : "mumu");
 
   TString res = getSystDatacardName(syst, proc_syst_indicator);
@@ -131,17 +135,28 @@ TString getTemplateFileName(TString strdecay, TString strcat, TString strproc, T
 }
 
 void adjustWideBinVariation(TString const& strSampleSet, std::vector<ExtendedBinning> const& binning_vars, TH1F* h_nominal, TH1F* h_var, bool useWidth){
-  if (strSampleSet!="tZX") return;
+  if (OffshellCutflow::activeFinalState == OffshellCutflow::fs_ZZ_2l2nu){
+    if (strSampleSet!="tZX") return;
+  }
+  else if (OffshellCutflow::activeFinalState == OffshellCutflow::fs_ZW_3l1nu){
+    if (strSampleSet!="tWX" && strSampleSet!="DY_2l" && strSampleSet!="qqZG" && strSampleSet!="ttbar_2l2nu") return;
+  }
 
   if (binning_vars.size()!=1){ MELAerr << "adjustWideBinVariation ERROR: Using the wrong binning dimension!" << endl; return; }
-  if (binning_vars.front().getName()!="mTZZ") return;
+  if (
+    (OffshellCutflow::activeFinalState == OffshellCutflow::fs_ZZ_2l2nu && binning_vars.front().getName()!="mTZZ")
+    ||
+    (OffshellCutflow::activeFinalState == OffshellCutflow::fs_ZW_3l1nu && binning_vars.front().getName()!="mTWZ")
+    ) return;
 
   MELAout
     << "adjustWideBinVariation: Integral of the variation before adjustment = "
     << HelperFunctions::getHistogramIntegralAndError(h_var, 1, binning_vars.front().getNbins(), useWidth)
     << endl;
 
-  std::vector<int> const xbin_boundaries{ 1, binning_vars.front().getBin(400.)+1, static_cast<int>(binning_vars.front().getNbins()+1) };
+  std::vector<int> xbin_boundaries;
+  if (binning_vars.front().getName()!="mTZZ") xbin_boundaries = std::vector<int>{ 1, binning_vars.front().getBin(400.)+1, static_cast<int>(binning_vars.front().getNbins()+1) };
+  else if (binning_vars.front().getName()!="mTWZ") xbin_boundaries = std::vector<int>{ 1, binning_vars.front().getBin(300.)+1, static_cast<int>(binning_vars.front().getNbins()+1) };
   MELAout << "\t- X wide bin boundaries: " << xbin_boundaries << endl;
 
   for (unsigned int ibb=0; ibb<xbin_boundaries.size()-1; ibb++){
@@ -163,7 +178,12 @@ void adjustWideBinVariation(TString const& strSampleSet, std::vector<ExtendedBin
     << endl;
 }
 void adjustWideBinVariation(TString const& strSampleSet, std::vector<ExtendedBinning> const& binning_vars, TH2F* h_nominal, TH2F* h_var, bool useWidth){
-  if (strSampleSet!="tZX") return;
+  if (OffshellCutflow::activeFinalState == OffshellCutflow::fs_ZZ_2l2nu){
+    if (strSampleSet!="tZX") return;
+  }
+  else if (OffshellCutflow::activeFinalState == OffshellCutflow::fs_ZW_3l1nu){
+    if (strSampleSet!="tWX" && strSampleSet!="DY_2l" && strSampleSet!="ttbar_2l2nu") return;
+  }
 
   unsigned int const ndims = binning_vars.size();
   if (ndims!=2){ MELAerr << "adjustWideBinVariation ERROR: Using the wrong binning dimension!" << endl; return; }
@@ -178,6 +198,7 @@ void adjustWideBinVariation(TString const& strSampleSet, std::vector<ExtendedBin
     std::vector<int>& bin_boundaries = bin_boundaries_list.at(idim);
     bin_boundaries.reserve(binning_vars.at(idim).getNbins());
     if (binning_vars.at(idim).getName()=="mTZZ") bin_boundaries = std::vector<int>{ 1, binning_vars.at(idim).getBin(400.)+1, static_cast<int>(binning_vars.at(idim).getNbins()+1) };
+    else if (binning_vars.at(idim).getName()=="mTWZ") bin_boundaries = std::vector<int>{ 1, binning_vars.at(idim).getBin(300.)+1, static_cast<int>(binning_vars.at(idim).getNbins()+1) };
     else if (binning_vars.at(idim).getName()=="pTmiss") bin_boundaries = std::vector<int>{ 1, binning_vars.at(idim).getBin(200.)+1, static_cast<int>(binning_vars.at(idim).getNbins()+1) };
     else{ for (int ib=0; ib<=(int) binning_vars.at(idim).getNbins(); ib++) bin_boundaries.push_back(ib+1); }
   }
@@ -220,7 +241,12 @@ void adjustWideBinVariation(TString const& strSampleSet, std::vector<ExtendedBin
     << endl;
 }
 void adjustWideBinVariation(TString const& strSampleSet, std::vector<ExtendedBinning> const& binning_vars, TH3F* h_nominal, TH3F* h_var, bool useWidth){
-  if (strSampleSet!="tZX") return;
+  if (OffshellCutflow::activeFinalState == OffshellCutflow::fs_ZZ_2l2nu){
+    if (strSampleSet!="tZX") return;
+  }
+  else if (OffshellCutflow::activeFinalState == OffshellCutflow::fs_ZW_3l1nu){
+    if (strSampleSet!="tWX" && strSampleSet!="DY_2l" && strSampleSet!="ttbar_2l2nu") return;
+  }
 
   unsigned int const ndims = binning_vars.size();
   if (ndims!=3){ MELAerr << "adjustWideBinVariation ERROR: Using the wrong binning dimension!" << endl; return; }
@@ -235,6 +261,7 @@ void adjustWideBinVariation(TString const& strSampleSet, std::vector<ExtendedBin
     std::vector<int>& bin_boundaries = bin_boundaries_list.at(idim);
     bin_boundaries.reserve(binning_vars.at(idim).getNbins());
     if (binning_vars.at(idim).getName()=="mTZZ") bin_boundaries = std::vector<int>{ 1, binning_vars.at(idim).getBin(400.)+1, static_cast<int>(binning_vars.at(idim).getNbins()+1) };
+    else if (binning_vars.at(idim).getName()=="mTWZ") bin_boundaries = std::vector<int>{ 1, binning_vars.at(idim).getBin(300.)+1, static_cast<int>(binning_vars.at(idim).getNbins()+1) };
     else if (binning_vars.at(idim).getName()=="pTmiss") bin_boundaries = std::vector<int>{ 1, binning_vars.at(idim).getBin(200.)+1, static_cast<int>(binning_vars.at(idim).getNbins()+1) };
     else{ for (int ib=0; ib<=(int) binning_vars.at(idim).getNbins(); ib++) bin_boundaries.push_back(ib+1); }
   }
@@ -285,8 +312,23 @@ void adjustWideBinVariation(TString const& strSampleSet, std::vector<ExtendedBin
     << endl;
 }
 
+
+#define BRANCH_SCALAR_COMMANDS \
+  BRANCH_COMMAND(float, weight) \
+  BRANCH_COMMAND(cms3_id_t, dilepton_id) \
+  BRANCH_COMMAND(float, mTZZ) \
+  BRANCH_COMMAND(float, pTmiss) \
+  BRANCH_COMMAND(unsigned int, n_ak4jets_pt30) \
+  BRANCH_COMMAND(float, dijet_mass) \
+  BRANCH_COMMAND(unsigned int, n_ak8jets_pt200_mass60to130)
+#define BRANCH_VECTOR_COMMANDS
+#define BRANCH_COMMANDS \
+  BRANCH_SCALAR_COMMANDS \
+  BRANCH_VECTOR_COMMANDS
+
+
 using namespace ACHypothesisHelpers;
-void getTemplate_ZZ2L2Nu(
+void getTemplate_ZZTo2L2Nu(
   TString strSampleSet, // qqZZ_offshell etc, whatever is defined in the if-conditions of getProcessCollection.
   TString period, TString ntupleVersion, TString strdate,
   ACHypothesisHelpers::ACHypothesis AChypo,
@@ -303,6 +345,8 @@ void getTemplate_ZZ2L2Nu(
   constexpr bool useSymmetric = true;
 
   TDirectory* curdir = gDirectory;
+
+  OffshellCutflow::setActiveFinalState(OffshellCutflow::fs_ZZ_2l2nu);
 
   SampleHelpers::configure(period, Form("%s:ZZTo2L2Nu/%s", "store_finaltrees", ntupleVersion.Data()));
 
@@ -1002,8 +1046,14 @@ void getTemplate_ZZ2L2Nu(
 #undef BRANCH_SCALAR_COMMANDS
 
 
-void runTemplateChain(TString period, TString ntupleVersion, TString strdate, bool includeBoostedHadVHCategory, bool includeResolvedHadVHCategory, TString strSampleSet_target=""){
+void runTemplateChain_ZZTo2L2Nu(
+  TString period, TString ntupleVersion, TString strdate,
+  bool includeBoostedHadVHCategory, bool includeResolvedHadVHCategory,
+  TString strSampleSet_target="", SystematicsHelpers::SystematicVariationTypes syst_target = SystematicsHelpers::nSystematicVariations
+){
   SampleHelpers::configure(period, Form("%s:ZZTo2L2Nu/%s", "store_finaltrees", ntupleVersion.Data()));
+
+  OffshellCutflow::setActiveFinalState(OffshellCutflow::fs_ZZ_2l2nu);
 
   std::vector<TString> strSampleSets{ "qqZZ_offshell", "qqWZ_offshell", "tZX" };
   std::vector<cms3_id_t> const dilepton_ids{ -121, -169 };
@@ -1011,13 +1061,474 @@ void runTemplateChain(TString period, TString ntupleVersion, TString strdate, bo
     if (strSampleSet_target!="" && strSampleSet_target!=strSampleSet) continue;
     for (auto const& dilepton_id:dilepton_ids){
       for (auto const& syst:getAllowedSysts(strSampleSet, dilepton_id)){
-        for (int iac=0; iac<(int) ACHypothesisHelpers::nACHypotheses; iac++) getTemplate_ZZ2L2Nu(
+        if (syst_target!=SystematicsHelpers::nSystematicVariations && syst!=syst_target) continue;
+        for (int iac=0; iac<(int) ACHypothesisHelpers::nACHypotheses; iac++) getTemplate_ZZTo2L2Nu(
           strSampleSet,
           period, ntupleVersion, strdate,
           static_cast<ACHypothesisHelpers::ACHypothesis>(iac),
           dilepton_id, syst,
           includeBoostedHadVHCategory, includeResolvedHadVHCategory
         );
+      }
+    }
+  }
+}
+
+
+#define BRANCH_SCALAR_COMMANDS \
+  BRANCH_COMMAND(float, weight) \
+  BRANCH_COMMAND(cms3_id_t, dilepton_id) \
+  BRANCH_COMMAND(cms3_id_t, id_lW) \
+  BRANCH_COMMAND(float, mTWZ) \
+  BRANCH_COMMAND(unsigned int, n_ak4jets_pt30) \
+  BRANCH_COMMAND(float, dijet_mass) \
+  BRANCH_COMMAND(unsigned int, n_ak8jets_pt200_mass60to130)
+#define BRANCH_VECTOR_COMMANDS
+#define BRANCH_COMMANDS \
+  BRANCH_SCALAR_COMMANDS \
+  BRANCH_VECTOR_COMMANDS
+
+
+using namespace ACHypothesisHelpers;
+std::vector<TString> getTemplate_ZWTo3L1Nu(
+  TString strSampleSet,
+  TString period, TString ntupleVersion, TString strdate,
+  ACHypothesisHelpers::ACHypothesis AChypo,
+  cms3_absid_t abs_lepW_id_ref, // This is the actual channel indicator based on lepW.
+  cms3_id_t dilepton_id_ref, // This is for the trigger systematic. Default is 0.
+  SystematicsHelpers::SystematicVariationTypes const& syst,
+  int iCRSF, // This is a flag that controls variations directly over Nominal.
+  bool includeBoostedHadVHCategory,
+  bool includeResolvedHadVHCategory
+){
+  using namespace StatisticsHelpers;
+  using namespace PhysicsProcessHelpers;
+  using namespace HistogramKernelDensitySmoothener;
+
+  constexpr double stddev_stat = 3;
+  constexpr bool useSymmetric = true;
+
+  std::vector<TString> res;
+
+  TDirectory* curdir = gDirectory;
+
+  OffshellCutflow::setActiveFinalState(OffshellCutflow::fs_ZW_3l1nu);
+
+  SampleHelpers::configure(period, Form("%s:ZWTo3L1Nu/%s", "store_finaltrees", ntupleVersion.Data()));
+
+  int icat_boostedHadVH = -1;
+  int icat_resolvedHadVH = -1;
+  std::vector<TString> strCatNames{ "Nj_eq_0", "Nj_eq_1", "Nj_geq_2" };
+  if (includeBoostedHadVHCategory){ strCatNames.push_back("BoostedHadVH"); icat_boostedHadVH=strCatNames.size()-1; }
+  if (includeResolvedHadVHCategory){ strCatNames.push_back("ResolvedHadVH"); icat_resolvedHadVH=strCatNames.size()-1; }
+  unsigned int const nCats = strCatNames.size();
+  TString const strSystPerYear = Form("%sTeV_%s", SampleHelpers::getSqrtsString().Data(), SampleHelpers::getDataPeriod().Data());
+  TString strSystDC = getSystDatacardName(strSampleSet, dilepton_id_ref, syst);
+  TString strSyst = getSystName(syst);
+  if (iCRSF!=0){
+    if (syst!=sNominal && strSampleSet!="qqZG") return res;
+    // Notice that the name CMS_llGnorm_ZG_3l is different from CMS_llGnorm_ZG, which is what is used in Instr. MET.
+    // This is to ensure decorrelation of 3l uncertainties with nunuG ones.
+    if (iCRSF>0){
+      strSyst = "ZGScaleFactorUp";
+      strSystDC = Form("CMS_llGnorm_ZG_3l_%sUp", strSystPerYear.Data());
+    }
+    else{
+      strSyst = "ZGScaleFactorDn";
+      strSystDC = Form("CMS_llGnorm_ZG_3l_%sDown", strSystPerYear.Data());
+    }
+  }
+  TString const strChannel = (abs_lepW_id_ref==11 ? "2l1e" : "2l1mu");
+
+  // Build process
+  GenericBkgProcessHandler process_handler(strSampleSet, strSampleSet, ACHypothesisHelpers::kZW3l1nu);
+
+  // Get input raw tree
+  std::vector<TFile*> finputs;
+  std::vector<TTree*> tinlist[2];
+  std::unordered_map<TTree*, double> norm_map;
+  std::vector<TString> snames; getProcessCollection(strSampleSet, snames);
+  for (auto const& sname:snames){
+    TString cinput = SampleHelpers::getDatasetDirectoryName(period) + "/finaltree_" + sname + "_" + strSyst + ".root";
+    if (!HostHelpers::FileReadable(cinput)){
+      MELAerr << "Input file " << cinput << " is not found." << endl;
+      return res;
+    }
+    else MELAout << "Acquiring input file " << cinput << "..." << endl;
+
+    TString cinput_nominal = SampleHelpers::getDatasetDirectoryName(period) + "/finaltree_" + sname + "_Nominal.root";
+    if (!HostHelpers::FileReadable(cinput_nominal)){
+      MELAerr << "\t- Input file " << cinput_nominal << " is not found." << endl;
+      for (auto& finput:finputs) finput->Close();
+      return res;
+    }
+    else MELAout << "\t- Acquiring input file " << cinput_nominal << "..." << endl;
+
+    TFile* finput_ee = TFile::Open(cinput, "read"); finputs.push_back(finput_ee);
+    TTree* tin_ee = (TTree*) finput_ee->Get("FinalTree");
+
+    TFile* finput_mumu = nullptr;
+    TTree* tin_mumu = tin_ee;
+    if (syst==eTriggerEffDn || syst==eTriggerEffUp){
+      finput_mumu = TFile::Open(cinput_nominal, "read"); finputs.push_back(finput_mumu);
+      tin_mumu = (TTree*) finput_mumu->Get("FinalTree");
+      // If the trigger eff. systematic is for muons, assign syst tree to tin_mumu, and the nominal tree to tin_ee.
+      if (dilepton_id_ref==-169) std::swap(tin_mumu, tin_ee);
+    }
+
+    // Check if an extension is present
+    TFile* finput_ee_ext = nullptr;
+    TTree* tin_ee_ext = nullptr;
+    TFile* finput_mumu_ext = nullptr;
+    TTree* tin_mumu_ext = nullptr;
+    TString cinput_ext = SampleHelpers::getDatasetDirectoryName(period) + "/finaltree_" + sname + "_ext_" + strSyst + ".root";
+    TString cinput_ext_nominal = SampleHelpers::getDatasetDirectoryName(period) + "/finaltree_" + sname + "_ext_Nominal.root";
+    if (!HostHelpers::FileReadable(cinput_ext) || !HostHelpers::FileReadable(cinput_ext_nominal)) MELAout << "No extension samples " << cinput_ext << " or " << cinput_ext_nominal << " are found." << endl;
+    else{
+      MELAout << "Acquiring ext. input file " << cinput_ext << "..." << endl;
+      finput_ee_ext = TFile::Open(cinput_ext, "read"); finputs.push_back(finput_ee_ext);
+      tin_mumu_ext = tin_ee_ext = (TTree*) finput_ee_ext->Get("FinalTree");
+      if (syst==eTriggerEffDn || syst==eTriggerEffUp){
+        finput_mumu_ext = TFile::Open(cinput_ext_nominal, "read"); finputs.push_back(finput_mumu_ext);
+        tin_mumu_ext = (TTree*) finput_mumu_ext->Get("FinalTree");
+        // If the trigger eff. systematic is for muons, assign syst tree to tin_mumu, and the nominal tree to tin_ee.
+        if (dilepton_id_ref==-169) std::swap(tin_mumu_ext, tin_ee_ext);
+      }
+    }
+
+    if (tin_ee_ext){
+      double nEntries = tin_ee->GetEntries();
+      double nEntries_ext = tin_ee_ext->GetEntries();
+      norm_map[tin_ee] = nEntries / (nEntries + nEntries_ext);
+      norm_map[tin_ee_ext] = nEntries_ext / (nEntries + nEntries_ext);
+    }
+    else norm_map[tin_ee]=1;
+
+    if (tin_mumu!=tin_ee){
+      if (tin_mumu_ext){
+        double nEntries = tin_mumu->GetEntries();
+        double nEntries_ext = tin_mumu_ext->GetEntries();
+        norm_map[tin_mumu] = nEntries / (nEntries + nEntries_ext);
+        norm_map[tin_mumu_ext] = nEntries_ext / (nEntries + nEntries_ext);
+      }
+      else norm_map[tin_mumu]=1;
+    }
+
+    tinlist[0].push_back(tin_ee); if (tin_ee_ext) tinlist[0].push_back(tin_ee_ext);
+    tinlist[1].push_back(tin_mumu); if (tin_mumu_ext) tinlist[1].push_back(tin_mumu_ext);
+  }
+
+#define BRANCH_COMMAND(TYPE, NAME) TYPE NAME = 0;
+  BRANCH_SCALAR_COMMANDS;
+#undef BRANCH_COMMAND
+#define BRANCH_COMMAND(TYPE, NAME) std::vector<TYPE>* NAME = nullptr;
+  BRANCH_VECTOR_COMMANDS;
+#undef BRANCH_COMMAND
+
+  {
+    std::vector<TTree*> tmptinlist;
+    for (unsigned char iid=0; iid<2; iid++){
+      for (auto& tt:tinlist[iid]){
+        if (!HelperFunctions::checkListVariable(tmptinlist, tt)) tmptinlist.push_back(tt);
+      }
+    }
+
+    for (auto& tin:tmptinlist){
+      tin->SetBranchStatus("*", 0);
+#define BRANCH_COMMAND(TYPE, NAME) tin->SetBranchStatus(#NAME, 1); tin->SetBranchAddress(#NAME, &NAME);
+      BRANCH_COMMANDS;
+#undef BRANCH_COMMAND
+    }
+  }
+
+  // Set up output
+  TString const coutput_main = "output/Templates/" + strdate + "/CatScheme_Nj" + (includeBoostedHadVHCategory ? (includeResolvedHadVHCategory ? "_BoostedHadVH_ResolvedHadVH" : "_BoostedHadVH") : (includeResolvedHadVHCategory ? "_ResolvedHadVH" : "")) + "/" + ACHypothesisHelpers::getACHypothesisName(AChypo) + "/" + period;
+  gSystem->mkdir(coutput_main, true);
+
+  TString stroutput_txt = coutput_main + "/" + process_handler.getProcessName() + "_" + strChannel + "_" + strSystDC + ".txt";
+  MELAout.open(stroutput_txt.Data());
+  SampleHelpers::addToCondorTransferList(stroutput_txt);
+  res.push_back(stroutput_txt);
+
+  TString stroutput_commons = coutput_main + "/" + process_handler.getProcessName() + "_" + strChannel + "_" + strSystDC + "_commons.root";
+  TFile* foutput_common = TFile::Open(stroutput_commons, "recreate");
+  res.push_back(stroutput_commons);
+
+  std::vector<TTree*> tin_split(nCats, nullptr);
+  for (unsigned int icat=0; icat<nCats; icat++){
+    tin_split.at(icat) = tinlist[0].front()->CloneTree(0);
+    tin_split.at(icat)->SetName(Form("SplitTree_%u", icat));
+  }
+  {
+    std::vector<std::vector<double>> sum_wgts_cat(nCats, std::vector<double>(2, 0.));
+    for (unsigned char iid=0; iid<2; iid++){
+      for (auto& tin:tinlist[iid]){
+        double const& normval = norm_map.find(tin)->second;
+        int nEntries = tin->GetEntries();
+        for (int ev=0; ev<nEntries; ev++){
+          tin->GetEntry(ev);
+          HelperFunctions::progressbar(ev, nEntries);
+
+          cms3_absid_t abs_id_lW = std::abs(id_lW);
+          if (abs_id_lW!=abs_lepW_id_ref) continue;
+          if (dilepton_id!=static_cast<cms3_id_t>((iid==0 ? -121 : -169))) continue;
+
+          bool const isMVJ = (n_ak8jets_pt200_mass60to130>0);
+          bool const isMVjj = (dijet_mass>=60.f && dijet_mass<130.f && n_ak4jets_pt30>=2);
+
+          // Renormalize the weights
+          weight *= normval;
+
+          unsigned int icat=0;
+          if (icat_boostedHadVH>=0 && isMVJ) icat=icat_boostedHadVH;
+          else if (icat_resolvedHadVH>=0 && isMVjj) icat=icat_resolvedHadVH;
+          else if (n_ak4jets_pt30>=2) icat=2;
+          else if (n_ak4jets_pt30==1) icat=1;
+          else icat=0;
+          tin_split.at(icat)->Fill();
+          sum_wgts_cat.at(icat).at(iid) += weight;
+        }
+      }
+    }
+    MELAout << "Sum of weights in category: " << sum_wgts_cat << endl;
+  }
+
+  for (unsigned int icat=0; icat<nCats; icat++){
+    MELAout << "Producing templates for " << strCatNames.at(icat) << ":" << endl;
+
+    TTree*& tin_cat = tin_split.at(icat);
+    MELAout << "\t- Category tree has " << tin_cat->GetEntries() << " entries." << endl;
+
+    ACHypothesisHelpers::ProductionType prod_type;
+    if (icat<2) prod_type = ACHypothesisHelpers::kGG;
+    else if (icat==2) prod_type = ACHypothesisHelpers::kVBF;
+    else prod_type = ACHypothesisHelpers::kHadVH;
+
+    TString strSystDCeff = strSystDC;
+    if (strSystDCeff.Contains("CMS_llGnorm_ZG_3l")) HelperFunctions::replaceString<TString, TString const>(strSystDCeff, "llGnorm_ZG_3l", Form("llGnorm_ZG_3l_%s", strCatNames.at(icat).Data()));
+    TString stroutput = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), process_handler.getProcessName(), strSystDCeff);
+    std::vector<TFile*> foutputs; foutputs.reserve(9);
+    foutputs.push_back(TFile::Open(stroutput, "recreate"));
+    SampleHelpers::addToCondorTransferList(stroutput);
+    res.push_back(stroutput);
+
+    bool hasStatUnc = false;
+    if (strSyst=="Nominal"){
+      hasStatUnc = true;
+      TString stroutput_var;
+      // Statistical variations should be independent between ee and mumu, so the channel name should be specified.
+      TString proc_chan_cat_syst_indicator = process_handler.getProcessName() + "_" + strChannel + "_" + strCatNames.at(icat) + "_" + period;
+
+      stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), process_handler.getProcessName(), Form("CMS_stat_norm_%sDown", proc_chan_cat_syst_indicator.Data()));
+      foutputs.push_back(TFile::Open(stroutput_var, "recreate"));
+      SampleHelpers::addToCondorTransferList(stroutput_var);
+      res.push_back(stroutput_var);
+
+      stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), process_handler.getProcessName(), Form("CMS_stat_norm_%sUp", proc_chan_cat_syst_indicator.Data()));
+      foutputs.push_back(TFile::Open(stroutput_var, "recreate"));
+      SampleHelpers::addToCondorTransferList(stroutput_var);
+      res.push_back(stroutput_var);
+
+      stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), process_handler.getProcessName(), Form("CMS_stat_shape_%sDown", proc_chan_cat_syst_indicator.Data()));
+      foutputs.push_back(TFile::Open(stroutput_var, "recreate"));
+      SampleHelpers::addToCondorTransferList(stroutput_var);
+      res.push_back(stroutput_var);
+
+      stroutput_var = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), process_handler.getProcessName(), Form("CMS_stat_shape_%sUp", proc_chan_cat_syst_indicator.Data()));
+      foutputs.push_back(TFile::Open(stroutput_var, "recreate"));
+      SampleHelpers::addToCondorTransferList(stroutput_var);
+      res.push_back(stroutput_var);
+    }
+    unsigned short const nStatVars = foutputs.size();
+
+    if (hasStatUnc) MELAout << "\t- Will also acquire stat. unc. variations" << endl;
+    MELAout << "\t- Category expects " << foutputs.size() << " output files." << endl;
+
+    foutputs.front()->cd();
+
+    // For each category, obtain the binnings for the different observables
+    std::vector<float*> varvals; varvals.reserve(1);
+    std::vector<ExtendedBinning> binning_KDvars; binning_KDvars.reserve(1);
+    std::vector<float> smearingStrengthCoeffs; smearingStrengthCoeffs.reserve(1);
+    unsigned int nVars = 0;
+
+    // Add mTZZ
+    varvals.push_back(&mTWZ);
+    binning_KDvars.emplace_back(TemplateHelpers::getDiscriminantFineBinning("mTWZ", AChypo, prod_type, process_handler.getProcessDecayType()));
+    smearingStrengthCoeffs.push_back(TemplateHelpers::getSmearingStrengthCoefficient("mTWZ", AChypo, prod_type, process_handler.getProcessDecayType()));
+    nVars++;
+
+    if (
+      strSampleSet.Contains("DY")
+      ||
+      strSampleSet.Contains("qqZG")
+      ){
+      for (auto& coef:smearingStrengthCoeffs) coef *= 10.;
+    }
+    else if (
+      strCatNames.at(icat) == "BoostedHadVH"
+      ||
+      strSampleSet == "tZX"
+      ||
+      strSampleSet == "tWX"
+      ||
+      strSampleSet.Contains("ttbar")
+      ){
+      for (auto& coef:smearingStrengthCoeffs) coef *= 2.;
+    }
+
+    MELAout << "\t- Number of variables: " << nVars << endl;
+    for (auto const& bb:binning_KDvars) MELAout << "\t\t- Variables " << bb.getName() << " binning: " << bb.getBinningVector() << endl;
+    MELAout << "\t- Smoothing factors: " << smearingStrengthCoeffs << endl;
+
+    bool selflag = true;
+
+    double scale_norm_dn=1, scale_norm_up=1;
+    std::vector<TH1F*> hSmooth_combined_1D; hSmooth_combined_1D.reserve(nStatVars);
+
+    MELAout << "\t- Producing unsplit 1D templates..." << endl;
+
+    TH1F* hRaw=nullptr;
+    std::vector<TH1F*> hStat(2, nullptr);
+    TH1F* hSmooth = getSmoothHistogram(
+      process_handler.getTemplateName(), process_handler.getTemplateName(), binning_KDvars.at(0),
+      tin_cat, *(varvals.at(0)), weight, selflag,
+      smearingStrengthCoeffs.at(0),
+      (hasStatUnc ? &hRaw : nullptr),
+      (hasStatUnc ? &(hStat.front()) : nullptr), (hasStatUnc ? &(hStat.back()) : nullptr), stddev_stat, useSymmetric
+    );
+
+    // Find norm dn/up
+    if (hRaw){
+      double integral_raw=0, integralerr_raw=0;
+      double integral_raw_dn=0, integral_raw_up=0;
+      integral_raw = HelperFunctions::getHistogramIntegralAndError(hRaw, 0, hRaw->GetNbinsX()+1, false, &integralerr_raw);
+      double Neff_raw = (integralerr_raw>0. ? std::pow(integral_raw/integralerr_raw, 2) : 1.);
+      StatisticsHelpers::getPoissonCountingConfidenceInterval_Frequentist(Neff_raw, VAL_CL_1SIGMA, integral_raw_dn, integral_raw_up);
+      scale_norm_dn = integral_raw_dn/Neff_raw;
+      scale_norm_up = integral_raw_up/Neff_raw;
+      MELAout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
+      MELAout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc.: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
+    }
+    delete hRaw;
+
+    hSmooth_combined_1D.push_back(hSmooth);
+    if (hasStatUnc){
+      TH1F* hSmooth_normDn = (TH1F*) hSmooth->Clone(Form("%s_normDn", hSmooth->GetName())); hSmooth_normDn->Scale(scale_norm_dn);
+      TH1F* hSmooth_normUp = (TH1F*) hSmooth->Clone(Form("%s_normUp", hSmooth->GetName())); hSmooth_normUp->Scale(scale_norm_up);
+      hSmooth_combined_1D.push_back(hSmooth_normDn);
+      hSmooth_combined_1D.push_back(hSmooth_normUp);
+    }
+    if (hStat.front()) hSmooth_combined_1D.push_back(hStat.front());
+    if (hStat.back()) hSmooth_combined_1D.push_back(hStat.back());
+
+    if (hasStatUnc){
+      MELAout << "\t- Adjusting shape variations..." << endl;
+      if (!hSmooth_combined_1D.empty()){
+        adjustWideBinVariation(strSampleSet, binning_KDvars, hSmooth_combined_1D.front(), hSmooth_combined_1D.at(3), false);
+        adjustWideBinVariation(strSampleSet, binning_KDvars, hSmooth_combined_1D.front(), hSmooth_combined_1D.at(4), false);
+      }
+    }
+
+    for (unsigned short istat=0; istat<nStatVars; istat++){
+      if (foutputs.size()<=istat) break;
+      MELAout << "\t- Recording stat. variation " << istat << ":" << endl;
+      TH1F* hSmooth_1D = (!hSmooth_combined_1D.empty() ? hSmooth_combined_1D.at(istat) : nullptr);
+      foutputs.at(istat)->cd();
+      if (hSmooth_1D){
+        hSmooth_1D->SetName(process_handler.getTemplateName());
+        hSmooth_1D->SetTitle(process_handler.getTemplateName());
+        {
+          double integral = HelperFunctions::getHistogramIntegralAndError(hSmooth_1D, 0, hSmooth_1D->GetNbinsX()+1, false);
+          MELAout << "\t- Integral: " << integral << endl;
+        }
+        TemplateHelpers::doTemplatePostprocessing(hSmooth_1D);
+
+        // Keep track of negative bins and floor default templates
+        TH1F* hFloored = (TH1F*) hSmooth_1D->Clone(Form("%s_belowfloor", hSmooth_1D->GetName()));
+        for (int ix=0; ix<=hSmooth_1D->GetNbinsX()+1; ix++){
+          double bc = hSmooth_1D->GetBinContent(ix);
+          if (bc<0.) bc=0;
+          else hFloored->SetBinContent(ix, 0.);
+          hSmooth_1D->SetBinContent(ix, bc);
+          hSmooth_1D->SetBinError(ix, 0.);
+        }
+        hFloored->Scale(-1.);
+        {
+          double integral = HelperFunctions::getHistogramIntegralAndError(hFloored, 0, hFloored->GetNbinsX()+1, true);
+          MELAout << "\t- Neg. integral: " << integral << endl;
+        }
+
+        foutputs.at(istat)->WriteTObject(hSmooth_1D);
+        foutputs.at(istat)->WriteTObject(hFloored);
+        delete hFloored;
+        delete hSmooth_1D;
+      }
+    }
+
+    for (auto& foutput:foutputs) foutput->Close();
+
+    delete tin_cat;
+  }
+
+  foutput_common->Close();
+  MELAout.close();
+  for (auto& finput:finputs) finput->Close();
+
+  curdir->cd();
+
+  return res;
+}
+
+
+#undef BRANCH_COMMANDS
+#undef BRANCH_VECTOR_COMMANDS
+#undef BRANCH_SCALAR_COMMANDS
+
+
+void runTemplateChain_ZWTo3L1Nu(
+  TString period, TString ntupleVersion, TString strdate,
+  bool includeBoostedHadVHCategory, bool includeResolvedHadVHCategory,
+  TString strSampleSet_target="", SystematicsHelpers::SystematicVariationTypes syst_target = SystematicsHelpers::nSystematicVariations
+){
+  SampleHelpers::configure(period, Form("%s:ZWTo3L1Nu/%s", "store_finaltrees", ntupleVersion.Data()));
+
+  OffshellCutflow::setActiveFinalState(OffshellCutflow::fs_ZW_3l1nu);
+
+  std::vector<TString> strSampleSets{ "qqZZ", "qqWZ", "qqZG", "tZX", "tWX", "ttbar_2l2nu", "DY_2l" };
+  std::vector<cms3_absid_t> const lepW_ids{ 11, 13 };
+  for (auto const& strSampleSet:strSampleSets){
+    if (strSampleSet_target!="" && strSampleSet_target!=strSampleSet) continue;
+    for (auto const& syst:getAllowedSysts(strSampleSet, 0)){
+      if (syst_target!=SystematicsHelpers::nSystematicVariations && syst!=syst_target) continue;
+      std::vector<cms3_id_t> dilepton_ids{ 0 };
+      if (syst==eTriggerEffDn || syst==eTriggerEffUp) dilepton_ids = std::vector<cms3_id_t>{ -121, -169 };
+      for (auto const& dilepton_id:dilepton_ids){
+        for (auto const& lepW_id:lepW_ids){
+          for (int iCRSF=-1; iCRSF<=1; iCRSF++){
+            if (iCRSF!=0){ if (strSampleSet!="qqZG" || syst!=sNominal) continue; }
+            std::vector<TString> res = getTemplate_ZWTo3L1Nu(
+              strSampleSet,
+              period, ntupleVersion, strdate,
+              ACHypothesisHelpers::kSM,
+              lepW_id, dilepton_id, syst, iCRSF,
+              includeBoostedHadVHCategory, includeResolvedHadVHCategory
+            );
+            for (int iac=0; iac<(int) ACHypothesisHelpers::nACHypotheses; iac++){
+              ACHypothesisHelpers::ACHypothesis AChypo = static_cast<ACHypothesisHelpers::ACHypothesis>(iac);
+              if (AChypo == kSM) continue;
+              TString const strSMhypo = Form("/%s/", ACHypothesisHelpers::getACHypothesisName(kSM).Data());
+              TString const strAChypo = Form("/%s/", ACHypothesisHelpers::getACHypothesisName(AChypo).Data());
+              for (auto const& ss:res){
+                TString ssnew = ss;
+                HelperFunctions::replaceString<TString, TString const>(ssnew, strSMhypo, strAChypo);
+                TString tmpdir = ssnew(0, ssnew.Last('/'));
+                gSystem->mkdir(tmpdir, true);
+                HostHelpers::ExecuteCommand(Form("cp %s %s", ss.Data(), ssnew.Data()));
+              }
+            }
+          }
+        }
       }
     }
   }

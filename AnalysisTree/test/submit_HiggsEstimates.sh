@@ -5,10 +5,16 @@ period=$2
 prodVersion=$3
 ntupleVersion=$4
 rewgtRcdVersion=$5
+channel=$6
+if [[ "$channel" == "WZ"* ]] || [[ "$channel" == "ZW"* ]]; then
+  channel="ZWTo3L1Nu"
+else
+  channel="ZZTo2L2Nu"
+fi
 
 script=produceHiggsEstimates.cc
-function=runDistributionsChain
-jobdate="${date}_HiggsEstimates"
+function=produceHiggsEstimates_${channel}
+jobdate="${date}_HiggsEstimates_${channel}"
 arguments='"<strSampleSet>","<period>","<prodVersion>","<ntupleVersion>","<rewgtRcdVersion>","<strdate>",<theGlobalSyst>,<applyPUIdToAK4Jets>,<applyTightLeptonVetoIdToAK4Jets>,<use_MET_Puppi>,<use_MET_XYCorr>,<use_MET_JERCorr>,<use_MET_ParticleMomCorr>,<use_MET_p4Preservation>,<use_MET_corrections>'
 arguments="${arguments/<strdate>/$date}"
 arguments="${arguments/<period>/$period}"
@@ -54,54 +60,85 @@ fi
 
 
 strSampleGroup=""
-if [[ "$period" == "2018"* ]]; then
-  strSampleGroup="${strSampleGroup} GGH_ZZTo2L2Nu_POWHEG"
-  strSampleGroup="${strSampleGroup} GGH_WWTo2L2Nu_POWHEG"
-  strSampleGroup="${strSampleGroup} VBF_ZZTo2L2Nu_POWHEG"
-  strSampleGroup="${strSampleGroup} VBF_WWTo2L2Nu_POWHEG"
-  strSampleGroup="${strSampleGroup} ZH_HTo2Nu2X_2LFilter_POWHEG"
-  strSampleGroup="${strSampleGroup} ZH_HTo2L2Q_2LFilter_POWHEG"
-  strSampleGroup="${strSampleGroup} ZH_HTo4Q_2LFilter_POWHEG"
-  strSampleGroup="${strSampleGroup} ZH_WWTo2L2Nu_POWHEG"
-  strSampleGroup="${strSampleGroup} ZH_HToLNuQQ_2LFilter_POWHEG"
-  strSampleGroup="${strSampleGroup} WminusH_ZZTo2L2Nu_POWHEG"
-  strSampleGroup="${strSampleGroup} WminusH_ZZTo2L2Q_POWHEG"
-  strSampleGroup="${strSampleGroup} WminusH_HToWW_2LOSFilter_POWHEG"
-  strSampleGroup="${strSampleGroup} WplusH_ZZTo2L2Nu_POWHEG"
-  strSampleGroup="${strSampleGroup} WplusH_ZZTo2L2Q_POWHEG"
-  strSampleGroup="${strSampleGroup} WplusH_HToWW_2LOSFilter_POWHEG"
-elif [[ "$period" == "2017"* ]]; then
-  strSampleGroup="${strSampleGroup} GGH_ZZTo2L2Nu_POWHEG"
-  strSampleGroup="${strSampleGroup} GGH_WWTo2L2Nu_POWHEG"
-  strSampleGroup="${strSampleGroup} VBF_ZZTo2L2Nu_POWHEG"
-  strSampleGroup="${strSampleGroup} VBF_WWTo2L2Nu_POWHEG"
-  strSampleGroup="${strSampleGroup} ZH_HTo2Nu2X_2LFilter_POWHEG"
-  strSampleGroup="${strSampleGroup} ZH_HTo2L2Q_2LFilter_POWHEG"
-  strSampleGroup="${strSampleGroup} ZH_HTo4Q_2LFilter_POWHEG"
-  strSampleGroup="${strSampleGroup} ZH_WWTo2L2Nu_POWHEG"
-  strSampleGroup="${strSampleGroup} ZH_HToLNuQQ_2LFilter_POWHEG"
-  strSampleGroup="${strSampleGroup} WminusH_ZZTo2L2Nu_POWHEG"
-  strSampleGroup="${strSampleGroup} WminusH_ZZTo2L2Q_POWHEG"
-  strSampleGroup="${strSampleGroup} WminusH_HToWW_2LOSFilter_POWHEG"
-  strSampleGroup="${strSampleGroup} WplusH_ZZTo2L2Nu_POWHEG"
-  strSampleGroup="${strSampleGroup} WplusH_ZZTo2L2Q_POWHEG"
-  strSampleGroup="${strSampleGroup} WplusH_HToWW_2LOSFilter_POWHEG"
-elif [[ "$period" == "2016"* ]]; then
-  strSampleGroup="${strSampleGroup} GGH_ZZTo2L2Nu_POWHEG"
-  strSampleGroup="${strSampleGroup} GGH_WWTo2L2Nu_POWHEG"
-  strSampleGroup="${strSampleGroup} VBF_ZZTo2L2Nu_POWHEG"
-  strSampleGroup="${strSampleGroup} VBF_WWTo2L2Nu_POWHEG"
-  strSampleGroup="${strSampleGroup} ZH_HTo2Nu2X_2LFilter_POWHEG"
-  strSampleGroup="${strSampleGroup} ZH_HTo2L2Q_2LFilter_POWHEG"
-  strSampleGroup="${strSampleGroup} ZH_HTo4Q_2LFilter_POWHEG"
-  strSampleGroup="${strSampleGroup} ZH_WWTo2L2Nu_POWHEG"
-  strSampleGroup="${strSampleGroup} ZH_HToLNuQQ_2LFilter_POWHEG"
-  strSampleGroup="${strSampleGroup} WminusH_ZZTo2L2Nu_POWHEG"
-  strSampleGroup="${strSampleGroup} WminusH_ZZTo2L2Q_POWHEG"
-  strSampleGroup="${strSampleGroup} WminusH_HToWW_2LOSFilter_POWHEG"
-  strSampleGroup="${strSampleGroup} WplusH_ZZTo2L2Nu_POWHEG"
-  strSampleGroup="${strSampleGroup} WplusH_ZZTo2L2Q_POWHEG"
-  strSampleGroup="${strSampleGroup} WplusH_HToWW_2LOSFilter_POWHEG"
+if [[ "$channel" == "ZZTo2L2Nu" ]]; then
+  if [[ "$period" == "2018"* ]]; then
+    strSampleGroup="${strSampleGroup} GGH_ZZTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} GGH_WWTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} VBF_ZZTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} VBF_WWTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} ZH_HTo2Nu2X_2LFilter_POWHEG"
+    strSampleGroup="${strSampleGroup} ZH_HTo2L2Q_2LFilter_POWHEG"
+    strSampleGroup="${strSampleGroup} ZH_HTo4Q_2LFilter_POWHEG"
+    strSampleGroup="${strSampleGroup} ZH_WWTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} ZH_HToLNuQQ_2LFilter_POWHEG"
+    strSampleGroup="${strSampleGroup} WminusH_ZZTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} WminusH_ZZTo2L2Q_POWHEG"
+    strSampleGroup="${strSampleGroup} WminusH_HToWW_2LOSFilter_POWHEG"
+    strSampleGroup="${strSampleGroup} WplusH_ZZTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} WplusH_ZZTo2L2Q_POWHEG"
+    strSampleGroup="${strSampleGroup} WplusH_HToWW_2LOSFilter_POWHEG"
+  elif [[ "$period" == "2017"* ]]; then
+    strSampleGroup="${strSampleGroup} GGH_ZZTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} GGH_WWTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} VBF_ZZTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} VBF_WWTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} ZH_HTo2Nu2X_2LFilter_POWHEG"
+    strSampleGroup="${strSampleGroup} ZH_HTo2L2Q_2LFilter_POWHEG"
+    strSampleGroup="${strSampleGroup} ZH_HTo4Q_2LFilter_POWHEG"
+    strSampleGroup="${strSampleGroup} ZH_WWTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} ZH_HToLNuQQ_2LFilter_POWHEG"
+    strSampleGroup="${strSampleGroup} WminusH_ZZTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} WminusH_ZZTo2L2Q_POWHEG"
+    strSampleGroup="${strSampleGroup} WminusH_HToWW_2LOSFilter_POWHEG"
+    strSampleGroup="${strSampleGroup} WplusH_ZZTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} WplusH_ZZTo2L2Q_POWHEG"
+    strSampleGroup="${strSampleGroup} WplusH_HToWW_2LOSFilter_POWHEG"
+  elif [[ "$period" == "2016"* ]]; then
+    strSampleGroup="${strSampleGroup} GGH_ZZTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} GGH_WWTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} VBF_ZZTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} VBF_WWTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} ZH_HTo2Nu2X_2LFilter_POWHEG"
+    strSampleGroup="${strSampleGroup} ZH_HTo2L2Q_2LFilter_POWHEG"
+    strSampleGroup="${strSampleGroup} ZH_HTo4Q_2LFilter_POWHEG"
+    strSampleGroup="${strSampleGroup} ZH_WWTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} ZH_HToLNuQQ_2LFilter_POWHEG"
+    strSampleGroup="${strSampleGroup} WminusH_ZZTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} WminusH_ZZTo2L2Q_POWHEG"
+    strSampleGroup="${strSampleGroup} WminusH_HToWW_2LOSFilter_POWHEG"
+    strSampleGroup="${strSampleGroup} WplusH_ZZTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} WplusH_ZZTo2L2Q_POWHEG"
+    strSampleGroup="${strSampleGroup} WplusH_HToWW_2LOSFilter_POWHEG"
+  fi
+elif [[ "$channel" == "ZWTo3L1Nu" ]]; then
+  if [[ "$period" == "2018"* ]]; then
+    strSampleGroup="${strSampleGroup} ZH_WWTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} ZH_HToLNuQQ_2LFilter_POWHEG"
+    strSampleGroup="${strSampleGroup} WminusH_ZZTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} WminusH_ZZTo2L2Q_POWHEG"
+    strSampleGroup="${strSampleGroup} WminusH_HToWW_2LOSFilter_POWHEG"
+    strSampleGroup="${strSampleGroup} WplusH_ZZTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} WplusH_ZZTo2L2Q_POWHEG"
+    strSampleGroup="${strSampleGroup} WplusH_HToWW_2LOSFilter_POWHEG"
+  elif [[ "$period" == "2017"* ]]; then
+    strSampleGroup="${strSampleGroup} ZH_WWTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} ZH_HToLNuQQ_2LFilter_POWHEG"
+    strSampleGroup="${strSampleGroup} WminusH_ZZTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} WminusH_ZZTo2L2Q_POWHEG"
+    strSampleGroup="${strSampleGroup} WminusH_HToWW_2LOSFilter_POWHEG"
+    strSampleGroup="${strSampleGroup} WplusH_ZZTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} WplusH_ZZTo2L2Q_POWHEG"
+    strSampleGroup="${strSampleGroup} WplusH_HToWW_2LOSFilter_POWHEG"
+  elif [[ "$period" == "2016"* ]]; then
+    strSampleGroup="${strSampleGroup} ZH_WWTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} ZH_HToLNuQQ_2LFilter_POWHEG"
+    strSampleGroup="${strSampleGroup} WminusH_ZZTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} WminusH_ZZTo2L2Q_POWHEG"
+    strSampleGroup="${strSampleGroup} WminusH_HToWW_2LOSFilter_POWHEG"
+    strSampleGroup="${strSampleGroup} WplusH_ZZTo2L2Nu_POWHEG"
+    strSampleGroup="${strSampleGroup} WplusH_ZZTo2L2Q_POWHEG"
+    strSampleGroup="${strSampleGroup} WplusH_HToWW_2LOSFilter_POWHEG"
+  fi
 fi
 
 declare -a SimSamples=( $(echo $strSampleGroup) )
@@ -111,10 +148,15 @@ for sample in "${SimSamples[@]}"; do
       continue
     fi
 
-    REQMEM=7168M
-    JOBFLAV=tomorrow
-    if [[ "$sample" == "ZH_HToLNuQQ_2LFilter_POWHEG" ]] || [[ "$sample" == "WminusH_ZZTo2L2Q_POWHEG" ]] || [[ "$sample" == "WplusH_ZZTo2L2Q_POWHEG" ]]; then
-      REQMEM=2048M
+    if [[ "$channel" == ZZTo2L2Nu" ]]; then
+      REQMEM=7168M
+      JOBFLAV=tomorrow
+      if [[ "$sample" == "ZH_HToLNuQQ_2LFilter_POWHEG" ]] || [[ "$sample" == "WminusH_ZZTo2L2Q_POWHEG" ]] || [[ "$sample" == "WplusH_ZZTo2L2Q_POWHEG" ]]; then
+        REQMEM=2048M
+        JOBFLAV=workday
+      fi
+    elif [[ "$channel" == ZWTo3L1Nu" ]]; then
+      REQMEM=4096M
       JOBFLAV=workday
     fi
 

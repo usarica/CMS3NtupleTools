@@ -23,6 +23,7 @@ namespace PhysicsProcessHelpers{
     switch (dktype){
     case kZZ4l_offshell:
     case kZZ2l2nu_offshell:
+    case kZW3l1nu:
     {
       switch (proctype){
       case kProcess_GG:

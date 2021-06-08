@@ -12,21 +12,7 @@ using namespace SystematicsHelpers;
 using namespace PlottingHelpers;
 
 
-#define BRANCH_SCALAR_COMMANDS \
-  BRANCH_COMMAND(float, weight) \
-  BRANCH_COMMAND(cms3_id_t, dilepton_id) \
-  BRANCH_COMMAND(float, mTZZ) \
-  BRANCH_COMMAND(float, pTmiss) \
-  BRANCH_COMMAND(unsigned int, n_ak4jets_pt30) \
-  BRANCH_COMMAND(float, dijet_mass) \
-  BRANCH_COMMAND(unsigned int, n_ak8jets_pt200_mass60to130)
-#define BRANCH_VECTOR_COMMANDS
-#define BRANCH_COMMANDS \
-  BRANCH_SCALAR_COMMANDS \
-  BRANCH_VECTOR_COMMANDS
-
-
-bool isDataDriven(TString const& strSampleSet){ return (strSampleSet=="InstrMET" || strSampleSet.Contains("NRB")); }
+bool isDataDriven(TString const& strSampleSet){ return false; }
 bool isSignal(TString const& strSampleSet){ return (strSampleSet.Contains("ggZZ") || strSampleSet.Contains("ggWW") || strSampleSet.Contains("VVVV")); }
 
 using namespace PhysicsProcessHelpers;
@@ -99,7 +85,7 @@ template<> void getProjectedValues(TH3F const& hist, std::vector<double>& vals, 
   }
 }
 template<typename T> void checkProcessSystematicsFromDistributions(
-  cms3_id_t const& dilepton_id_ref,
+  cms3_absid_t const& lepW_id_ref,
   std::unordered_map<TString, std::unordered_map<TString, std::vector<T*>> > const& procname_syst_hist_map,
   std::vector<std::pair<TString, TString>>& vetoed_procname_systnamecore_pairs
 ){
@@ -116,32 +102,15 @@ template<typename T> void checkProcessSystematicsFromDistributions(
       HelperFunctions::replaceString<TString, TString const>(systnamecore, "Up", "");
 
       // Skip checking some of the systematics
-      if (
-        systnamecore.Contains("stat_shape_KD")
-        //||
-        //systnamecore.Contains("res_MET")
-        //||
-        //systnamecore.Contains("eff_trigger_singleelectron")
-        ) continue;
-      if (
-        procname.Contains("NRB")
-        &&
-        (
-          systnamecore.Contains("eff_syst_mu") || systnamecore.Contains("eff_syst_e")
-          ||
-          systnamecore.Contains("eff_stat_mu") || systnamecore.Contains("eff_stat_e")
-          )
-        ) continue;
-      if (dilepton_id_ref==-121 && (systnamecore.Contains("eff_syst_e") || systnamecore.Contains("eff_stat_e") || systnamecore.Contains("eff_altMC_e"))) continue;
-      if (dilepton_id_ref==-169 && (systnamecore.Contains("eff_syst_mu") || systnamecore.Contains("eff_stat_mu") || systnamecore.Contains("eff_altMC_mu"))) continue;
+      if (lepW_id_ref==11 && (systnamecore.Contains("eff_syst_e") || systnamecore.Contains("eff_stat_e") || systnamecore.Contains("eff_altMC_e"))) continue;
+      if (lepW_id_ref==13 && (systnamecore.Contains("eff_syst_m") || systnamecore.Contains("eff_stat_m") || systnamecore.Contains("eff_altMC_m"))) continue;
 
       double thr = 0.01;
-      if (systnamecore.Contains("eff_trigger_singleelectron")) thr = 0.005;
-      else if (
-        (dilepton_id_ref==-121 && (systnamecore.Contains("eff_syst_mu") || systnamecore.Contains("eff_stat_mu") || systnamecore.Contains("eff_altMC_mu")))
+      if (
+        (lepW_id_ref==11 && (systnamecore.Contains("eff_syst_m") || systnamecore.Contains("eff_stat_m") || systnamecore.Contains("eff_altMC_m")))
         ||
-        (dilepton_id_ref==-169 && (systnamecore.Contains("eff_syst_e") || systnamecore.Contains("eff_stat_e") || systnamecore.Contains("eff_altMC_e")))
-        ) thr = 0.003;
+        (lepW_id_ref==13 && (systnamecore.Contains("eff_syst_e") || systnamecore.Contains("eff_stat_e") || systnamecore.Contains("eff_altMC_e")))
+        ) thr = 0.001;
 
       systnamecore_thr_pairs.emplace_back(systnamecore, thr);
     }
@@ -212,44 +181,26 @@ TH1F* getHistogramProjection(TH3F const& hist, int iaxis, TString newname){
   return res;
 }
 
-TString getProcessLaTeXLabel_ZZ2L2Nu(TString const& procname){
-  if (procname=="ggZZ_offshell") return "$\\glufu$ resonant";
-  else if (procname=="VVVV_offshell") return "EW resonant ($\\offshell$)";
+TString getProcessLaTeXLabel_ZW3L1Nu(TString const& procname){
+  if (procname=="VVVV_offshell") return "EW resonant ($\\offshell$)";
   else if (procname=="VVVV_onshell") return "EW resonant ($\\onshell$)";
-  else if (procname=="InstrMET") return "Instr. \\ptmiss";
-  else if (procname=="NRB_2l2nu") return "Nonresonant";
-  else if (procname=="qqZZ_offshell") return "$\\qqbar \\to 2\\ell2\\X$";
-  else if (procname=="qqWZ_offshell") return "$\\qqbar \\to \\W\\Z$";
+  else if (procname=="DY_2l") return "Drell-Yan";
+  else if (procname=="ttbar_2l2nu") return "$\\ttbar$";
+  else if (procname=="qqZG") return "$\\qqbar \\to 2\\ell+\\gamma$";
+  else if (procname=="qqZZ") return "$\\qqbar \\to 2\\ell2\\X$";
+  else if (procname=="qqWZ") return "$\\qqbar \\to \\W\\Z$";
   else if (procname=="tZX") return "$\\PQt \\Z + \\X$";
+  else if (procname=="tWX") return "$\\PQt \\W + \\X$";
   else{
-    MELAerr << "getProcessLaTeXLabel_ZZ2L2Nu: Process " << procname << " is undefined." << endl;
+    MELAerr << "getProcessLaTeXLabel_ZW3L1Nu: Process " << procname << " is undefined." << endl;
     exit(1);
   }
   return "";
 }
 
-TString getTemplateLabel_ZZ2L2Nu(TString const& procname, ACHypothesisHelpers::ACHypothesis hypo, int itpl){
+TString getTemplateLabel_ZW3L1Nu(TString const& procname, ACHypothesisHelpers::ACHypothesis hypo, int itpl){
   TString const acname = ACHypothesisHelpers::getACHypothesisLabel(hypo);
-  if (procname=="ggZZ_offshell"){
-    GGProcessHandler::TemplateType type = GGProcessHandler::castIntToTemplateType(itpl, false);
-    switch (type){
-    case GGProcessHandler::GGTplBkg:
-      return "gg #rightarrow 2l2#nu bkg.";
-    case GGProcessHandler::GGTplSig:
-      return "gg #rightarrow 2l2#nu SM sig.";
-    case GGProcessHandler::GGTplInt_Re:
-      return "gg #rightarrow 2l2#nu SM int.";
-    case GGProcessHandler::GGTplSigBSM:
-      return Form("gg #rightarrow 2l2#nu sig. (#propto |%s|^{2})", acname.Data());
-    case GGProcessHandler::GGTplSigBSMSMInt_Re:
-      return Form("gg #rightarrow 2l2#nu SM-BSM int. (#propto %s)", acname.Data());
-    case GGProcessHandler::GGTplIntBSM_Re:
-      return Form("gg #rightarrow 2l2#nu sig.-bkg. int. (#propto %s)", acname.Data());
-    default:
-      return "";
-    };
-  }
-  else if (procname=="VVVV_offshell"){
+  if (procname=="VVVV_offshell"){
     VVProcessHandler::TemplateType type = VVProcessHandler::castIntToTemplateType(itpl, false);
     switch (type){
     case VVProcessHandler::VVTplBkg:
@@ -299,70 +250,33 @@ TString getTemplateLabel_ZZ2L2Nu(TString const& procname, ACHypothesisHelpers::A
       return "";
     };
   }
-  else if (procname=="InstrMET") return "Instr. p_{T}^{miss}";
-  else if (procname=="NRB_2l2nu") return "Nonresonant bkg.";
-  else if (procname=="qqZZ_offshell") return "q#bar{q} #rightarrow 2l2X (X=#nu, l, q)";
-  else if (procname=="qqWZ_offshell") return "q#bar{q} #rightarrow WZ";
+  else if (procname=="DY_2l") return "Drell-Yan";
+  else if (procname=="ttbar_2l2nu") return "t#bar{t}";
+  else if (procname=="qqZG") return "q#bar{q} #rightarrow Z#gamma";
+  else if (procname=="qqZZ") return "q#bar{q} #rightarrow ZZ";
+  else if (procname=="qqWZ") return "q#bar{q} #rightarrow WZ";
   else if (procname=="tZX") return "tZ+X";
+  else if (procname=="tWX") return "tW+X";
   else{
-    MELAerr << "getProcessLaTeXLabel_ZZ2L2Nu: Process " << procname << " is undefined." << endl;
+    MELAerr << "getTemplateLabel_ZW3L1Nu: Process " << procname << " is undefined." << endl;
     exit(1);
   }
   return "";
 }
 
-bool isSystForcedNormOnly(TString const& strCategory, TString const& procname, TString const& systname, bool isMultiProcess, bool applyAdditionalInstrSystMETVeto){
-  if (procname == "InstrMET"){
-    return (
-      isMultiProcess
-      ||
-      (
-        applyAdditionalInstrSystMETVeto && (
-          systname.Contains("pdf_variation_tGX")
-          ||
-          systname.Contains("pdf_asmz_tGX")
-          ||
-          systname.Contains("CMS_llGnorm_ZG")
-          ||
-          systname.Contains("CMS_stat_norm_InstrMET_Data")
-          )
-        )
-      );
-  }
-  else if (systname.Contains("CMS_stat_norm")) return true;
-  else if (
-    !(procname.Contains("ggZZ") || procname.Contains("VVVV"))
-    && (
-      systname.Contains("CMS_eff_trigger_mumu") || systname.Contains("CMS_eff_trigger_ee") || systname.Contains("CMS_eff_trigger_mue")
-      ||
-      systname.Contains("CMS_eff_pho")
-      ||
-      systname == "CMS_scale_pythia"
-      )
-    ) return true;
-  else if (procname == "tZX" && (!systname.Contains("tZX") || isMultiProcess || systname.Contains("QCDscale") || systname.Contains("pdf"))) return true;
+bool isSystForcedNormOnly(TString const& strCategory, TString const& procname, TString const& systname, bool isMultiProcess){
+  if (systname.Contains("CMS_stat_shape")) return false;
+  else if (systname.Contains("CMS_stat_norm") || systname.Contains("L1prefiring") || systname.Contains("llGnorm_ZG")) return true;
+  else if ((procname == "tZX" || procname == "tWX") && ((!systname.Contains("tZX") && !systname.Contains("tWX")) || isMultiProcess || systname.Contains("QCDscale") || systname.Contains("pdf"))) return true;
+  else if (procname == "qqZG") return true;
+  else if (procname == "ttbar_2l2nu" && !systname.Contains("pdf_variation")) return true;
+  else if ((procname == "qqZZ" || procname == "qqWZ") && systname == "CMS_scale_pythia") return true;
   return false;
 }
 bool doInterpretProcessShapeSystAsNormOnly(
   TString const& strCategory, TString const& procname, TString const& systname
 ){
-  if (procname == "VVVV_onshell"){
-    // All non-stat. shape systematics in VVVV_onshell in the Nj>=2 categories need to be norm.-only
-    // Because statistics is already terrible.
-    if ((strCategory.Contains("Nj_geq_2") || strCategory.Contains("BoostedHadVH") || strCategory.Contains("ResolvedHadVH")) && !systname.Contains("CMS_stat_shape")) return true;
-    // Do not auto-return because stat_shape would accidentally be a norm.-syst otherwise.
-  }
-  if (
-    (procname.Contains("ggZZ") || procname.Contains("VVVV"))
-    &&
-    (
-      systname.Contains("CMS_eff_trigger_mumu") || systname.Contains("CMS_eff_trigger_ee") || systname.Contains("CMS_eff_trigger_mue")
-      ||
-      systname.Contains("CMS_eff_pho")
-      ||
-      systname == "CMS_scale_pythia"
-      )
-    ) return true;
+  if (procname.Contains("VVVV") && !systname.Contains("CMS_stat_shape")) return true;
   return false;
 }
 
@@ -483,16 +397,8 @@ template<> void getValidSystRange(TString const& systname, TH3F* h_nom, TH3F* h_
 }
 
 bool applyExceptionalSystVeto(TString const& strCategory, TString const& procname, TString const& systname){
-  if (procname == "VVVV_onshell"){
-    // Nj>=2 in VVVV_onshell should not have the crazy shape variations.
-    // Normalization systemaic is already pretty large on it.
-    if ((strCategory.Contains("Nj_geq_2") || strCategory.Contains("BoostedHadVH") || strCategory.Contains("ResolvedHadVH")) && systname.Contains("CMS_stat_shape")) return true;
-  }
-  if (systname.Contains("CMS_stat_shape_tZX")) return true;
-  //if (procname == "tZX" && (systname.Contains("QCDscale") || systname.Contains("pdf"))) return true;
-  if (procname == "qqWZ_offshell" && (systname.Contains("CMS_eff_trigger_ee") || systname.Contains("CMS_eff_trigger_mumu"))) return true;
-  // Something went wrong with the down variation, so remove this systematic for now.
-  if ((procname.Contains("ggZZ") || procname.Contains("VVVV")) && (systname.Contains("CMS_eff_trigger_mumu") || systname.Contains("CMS_eff_trigger_ee"))) return true;
+  if (procname == "DY_2l" && !systname.Contains("CMS_stat")) return true;
+  if (procname == "tWX" && systname.Contains("CMS_stat_shape")) return true;
   return false;
 }
 
@@ -501,8 +407,7 @@ template<typename T> void addToLogNormalSystsAndVetoShape(
   std::unordered_map<TString, std::vector<TString>> const& syst_procname_map,
   std::unordered_map<TString, std::unordered_map<TString, std::vector<T*>> > const& procname_syst_hist_map,
   std::unordered_map<TString, std::unordered_map<TString, std::pair<double, double>>>& lognormalsyst_procname_valpair_map,
-  std::vector<std::pair<TString, TString>>& vetoed_procname_systnamecore_pairs,
-  bool applyAdditionalInstrSystMETVeto
+  std::vector<std::pair<TString, TString>>& vetoed_procname_systnamecore_pairs
 ){
   MELAout << "addToLogNormalSystsAndVetoShape: Analyzing systematics for log-normal components in category " << strCategory << "..." << endl;
   for (auto const& it_procname_syst_hist_map:procname_syst_hist_map){
@@ -543,7 +448,7 @@ template<typename T> void addToLogNormalSystsAndVetoShape(
           isAlreadyVetoed = true;
         }
       }
-      if (isAlreadyVetoed || !isSystForcedNormOnly(strCategory, procname, systnamecore, isMultiProcess, applyAdditionalInstrSystMETVeto)) continue;
+      if (isAlreadyVetoed || !isSystForcedNormOnly(strCategory, procname, systnamecore, isMultiProcess)) continue;
       vetoed_procname_systnamecore_pairs.emplace_back(procname, systnamecore);
 
       double integral_dn = 0;
@@ -582,49 +487,32 @@ template<typename T> void addToLogNormalSystsAndVetoShape(
 }
 
 
-void getDCSpecs_ZZ2L2Nu(
+void getDCSpecs_ZWTo3L1Nu(
   TString period, TString templateVersion, TString strdate,
   ACHypothesisHelpers::ACHypothesis AChypo,
-  cms3_id_t dilepton_id_ref,
-  bool includeBoostedHadVHCategory, bool includeResolvedHadVHCategory,
-  bool applyAdditionalInstrSystMETVeto
+  cms3_absid_t lepW_id_ref,
+  bool includeBoostedHadVHCategory, bool includeResolvedHadVHCategory
 ){
   using namespace PhysicsProcessHelpers;
 
   TDirectory* curdir = gDirectory;
 
-  SampleHelpers::configure(period, Form("%s:ZZTo2L2Nu/%s", "store_finaltrees", templateVersion.Data()));
+  SampleHelpers::configure(period, Form("%s:ZWTo3L1Nu/%s", "store_finaltrees", templateVersion.Data()));
 
-  std::vector<TString> const strSampleSets{ "ggZZ_offshell", "VVVV_offshell", "VVVV_onshell", "InstrMET", "NRB_2l2nu", "qqZZ_offshell", "qqWZ_offshell", "tZX" };
-  std::vector<TString> strCatNames{ "Nj_eq_0", "Nj_eq_1", "Nj_geq_2_pTmiss_lt_200", "Nj_geq_2_pTmiss_ge_200" };
-  std::vector<TString> strCatLabels{ "N_{j}=0", "N_{j}=1", "N_{j} #geq 2, p_{T}^{miss}<200 GeV", "N_{j} #geq 2, p_{T}^{miss} #geq 200 GeV" };
+  std::vector<TString> const strSampleSets{ "VVVV_offshell", "VVVV_onshell", "DY_2l", "qqZG", "ttbar_2l2nu", "tZX", "tWX", "qqZZ", "qqWZ" };
+  std::vector<TString> strCatNames{ "Nj_eq_0", "Nj_eq_1", "Nj_geq_2" };
+  std::vector<TString> strCatLabels{ "N_{j}=0", "N_{j}=1", "N_{j} #geq 2" };
   if (includeBoostedHadVHCategory){ strCatNames.push_back("BoostedHadVH"); strCatLabels.push_back("V #rightarrow J"); }
   if (includeResolvedHadVHCategory){ strCatNames.push_back("ResolvedHadVH"); strCatLabels.push_back("V #rightarrow jj"); }
   unsigned int const nCats = strCatNames.size();
-  TString const strChannel = (dilepton_id_ref==-121 ? "2e2nu" : "2mu2nu");
-  TString const strChannelLabel = (dilepton_id_ref==-121 ? "2e2#nu" : "2#mu2#nu");
+  TString const strChannel = (lepW_id_ref==11 ? "2l1e" : "2l1mu");
+  TString const strChannelLabel = (lepW_id_ref==11 ? "2l1e" : "2l1#mu");
   TString const strSystPerYear = Form("%sTeV_%s", SampleHelpers::getSqrtsString().Data(), SampleHelpers::getDataPeriod().Data());
   double const lumi = SampleHelpers::getIntegratedLuminosity(SampleHelpers::getDataPeriod());
   TString const strLumi = HelperFunctions::castValueToString(lumi, 10, 10).data();
   MELAout << "Lumi: " << lumi << " (string: " << strLumi << ")" << endl;
   std::unordered_map<TString, PhysicsProcessHandler*> process_handler_map;
   for (auto const& strSampleSet:strSampleSets) process_handler_map[strSampleSet] = getPhysicsProcessHandler(strSampleSet, ACHypothesisHelpers::kZZ2l2nu_offshell);
-
-  // Build discriminants
-  std::vector<TString> KDnames, KDlabels;
-  {
-    std::vector<DiscriminantClasses::Type> KDtypes;
-    for (auto const& KDtype:ACHypothesisHelpers::getACHypothesisKDSet(AChypo, ACHypothesisHelpers::kVBF, ACHypothesisHelpers::kZZ2l2nu_offshell)){
-      if (!HelperFunctions::checkListVariable(KDtypes, KDtype)) KDtypes.push_back(KDtype);
-    }
-    // Construct empty KD specs with names acquired
-    std::vector<DiscriminantClasses::KDspecs> KDlist; KDlist.reserve(KDtypes.size());
-    for (auto const& KDtype:KDtypes) KDlist.emplace_back(KDtype);
-    for (auto const& KD:KDlist){
-      KDnames.push_back(KD.KDname);
-      KDlabels.push_back(KD.KDlabel);
-    }
-  }
 
   TString cinput_main = "output/Templates/" + templateVersion + "/CatScheme_Nj" + (includeBoostedHadVHCategory ? (includeResolvedHadVHCategory ? "_BoostedHadVH_ResolvedHadVH" : "_BoostedHadVH") : (includeResolvedHadVHCategory ? "_ResolvedHadVH" : "")) + "/" + ACHypothesisHelpers::getACHypothesisName(AChypo) + "/" + period;
   if (!SampleHelpers::checkFileOnWorker(cinput_main)){
@@ -638,9 +526,9 @@ void getDCSpecs_ZZ2L2Nu(
     exit(1);
   }
 
-  TString const coutput_main = "output/DatacardSpecs/" + strdate + "/Offshell_inputs_" + strSystPerYear + "/CatScheme_Nj" + (includeBoostedHadVHCategory ? (includeResolvedHadVHCategory ? "_BoostedHadVH_ResolvedHadVH" : "_BoostedHadVH") : (includeResolvedHadVHCategory ? "_ResolvedHadVH" : "")) + "/" + ACHypothesisHelpers::getACHypothesisName(AChypo);
+  TString const coutput_main = "output/DatacardSpecs/ZWTo3L1Nu/" + strdate + "/Offshell_inputs_" + strSystPerYear + "/CatScheme_Nj" + (includeBoostedHadVHCategory ? (includeResolvedHadVHCategory ? "_BoostedHadVH_ResolvedHadVH" : "_BoostedHadVH") : (includeResolvedHadVHCategory ? "_ResolvedHadVH" : "")) + "/" + ACHypothesisHelpers::getACHypothesisName(AChypo);
   gSystem->mkdir(coutput_main, true);
-  TString const coutput_plots = "output/DatacardSpecs/" + strdate + "/SystProjections/" + SampleHelpers::getDataPeriod() + "/CatScheme_Nj" + (includeBoostedHadVHCategory ? (includeResolvedHadVHCategory ? "_BoostedHadVH_ResolvedHadVH" : "_BoostedHadVH") : (includeResolvedHadVHCategory ? "_ResolvedHadVH" : "")) + "/" + ACHypothesisHelpers::getACHypothesisName(AChypo);
+  TString const coutput_plots = "output/DatacardSpecs/ZWTo3L1Nu/" + strdate + "/SystProjections/" + SampleHelpers::getDataPeriod() + "/CatScheme_Nj" + (includeBoostedHadVHCategory ? (includeResolvedHadVHCategory ? "_BoostedHadVH_ResolvedHadVH" : "_BoostedHadVH") : (includeResolvedHadVHCategory ? "_ResolvedHadVH" : "")) + "/" + ACHypothesisHelpers::getACHypothesisName(AChypo);
   gSystem->mkdir(coutput_plots, true);
   SampleHelpers::addToCondorCompressedTransferList(coutput_plots);
 
@@ -671,14 +559,14 @@ void getDCSpecs_ZZ2L2Nu(
           HelperFunctions::replaceString<TString, TString const>(systname, ".root", "");
           //MELAout << "\t\t- Interpreted systematic " << systname << " from file name " << fname << endl;
           
-          // Remove a few systematics in tZX because they are more consistent with statistical fluctuations.
+          // Remove a few systematics in tVX because they are more consistent with statistical fluctuations.
           if (
-            procname=="tZX"
+            (procname=="tZX" || procname=="tWX")
             &&
             (
               systname.Contains("CMS_scale_pythia")
               ||
-              systname.Contains("pdf_variation_tZX")
+              systname.Contains("pdf_variation")
               )
             ) continue;
 
@@ -699,7 +587,7 @@ void getDCSpecs_ZZ2L2Nu(
             for (auto it=h1Ds.begin(); it!=h1Ds.end(); it++){
               TString hname_lower; HelperFunctions::lowercase<TString>((*it)->GetName(), hname_lower);
               if (hname_lower.Contains("raw") || hname_lower.Contains("belowfloor")){
-                if (hname_lower.Contains("belowfloor") && procname=="InstrMET" && systname=="Nominal"){
+                if (hname_lower.Contains("belowfloor") && !isDataDriven(procname) && systname=="Nominal"){
                   TString tplname_nominal_lower = hname_lower; HelperFunctions::replaceString<TString, TString const>(tplname_nominal_lower, "_belowfloor", "");
                   TH1F* hnominal = nullptr;
                   for (auto const& hh:h1Ds){
@@ -711,9 +599,11 @@ void getDCSpecs_ZZ2L2Nu(
                     double integral_nominal = HelperFunctions::getHistogramIntegralAndError(hnominal, 1, hnominal->GetNbinsX(), true);
                     double integral_belowfloor = HelperFunctions::getHistogramIntegralAndError((*it), 1, (*it)->GetNbinsX(), true);
                     kdn = 1. - integral_belowfloor/integral_nominal;
-                    TString lnsystname = Form("CMS_stat_MCSubtraction_InstrMET_%s_%s", strCategory.Data(), SampleHelpers::getDataPeriod().Data());
-                    if (lognormalsyst_procname_valpair_map.find(lnsystname)==lognormalsyst_procname_valpair_map.end()) lognormalsyst_procname_valpair_map[lnsystname] = std::unordered_map<TString, std::pair<double, double>>();
-                    lognormalsyst_procname_valpair_map[lnsystname][procname] = std::pair<double, double>(kdn, kup);
+                    if (kdn!=1.){
+                      TString lnsystname = Form("CMS_stat_MCNegWgts_%s_%s_%s", procname.Data(), strCategory.Data(), SampleHelpers::getDataPeriod().Data());
+                      if (lognormalsyst_procname_valpair_map.find(lnsystname)==lognormalsyst_procname_valpair_map.end()) lognormalsyst_procname_valpair_map[lnsystname] = std::unordered_map<TString, std::pair<double, double>>();
+                      lognormalsyst_procname_valpair_map[lnsystname][procname] = std::pair<double, double>(kdn, kup);
+                    }
                   }
                   else MELAerr << "Searched for the nominal histogram in floor systematics assignment but could not find it." << endl;
                 }
@@ -727,7 +617,7 @@ void getDCSpecs_ZZ2L2Nu(
             for (auto it=h2Ds.begin(); it!=h2Ds.end(); it++){
               TString hname_lower; HelperFunctions::lowercase<TString>((*it)->GetName(), hname_lower);
               if (hname_lower.Contains("raw") || hname_lower.Contains("belowfloor")){
-                if (hname_lower.Contains("belowfloor") && procname=="InstrMET" && systname=="Nominal"){
+                if (hname_lower.Contains("belowfloor") && !isDataDriven(procname) && systname=="Nominal"){
                   TString tplname_nominal_lower = hname_lower; HelperFunctions::replaceString<TString, TString const>(tplname_nominal_lower, "_belowfloor", "");
                   TH2F* hnominal = nullptr;
                   for (auto const& hh:h2Ds){
@@ -739,9 +629,11 @@ void getDCSpecs_ZZ2L2Nu(
                     double integral_nominal = HelperFunctions::getHistogramIntegralAndError(hnominal, 1, hnominal->GetNbinsX(), 1, hnominal->GetNbinsY(), true);
                     double integral_belowfloor = HelperFunctions::getHistogramIntegralAndError((*it), 1, (*it)->GetNbinsX(), 1, (*it)->GetNbinsY(), true);
                     kdn = 1. - integral_belowfloor/integral_nominal;
-                    TString lnsystname = Form("CMS_stat_MCSubtraction_InstrMET_%s_%s", strCategory.Data(), SampleHelpers::getDataPeriod().Data());
-                    if (lognormalsyst_procname_valpair_map.find(lnsystname)==lognormalsyst_procname_valpair_map.end()) lognormalsyst_procname_valpair_map[lnsystname] = std::unordered_map<TString, std::pair<double, double>>();
-                    lognormalsyst_procname_valpair_map[lnsystname][procname] = std::pair<double, double>(kdn, kup);
+                    if (kdn!=1.){
+                      TString lnsystname = Form("CMS_stat_MCNegWgts_%s_%s_%s", procname.Data(), strCategory.Data(), SampleHelpers::getDataPeriod().Data());
+                      if (lognormalsyst_procname_valpair_map.find(lnsystname)==lognormalsyst_procname_valpair_map.end()) lognormalsyst_procname_valpair_map[lnsystname] = std::unordered_map<TString, std::pair<double, double>>();
+                      lognormalsyst_procname_valpair_map[lnsystname][procname] = std::pair<double, double>(kdn, kup);
+                    }
                   }
                   else MELAerr << "Searched for the nominal histogram in floor systematics assignment but could not find it." << endl;
                 }
@@ -755,7 +647,7 @@ void getDCSpecs_ZZ2L2Nu(
             for (auto it=h3Ds.begin(); it!=h3Ds.end(); it++){
               TString hname_lower; HelperFunctions::lowercase<TString>((*it)->GetName(), hname_lower);
               if (hname_lower.Contains("raw") || hname_lower.Contains("belowfloor")){
-                if (hname_lower.Contains("belowfloor") && procname=="InstrMET" && systname=="Nominal"){
+                if (hname_lower.Contains("belowfloor") && !isDataDriven(procname) && systname=="Nominal"){
                   TString tplname_nominal_lower = hname_lower; HelperFunctions::replaceString<TString, TString const>(tplname_nominal_lower, "_belowfloor", "");
                   TH3F* hnominal = nullptr;
                   for (auto const& hh:h3Ds){
@@ -767,9 +659,11 @@ void getDCSpecs_ZZ2L2Nu(
                     double integral_nominal = HelperFunctions::getHistogramIntegralAndError(hnominal, 1, hnominal->GetNbinsX(), 1, hnominal->GetNbinsY(), 1, hnominal->GetNbinsZ(), true);
                     double integral_belowfloor = HelperFunctions::getHistogramIntegralAndError((*it), 1, (*it)->GetNbinsX(), 1, (*it)->GetNbinsY(), 1, (*it)->GetNbinsZ(), true);
                     kdn = 1. - integral_belowfloor/integral_nominal;
-                    TString lnsystname = Form("CMS_stat_MCSubtraction_InstrMET_%s_%s", strCategory.Data(), SampleHelpers::getDataPeriod().Data());
-                    if (lognormalsyst_procname_valpair_map.find(lnsystname)==lognormalsyst_procname_valpair_map.end()) lognormalsyst_procname_valpair_map[lnsystname] = std::unordered_map<TString, std::pair<double, double>>();
-                    lognormalsyst_procname_valpair_map[lnsystname][procname] = std::pair<double, double>(kdn, kup);
+                    if (kdn!=1.){
+                      TString lnsystname = Form("CMS_stat_MCNegWgts_%s_%s_%s", procname.Data(), strCategory.Data(), SampleHelpers::getDataPeriod().Data());
+                      if (lognormalsyst_procname_valpair_map.find(lnsystname)==lognormalsyst_procname_valpair_map.end()) lognormalsyst_procname_valpair_map[lnsystname] = std::unordered_map<TString, std::pair<double, double>>();
+                      lognormalsyst_procname_valpair_map[lnsystname][procname] = std::pair<double, double>(kdn, kup);
+                    }
                   }
                   else MELAerr << "Searched for the nominal histogram in floor systematics assignment but could not find it." << endl;
                 }
@@ -856,6 +750,62 @@ void getDCSpecs_ZZ2L2Nu(
     }
     // Append untraversed processes as omitted
     for (auto const& procname:procnames){ if (!HelperFunctions::checkListVariable(traversed_processes, procname)) omitted_processes.push_back(procname); }
+    // Omit the process if norm. unc. is too large.
+    for (auto const& procname:traversed_processes){
+      if (!isSignal(procname) && !isDataDriven(procname)){
+        double integral_nominal = -999;
+        double integral_normDn = -999;
+        double integral_normUp = -999;
+        switch (ndims){
+        case 1:
+          if (procname_syst_h1D_map.find(procname)!=procname_syst_h1D_map.cend()){
+            for (auto const& syst_hist_pair:procname_syst_h1D_map[procname]){
+              TString const& systname = syst_hist_pair.first;
+              auto const& hlist = syst_hist_pair.second;
+              if (hlist.empty()) continue;
+              auto const& htmp = hlist.front();
+              if (systname=="Nominal") integral_nominal = HelperFunctions::getHistogramIntegralAndError(htmp, 1, htmp->GetNbinsX(), true);
+              else if (systname.Contains("CMS_stat_norm") && systname.Contains("Down")) integral_normDn = HelperFunctions::getHistogramIntegralAndError(htmp, 1, htmp->GetNbinsX(), true);
+              else if (systname.Contains("CMS_stat_norm") && systname.Contains("Up")) integral_normUp = HelperFunctions::getHistogramIntegralAndError(htmp, 1, htmp->GetNbinsX(), true);
+            }
+          }
+          break;
+        case 2:
+          if (procname_syst_h2D_map.find(procname)!=procname_syst_h2D_map.cend()){
+            for (auto const& syst_hist_pair:procname_syst_h2D_map[procname]){
+              TString const& systname = syst_hist_pair.first;
+              auto const& hlist = syst_hist_pair.second;
+              if (hlist.empty()) continue;
+              auto const& htmp = hlist.front();
+              if (systname=="Nominal") integral_nominal = HelperFunctions::getHistogramIntegralAndError(htmp, 1, htmp->GetNbinsX(), 1, htmp->GetNbinsY(), true);
+              else if (systname.Contains("CMS_stat_norm") && systname.Contains("Down")) integral_normDn = HelperFunctions::getHistogramIntegralAndError(htmp, 1, htmp->GetNbinsX(), 1, htmp->GetNbinsY(), true);
+              else if (systname.Contains("CMS_stat_norm") && systname.Contains("Up")) integral_normUp = HelperFunctions::getHistogramIntegralAndError(htmp, 1, htmp->GetNbinsX(), 1, htmp->GetNbinsY(), true);
+            }
+          }
+          break;
+        case 3:
+          if (procname_syst_h3D_map.find(procname)!=procname_syst_h3D_map.cend()){
+            for (auto const& syst_hist_pair:procname_syst_h3D_map[procname]){
+              TString const& systname = syst_hist_pair.first;
+              auto const& hlist = syst_hist_pair.second;
+              if (hlist.empty()) continue;
+              auto const& htmp = hlist.front();
+              if (systname=="Nominal") integral_nominal = HelperFunctions::getHistogramIntegralAndError(htmp, 1, htmp->GetNbinsX(), 1, htmp->GetNbinsY(), 1, htmp->GetNbinsZ(), true);
+              else if (systname.Contains("CMS_stat_norm") && systname.Contains("Down")) integral_normDn = HelperFunctions::getHistogramIntegralAndError(htmp, 1, htmp->GetNbinsX(), 1, htmp->GetNbinsY(), 1, htmp->GetNbinsZ(), true);
+              else if (systname.Contains("CMS_stat_norm") && systname.Contains("Up")) integral_normUp = HelperFunctions::getHistogramIntegralAndError(htmp, 1, htmp->GetNbinsX(), 1, htmp->GetNbinsY(), 1, htmp->GetNbinsZ(), true);
+            }
+          }
+          break;
+        default:
+          break;
+        }
+        if (integral_nominal>-999. && integral_normDn>-999. && integral_normUp>-999.){
+          if (integral_nominal<=0. || std::abs(integral_normDn/integral_nominal)<=0.1 || std::abs(integral_normUp/integral_nominal)>=3.){
+            if (!HelperFunctions::checkListVariable(omitted_processes, procname)) omitted_processes.push_back(procname);
+          }
+        }
+      }
+    }
     // Clean collections for omitted processes
     for (auto const& procname:omitted_processes){
       auto it_procnames = std::find(procnames.begin(), procnames.end(), procname);
@@ -875,16 +825,24 @@ void getDCSpecs_ZZ2L2Nu(
         if (!it_syst_procname_map->second.empty()) syst_procname_map_new[it_syst_procname_map->first] = it_syst_procname_map->second;
       }
       syst_procname_map = syst_procname_map_new;
+
+      std::unordered_map<TString, std::unordered_map<TString, std::pair<double, double>>> lognormalsyst_procname_valpair_map_new;
+      for (auto it_lognormalsyst_procname_valpair_map=lognormalsyst_procname_valpair_map.begin(); it_lognormalsyst_procname_valpair_map!=lognormalsyst_procname_valpair_map.end(); it_lognormalsyst_procname_valpair_map++){
+        auto it_procname_valpair_map = it_lognormalsyst_procname_valpair_map->second.find(procname);
+        if (it_procname_valpair_map!=it_lognormalsyst_procname_valpair_map->second.end()) it_lognormalsyst_procname_valpair_map->second.erase(it_procname_valpair_map);
+        if (!it_lognormalsyst_procname_valpair_map->second.empty()) lognormalsyst_procname_valpair_map_new[it_lognormalsyst_procname_valpair_map->first] = it_lognormalsyst_procname_valpair_map->second;
+      }
+      lognormalsyst_procname_valpair_map = lognormalsyst_procname_valpair_map_new;
     }
 
     {
       std::vector<std::pair<TString, TString>> vetoed_procname_systnamecore_pairs;
-      checkProcessSystematicsFromDistributions(dilepton_id_ref, procname_syst_h1D_map, vetoed_procname_systnamecore_pairs);
-      checkProcessSystematicsFromDistributions(dilepton_id_ref, procname_syst_h2D_map, vetoed_procname_systnamecore_pairs);
-      checkProcessSystematicsFromDistributions(dilepton_id_ref, procname_syst_h3D_map, vetoed_procname_systnamecore_pairs);
-      addToLogNormalSystsAndVetoShape(strCategory, syst_procname_map, procname_syst_h1D_map, lognormalsyst_procname_valpair_map, vetoed_procname_systnamecore_pairs, applyAdditionalInstrSystMETVeto);
-      addToLogNormalSystsAndVetoShape(strCategory, syst_procname_map, procname_syst_h2D_map, lognormalsyst_procname_valpair_map, vetoed_procname_systnamecore_pairs, applyAdditionalInstrSystMETVeto);
-      addToLogNormalSystsAndVetoShape(strCategory, syst_procname_map, procname_syst_h3D_map, lognormalsyst_procname_valpair_map, vetoed_procname_systnamecore_pairs, applyAdditionalInstrSystMETVeto);
+      checkProcessSystematicsFromDistributions(lepW_id_ref, procname_syst_h1D_map, vetoed_procname_systnamecore_pairs);
+      checkProcessSystematicsFromDistributions(lepW_id_ref, procname_syst_h2D_map, vetoed_procname_systnamecore_pairs);
+      checkProcessSystematicsFromDistributions(lepW_id_ref, procname_syst_h3D_map, vetoed_procname_systnamecore_pairs);
+      addToLogNormalSystsAndVetoShape(strCategory, syst_procname_map, procname_syst_h1D_map, lognormalsyst_procname_valpair_map, vetoed_procname_systnamecore_pairs);
+      addToLogNormalSystsAndVetoShape(strCategory, syst_procname_map, procname_syst_h2D_map, lognormalsyst_procname_valpair_map, vetoed_procname_systnamecore_pairs);
+      addToLogNormalSystsAndVetoShape(strCategory, syst_procname_map, procname_syst_h3D_map, lognormalsyst_procname_valpair_map, vetoed_procname_systnamecore_pairs);
       for (auto const& pp:vetoed_procname_systnamecore_pairs){
         TString const& procname = pp.first;
         TString const& systnamecore = pp.second;
@@ -942,7 +900,6 @@ void getDCSpecs_ZZ2L2Nu(
     for (auto const& procname:procnames){
       if (procname=="ggZZ_offshell" || procname=="VVVV_offshell") MELAout << "channel " << procname << " 1 -1 2 Options:includeslumi" << endl;
       else if (procname=="ggZZ_onshell" || procname=="VVVV_onshell") MELAout << "channel " << procname << " 1 -1 1 Options:forceonshell;includeslumi" << endl;
-      else if (procname=="NRB_2l2nu" || procname=="InstrMET") MELAout << "channel " << procname << " 1 -1 0 Options:datadriven" << endl;
       else MELAout << "channel " << procname << " 1 -1 0 Options:includeslumi" << endl;
     }
 
@@ -971,6 +928,14 @@ void getDCSpecs_ZZ2L2Nu(
       for (auto const& procname:procnames){
         if (isDataDriven(procname)) continue;
         else MELAout << " " << procname << ":" << 1.+SystematicsHelpers::getLumiUncertainty_Correlated_2015_2016();
+      }
+      MELAout << endl;
+    }
+    if (SampleHelpers::getDataYear()==2017 || SampleHelpers::getDataYear()==2018){
+      MELAout << "systematic lumiUnc_2017_2018 lnN";
+      for (auto const& procname:procnames){
+        if (isDataDriven(procname)) continue;
+        else MELAout << " " << procname << ":" << 1.+SystematicsHelpers::getLumiUncertainty_Correlated_2017_2018();
       }
       MELAout << endl;
     }
@@ -1019,15 +984,10 @@ void getDCSpecs_ZZ2L2Nu(
         option_args.push_back(stropt);
       }
       else{
-        if (systname.Contains("stat_norm")){
-          // Parametrix norm. uncs.
-          if (!systname.Contains("InstrMET")) option_args.push_back("normonly");
-        }
-        else if (systname.Contains("stat_shape")){
+        if (systname.Contains("stat_shape")){
           // Non-KD or KD shape uncs.
-          if (!systname.Contains("InstrMET")) option_args.push_back("shapeonly");
+          option_args.push_back("shapeonly");
         }
-        else if (systname.Contains("L1prefiring")) option_args.push_back("normonly");
       }
 
       double kappa_default = -1;
@@ -1037,32 +997,23 @@ void getDCSpecs_ZZ2L2Nu(
         ||
         systname == "QCDscale_ren_VG"
         ||
-        systname == "pdf_variation_tGX"
-        //||
-        //systname == "pdf_asmz_tGX"
-        ||
-        systname.Contains("CMS_eff_pho")
+        systname.Contains("CMS_eff_g")
         ) kappa_default = 1;
       else if (systname.Contains("stat_norm")){
-        if (!systname.Contains("InstrMET")) kappa_default = 4;
-        else kappa_default = 5;
+        kappa_default = 4;
       }
       else if (systname.Contains("stat_shape")){
-        if (systname.Contains("InstrMET") || systname.Contains("NRB")) kappa_default = 2;
+        if (systname.Contains("DY_2l") || systname.Contains("qqZG")) kappa_default = 2;
         else kappa_default = 3;
       }
-      else if (procnames.size()==1 && procnames.front().Contains("InstrMET") && !(systname.Contains("stat_shape") || systname.Contains("stat_norm"))){
+      else if (procnames.size()==1 && (procnames.front().Contains("DY_2l") || procnames.front().Contains("qqZG")) && !(systname.Contains("stat_shape") || systname.Contains("stat_norm"))){
         kappa_default = 3;
       }
 
       bool findNuisanceRescale = (
-        (systname.Contains("stat_norm") && systname.Contains("InstrMET"))
-        ||
         (systname.Contains("stat_shape") && !(systname.Contains("VVVV") || systname.Contains("ggZZ")))
-        ||
-        (procnames.size()==1 && procnames.front().Contains("InstrMET") && !(systname.Contains("stat_shape") || systname.Contains("stat_norm")))
         );
-      bool nuisanceRescaleIsNorm = (findNuisanceRescale && systname.Contains("stat_norm") && !systname.Contains("InstrMET"));
+      bool nuisanceRescaleIsNorm = false;
       if (findNuisanceRescale && kappa_default>0.){
         for (auto const& procname:procnames){
           if (procname.Contains("VVVV") || procname.Contains("ggZZ")) continue;
@@ -1134,7 +1085,7 @@ void getDCSpecs_ZZ2L2Nu(
       auto const& process_handler = process_handler_map.find(procname)->second;
       MELAout << "# Order of templates for " << procname << ": " << process_handler->getTemplateNames(AChypo, true) << endl;
     }
-    for (auto const& mTZZcut:std::vector<double>{ /*200., 350.*/ 300., 450. }){
+    for (auto const& mTWZcut:std::vector<double>{ 150., 400. }){
       std::unordered_map< TString, std::unordered_map<TString, std::vector<double>> > systname_procname_integrals_map;
       for (auto const& systname:allsystnames){
         systname_procname_integrals_map[systname] = std::unordered_map<TString, std::vector<double>>();
@@ -1144,21 +1095,21 @@ void getDCSpecs_ZZ2L2Nu(
           case 1:
           {
             for (auto const& htmp:procname_syst_h1D_map[procname][systname]){
-              integrals.push_back(HelperFunctions::getHistogramIntegralAndError(htmp, htmp->GetXaxis()->FindBin(mTZZcut+1e-6), htmp->GetNbinsX(), true));
+              integrals.push_back(HelperFunctions::getHistogramIntegralAndError(htmp, htmp->GetXaxis()->FindBin(mTWZcut+1e-6), htmp->GetNbinsX(), true));
             }
             break;
           }
           case 2:
           {
             for (auto const& htmp:procname_syst_h2D_map[procname][systname]){
-              integrals.push_back(HelperFunctions::getHistogramIntegralAndError(htmp, htmp->GetXaxis()->FindBin(mTZZcut+1e-6), htmp->GetNbinsX(), 1, htmp->GetNbinsY(), true));
+              integrals.push_back(HelperFunctions::getHistogramIntegralAndError(htmp, htmp->GetXaxis()->FindBin(mTWZcut+1e-6), htmp->GetNbinsX(), 1, htmp->GetNbinsY(), true));
             }
             break;
           }
           case 3:
           {
             for (auto const& htmp:procname_syst_h3D_map[procname][systname]){
-              integrals.push_back(HelperFunctions::getHistogramIntegralAndError(htmp, htmp->GetXaxis()->FindBin(mTZZcut+1e-6), htmp->GetNbinsX(), 1, htmp->GetNbinsY(), 1, htmp->GetNbinsZ(), true));
+              integrals.push_back(HelperFunctions::getHistogramIntegralAndError(htmp, htmp->GetXaxis()->FindBin(mTWZcut+1e-6), htmp->GetNbinsX(), 1, htmp->GetNbinsY(), 1, htmp->GetNbinsZ(), true));
             }
             break;
           }
@@ -1171,7 +1122,7 @@ void getDCSpecs_ZZ2L2Nu(
       }
 
       MELAout << "######################################" << endl;
-      MELAout << "## Nominal yields for mTZZ>=" << mTZZcut << " GeV ##" << endl;
+      MELAout << "## Nominal yields for mTWZ>=" << mTWZcut << " GeV ##" << endl;
       MELAout << "######################################" << endl;
       for (auto const& procname:procnames){
         std::vector<double> const& integrals = systname_procname_integrals_map.find("Nominal")->second.find(procname)->second;
@@ -1180,14 +1131,13 @@ void getDCSpecs_ZZ2L2Nu(
         MELAout << endl;
       }
       MELAout << "######################################" << endl;
-      MELAout << "## Shape systematics for mTZZ>=" << mTZZcut << " GeV ##" << endl;
+      MELAout << "## Shape systematics for mTWZ>=" << mTWZcut << " GeV ##" << endl;
       MELAout << "########################################" << endl;
       MELAout << "# Systematic";
-      for (auto const& procname:procnames) MELAout << " & " << getProcessLaTeXLabel_ZZ2L2Nu(procname);
+      for (auto const& procname:procnames) MELAout << " & " << getProcessLaTeXLabel_ZW3L1Nu(procname);
       MELAout << " \\\\" << endl;
       for (auto const& systname:allsystnames){
         if (systname=="Nominal" || systname.Contains("Down")) continue;
-        //if (systname.Contains("stat_shape") && !systname.Contains("InstrMET") && mTZZcut==200.) continue;
         TString systnamecore = systname; HelperFunctions::replaceString<TString, TString const>(systnamecore, "Up", "");
         MELAout << "# " << systnamecore;
         for (auto const& procname:procnames){
@@ -1280,7 +1230,7 @@ void getDCSpecs_ZZ2L2Nu(
       foutput_proj->cd();
 
       for (unsigned short chosenTpl=0; chosenTpl<nTpls; chosenTpl++){
-        TString proclabel = getTemplateLabel_ZZ2L2Nu(procname, AChypo, chosenTpl);
+        TString proclabel = getTemplateLabel_ZW3L1Nu(procname, AChypo, chosenTpl);
         TString tplname = procname;
         if (nTpls>1){
           if (ndims==1) tplname = procname_syst_h1D_map[procname]["Nominal"].at(chosenTpl)->GetName();
@@ -1302,17 +1252,12 @@ void getDCSpecs_ZZ2L2Nu(
           TString varname;
           TString varlabel;
           if (idim==0){
-            varname = "mTZZ";
-            varlabel = "m_{T}^{ZZ} (GeV)";
-          }
-          else if (icat<2 && idim==1){
-            varname = "pTmiss";
-            varlabel = "p_{T}^{miss} (GeV)";
+            varname = "mTWZ";
+            varlabel = "m_{T}^{WZ} (GeV)";
           }
           else{
-            assert(KDnames.size() == ndims-1);
-            varname = KDnames.at(idim-1);
-            varlabel = KDlabels.at(idim-1);
+            MELAerr << "Dimension " << idim << " is unspecified in plot labeling." << endl;
+            exit(1);
           }
 
           TString canvasname = TString("c_") + tplname + "_" + strChannel + "_" + strCategory + "_" + SampleHelpers::getDataPeriod() + "_" + varname;
@@ -1333,25 +1278,9 @@ void getDCSpecs_ZZ2L2Nu(
               hlist_systpair[systname] = std::pair<TH1F*, TH1F*>(hist_dn, hist_up);
             }
           }
-          else if (ndims==2){
-            hist_nominal = getHistogramProjection(*(procname_syst_h2D_map[procname]["Nominal"].at(chosenTpl)), idim, "tmp_Nominal");
-            for (auto const& systname:procsystlist){
-              if (idim>0 && systname.Contains("stat_norm") && !procname.Contains("InstrMET")) continue;
-              if (!(strCategory.Contains("Nj_geq_2") && idim>0) && systname.Contains("stat_shape_KD")) continue;
-              TH1F* hist_dn = getHistogramProjection(*(procname_syst_h2D_map[procname][systname+"Down"].at(chosenTpl)), idim, Form("tmp_%s_Down", systname.Data()));
-              TH1F* hist_up = getHistogramProjection(*(procname_syst_h2D_map[procname][systname+"Up"].at(chosenTpl)), idim, Form("tmp_%s_Up", systname.Data()));
-              hlist_systpair[systname] = std::pair<TH1F*, TH1F*>(hist_dn, hist_up);
-            }
-          }
-          else if (ndims==3){
-            hist_nominal = getHistogramProjection(*(procname_syst_h3D_map[procname]["Nominal"].at(chosenTpl)), idim, "tmp_Nominal");
-            for (auto const& systname:procsystlist){
-              if (idim>0 && systname.Contains("stat_norm") && !procname.Contains("InstrMET")) continue;
-              if (!(strCategory.Contains("Nj_geq_2") && idim>0) && systname.Contains("stat_shape_KD")) continue;
-              TH1F* hist_dn = getHistogramProjection(*(procname_syst_h3D_map[procname][systname+"Down"].at(chosenTpl)), idim, Form("tmp_%s_Down", systname.Data()));
-              TH1F* hist_up = getHistogramProjection(*(procname_syst_h3D_map[procname][systname+"Up"].at(chosenTpl)), idim, Form("tmp_%s_Up", systname.Data()));
-              hlist_systpair[systname] = std::pair<TH1F*, TH1F*>(hist_dn, hist_up);
-            }
+          else{
+            MELAerr << "ndims = " << ndims << " is not specified in plotting." << endl;
+            exit(1);
           }
 
           // Adjust style
@@ -1538,19 +1467,18 @@ void getDCSpecs_ZZ2L2Nu(
   for (auto& it_process_handler_map:process_handler_map) delete it_process_handler_map.second;
 }
 
-void runDatacardChain(TString period, TString templateVersion, TString strdate, bool includeBoostedHadVHCategory, bool includeResolvedHadVHCategory, bool applyAdditionalInstrSystMETVeto=true){
-  SampleHelpers::configure(period, Form("%s:ZZTo2L2Nu/%s", "store_finaltrees", templateVersion.Data()));
+void runDatacardChain(TString period, TString templateVersion, TString strdate, bool includeBoostedHadVHCategory, bool includeResolvedHadVHCategory){
+  SampleHelpers::configure(period, Form("%s:ZWTo3L1Nu/%s", "store_finaltrees", templateVersion.Data()));
 
-  std::vector<cms3_id_t> const dilepton_ids{ -121, -169 };
-  for (auto const& dilepton_id:dilepton_ids){
+  std::vector<cms3_absid_t> const lepW_ids{ 11, 13 };
+  for (auto const& lepW_id:lepW_ids){
     for (int iac=0; iac<(int) ACHypothesisHelpers::nACHypotheses; iac++){
       ACHypothesisHelpers::ACHypothesis AChypo = static_cast<ACHypothesisHelpers::ACHypothesis>(iac);
       if (AChypo==ACHypothesisHelpers::kL1ZGs) continue;
-      getDCSpecs_ZZ2L2Nu(
+      getDCSpecs_ZWTo3L1Nu(
         period, templateVersion, strdate,
-        AChypo, dilepton_id,
-        includeBoostedHadVHCategory, includeResolvedHadVHCategory,
-        applyAdditionalInstrSystMETVeto
+        AChypo, lepW_id,
+        includeBoostedHadVHCategory, includeResolvedHadVHCategory
       );
     }
   }

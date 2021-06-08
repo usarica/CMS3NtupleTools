@@ -84,13 +84,6 @@ ExtendedBinning TemplateHelpers::getDiscriminantFineBinning(TString const& strva
   }
   else if (dktype==kZZ2l2nu_offshell){
     if (strvar.Contains("mTZZ")){
-      /*if (prod_type==ACHypothesisHelpers::kHadVH){
-        res.addBinBoundary(200);
-        res.addBinBoundary(400);
-        res.addBinBoundary(13000);
-      }
-      else{*/
-        //res.addBinBoundary(200);
         res.addBinBoundary(300);
         res.addBinBoundary(350);
         res.addBinBoundary(400);
@@ -104,7 +97,6 @@ ExtendedBinning TemplateHelpers::getDiscriminantFineBinning(TString const& strva
         res.addBinBoundary(1250);
         res.addBinBoundary(1500);
         res.addBinBoundary(13000);
-      //}
     }
     else if (strvar.Contains("pTmiss")){
       res.addBinBoundary(125);
@@ -134,6 +126,21 @@ ExtendedBinning TemplateHelpers::getDiscriminantFineBinning(TString const& strva
       res.addBinBoundary(0.8);
       res.addBinBoundary(0.9);
       res.addBinBoundary(1);
+    }
+  }
+  else if (dktype==kZW3l1nu){
+    if (strvar.Contains("mTWZ") || strvar.Contains("mTZW")){
+      res.addBinBoundary(150);
+      res.addBinBoundary(180);
+      res.addBinBoundary(200);
+      res.addBinBoundary(220);
+      res.addBinBoundary(250);
+      res.addBinBoundary(300);
+      res.addBinBoundary(375);
+      res.addBinBoundary(500);
+      res.addBinBoundary(750);
+      res.addBinBoundary(1000);
+      res.addBinBoundary(13000);
     }
   }
 

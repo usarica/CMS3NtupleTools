@@ -197,32 +197,32 @@ std::string SystematicsHelpers::getSystDatacardCoreName(SystematicsHelpers::Syst
 
   case eMuEffDn:
   case eMuEffUp:
-    return Form("CMS_eff_mu_%s", strSystPerYear.Data());
+    return Form("CMS_eff_m_%s", strSystPerYear.Data());
   case eMuEffStatDn:
   case eMuEffStatUp:
-    return Form("CMS_eff_stat_mu_%s", strSystPerYear.Data());
+    return Form("CMS_eff_stat_m_%s", strSystPerYear.Data());
   case eMuEffSystDn:
   case eMuEffSystUp:
-    return Form("CMS_eff_syst_mu_%s", strSystPerYear.Data());
+    return Form("CMS_eff_syst_m_%s", strSystPerYear.Data());
   case eMuEffAltMCDn:
   case eMuEffAltMCUp:
-    return Form("CMS_eff_altMC_mu_%s", strSyst.Data());
+    return Form("CMS_eff_altMC_m_%s", strSyst.Data());
   case eMuScaleDn:
   case eMuScaleUp:
-    return Form("CMS_scale_mu_%s", strSystPerYear.Data());
+    return Form("CMS_scale_m_%s", strSystPerYear.Data());
   case eMuResDn:
   case eMuResUp:
-    return Form("CMS_res_mu_%s", strSystPerYear.Data());
+    return Form("CMS_res_m_%s", strSystPerYear.Data());
 
   case ePhoEffDn:
   case ePhoEffUp:
-    return Form("CMS_eff_pho_%s", strSystPerYear.Data());
+    return Form("CMS_eff_g_%s", strSystPerYear.Data());
   case ePhoScaleDn:
   case ePhoScaleUp:
-    return Form("CMS_scale_pho_%s", strSystPerYear.Data());
+    return Form("CMS_scale_g_%s", strSystPerYear.Data());
   case ePhoResDn:
   case ePhoResUp:
-    return Form("CMS_res_pho_%s", strSystPerYear.Data());
+    return Form("CMS_res_g_%s", strSystPerYear.Data());
 
   case eMETDn:
   case eMETUp:
@@ -277,10 +277,10 @@ double SystematicsHelpers::getLumiUncertainty_Uncorrelated(){
     res = 2.6;
     break;
   case 2015:
-    res = 1.2;
+    res = 0.9;
     break;
   case 2016:
-    res = 1.8;
+    res = 0.6;
     break;
   case 2017:
     res = 2.0;
@@ -301,16 +301,16 @@ double SystematicsHelpers::getLumiUncertainty_Correlated(){
   double res = 0;
   switch (year){
   case 2015:
-    res = 1.643;
+    res = 0.583;
     break;
   case 2016:
-    res = 1.175;
+    res = 0.625;
     break;
   case 2017:
-    res = 1.114;
+    res = 0.911;
     break;
   case 2018:
-    res = 2.020;
+    res = 2.022;
     break;
   default:
     MELAerr << "SystematicsHelpers::getLumiUncertainty_Correlated: Year " << year << " is unspecified." << endl;
@@ -325,10 +325,26 @@ double SystematicsHelpers::getLumiUncertainty_Correlated_2015_2016(){
   double res = 0;
   switch (year){
   case 2015:
-    res = 1.162;
+    res = 1.114;
     break;
   case 2016:
-    res = 1.249;
+    res = 0.877;
+    break;
+  default:
+    break;
+  }
+  res *= 0.01;
+  return res;
+}
+double SystematicsHelpers::getLumiUncertainty_Correlated_2017_2018(){
+  auto const& year = SampleHelpers::getDataYear();
+  double res = 0;
+  switch (year){
+  case 2017:
+    res = 0.6;
+    break;
+  case 2018:
+    res = 0.2;
     break;
   default:
     break;

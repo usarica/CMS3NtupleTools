@@ -65,6 +65,7 @@ namespace SystematicsHelpers{
   double getLumiUncertainty_Uncorrelated();
   double getLumiUncertainty_Correlated();
   double getLumiUncertainty_Correlated_2015_2016();
+  double getLumiUncertainty_Correlated_2017_2018();
 }
 
 #endif
