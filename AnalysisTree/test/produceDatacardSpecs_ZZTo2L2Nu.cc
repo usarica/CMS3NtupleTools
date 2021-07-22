@@ -569,6 +569,44 @@ template<typename T> void addToLogNormalSystsAndVetoShape(
 }
 
 
+void addExternalLogNormalUncertainties(
+  TString const& strCategory,
+  std::vector<TString> const& procnames,
+  std::unordered_map<TString, std::unordered_map<TString, std::pair<double, double>>>& lognormalsyst_procname_valpair_map
+){
+  if (strCategory.Contains("Nj_eq_0")){
+    TString strsyst = "QCDscale_VV0in";
+    double dkappa = 0.027;
+    for (auto const& procname:procnames){
+      if (procname.Contains("qqZZ") || procname.Contains("qqWZ")){
+        if (lognormalsyst_procname_valpair_map.find(strsyst)==lognormalsyst_procname_valpair_map.end()) lognormalsyst_procname_valpair_map[strsyst] = std::unordered_map<TString, std::pair<double, double>>();
+        lognormalsyst_procname_valpair_map[strsyst][procname] = std::pair<double, double>(1.-dkappa, 1.+dkappa);
+      }
+    }
+  }
+  else if (strCategory.Contains("Nj_eq_1")){
+    TString strsyst = "QCDscale_VV1in";
+    double dkappa = -0.060;
+    for (auto const& procname:procnames){
+      if (procname.Contains("qqZZ") || procname.Contains("qqWZ")){
+        if (lognormalsyst_procname_valpair_map.find(strsyst)==lognormalsyst_procname_valpair_map.end()) lognormalsyst_procname_valpair_map[strsyst] = std::unordered_map<TString, std::pair<double, double>>();
+        lognormalsyst_procname_valpair_map[strsyst][procname] = std::pair<double, double>(1.-dkappa, 1.+dkappa);
+      }
+    }
+  }
+  else if (strCategory.Contains("Nj_geq_2")){
+    TString strsyst = "QCDscale_VV2in";
+    double dkappa = 0.076;
+    for (auto const& procname:procnames){
+      if (procname.Contains("qqZZ") || procname.Contains("qqWZ")){
+        if (lognormalsyst_procname_valpair_map.find(strsyst)==lognormalsyst_procname_valpair_map.end()) lognormalsyst_procname_valpair_map[strsyst] = std::unordered_map<TString, std::pair<double, double>>();
+        lognormalsyst_procname_valpair_map[strsyst][procname] = std::pair<double, double>(1.-dkappa, 1.+dkappa);
+      }
+    }
+  }
+}
+
+
 void getDCSpecs_ZZTo2L2Nu(
   TString period, TString templateVersion, TString strdate,
   ACHypothesisHelpers::ACHypothesis AChypo,
@@ -896,6 +934,10 @@ void getDCSpecs_ZZTo2L2Nu(
         }
       }
     }
+
+    // Add external lnN systematics
+    // Do not add the external systematics to syst_procname_map or allsystnames because those are actually for shape systematics.
+    addExternalLogNormalUncertainties(strCategory, procnames, lognormalsyst_procname_valpair_map);
 
     // Build allsystnames and sort
     for (auto const& pp:syst_procname_map){
@@ -1533,7 +1575,7 @@ void getDCSpecs_ZZTo2L2Nu(
   for (auto& it_process_handler_map:process_handler_map) delete it_process_handler_map.second;
 }
 
-void runDatacardChain(TString period, TString templateVersion, TString strdate, bool includeBoostedHadVHCategory, bool includeResolvedHadVHCategory, bool applyAdditionalInstrSystMETVeto=true){
+void runDatacardChain(TString period, TString templateVersion, TString strdate, bool includeBoostedHadVHCategory, bool includeResolvedHadVHCategory, bool applyAdditionalInstrSystMETVeto=false){
   SampleHelpers::configure(period, Form("%s:ZZTo2L2Nu/%s", "store_finaltrees", templateVersion.Data()));
 
   std::vector<cms3_id_t> const dilepton_ids{ -121, -169 };

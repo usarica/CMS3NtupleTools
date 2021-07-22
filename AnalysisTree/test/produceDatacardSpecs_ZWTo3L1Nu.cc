@@ -471,6 +471,17 @@ template<typename T> void addToLogNormalSystsAndVetoShape(
         else kup = 1.;
       }
 
+      if (systnamecore.Contains("CMS_stat_norm")){
+        if (kdn<1e-6){
+          MELAerr << "addToLogNormalSystsAndVetoShape: WARNING! kdn = " << kdn << " in systematic " << systnamecore << " for process " << procname << "." << endl;
+          kdn = 1e-6;
+        }
+        if (kup<1e-6){
+          MELAerr << "addToLogNormalSystsAndVetoShape: WARNING! kup = " << kup << " in systematic " << systnamecore << " for process " << procname << "." << endl;
+          kup = 1e-6;
+        }
+      }
+
       auto it_lognormalsyst_procname_valpair_map = lognormalsyst_procname_valpair_map.find(systnamecore);
       if (it_lognormalsyst_procname_valpair_map==lognormalsyst_procname_valpair_map.end()){
         lognormalsyst_procname_valpair_map[systnamecore] = std::unordered_map<TString, std::pair<double, double>>();
@@ -486,6 +497,42 @@ template<typename T> void addToLogNormalSystsAndVetoShape(
   }
 }
 
+void addExternalLogNormalUncertainties(
+  TString const& strCategory,
+  std::vector<TString> const& procnames,
+  std::unordered_map<TString, std::unordered_map<TString, std::pair<double, double>>>& lognormalsyst_procname_valpair_map
+){
+  if (strCategory.Contains("Nj_eq_0")){
+    TString strsyst = "QCDscale_VV0in";
+    double dkappa = 0.027;
+    for (auto const& procname:procnames){
+      if (procname.Contains("qqZZ") || procname.Contains("qqWZ")){
+        if (lognormalsyst_procname_valpair_map.find(strsyst)==lognormalsyst_procname_valpair_map.end()) lognormalsyst_procname_valpair_map[strsyst] = std::unordered_map<TString, std::pair<double, double>>();
+        lognormalsyst_procname_valpair_map[strsyst][procname] = std::pair<double, double>(1.-dkappa, 1.+dkappa);
+      }
+    }
+  }
+  else if (strCategory.Contains("Nj_eq_1")){
+    TString strsyst = "QCDscale_VV1in";
+    double dkappa = -0.060;
+    for (auto const& procname:procnames){
+      if (procname.Contains("qqZZ") || procname.Contains("qqWZ")){
+        if (lognormalsyst_procname_valpair_map.find(strsyst)==lognormalsyst_procname_valpair_map.end()) lognormalsyst_procname_valpair_map[strsyst] = std::unordered_map<TString, std::pair<double, double>>();
+        lognormalsyst_procname_valpair_map[strsyst][procname] = std::pair<double, double>(1.-dkappa, 1.+dkappa);
+      }
+    }
+  }
+  else if (strCategory.Contains("Nj_geq_2")){
+    TString strsyst = "QCDscale_VV2in";
+    double dkappa = 0.076;
+    for (auto const& procname:procnames){
+      if (procname.Contains("qqZZ") || procname.Contains("qqWZ")){
+        if (lognormalsyst_procname_valpair_map.find(strsyst)==lognormalsyst_procname_valpair_map.end()) lognormalsyst_procname_valpair_map[strsyst] = std::unordered_map<TString, std::pair<double, double>>();
+        lognormalsyst_procname_valpair_map[strsyst][procname] = std::pair<double, double>(1.-dkappa, 1.+dkappa);
+      }
+    }
+  }
+}
 
 void getDCSpecs_ZWTo3L1Nu(
   TString period, TString templateVersion, TString strdate,
@@ -569,6 +616,28 @@ void getDCSpecs_ZWTo3L1Nu(
               systname.Contains("pdf_variation")
               )
             ) continue;
+          // Remove non-stat systematics and templates with huge fluctuations in DY_2l
+          if (procname=="DY_2l"){
+            if (
+              !(
+                systname=="Nominal"
+                ||
+                systname.Contains("CMS_stat")
+                )
+              ) continue;
+            if (SampleHelpers::getDataYear()==2016){
+              if (strCategory=="Nj_eq_1" || strCategory=="Nj_geq_2") continue;
+            }
+            else if (SampleHelpers::getDataYear()==2017){
+              if (strChannel=="2l1mu" && strCategory=="Nj_geq_2") continue;
+            }
+          }
+          // Remove templates with huge fluctuations in qqZG
+          if (procname=="qqZG"){
+            if (SampleHelpers::getDataYear()==2016){
+              if (strCategory=="Nj_geq_2") continue;
+            }
+          }
 
           bool hasZeroInt = false;
           std::vector<TH1F*> h1Ds;
@@ -751,6 +820,7 @@ void getDCSpecs_ZWTo3L1Nu(
     // Append untraversed processes as omitted
     for (auto const& procname:procnames){ if (!HelperFunctions::checkListVariable(traversed_processes, procname)) omitted_processes.push_back(procname); }
     // Omit the process if norm. unc. is too large.
+    /*
     for (auto const& procname:traversed_processes){
       if (!isSignal(procname) && !isDataDriven(procname)){
         double integral_nominal = -999;
@@ -806,6 +876,7 @@ void getDCSpecs_ZWTo3L1Nu(
         }
       }
     }
+    */
     // Clean collections for omitted processes
     for (auto const& procname:omitted_processes){
       auto it_procnames = std::find(procnames.begin(), procnames.end(), procname);
@@ -867,6 +938,10 @@ void getDCSpecs_ZWTo3L1Nu(
         }
       }
     }
+
+    // Add external lnN systematics
+    // Do not add the external systematics to syst_procname_map or allsystnames because those are actually for shape systematics.
+    addExternalLogNormalUncertainties(strCategory, procnames, lognormalsyst_procname_valpair_map);
 
     // Build allsystnames and sort
     for (auto const& pp:syst_procname_map){
