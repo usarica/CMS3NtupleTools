@@ -2,6 +2,7 @@
 #include <chrono>
 #include "common_includes.h"
 #include "OffshellCutflow.h"
+#include "PlottingHelpers.h"
 #include "TStyle.h"
 #include "TCanvas.h"
 #include "TText.h"
@@ -24,7 +25,8 @@ void makePlot(
   TString drawopts="hist",
   bool adjustYLow=false,
   float factorYHigh=-1,
-  bool forceData=false
+  bool forceData=false,
+  bool addRatioPanel=false
 );
 
 void getDataSampleDirs(
@@ -1668,8 +1670,11 @@ void makePlot(
   TString drawopts,
   bool adjustYLow,
   float factorYHigh,
-  bool forceData
+  bool forceData,
+  bool addRatioPanel
 ){
+  using namespace PlottingHelpers;
+
   size_t nplottables = hlist.size();
   if (hlabels.size()!=nplottables) return;
   for (auto const& hlabel:hlabels){ if (hlabel=="") nplottables--; }
@@ -1707,9 +1712,17 @@ void makePlot(
   ymin *= (ymin>=0. ? 0.95 : 1.05);
   for (TH1F* const& hist:hlist) hist->GetYaxis()->SetRangeUser(ymin, ymax);
 
+  TH1F* hdenom = nullptr;
+  std::vector<TH1F*> hnum_MC_list;
   std::unordered_map<TH1F*, TGraphAsymmErrors*> hist_tg_map;
   for (size_t is=0; is<hlist.size(); is++){
     TH1F* hist = hlist.at(is);
+    TString hname = hist->GetName();
+
+    if (hname.Contains("AllMC_NonRes")){
+      if (!hdenom && !hname.Contains("mue_rewgt")) hdenom = hist;
+      else if (hname.Contains("mue_rewgt")) hnum_MC_list.push_back(hist);
+    }
 
     hist->GetXaxis()->SetNdivisions(505);
     hist->GetXaxis()->SetLabelFont(42);
@@ -1726,7 +1739,6 @@ void makePlot(
     hist->GetYaxis()->SetTitleOffset(1.3);
     hist->GetYaxis()->SetTitleFont(42);
 
-    TString hname = hist->GetName();
     if (hname.Contains("Data")){
       TGraphAsymmErrors* tg = nullptr;
       HelperFunctions::convertTH1FToTGraphAsymmErrors(hist, tg, false, true);
@@ -1752,7 +1764,7 @@ void makePlot(
     }
   }
 
-  TCanvas* canvas = new TCanvas(canvasname, "", 8, 30, 800, 800);
+  TCanvas* canvas = new TCanvas(canvasname, "", 8, 30, 1600, 1600);
   canvas->cd();
   gStyle->SetOptStat(0);
   canvas->SetFillColor(0);
@@ -1785,20 +1797,21 @@ void makePlot(
   legend->SetFillStyle(0);
   TText* text;
 
-  TPaveText* pt = new TPaveText(0.15, 0.93, 0.85, 1, "brNDC");
+  TPaveText* pt = new TPaveText(0.17, 0.93, 0.95, 1, "brNDC");
   pt->SetBorderSize(0);
   pt->SetFillStyle(0);
   pt->SetTextAlign(12);
   pt->SetTextFont(42);
   pt->SetTextSize(0.045);
-  text = pt->AddText(0.025, 0.45, "#font[61]{CMS}");
+  text = pt->AddText(0.001, 0.45, "#font[61]{CMS}");
   text->SetTextSize(0.044);
   if (!hasData && !forceData) text = pt->AddText(0.165, 0.42, "#font[52]{Simulation}");
-  else text = pt->AddText(0.165, 0.42, "#font[52]{Preliminary}");
+  else text = pt->AddText(0.141, 0.42, "#font[52]{Preliminary}");
   text->SetTextSize(0.0315);
-  TString cErgTev = Form("#font[42]{%.1f fb^{-1} %i TeV}", lumi, 13);
-  text = pt->AddText(0.82, 0.45, cErgTev);
+  TString cErgTev = Form("#font[42]{%.0f fb^{-1} %i TeV}", lumi, 13);
+  text = pt->AddText(0.999, 0.45, cErgTev);
   text->SetTextSize(0.0315);
+  text->SetTextAlign(32);
 
   bool firstHist = true;
   for (size_t is=0; is<hlist.size(); is++){
@@ -1833,8 +1846,8 @@ void makePlot(
     }
   }
 
-  // Re-draw data or AllMC_NonRes reweighted
-  // Draw in reverse in order to make sure real data is drawn the last
+  // Re-draw data or AllMC_NonRes reweighted.
+  // Draw in reverse in order to make sure real data is drawn the last.
   for (int is=hlist.size()-1; is>=0; is--){
     TH1F* hist = hlist.at(is);
     TString hname = hist->GetName();
@@ -2121,22 +2134,22 @@ void makePlots(
     "qqWW_2l2nu",
     "TT_2l2nu",
     "AllMC_NonRes",
-
+/*
     "qqWZ_3lnu_genMatched",
     "qqZZ_2l2nu_genMatched",
     "DY_2l",
-
+*/
     "Data"
   };
   std::vector<TString> const process_labels{
     "WW#rightarrow2l2#nu",
     "t#bar{t}#rightarrow2l2#nu",
     "Other non-res.",
-
+/*
     "ZW#rightarrow3l#nu (gen.-matched)",
     "ZZ#rightarrow2l2#nu (gen.-matched)",
     "DY",
-
+*/
     "Observed"
   };
 
@@ -2254,9 +2267,9 @@ void makePlots(
             }
             for (int ip=hlist_channel_rewgt_uncorr.size()-1; ip>=0; ip--){
               hplot.push_back(hlist_channel_rewgt_corr.at(ip));
-              hlabels.push_back((ip==0 ? "All non-res. (rewgt.+corr.)" : "Observed (rewgt.+corr.)"));
+              hlabels.push_back((ip==0 ? "All non-res. (rewgt.+corr.)" : "Obs. nonres. (rewgt.+corr.)"));
               hplot.push_back(hlist_channel_rewgt_uncorr.at(ip));
-              hlabels.push_back((ip==0 ? "All non-res. (rewgt.)" : "Observed (rewgt.)"));
+              hlabels.push_back((ip==0 ? "All non-res. (rewgt.)" : "Obs. nonres. (rewgt.)"));
             }
             for (int ip=hlist_channel_raw.size()-1; ip>=0; ip--){
               TString hname = hlist_channel_raw.at(ip)->GetName();
@@ -2271,7 +2284,7 @@ void makePlots(
               coutput_main, lumi, canvasname,
               hplot, hlabels,
               selectionLabels,
-              "hist", false, -1
+              "hist", false, -1, true
             );
             if (varname=="mll"){
               for (unsigned int ip=0; ip<hplot.size(); ip++){
