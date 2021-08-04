@@ -2,6 +2,9 @@
 #include "common_includes.h"
 #include "OffshellCutflow.h"
 #include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
+#include <MelaAnalytics/CandidateLOCaster/interface/MELACandidateRecaster.h>
+#include <MelaAnalytics/EventContainer/interface/HiggsComparators.h>
+#include <MelaAnalytics/EventContainer/interface/TopComparators.h>
 #include "TStyle.h"
 
 
@@ -11,6 +14,8 @@
   BRANCH_COMMAND(float, event_wgt_adjustment_NNPDF30) \
   BRANCH_COMMAND(bool, invalidReweightingWgts) \
   BRANCH_COMMAND(float, sample_wgt) \
+  BRANCH_COMMAND(float, sample_wgt_pairwiseComponent) \
+  BRANCH_COMMAND(bool, passGenCompSelection) \
   BRANCH_COMMAND(float, lheHiggs_pt) \
   BRANCH_COMMAND(float, lheLeptonicDecay_pt) \
   BRANCH_COMMAND(float, lheLeptonicDecay_mass) \
@@ -18,8 +23,14 @@
   BRANCH_COMMAND(float, genLeptonicDecay_mass)
 #define BRANCH_VECTOR_COMMANDS \
   BRANCH_COMMAND(cms3_id_t, lhemothers_id) \
+  BRANCH_COMMAND(cms3_id_t, lheQCDLOparticles_id) \
+  BRANCH_COMMAND(cms3_id_t, lheQCDLOparticles_status) \
   BRANCH_COMMAND(cms3_id_t, genparticles_id) \
   BRANCH_COMMAND(float, lhemothers_pz) \
+  BRANCH_COMMAND(float, lheQCDLOparticles_px) \
+  BRANCH_COMMAND(float, lheQCDLOparticles_py) \
+  BRANCH_COMMAND(float, lheQCDLOparticles_pz) \
+  BRANCH_COMMAND(float, lheQCDLOparticles_E) \
   BRANCH_COMMAND(float, genparticles_pt) \
   BRANCH_COMMAND(float, genparticles_eta) \
   BRANCH_COMMAND(float, genparticles_phi) \
@@ -37,6 +48,13 @@ namespace LooperFunctionHelpers{
   using namespace std;
   using namespace MELAStreamHelpers;
   using namespace OffshellCutflow;
+
+  bool recastLHETopology = false;
+  TVar::Production candScheme = TVar::nProductions; // Recasting scheme
+
+  // Candidate interpretation
+  MELAEvent::CandidateVVMode VVMode = MELAEvent::nCandidateVVModes;
+  int VVDecayMode = -1;
 
   std::vector<TString> selectedMEs;
 
@@ -99,6 +117,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   event_wgt *= genwgt_default;
   if (event_wgt==0.f) return false;
 
+  passGenCompSelection = true;
+
   bool hasTaus = false;
   unsigned int n_leps_nus=0;
   ParticleObject::LorentzVector_t p4_lheHiggs;
@@ -116,8 +136,9 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
       lhemothers_pz.push_back(part->pz());
     }
   }
-  if (n_leps_nus!=4) return false;
-  if (hasTaus) return false;
+  passGenCompSelection &= (n_leps_nus==4);
+  passGenCompSelection &= (!hasTaus);
+
   lheHiggs_pt = p4_lheHiggs.Pt();
   lheLeptonicDecay_pt = p4_lheLeptonicDecay.Pt();
   lheLeptonicDecay_mass = p4_lheLeptonicDecay.M();
@@ -146,8 +167,126 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     genak4jets_mass.push_back(jet->mass());
   }
 
+  {
+    std::vector<MELAParticle*> particleList;
+    {
+      std::unordered_map<ParticleObject*, MELAParticle*> particle_translation_map;
+      for (auto const& part:lheparticles){
+        MELAParticle* onePart = new MELAParticle(part->pdgId(), part->p4_TLV());
+        onePart->setGenStatus(part->status());
+        particleList.push_back(onePart);
+        particle_translation_map[part] = onePart;
+      }
+      // Loop to also assign mothers
+      for (auto const& part:lheparticles){
+        MELAParticle* const& thePart = particle_translation_map.find(part)->second;
+        for (auto const& mother:part->getMothers()){
+          if (!mother) continue;
+          MELAParticle* const& theMother = particle_translation_map.find(mother)->second;
+          thePart->addMother(theMother);
+        }
+      }
+    }
+
+    MELAEvent* genEvent = new MELAEvent();
+    std::vector<MELAParticle*> writtenGenCands;
+    std::vector<MELAParticle*> writtenGenTopCands;
+    {
+      using namespace PDGHelpers;
+
+      for (MELAParticle* genPart:particleList){
+        if (isATopQuark(genPart->id)){
+          writtenGenTopCands.push_back(genPart);
+          if (genPart->genStatus==1) genEvent->addIntermediate(genPart);
+        }
+        if (isAHiggs(genPart->id)){
+          writtenGenCands.push_back(genPart);
+          if (VVMode==MELAEvent::UndecayedMode && (genPart->genStatus==1 || genPart->genStatus==2)) genEvent->addIntermediate(genPart);
+        }
+        if (genPart->genStatus==1){
+          if (isALepton(genPart->id)) genEvent->addLepton(genPart);
+          else if (isANeutrino(genPart->id)) genEvent->addNeutrino(genPart);
+          else if (isAPhoton(genPart->id)) genEvent->addPhoton(genPart);
+          else if (isAKnownJet(genPart->id) && !isATopQuark(genPart->id)) genEvent->addJet(genPart);
+        }
+        else if (genPart->genStatus==-1) genEvent->addMother(genPart);
+      }
+    }
+
+    genEvent->constructTopCandidates();
+    {
+      std::vector<MELATopCandidate_t*> matchedTops;
+      for (auto* writtenGenTopCand:writtenGenTopCands){
+        MELATopCandidate_t* tmpCand = TopComparators::matchATopToParticle(*genEvent, writtenGenTopCand);
+        if (tmpCand) matchedTops.push_back(tmpCand);
+      }
+      for (MELATopCandidate_t* tmpCand:genEvent->getTopCandidates()){
+        if (std::find(matchedTops.begin(), matchedTops.end(), tmpCand)==matchedTops.end()) tmpCand->setSelected(false);
+      }
+    }
+
+    MELACandidate* genCand = nullptr;
+    MELACandidate* candModified = nullptr;
+    MELACandidate* candToWrite = genCand;
+
+    genEvent->constructVVCandidates(VVMode, VVDecayMode);
+    genEvent->addVVCandidateAppendages();
+    for (auto* writtenGenCand:writtenGenCands){
+      MELACandidate* tmpCand = HiggsComparators::matchAHiggsToParticle(*genEvent, writtenGenCand);
+      if (tmpCand){
+        if (!genCand) genCand = tmpCand;
+        else genCand = HiggsComparators::candComparator(genCand, tmpCand, HiggsComparators::BestZ1ThenZ2ScSumPt, VVMode);
+      }
+    }
+    if (!genCand) genCand = HiggsComparators::candidateSelector(*genEvent, HiggsComparators::BestZ1ThenZ2ScSumPt, VVMode);
+
+    MELACandidateRecaster* recaster = nullptr;
+    if (recastLHETopology){
+      recaster = new MELACandidateRecaster(candScheme);
+      recaster->copyCandidate(genCand, candModified);
+
+      if (candScheme==TVar::JJVBF) recaster->reduceJJtoQuarks(candModified);
+      else if (candScheme==TVar::Had_ZH || candScheme==TVar::Had_WH){
+        MELAParticle* bestAV = MELACandidateRecaster::getBestAssociatedV(genCand, candScheme);
+        if (bestAV) recaster->deduceLOVHTopology(candModified);
+        else{
+          MELAerr << "ERROR: No associated V can be found in the VH recasting scheme." << endl;
+          exit(1);
+        }
+      }
+
+      candToWrite = candModified;
+    }
+
+    {
+      std::vector<MELAParticle*> particles_to_write;
+      for (auto const& part:candToWrite->getMothers()) particles_to_write.push_back(part);
+      for (auto const& part:candToWrite->getAssociatedPhotons()) particles_to_write.push_back(part);
+      for (auto const& part:candToWrite->getAssociatedNeutrinos()) particles_to_write.push_back(part);
+      for (auto const& part:candToWrite->getAssociatedLeptons()) particles_to_write.push_back(part);
+      for (auto const& part:candToWrite->getAssociatedJets()) particles_to_write.push_back(part);
+      for (auto const& part:candToWrite->getSortedDaughters()) particles_to_write.push_back(part);
+
+      for (auto const& part:particles_to_write){
+        lheQCDLOparticles_id.push_back(part->id);
+        lheQCDLOparticles_status.push_back(part->genStatus);
+        lheQCDLOparticles_px.push_back(part->x());
+        lheQCDLOparticles_py.push_back(part->y());
+        lheQCDLOparticles_pz.push_back(part->z());
+        lheQCDLOparticles_E.push_back(part->t());
+      }
+    }
+
+    delete candModified;
+    delete recaster;
+    delete genEvent;
+    for (auto& part:particleList) delete part;
+  }
+
   sample_wgt = rewgtBuilder->getOverallReweightingNormalization(currentTree);
   invalidReweightingWgts = !rewgtBuilder->checkWeightsBelowThreshold(currentTree);
+  // The weight below is only for bookkeeping purposes. It should not be multiplied.
+  sample_wgt_pairwiseComponent = rewgtBuilder->getSamplePairwiseNormalization(currentTree);
 
   // Record LHE MEs and K factors
   for (auto const& it:genInfo->extras.LHE_ME_weights) commonEntry.setNamedVal(it.first, it.second);
@@ -208,13 +347,14 @@ void produceReweightedGen(
   std::vector<TString> const validDataPeriods = SampleHelpers::getValidDataPeriods();
   size_t const nValidDataPeriods = validDataPeriods.size();
 
-  bool isGG = strSampleSet.Contains("GluGluH") || strSampleSet.Contains("GGH");
-  bool isVBF = strSampleSet.Contains("VBF");
-  bool const hasDirectHWW = (
-    strSampleSet.Contains("WminusH") || strSampleSet.Contains("WplusH")
-    ||
-    SampleHelpers::isHiggsToWWDecay(SampleHelpers::getHiggsSampleDecayMode(strSampleSet))
-    );
+  bool const isGG = strSampleSet.Contains("GluGluH") || strSampleSet.Contains("GGH");
+  bool const isVBF = strSampleSet.Contains("VBF");
+  bool const isWH = strSampleSet.Contains("WminusH") || strSampleSet.Contains("WplusH");
+  //bool const isVH = strSampleSet.Contains("WminusH") || strSampleSet.Contains("WplusH") || strSampleSet.Contains("ZH") || strSampleSet.Contains("HZJ");
+  bool const hasHWWDecay = SampleHelpers::isHiggsToWWDecay(SampleHelpers::getHiggsSampleDecayMode(strSampleSet));
+  bool const isPowheg = strSampleSet.Contains("POWHEG");
+  bool const hasDirectHWW = isWH || hasHWWDecay;
+  bool const isWHWW = isWH && hasDirectHWW;
 
   // Get sample specifications
   std::vector<TString> sampledirs;
@@ -232,6 +372,14 @@ void produceReweightedGen(
 
   curdir->cd();
 
+  // Set variables to allow recasting of topology
+  LooperFunctionHelpers::recastLHETopology = isPowheg && !isGG;
+  if (LooperFunctionHelpers::recastLHETopology) LooperFunctionHelpers::candScheme = (isVBF ? TVar::JJVBF : (isWH ? TVar::Had_WH : TVar::Had_ZH));
+
+  // Set decay mode interpretation
+  // Leave VVDecayMode as -1
+  LooperFunctionHelpers::VVMode = (hasHWWDecay ? MELAEvent::WWMode : MELAEvent::ZZMode);
+
   // Create the output file
   TString coutput = SampleHelpers::getSampleIdentifier(strSampleSet);
   HelperFunctions::replaceString(coutput, "_MINIAODSIM", "");
@@ -241,6 +389,7 @@ void produceReweightedGen(
   stroutput += ".root";
   TString stroutput_txt = stroutput;
   HelperFunctions::replaceString<TString, TString const>(stroutput_txt, ".root", ".txt");
+  TString stroutput_rewgtRcd = Form("%s/rewgtRcd_%s%s", coutput_main.Data(), coutput.Data(), ".root");
   TFile* foutput = TFile::Open(stroutput, "recreate");
   foutput->cd();
   BaseTree* tout = new BaseTree("SkimTree");
@@ -319,21 +468,16 @@ void produceReweightedGen(
   constexpr double tol_wgt = 5;
   float const thr_frac_Neff = (isGG ? 0.005 : 0.01);
   for (auto const& strME:strMEs){
-    MELAout << "Registering ME " << strME << " for reweighting..." << endl;
-    if (isGG) rewgtBuilder.addReweightingWeights(
+    double thr_wgt = 0.9995;
+    if (isGG){ /* Do nothing, 0.9995 is good enough. */ }
+    else if (strME == "p_Gen_JJEW_SIG_ghv1_1_MCFM"){ /* Do nothing, 0.9995 is good enough. */ }
+    else if (isVBF) thr_wgt = 0.999;
+    else if (isWHWW) thr_wgt = 0.995;
+
+    rewgtBuilder.addReweightingWeights(
       { strME, "p_Gen_CPStoBWPropRewgt" },
       ReweightingFunctions::getSimpleWeight,
-      0.9995, tol_wgt
-    );
-    else if (strME == "p_Gen_JJEW_SIG_ghv1_1_MCFM") rewgtBuilder.addReweightingWeights(
-      { strME, "p_Gen_CPStoBWPropRewgt" },
-      ReweightingFunctions::getSimpleWeight,
-      0.9995, tol_wgt
-    );
-    else rewgtBuilder.addReweightingWeights(
-      { strME, "p_Gen_CPStoBWPropRewgt" },
-      ReweightingFunctions::getSimpleWeight,
-      (isVBF ? 0.999 : 0.9995), tol_wgt
+      thr_wgt, tol_wgt
     );
   }
 
@@ -470,6 +614,14 @@ void produceReweightedGen(
   }
 
   rewgtBuilder.setup(0, &tree_normTree_pairs, thr_frac_Neff);
+
+  // Record the reweighting weights
+  {
+    TFile* foutput_rewgtRcd = TFile::Open(stroutput_rewgtRcd, "recreate");
+    rewgtBuilder.writeToFile(foutput_rewgtRcd);
+    foutput_rewgtRcd->Close();
+    curdir->cd();
+  }
 
   // Loop over all events
   theLooper.loop(true);

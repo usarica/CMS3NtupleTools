@@ -102,6 +102,8 @@ public:
   LorentzVector_t::Scalar deltaPhi(const ParticleObject& part) const{ return deltaPhi(part.phi()); }
   LorentzVector_t::Scalar deltaPhi(const ParticleObject* part) const{ return (part ? deltaPhi(*part) : LorentzVector_t::Scalar(0)); }
 
+  TLorentzVector p4_TLV() const{ return TLorentzVector(this->px(), this->py(), this->pz(), this->E()); }
+
   Vector3D_t vect() const{ return Vector3D_t(momentum.X(), momentum.Y(), momentum.Z()); }
   Vector2D_t vect_trans() const{ return Vector2D_t(momentum.X(), momentum.Y()); }
 
