@@ -129,6 +129,7 @@ scram setup mxnet-predict
 # cp NNKit/data/ak8/*.{json,params} $CMSSW_BASE/src/CMS3/NtupleMaker/test/
 # #######################
 
+./CMS3/NtupleMaker/setup.sh -j
 scram b -j
 
 # see comment in patchesToSource.sh
