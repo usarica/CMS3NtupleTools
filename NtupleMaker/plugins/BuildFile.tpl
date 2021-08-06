@@ -23,6 +23,7 @@
 <use   name="RecoEcal/EgammaCoreTools"/>
 <use   name="RecoEgamma/EgammaTools"/>
 <use   name="JetMETCorrections/Objects"/>
+<use   name="JetMETCorrections/Modules"/>
 <use   name="HLTrigger/HLTcore"/>
 <use   name="CMS3/Dictionaries"/>
 <use   name="EgammaAnalysis/ElectronTools"/>
@@ -34,16 +35,16 @@
 <use   name="MelaAnalytics/EventContainer"/>
 <use   name="MelaAnalytics/GenericMEComputer"/>
 <use   name="MelaAnalytics/CandidateLOCaster"/>
-<use   name="CMS3/MELAHelpers"/>
 <use   name="root"/>
 <use   name="clhep"/>
+<use   name="CMS3/NtupleMaker"/>
 
-<Flags CPPDEFINES="CMSSW_VERSION=$(shell echo ${CMSSW_VERSION}|sed -e s/CMSSW_// -e s/_//g -e s/patch\.//)"/>
-<Flags CPPDEFINES="CMSSW_VERSION_MAJOR=$(shell echo ${CMSSW_VERSION}|sed -e s/CMSSW_// -e s/_.*//g)"/>
-<Flags CPPDEFINES="CMSSW_VERSION_MINOR=$(shell echo ${CMSSW_VERSION}|sed -e s/CMSSW_// -e 's/_/ /g'|awk '{print $$2}')"/>
-<flags CPPFLAGS="-I$(CMSSW_BASE)/src/JHUGenMELA/MELA/interface/" />
-<flags CXXFLAGS="-g -O3"/>
 
-<export>
-   <lib name="1"/>
-</export>
+<library   file="*.cc" name="CMS3NtupleMakerPlugins">
+  <Flags CPPDEFINES="CMSSW_VERSION=.oOCMSSW_VERSIONOo."/>
+  <Flags CPPDEFINES="CMSSW_VERSION_MAJOR=.oOCMSSW_VERSION_MAJOROo."/>
+  <Flags CPPDEFINES="CMSSW_VERSION_MINOR=.oOCMSSW_VERSION_MINOROo."/>
+  <flags CPPFLAGS="-I$(CMSSW_BASE)/src/JHUGenMELA/MELA/interface/" />
+  <flags CXXFLAGS="-g -O3"/>
+  <flags EDM_PLUGIN="1"/>
+</library>
