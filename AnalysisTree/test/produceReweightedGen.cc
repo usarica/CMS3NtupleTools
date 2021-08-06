@@ -22,15 +22,19 @@
   BRANCH_COMMAND(float, genLeptonicDecay_pt) \
   BRANCH_COMMAND(float, genLeptonicDecay_mass)
 #define BRANCH_VECTOR_COMMANDS \
-  BRANCH_COMMAND(cms3_id_t, lhemothers_id) \
+  BRANCH_COMMAND(cms3_id_t, lheparticles_id) \
+  BRANCH_COMMAND(cms3_id_t, lheparticles_status) \
   BRANCH_COMMAND(cms3_id_t, lheQCDLOparticles_id) \
   BRANCH_COMMAND(cms3_id_t, lheQCDLOparticles_status) \
   BRANCH_COMMAND(cms3_id_t, genparticles_id) \
-  BRANCH_COMMAND(float, lhemothers_pz) \
   BRANCH_COMMAND(float, lheQCDLOparticles_px) \
   BRANCH_COMMAND(float, lheQCDLOparticles_py) \
   BRANCH_COMMAND(float, lheQCDLOparticles_pz) \
   BRANCH_COMMAND(float, lheQCDLOparticles_E) \
+  BRANCH_COMMAND(float, lheparticles_px) \
+  BRANCH_COMMAND(float, lheparticles_py) \
+  BRANCH_COMMAND(float, lheparticles_pz) \
+  BRANCH_COMMAND(float, lheparticles_E) \
   BRANCH_COMMAND(float, genparticles_pt) \
   BRANCH_COMMAND(float, genparticles_eta) \
   BRANCH_COMMAND(float, genparticles_phi) \
@@ -131,10 +135,6 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
       if (std::abs(part->pdgId())==15) hasTaus = true;
       n_leps_nus++;
     }
-    else if (part->status()==-1){
-      lhemothers_id.push_back(part->pdgId());
-      lhemothers_pz.push_back(part->pz());
-    }
   }
   passGenCompSelection &= (n_leps_nus==4);
   passGenCompSelection &= (!hasTaus);
@@ -227,7 +227,6 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
 
     MELACandidate* genCand = nullptr;
     MELACandidate* candModified = nullptr;
-    MELACandidate* candToWrite = genCand;
 
     genEvent->constructVVCandidates(VVMode, VVDecayMode);
     genEvent->addVVCandidateAppendages();
@@ -240,6 +239,28 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     }
     if (!genCand) genCand = HiggsComparators::candidateSelector(*genEvent, HiggsComparators::BestZ1ThenZ2ScSumPt, VVMode);
 
+    // Write the default LHE particles
+    {
+      std::vector<MELAParticle*> particles_to_write;
+      for (auto const& part:genCand->getMothers()) particles_to_write.push_back(part);
+      for (auto const& part:genCand->getAssociatedPhotons()) particles_to_write.push_back(part);
+      // No need to return neutrinos. They are already part of the leptons collection.
+      //for (auto const& part:genCand->getAssociatedNeutrinos()) particles_to_write.push_back(part);
+      for (auto const& part:genCand->getAssociatedLeptons()) particles_to_write.push_back(part);
+      for (auto const& part:genCand->getAssociatedJets()) particles_to_write.push_back(part);
+      for (auto const& part:genCand->getSortedDaughters()) particles_to_write.push_back(part);
+
+      for (auto const& part:particles_to_write){
+        lheparticles_id.push_back(part->id);
+        lheparticles_status.push_back(part->genStatus);
+        lheparticles_px.push_back(part->x());
+        lheparticles_py.push_back(part->y());
+        lheparticles_pz.push_back(part->z());
+        lheparticles_E.push_back(part->t());
+      }
+    }
+
+    MELACandidate* candToWrite = genCand;
     MELACandidateRecaster* recaster = nullptr;
     if (recastLHETopology){
       recaster = new MELACandidateRecaster(candScheme);
@@ -258,11 +279,13 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
       candToWrite = candModified;
     }
 
+    // Write the recasted LHE particles
     {
       std::vector<MELAParticle*> particles_to_write;
       for (auto const& part:candToWrite->getMothers()) particles_to_write.push_back(part);
       for (auto const& part:candToWrite->getAssociatedPhotons()) particles_to_write.push_back(part);
-      for (auto const& part:candToWrite->getAssociatedNeutrinos()) particles_to_write.push_back(part);
+      // No need to return neutrinos. They are already part of the leptons collection.
+      //for (auto const& part:candToWrite->getAssociatedNeutrinos()) particles_to_write.push_back(part);
       for (auto const& part:candToWrite->getAssociatedLeptons()) particles_to_write.push_back(part);
       for (auto const& part:candToWrite->getAssociatedJets()) particles_to_write.push_back(part);
       for (auto const& part:candToWrite->getSortedDaughters()) particles_to_write.push_back(part);
