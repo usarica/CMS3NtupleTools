@@ -354,7 +354,9 @@ void getDistributions(
   std::vector<TString> const strBtaggingRegionTitles{ "N_{b}^{loose}=0", "N_{b}^{tight}#geq1" }; // Label is 'tight' in the latter bc of how the WP is defined in the AN/paper
   const unsigned int nbins_nbtagged = strBtaggingRegionNames.size();
 
-  constexpr float thr_corr_pTmiss = 60.f;
+  constexpr float thr_corr_pTmiss = 60.f; // Absolute minimum pTmiss to skim events
+  constexpr float thrlow_pTmiss_SB_lowerMET = 90.f;
+  constexpr float thrhigh_pTmiss_SB_lowerMET = 125.f;
   constexpr float thr_corr_pTboson = 25.f;
   constexpr float thr_corr_mll = 201.2f;
 
@@ -373,6 +375,7 @@ void getDistributions(
   TFile* foutput = TFile::Open(stroutput, "recreate");
   transfer_list.push_back(stroutput);
   TDirectory* dir_hists_SR = foutput->mkdir("hists_SR");
+  TDirectory* dir_hists_SB_lowerMET = foutput->mkdir("hists_SB_lowerMET");
   TDirectory* dir_hists_SB_near = foutput->mkdir("hists_SB_near");
   TDirectory* dir_hists_SB_ttbar = foutput->mkdir("hists_SB_ttbar");
   TDirectory* dir_ratios_SB_near = foutput->mkdir("ratios_SB_near");
@@ -384,8 +387,8 @@ void getDistributions(
   std::vector<TH1F*> h_incorr_list[2][2]; // [Data, non-res MC][mumu, ee] for Nj>=0
   std::vector<TFile*> finputs_prevstep;
   if (istep>0){
-    auto const& strBtaggingRegionName = strBtaggingRegionNames.at(1);
-    auto const& strNjetsName = strNjetsNames.at(nbins_njets-2);
+    auto const& strBtaggingRegionName = strBtaggingRegionNames.at(1); // Inverted b-med
+    auto const& strNjetsName = strNjetsNames.at(nbins_njets-2); // All Nj>=1
     for (unsigned int jstep=0; jstep<istep; jstep++){
       TString strinput_prevstep = stroutput;
       TString ownstep = Form("Step%u", istep);
@@ -677,6 +680,7 @@ void getDistributions(
   unsigned int const nprocesses = sgroups_allhists.size();
 
   std::vector<ExtendedHistogram_1D_f*> hlist;
+  std::vector<ExtendedHistogram_1D_f*> hlist_SB_lowerMET;
   std::vector<ExtendedHistogram_1D_f*> hlist_SB_near;
   std::vector<ExtendedHistogram_1D_f*> hlist_SB_ttbar;
   for (auto const& sgroup:sgroups_allhists){
@@ -731,7 +735,7 @@ void getDistributions(
           ehtmp = new ExtendedHistogram_1D_f(Form("h_SR_%s_%s_%s", NAME, strCutName.Data(), sgroup.Data()), strCutTitle, BINNING); \
           ehtmp->resetProfiles(); \
           htmp = ehtmp->getHistogram(); \
-          htmp->GetYaxis()->SetTitle(Form("%s / bin", (TString(NAME).Contains("mJ_mass60to130") ? "Events" : "Jets"))); \
+          htmp->GetYaxis()->SetTitle(Form("%s / bin", (!TString(NAME).Contains("mJ_mass60to130") ? "Events" : "Jets"))); \
           htmp->SetLineColor(scolor); htmp->SetMarkerColor(scolor); htmp->SetLineWidth(2); \
           if (!strChannelName.Contains("rewgt") && sgroup!="Data") htmp->SetFillColor(scolor); \
           else if (sgroup!="Data") htmp->SetLineStyle(2); \
@@ -760,7 +764,42 @@ void getDistributions(
               HISTOGRAM_COMMAND(KDspec.KDname.Data(), binning_KD);
             }
           }
+#undef HISTOGRAM_COMMAND
 
+          dir_hists_SB_lowerMET->cd();
+#define HISTOGRAM_COMMAND(NAME, BINNING) \
+          ehtmp = new ExtendedHistogram_1D_f(Form("h_SB_lowerMET_%s_%s_%s", NAME, strCutName.Data(), sgroup.Data()), strCutTitle, BINNING); \
+          ehtmp->resetProfiles(); \
+          htmp = ehtmp->getHistogram(); \
+          htmp->GetYaxis()->SetTitle(Form("%s / bin", (!TString(NAME).Contains("mJ_mass60to130") ? "Events" : "Jets"))); \
+          htmp->SetLineColor(scolor); htmp->SetMarkerColor(scolor); htmp->SetLineWidth(2); \
+          if (!strChannelName.Contains("rewgt") && sgroup!="Data") htmp->SetFillColor(scolor); \
+          else if (sgroup!="Data") htmp->SetLineStyle(2); \
+          hlist_SB_lowerMET.push_back(ehtmp);
+
+          if (!fast_mode){
+            HISTOGRAM_COMMAND("mTZZ", binning_mTZZ);
+            HISTOGRAM_COMMAND("mll", binning_mll);
+            /*HISTOGRAM_COMMAND("pTll", binning_pTll)*/;
+            HISTOGRAM_COMMAND("pTl1", binning_pTl1);
+            HISTOGRAM_COMMAND("pTl2", binning_pTl2);
+            HISTOGRAM_COMMAND("pTmiss", binning_pTmiss);
+            HISTOGRAM_COMMAND("nvtxs", binning_nvtxs);
+            HISTOGRAM_COMMAND("abs_dPhi_pTboson_pTmiss", binning_abs_dPhi_pTboson_pTmiss);
+            HISTOGRAM_COMMAND("abs_dPhi_pTbosonjets_pTmiss", binning_abs_dPhi_pTbosonjets_pTmiss);
+            HISTOGRAM_COMMAND("min_abs_dPhi_pTj_pTmiss", binning_min_abs_dPhi_pTj_pTmiss);
+            HISTOGRAM_COMMAND("mjj", binning_mjj);
+            HISTOGRAM_COMMAND("Nak4jets", binning_Nak4jets);
+            /*HISTOGRAM_COMMAND("Nak4jetsMass60", binning_Nak4jets_mass60)*/;
+            HISTOGRAM_COMMAND("mJ_mass60to130", binning_mJ_mass60to130);
+            /*HISTOGRAM_COMMAND("Nak8jets", binning_Nak8jets)*/;
+            HISTOGRAM_COMMAND("Nak8jetsMass60to130", binning_Nak8jets_mass60to130);
+            /*HISTOGRAM_COMMAND("Nak8jetsMass140", binning_Nak8jets_mass140)*/;
+            for (auto const& KDspec:KDlist){
+              ExtendedBinning binning_KD(10, 0, 1, KDspec.KDlabel);
+              HISTOGRAM_COMMAND(KDspec.KDname.Data(), binning_KD);
+            }
+          }
 #undef HISTOGRAM_COMMAND
 
           dir_hists_SB_near->cd();
@@ -778,7 +817,6 @@ void getDistributions(
             HISTOGRAM_COMMAND("pTmiss_pTboson_geq_55", binning_pTmiss_vbin);
           }
           HISTOGRAM_COMMAND("pTmiss_pTboson_geq_25", binning_pTmiss_vbin);
-
 #undef HISTOGRAM_COMMAND
 
           dir_hists_SB_ttbar->cd();
@@ -796,7 +834,6 @@ void getDistributions(
             HISTOGRAM_COMMAND("pTmiss_pTboson_geq_55", binning_pTmiss_vbin);
           }
           HISTOGRAM_COMMAND("pTmiss_pTboson_geq_25", binning_pTmiss_vbin);
-
 #undef HISTOGRAM_COMMAND
 
           foutput->cd();
@@ -1158,11 +1195,21 @@ void getDistributions(
       bool const pass_SR_mll = check_mll(dilepton_mass, is_ee || is_mumu);
       bool const pass_sel_SR = pass_SR_pTmiss && pass_SR_pTboson && pass_SR_mll;
       bool const pass_sel_SR_all_nodecay = pass_sel_SR && event_n_ak4jets_pt30_btagged_loose==0;
+      bool const pass_sel_SB_lowerMET =
+        pass_SR_pTboson && pass_SR_mll && !pass_SR_pTmiss
+        &&
+        event_pTmiss>=thrlow_pTmiss_SB_lowerMET && event_pTmiss<thrhigh_pTmiss_SB_lowerMET; // Lower MET SB has MET always within [90, 125) GeV.
       bool const pass_sel_SB = !pass_SR_mll && std::abs(dilepton_mass-MZ_VAL_CUTS)<30.f; // Do not OR !pass_SR_mll with Nbmed>0 because one might still get DY contamination around the Z peak
       bool const pass_sel_SB_ttbar = dilepton_mass>=MZ_VAL_CUTS+30.f && dilepton_mass<thr_corr_mll;
 
       // Fill histograms
-      if (pass_sel_SR){
+
+      // Both SR and lower MET SB fill an extended list of histograms.
+      // Therefore, we differentiate which vector to fill after passing the common condition.
+      if (pass_sel_SR || pass_sel_SB_lowerMET){
+        // Differentiate which histogram vector to use.
+        std::vector<ExtendedHistogram_1D_f*> const& hlist_selected = (pass_sel_SR ? hlist : hlist_SB_lowerMET);
+
         unsigned int out_n_ak4jets_pt30_mass60 = 0;
         ROOT::Math::PtEtaPhiMVector ak4jet_leadingpt, ak4jet_subleadingpt;
         for (unsigned int ijet=0; ijet<ak4jets_mass->size(); ijet++){
@@ -1211,7 +1258,7 @@ void getDistributions(
           KDspec.KD->update(KDvars, event_mZZ); // Use mZZ!
         }
         // Fill histograms
-        for (auto& hh:hlist){
+        for (auto& hh:hlist_selected){
           TString hname = hh->getName();
           if (
             !(
@@ -1470,6 +1517,11 @@ void getDistributions(
     HelperFunctions::wipeOverUnderFlows(hist, false, false);
     dir_hists_SR->WriteTObject(hist);
   }
+  for (auto& hh:hlist_SB_lowerMET){
+    TH1F* hist = hh->getHistogram();
+    HelperFunctions::wipeOverUnderFlows(hist, false, false);
+    dir_hists_SB_lowerMET->WriteTObject(hist);
+  }
   for (auto& hh:hlist_SB_near){
     TH1F* hist = hh->getHistogram();
     HelperFunctions::wipeOverUnderFlows(hist, false, false);
@@ -1605,6 +1657,7 @@ void getDistributions(
   dir_ratios_SB_near->Close();
   dir_hists_SB_ttbar->Close();
   dir_hists_SB_near->Close();
+  dir_hists_SB_lowerMET->Close();
   dir_hists_SR->Close();
 
   foutput->Close();
@@ -2226,7 +2279,8 @@ void makePlots_fcorr(
 
 void makePlots(
   TString period, TString prodVersion, TString strdate,
-  SystematicsHelpers::SystematicVariationTypes theGlobalSyst
+  SystematicsHelpers::SystematicVariationTypes theGlobalSyst,
+  unsigned short index_SR_SB = 0 // SR: 0, lower MET SB: 1, mll-near SB: 2, mll-ttbar SB: 3
 ){
   if (!SampleHelpers::checkRunOnCondor()) std::signal(SIGINT, SampleHelpers::setSignalInterrupt);
 
@@ -2251,8 +2305,6 @@ void makePlots(
   std::vector<TString> const strBtaggingRegionTitles{ "N_{b}^{loose}=0", "N_{b}^{tight}#geq1" };
   const unsigned int nbins_nbtagged = strBtaggingRegionNames.size();
 
-  constexpr float thr_corr_pTmiss = 60;
-
   TDirectory* curdir = gDirectory;
 
   TString cinput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Histograms/" + period;
@@ -2260,7 +2312,22 @@ void makePlots(
     MELAerr << "Input folder " << cinput_main << " does not exist locally and on the worker directory." << endl;
     exit(1);
   }
-  TString const coutput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Plots/" + period + "/Distributions";
+  TString strSRSB;
+  TString strSRSBlabel;
+  switch (index_SR_SB){
+  case 0:
+    strSRSB = "SR";
+    strSRSBlabel = "Signal region";
+    break;
+  case 1:
+    strSRSB = "SB_lowerMET";
+    strSRSBlabel = "p_{T}^{miss}: [90, %i) GeV SB";
+    break;
+  default:
+    MELAerr << "index_SR_SB=" << index_SR_SB << " is not implemented." << endl;
+    return;
+  }
+  TString const coutput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Plots/" + period + "/Distributions/" + strSRSB;
   gSystem->mkdir(coutput_main, true);
 
   TString stroutput = coutput_main + Form("/plots_%s", strSyst.Data());
@@ -2357,7 +2424,7 @@ void makePlots(
             std::vector<TH1F*> hlist_channel_rewgt_uncorr;
             std::vector<TH1F*> hlist_channel_rewgt_corr;
             for (auto const& strprocess:process_names){
-              TString hname = Form("hists_SR/h_SR_%s_%s_%s", varname.Data(), strCutName.Data(), strprocess.Data());
+              TString hname = Form("hists_%s/h_%s_%s_%s_%s", strSRSB.Data(), strSRSB.Data(), varname.Data(), strCutName.Data(), strprocess.Data());
               finputs.front()->cd();
               hlist_channel_raw.push_back((TH1F*) finputs.front()->Get(hname));
               foutput->cd();
@@ -2369,7 +2436,7 @@ void makePlots(
                 hlist_channel_raw.back()->Add(hlist_channel_raw.at(hlist_channel_raw.size()-2));
               }
               if (ic<2 && (strprocess=="AllMC_NonRes" || strprocess=="Data")){
-                TString hname = Form("hists_SR/h_SR_%s_%s_%s", varname.Data(), strCutName_rewgt.Data(), strprocess.Data());
+                TString hname = Form("hists_%s/h_%s_%s_%s_%s", strSRSB.Data(), strSRSB.Data(), varname.Data(), strCutName_rewgt.Data(), strprocess.Data());
                 finputs.front()->cd();
                 hlist_channel_rewgt_uncorr.push_back((TH1F*) finputs.front()->Get(hname));
                 if (strprocess=="Data"){
@@ -2429,8 +2496,12 @@ void makePlots(
               hlabels.push_back(process_labels.at(ip));
             }
 
-            TString canvasname = Form("c_SR_%s_%s", varname.Data(), strCutName.Data());
+            TString canvasname = Form("c_%s_%s_%s", strSRSB.Data(), varname.Data(), strCutName.Data());
             TString selectionLabels = hlist_channel_raw.front()->GetTitle();
+            if (strSRSBlabel!=""){
+              TString strSRSBlabel_eff = Form(strSRSBlabel.Data(), (!strNjetsName.Contains("geq_2") ? 125 : 140));
+              selectionLabels = selectionLabels + "|" + strSRSBlabel_eff;
+            }
             makePlot(
               coutput_main, lumi, canvasname,
               hplot, hlabels,

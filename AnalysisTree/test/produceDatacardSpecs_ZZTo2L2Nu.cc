@@ -1354,7 +1354,7 @@ void getDCSpecs_ZZTo2L2Nu(
 
           TString canvasname = TString("c_") + tplname + "_" + strChannel + "_" + strCategory + "_" + SampleHelpers::getDataPeriod() + "_" + varname;
           PlotCanvas plot(canvasname, 512, 512, 1, 2, 0.25, 1., 0.2, 0.0875, 0., 0.1, 0.3);
-          plot.addCMSLogo(kPreliminary, theSqrts, lumi);
+          plot.addCMSLogo(kPreliminary, theSqrts, lumi, 0);
           MELAout << "Preparing canvas " << canvasname << "..." << endl;
 
           foutput_proj->cd();

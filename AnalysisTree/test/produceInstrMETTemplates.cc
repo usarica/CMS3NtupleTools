@@ -359,6 +359,8 @@ void getTemplateIntermediate_ZZTo2L2Nu(
     // Hack syst name to introduce category indicator
     TString strSystDCcat = strSystDC;
     if (strSystDC.Contains("llGnorm_ZG")) HelperFunctions::replaceString<TString, TString const>(strSystDCcat, "llGnorm_ZG", Form("llGnorm_ZG_%s", strCatName.Data()));
+    else if (strSystDC.Contains("singlephotonTF_ee")) HelperFunctions::replaceString<TString, TString const>(strSystDCcat, "singlephotonTF_ee", Form("singlephotonTF_ee_%s", strCatName.Data()));
+    else if (strSystDC.Contains("singlephotonTF_mumu")) HelperFunctions::replaceString<TString, TString const>(strSystDCcat, "singlephotonTF_mumu", Form("singlephotonTF_mumu_%s", strCatName.Data()));
 
     TString stroutput = coutput_main + "/" + getTemplateFileName(strChannel, strCatName, strIntermediateProcName, strSystDCcat);
     std::vector<TFile*> foutputs; foutputs.reserve(9);
@@ -1286,7 +1288,8 @@ void getTemplate_ZZTo2L2Nu(
   gSystem->mkdir(coutput_main, true);
 
   for (unsigned int icat=0; icat<nCats; icat++){
-    MELAout << "Producing templates for " << strCatNames.at(icat) << ":" << endl;
+    TString const& strCatName = strCatNames.at(icat);
+    MELAout << "Producing templates for " << strCatName << ":" << endl;
 
     const double thr_mTZZ = (icat==2 ? 450 : -1);
 
@@ -1309,7 +1312,7 @@ void getTemplate_ZZTo2L2Nu(
       }
     }
 
-    TString stroutput_txt = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), "InstrMET", "Nominal");
+    TString stroutput_txt = coutput_main + "/" + getTemplateFileName(strChannel, strCatName, "InstrMET", "Nominal");
     HelperFunctions::replaceString<TString, TString const>(stroutput_txt, "_Nominal.root", ".txt");
     MELAout.open(stroutput_txt);
 
@@ -1324,7 +1327,7 @@ void getTemplate_ZZTo2L2Nu(
       procname_syst_h2D_map[procname] = std::unordered_map<TString, TH2F*>();
       procname_syst_h3D_map[procname] = std::unordered_map<TString, TH3F*>();
 
-      TString strfname_core = getTemplateFileName(strChannel, strCatNames.at(icat), Form("InstrMET_%s", procname.Data()), "Nominal"); // Use 'Nominal.root' as an ersatz
+      TString strfname_core = getTemplateFileName(strChannel, strCatName, Form("InstrMET_%s", procname.Data()), "Nominal"); // Use 'Nominal.root' as an ersatz
       HelperFunctions::replaceString<TString, TString const>(strfname_core, "Nominal.root", "");
       for (auto const& fname:inputfnames){
         if (fname.Contains(".root") && fname.Contains(strfname_core)){
@@ -1375,7 +1378,7 @@ void getTemplate_ZZTo2L2Nu(
       TString const& systname = syst_procname_pair.first;
       MELAout << "\t- Processing " << systname << "..." << endl;
 
-      TString stroutput = coutput_main + "/" + getTemplateFileName(strChannel, strCatNames.at(icat), "InstrMET", systname);
+      TString stroutput = coutput_main + "/" + getTemplateFileName(strChannel, strCatName, "InstrMET", systname);
       TFile* foutput = TFile::Open(stroutput, "recreate");
       syst_outfile_map[systname] = foutput;
       SampleHelpers::addToCondorTransferList(stroutput);
@@ -1680,6 +1683,27 @@ void runTemplateChain(
     dilepton_id,
     includeBoostedHadVHCategory, includeResolvedHadVHCategory
   );
+}
+
+void runTemplateChain_all(
+  TString period, TString ntupleVersion, TString strdate,
+  bool includeBoostedHadVHCategory, bool includeResolvedHadVHCategory,
+  bool skipIntermediates = false
+){
+  std::vector<cms3_id_t> const dilepton_ids{ -121, -169 };
+  for (auto const& dilepton_id:dilepton_ids){
+    for (int iac=0; iac<(int) ACHypothesisHelpers::nACHypotheses; iac++){
+      ACHypothesisHelpers::ACHypothesis AChypo = static_cast<ACHypothesisHelpers::ACHypothesis>(iac);
+      if (AChypo==ACHypothesisHelpers::kL1ZGs) continue;
+      runTemplateChain(
+        period, ntupleVersion, strdate,
+        AChypo,
+        dilepton_id,
+        includeBoostedHadVHCategory, includeResolvedHadVHCategory,
+        skipIntermediates
+      );
+    }
+  }
 }
 
 void createFinalTemplateSlices(TString cinput, TString coutput_main){
