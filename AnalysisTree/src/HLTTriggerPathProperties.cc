@@ -2,11 +2,11 @@
 #include "HelperFunctions.h"
 #include "SamplesCore.h"
 #include "HLTTriggerPathProperties.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 HLTTriggerPathProperties::HLTTriggerPathProperties(){}
@@ -39,13 +39,13 @@ void HLTTriggerPathProperties::setupName(){
   size_t pos = name.find("*");
   if (pos!=std::string::npos){
     if (pos != name.length()-1){
-      MELAerr << "HLTTriggerPathProperties::HLTTriggerPathProperties: Trigger name " << name << " can only contain * as the last character. Please fix the name passed!" << endl;
+      IVYerr << "HLTTriggerPathProperties::HLTTriggerPathProperties: Trigger name " << name << " can only contain * as the last character. Please fix the name passed!" << endl;
       assert(0);
     }
     name = name.substr(0, pos);
     pos = pos-1;
     if (name.at(pos)!='v' || name.at(pos-1)!='_'){
-      MELAerr << "HLTTriggerPathProperties::HLTTriggerPathProperties: Trigger name " << name << " has to end with _v. Please fix the name passed!" << endl;
+      IVYerr << "HLTTriggerPathProperties::HLTTriggerPathProperties: Trigger name " << name << " has to end with _v. Please fix the name passed!" << endl;
       assert(0);
     }
   }

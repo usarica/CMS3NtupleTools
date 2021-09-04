@@ -6,12 +6,12 @@
 #include "HelperFunctions.h"
 #include "TDirectory.h"
 #include "TFile.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
 using namespace SampleHelpers;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 MuonScaleFactorHandler::MuonScaleFactorHandler() : ScaleFactorHandlerBase()
@@ -28,7 +28,7 @@ bool MuonScaleFactorHandler::setup(){
   bool res = true;
   this->reset();
 
-  if (verbosity>=TVar::INFO) MELAout << "MuonScaleFactorHandler::setup: Setting up efficiency and SF histograms for year " << SampleHelpers::getDataYear() << endl;
+  if (verbosity>=MiscUtils::INFO) IVYout << "MuonScaleFactorHandler::setup: Setting up efficiency and SF histograms for year " << SampleHelpers::getDataYear() << endl;
 
   TDirectory* curdir = gDirectory;
   TDirectory* uppermostdir = SampleHelpers::rootTDirectory;
@@ -66,7 +66,7 @@ bool MuonScaleFactorHandler::setup(){
   {
     TString cinput = cinput_main + "Efficiencies_mumu_id_looseIso_tightIso.root";
     if (!HostHelpers::FileReadable(cinput.Data())){
-      MELAerr << "MuonScaleFactorHandler::setup: File " << cinput << " is not readable." << endl;
+      IVYerr << "MuonScaleFactorHandler::setup: File " << cinput << " is not readable." << endl;
       assert(0);
     }
 
@@ -172,7 +172,7 @@ void MuonScaleFactorHandler::evalScaleFactorFromHistogram(float& theSF, float& t
 void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, float const& pt, float const& eta, bool const& passId, bool const& passLooseIso, bool const& passTightIso, float& val, float* effval) const{
   using namespace SystematicsHelpers;
 
-  if (verbosity>=TVar::DEBUG) MELAout
+  if (verbosity>=MiscUtils::DEBUG) IVYout
     << "MuonScaleFactorHandler::getIdIsoSFAndEff: Evaluating " << (effval ? "SFs and efficiencies" : "SFs")
     << " for pT=" << pt
     << ", eta=" << eta
@@ -205,7 +205,7 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
   if (syst == eMuEffDn) activeSysts = std::vector<SystematicVariationTypes>{ eMuEffStatDn, eMuEffSystDn };
   else if (syst == eMuEffUp) activeSysts = std::vector<SystematicVariationTypes>{ eMuEffStatUp, eMuEffSystUp };
   else if (HelperFunctions::checkListVariable(allowedSysts, syst)) activeSysts = std::vector<SystematicVariationTypes>{ syst };
-  if (verbosity>=TVar::DEBUG) MELAout << "\t- Active systematics: " << activeSysts << endl;
+  if (verbosity>=MiscUtils::DEBUG) IVYout << "\t- Active systematics: " << activeSysts << endl;
 
   // Obtain nominal histograms
   std::vector<ExtendedHistogram_2D_f const*> hlist_eff_mc; hlist_eff_mc.reserve(n_ID_iso_types);
@@ -290,15 +290,15 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
       tmp_eff_unscaled = 1. - eff_nominal_unscaled_list.at(isel);
       tmp_eff_scaled = 1. - eff_nominal_scaled_list.at(isel);
     }
-    if (verbosity>=TVar::DEBUG){
-      if (isel==0) MELAout << "\t- Nominal ID efficiency ";
-      else if (isel==1) MELAout << "\t- Nominal loose iso. efficiency ";
-      else MELAout << "\t- Nominal tight iso. efficiency ";
-      MELAout << "(pass/fail, unscaled, scaled, SF) = (" << checkFlag << ", " << tmp_eff_unscaled << ", " << tmp_eff_scaled << ", " << tmp_eff_scaled / tmp_eff_unscaled << ")" << endl;
+    if (verbosity>=MiscUtils::DEBUG){
+      if (isel==0) IVYout << "\t- Nominal ID efficiency ";
+      else if (isel==1) IVYout << "\t- Nominal loose iso. efficiency ";
+      else IVYout << "\t- Nominal tight iso. efficiency ";
+      IVYout << "(pass/fail, unscaled, scaled, SF) = (" << checkFlag << ", " << tmp_eff_unscaled << ", " << tmp_eff_scaled << ", " << tmp_eff_scaled / tmp_eff_unscaled << ")" << endl;
     }
 
     if (tmp_eff_unscaled<=0.f || tmp_eff_scaled<0.f){
-      if (verbosity>=TVar::ERROR) MELAerr
+      if (verbosity>=MiscUtils::ERROR) IVYerr
         << "MuonScaleFactorHandler::getIdIsoSFAndEff: Nominal unscaled, scaled eff = "
         << tmp_eff_unscaled << ", " << tmp_eff_scaled << " at selection WP " << isel
         << " for pT=" << pt
@@ -376,7 +376,7 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
               evalScaleFactorFromHistogram(SF_val, val_err, pt, eta, **it_SF, false, false);
               *it_eff_syst_scaled_val = std::max(0.f, std::min(1.f, SF_val * (*it_eff_nominal_unscaled_val)));
 
-              if (verbosity>=TVar::DEBUG) MELAout
+              if (verbosity>=MiscUtils::DEBUG) IVYout
                 << "\t\t- Evaluating SF for syst " << asyst << ". SF_syst = " << SF_val << ", eff = " << *it_eff_syst_scaled_val
                 << " from histogram " << (*it_SF)->getName() << endl;
             }
@@ -389,7 +389,7 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
                 evalScaleFactorFromHistogram(SF_val, val_err, pt, eta, **it_SF_cpl, false, false);
                 *it_eff_syst_scaled_cpl_val = std::max(0.f, std::min(1.f, SF_val * (*it_eff_nominal_unscaled_val)));
 
-                if (verbosity>=TVar::DEBUG) MELAout
+                if (verbosity>=MiscUtils::DEBUG) IVYout
                   << "\t\t- Evaluating complementary SF for syst " << asyst << ". SF_syst = " << SF_val << ", eff = " << *it_eff_syst_scaled_cpl_val
                   << " from histogram " << (*it_SF_cpl)->getName() << endl;
               }
@@ -445,7 +445,7 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
       float SF_syst_cpl = eff_syst_cpl / eff_nominal_unscaled_val;
       if (activeSysts.size() == 1) SF_err_val = SF_syst - SF_nominal_val;
       else{
-        if (verbosity>=TVar::DEBUG) MELAout
+        if (verbosity>=MiscUtils::DEBUG) IVYout
           << "\t\t- Adding SF for syst " << asyst << ". SF_syst = " << SF_syst << ", SF_syst_cpl = " << SF_syst_cpl
           << ", SF_nominal=" << SF_nominal_val
           << ", current SF error value = " << SF_err_val
@@ -467,7 +467,7 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
 
   if (!obj) return;
   if (!obj->extras.is_genMatched_prompt) return;
-  if (verbosity>=TVar::DEBUG) MELAout << "MuonScaleFactorHandler::getIdIsoSFAndEff: Electron gen matching flags: " << obj->extras.is_genMatched << ", " << obj->extras.is_genMatched_prompt << endl;
+  if (verbosity>=MiscUtils::DEBUG) IVYout << "MuonScaleFactorHandler::getIdIsoSFAndEff: Electron gen matching flags: " << obj->extras.is_genMatched << ", " << obj->extras.is_genMatched_prompt << endl;
 
   bool passKin = obj->testSelectionBit(MuonSelectionHelpers::bit_preselectionTight_kin);
   if (!passKin) return;

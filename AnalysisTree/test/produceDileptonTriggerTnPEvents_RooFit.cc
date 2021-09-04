@@ -261,7 +261,7 @@ bool checkOrthogonalTrigger(TriggerHelpers::TriggerType const& type, float const
     else if (year == 2017) res = false;
     else if (year == 2018) res = false;
     else{
-      MELAerr << "checkOrthogonalTrigger: Year " << year << " does not have type " << type << " implemented!" << endl;
+      IVYerr << "checkOrthogonalTrigger: Year " << year << " does not have type " << type << " implemented!" << endl;
       assert(0);
     }
     break;
@@ -272,7 +272,7 @@ bool checkOrthogonalTrigger(TriggerHelpers::TriggerType const& type, float const
     else if (year == 2017) res = (event_pTmiss>=220.f);
     else if (year == 2018) res = (event_pTmiss>=220.f);
     else{
-      MELAerr << "checkOrthogonalTrigger: Year " << year << " does not have type " << type << " implemented!" << endl;
+      IVYerr << "checkOrthogonalTrigger: Year " << year << " does not have type " << type << " implemented!" << endl;
       assert(0);
     }
     break;
@@ -283,7 +283,7 @@ bool checkOrthogonalTrigger(TriggerHelpers::TriggerType const& type, float const
     else if (year == 2017) res = false;
     else if (year == 2018) res = false;
     else{
-      MELAerr << "checkOrthogonalTrigger: Year " << year << " does not have type " << type << " implemented!" << endl;
+      IVYerr << "checkOrthogonalTrigger: Year " << year << " does not have type " << type << " implemented!" << endl;
       assert(0);
     }
     break;
@@ -294,7 +294,7 @@ bool checkOrthogonalTrigger(TriggerHelpers::TriggerType const& type, float const
     else if (year == 2017) res = (event_pTmiss>=130.f && ak4jets_MHT>=130.f);
     else if (year == 2018) res = (event_pTmiss>=130.f && ak4jets_MHT>=130.f);
     else{
-      MELAerr << "checkOrthogonalTrigger: Year " << year << " does not have type " << type << " implemented!" << endl;
+      IVYerr << "checkOrthogonalTrigger: Year " << year << " does not have type " << type << " implemented!" << endl;
       assert(0);
     }
     break;
@@ -317,7 +317,7 @@ bool checkOrthogonalTrigger(TriggerHelpers::TriggerType const& type, float const
       (ak4jets_HT>=880.f && event_pTmiss>=83.f && ak4jets_MHT>=83.f)
       );
     else{
-      MELAerr << "checkOrthogonalTrigger: Year " << year << " does not have type " << type << " implemented!" << endl;
+      IVYerr << "checkOrthogonalTrigger: Year " << year << " does not have type " << type << " implemented!" << endl;
       assert(0);
     }
     break;
@@ -437,7 +437,7 @@ void getEfficiencyHistograms(
     foutput->cd();
     TChain* tin = new TChain("SkimTree");
     int nfiles = tin->Add(cinput);
-    MELAout << "\t- Successfully added " << nfiles << " files for data from " << cinput << "..." << endl;
+    IVYout << "\t- Successfully added " << nfiles << " files for data from " << cinput << "..." << endl;
     samples_all.emplace_back("Data", tin);
     norm_map[tin] = 1;
     foutput->cd();
@@ -463,7 +463,7 @@ void getEfficiencyHistograms(
       foutput->cd();
       TChain* tin = new TChain("SkimTree");
       int nfiles = tin->Add(cinput);
-      MELAout << "\t- Successfully added " << nfiles << " files for " << sname << " from " << cinput << "..." << endl;
+      IVYout << "\t- Successfully added " << nfiles << " files for " << sname << " from " << cinput << "..." << endl;
       samples_all.emplace_back(sgroup, tin);
       tins_collected.push_back(tin);
       norm_map[tin] = 1;
@@ -490,7 +490,7 @@ void getEfficiencyHistograms(
             ftmp->Close();
             foutput->cd();
           }
-          if (hasCounters) MELAout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
+          if (hasCounters) IVYout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
         }
         norm_map[tin] += sum_wgts;
       }
@@ -502,7 +502,7 @@ void getEfficiencyHistograms(
       for (auto const& tin:tins_collected) norm_map[tin] /= sum_wgts_MC;
     }
   }
-  for (auto const& sgroup_tin_pair:samples_all) MELAout
+  for (auto const& sgroup_tin_pair:samples_all) IVYout
     << "Relative normalization for sample in group " << sgroup_tin_pair.first << " = " << norm_map[sgroup_tin_pair.second]
     << endl;
 
@@ -652,7 +652,7 @@ void getEfficiencyHistograms(
     else if (sgroup == "DY_2l") scolor = (int) (kCyan);
     else if (sgroup == "TT_2l2nu") scolor = (int) (kOrange-3);
     else if (sgroup == "qqWW_2l2nu") scolor = (int) (kTeal-1);
-    else MELAerr << "Sample type " << sgroup << " is not recognized!" << endl;
+    else IVYerr << "Sample type " << sgroup << " is not recognized!" << endl;
 
     for (unsigned int ic=0; ic<nchannels; ic++){
       auto const& strChannelName = strChannelNames.at(ic);
@@ -851,9 +851,9 @@ void getEfficiencyHistograms(
     }
     auto const& tin = spair.second;
     int nEntries = tin->GetEntries();
-    MELAout << "Looping over sample in group " << sgroup << " (number of events: " << nEntries << ")..." << endl;
+    IVYout << "Looping over sample in group " << sgroup << " (number of events: " << nEntries << ")..." << endl;
     for (auto const& it:trigger_prescaleSum_count_pair_map){
-      MELAout << "\t- Will apply weight " << static_cast<float>(it.second.second)/it.second.first << " to " << it.first << endl;
+      IVYout << "\t- Will apply weight " << static_cast<float>(it.second.second)/it.second.first << " to " << it.first << endl;
     }
     std::vector<unsigned int> nDileptons_AnyNum(strChannelNames.size(), 0);
     std::vector<unsigned int> nDileptons_AnyDenom(strChannelNames.size(), 0);
@@ -870,8 +870,8 @@ void getEfficiencyHistograms(
       tin->GetEntry(ev);
       HelperFunctions::progressbar(ev, nEntries);
       if (ev%100000==0){
-        MELAout << "\t- Number of any numerator / denominator (tag, ortho.) dileptons before cuts: {" << nDileptons_AnyNum << "} / {" << nDileptons_AnyDenom << "} ({" << nDileptons_TagDenom << "}, {" << nDileptons_OrthoDenom << "})" << endl;
-        MELAout << "\t- Number of any numerator / denominator (tag, ortho.) dileptons after cuts: {" << nDileptons_AnyNum_wcuts << "} / {" << nDileptons_AnyDenom_wcuts << "} ({" << nDileptons_TagDenom_wcuts << "}, {" << nDileptons_OrthoDenom_wcuts << "})" << endl;
+        IVYout << "\t- Number of any numerator / denominator (tag, ortho.) dileptons before cuts: {" << nDileptons_AnyNum << "} / {" << nDileptons_AnyDenom << "} ({" << nDileptons_TagDenom << "}, {" << nDileptons_OrthoDenom << "})" << endl;
+        IVYout << "\t- Number of any numerator / denominator (tag, ortho.) dileptons after cuts: {" << nDileptons_AnyNum_wcuts << "} / {" << nDileptons_AnyDenom_wcuts << "} ({" << nDileptons_TagDenom_wcuts << "}, {" << nDileptons_OrthoDenom_wcuts << "})" << endl;
       }
 
       event_wgt_SFs = std::min(3.f, event_wgt_SFs);
@@ -1102,7 +1102,7 @@ void getEfficiencyHistograms(
               isTag_l2 &= pt_l2>=35.f;
               break;
             default:
-              MELAerr << "Min. tag pT list for dielectrons is not implemented for year " << SampleHelpers::getDataYear() << endl;
+              IVYerr << "Min. tag pT list for dielectrons is not implemented for year " << SampleHelpers::getDataYear() << endl;
               assert(0);
             }
           }
@@ -1121,7 +1121,7 @@ void getEfficiencyHistograms(
               isTag_l2 &= pt_l2>=27.f;
               break;
             default:
-              MELAerr << "Min. tag pT list for dimuons is not implemented for year " << SampleHelpers::getDataYear() << endl;
+              IVYerr << "Min. tag pT list for dimuons is not implemented for year " << SampleHelpers::getDataYear() << endl;
               assert(0);
             }
           }
@@ -1151,8 +1151,8 @@ void getEfficiencyHistograms(
 
       }
     }
-    MELAout << "Final number of any numerator / denominator (tag, ortho.) dileptons before cuts: {" << nDileptons_AnyNum << "} / {" << nDileptons_AnyDenom << "} ({" << nDileptons_TagDenom << "}, {" << nDileptons_OrthoDenom << "})" << endl;
-    MELAout << "Final number of any numerator / denominator (tag, ortho.) dileptons after cuts: {" << nDileptons_AnyNum_wcuts << "} / {" << nDileptons_AnyDenom_wcuts << "} ({" << nDileptons_TagDenom_wcuts << "}, {" << nDileptons_OrthoDenom_wcuts << "})" << endl;
+    IVYout << "Final number of any numerator / denominator (tag, ortho.) dileptons before cuts: {" << nDileptons_AnyNum << "} / {" << nDileptons_AnyDenom << "} ({" << nDileptons_TagDenom << "}, {" << nDileptons_OrthoDenom << "})" << endl;
+    IVYout << "Final number of any numerator / denominator (tag, ortho.) dileptons after cuts: {" << nDileptons_AnyNum_wcuts << "} / {" << nDileptons_AnyDenom_wcuts << "} ({" << nDileptons_TagDenom_wcuts << "}, {" << nDileptons_OrthoDenom_wcuts << "})" << endl;
   }
 
   // Merge MC histograms
@@ -1260,7 +1260,7 @@ void getEfficiencyHistograms(
   }
 
 
-  MELAout << "Writing dilepton counts before cuts..." << endl;
+  IVYout << "Writing dilepton counts before cuts..." << endl;
   subdir_Dileptons_Counts->cd();
   for (auto& hh:hcounts){
     HelperFunctions::wipeOverUnderFlows(hh.first, false, true);
@@ -1268,7 +1268,7 @@ void getEfficiencyHistograms(
     subdir_Dileptons_Counts->WriteTObject(hh.first);
     subdir_Dileptons_Counts->WriteTObject(hh.second);
   }
-  MELAout << "Writing dilepton effs. before cuts..." << endl;
+  IVYout << "Writing dilepton effs. before cuts..." << endl;
   subdir_Dileptons_Effs->cd();
   std::vector<TH2F*> heffs[3];
   for (auto const& hh:hcounts){
@@ -1304,7 +1304,7 @@ void getEfficiencyHistograms(
   for (unsigned int ic=0; ic<nchannels; ic++){
     for (unsigned int ieta=0; ieta<strEtaRangeNames.size(); ieta++){
       for (unsigned int jeta=0; jeta<strEtaRangeNames.size(); jeta++){
-        MELAout << "MC compatibilities for the " << strChannelNames.at(ic) << ":" << endl;
+        IVYout << "MC compatibilities for the " << strChannelNames.at(ic) << ":" << endl;
         for (unsigned short is=0; is<sgroups.size(); is++){
           TString const& sgroup_i = sgroups.at(is);
           unsigned int ihist = is*12 + ic*4 + ieta*2 + jeta;
@@ -1342,7 +1342,7 @@ void getEfficiencyHistograms(
               }
             }
 
-            MELAout << "\t- " << sgroup_i << " vs " << sgroup_j << " = " << chisq/nbins << " (nbins=" << nbins << ")" << endl;
+            IVYout << "\t- " << sgroup_i << " vs " << sgroup_j << " = " << chisq/nbins << " (nbins=" << nbins << ")" << endl;
           }
         }
       }
@@ -1354,7 +1354,7 @@ void getEfficiencyHistograms(
   for (auto& hh:hcounts){ delete hh.first; delete hh.second; }
   subdir_Dileptons_Counts->Close();
 
-  MELAout << "Writing dilepton mll histograms before cuts..." << endl;
+  IVYout << "Writing dilepton mll histograms before cuts..." << endl;
   subdir_Dileptons_mll->cd();
   for (auto& hh:hmll){
     HelperFunctions::wipeOverUnderFlows(hh.first, false, true);
@@ -1366,7 +1366,7 @@ void getEfficiencyHistograms(
   }
   subdir_Dileptons_mll->Close();
 
-  MELAout << "Writing dilepton pTmiss histograms before cuts..." << endl;
+  IVYout << "Writing dilepton pTmiss histograms before cuts..." << endl;
   subdir_Dileptons_MET->cd();
   for (auto& hh:hMET){
     HelperFunctions::wipeOverUnderFlows(hh.first, false, true);
@@ -1378,7 +1378,7 @@ void getEfficiencyHistograms(
   }
   subdir_Dileptons_MET->Close();
 
-  MELAout << "Writing dilepton HT histograms before cuts..." << endl;
+  IVYout << "Writing dilepton HT histograms before cuts..." << endl;
   subdir_Dileptons_HT->cd();
   for (auto& hh:hHT){
     HelperFunctions::wipeOverUnderFlows(hh.first, false, true);
@@ -1390,7 +1390,7 @@ void getEfficiencyHistograms(
   }
   subdir_Dileptons_HT->Close();
 
-  MELAout << "Writing dilepton MHT histograms before cuts..." << endl;
+  IVYout << "Writing dilepton MHT histograms before cuts..." << endl;
   subdir_Dileptons_MHT->cd();
   for (auto& hh:hMHT){
     HelperFunctions::wipeOverUnderFlows(hh.first, false, true);
@@ -1405,7 +1405,7 @@ void getEfficiencyHistograms(
   subdir_Dileptons->Close();
 
   // Version with cuts
-  MELAout << "Writing dilepton counts after cuts..." << endl;
+  IVYout << "Writing dilepton counts after cuts..." << endl;
   subdir_Dileptons_wcuts_Counts->cd();
   for (auto& hh:hcounts_wcuts){
     HelperFunctions::wipeOverUnderFlows(hh.first, false, true);
@@ -1413,7 +1413,7 @@ void getEfficiencyHistograms(
     subdir_Dileptons_wcuts_Counts->WriteTObject(hh.first);
     subdir_Dileptons_wcuts_Counts->WriteTObject(hh.second);
   }
-  MELAout << "Writing dilepton effs. after cuts..." << endl;
+  IVYout << "Writing dilepton effs. after cuts..." << endl;
   subdir_Dileptons_wcuts_Effs->cd();
   std::vector<TH2F*> heffs_wcuts[3];
   for (auto const& hh:hcounts_wcuts){
@@ -1449,7 +1449,7 @@ void getEfficiencyHistograms(
   for (unsigned int ic=0; ic<nchannels; ic++){
     for (unsigned int ieta=0; ieta<strEtaRangeNames.size(); ieta++){
       for (unsigned int jeta=0; jeta<strEtaRangeNames.size(); jeta++){
-        MELAout << "MC compatibilities for the " << strChannelNames.at(ic) << ":" << endl;
+        IVYout << "MC compatibilities for the " << strChannelNames.at(ic) << ":" << endl;
         for (unsigned short is=0; is<sgroups.size(); is++){
           TString const& sgroup_i = sgroups.at(is);
           unsigned int ihist = is*12 + ic*4 + ieta*2 + jeta;
@@ -1487,7 +1487,7 @@ void getEfficiencyHistograms(
               }
             }
 
-            MELAout << "\t- " << sgroup_i << " vs " << sgroup_j << " = " << chisq/nbins << " (nbins=" << nbins << ")" << endl;
+            IVYout << "\t- " << sgroup_i << " vs " << sgroup_j << " = " << chisq/nbins << " (nbins=" << nbins << ")" << endl;
           }
         }
       }
@@ -1499,7 +1499,7 @@ void getEfficiencyHistograms(
   for (auto& hh:hcounts_wcuts){ delete hh.first; delete hh.second; }
   subdir_Dileptons_wcuts_Counts->Close();
 
-  MELAout << "Writing dilepton mll histograms after cuts..." << endl;
+  IVYout << "Writing dilepton mll histograms after cuts..." << endl;
   subdir_Dileptons_wcuts_mll->cd();
   for (auto& hh:hmll_wcuts){
     HelperFunctions::wipeOverUnderFlows(hh.first, false, true);
@@ -1511,7 +1511,7 @@ void getEfficiencyHistograms(
   }
   subdir_Dileptons_wcuts_mll->Close();
 
-  MELAout << "Writing dilepton pTmiss histograms after cuts..." << endl;
+  IVYout << "Writing dilepton pTmiss histograms after cuts..." << endl;
   subdir_Dileptons_wcuts_MET->cd();
   for (auto& hh:hMET_wcuts){
     HelperFunctions::wipeOverUnderFlows(hh.first, false, true);
@@ -1523,7 +1523,7 @@ void getEfficiencyHistograms(
   }
   subdir_Dileptons_wcuts_MET->Close();
 
-  MELAout << "Writing dilepton HT histograms after cuts..." << endl;
+  IVYout << "Writing dilepton HT histograms after cuts..." << endl;
   subdir_Dileptons_wcuts_HT->cd();
   for (auto& hh:hHT_wcuts){
     HelperFunctions::wipeOverUnderFlows(hh.first, false, true);
@@ -1535,7 +1535,7 @@ void getEfficiencyHistograms(
   }
   subdir_Dileptons_wcuts_HT->Close();
 
-  MELAout << "Writing dilepton MHT histograms after cuts..." << endl;
+  IVYout << "Writing dilepton MHT histograms after cuts..." << endl;
   subdir_Dileptons_wcuts_MHT->cd();
   for (auto& hh:hMHT_wcuts){
     HelperFunctions::wipeOverUnderFlows(hh.first, false, true);
@@ -1550,7 +1550,7 @@ void getEfficiencyHistograms(
   subdir_Dileptons_wcuts->Close();
 
   // Write single lepton efficiency histograms
-  MELAout << "Writing single lepton T&P histograms..." << endl;
+  IVYout << "Writing single lepton T&P histograms..." << endl;
   for (auto& it_trigger_sgroup_TnPpair_lists_map:trigger_sgroup_TnPpair_lists_map){
     auto const& hltname = it_trigger_sgroup_TnPpair_lists_map.first;
     bool const is_SingleElectron = HelperFunctions::checkListVariable(triggerCheckList_SingleElectron, hltname) || hltname.find("SingleElectron")!=std::string::npos;
@@ -1566,7 +1566,7 @@ void getEfficiencyHistograms(
       int scolor = (int) kBlack;
       if (sgroup == "Data") scolor = (int) (kBlack);
       else if (sgroup == "DY_2l") scolor = (int) (kCyan);
-      else MELAerr << "Sample type " << sgroup << " is not recognized!" << endl;
+      else IVYerr << "Sample type " << sgroup << " is not recognized!" << endl;
 
       TH2F* hratio_nominal;
       TH2F* hratio_dn;
@@ -1935,7 +1935,7 @@ void collectEfficiencies(
     {
       subdir_Dileptons_wcuts_Effs->cd();
       std::vector<TH2F*> tmplist;
-      HelperFunctions::extractHistogramsFromDirectory(subdir_Dileptons_wcuts_Effs, tmplist, TVar::SILENT);
+      HelperFunctions::extractHistogramsFromDirectory(subdir_Dileptons_wcuts_Effs, tmplist, MiscUtils::SILENT);
       for (auto& hh:tmplist){
         TString hname = hh->GetName();
         short idatasim = -1;
@@ -2068,7 +2068,7 @@ void collectEfficiencies(
       sum_SF_nominal_times_wgt /= sum_wgt;
       sum_SF_dn_times_wgt /= sum_wgt;
       sum_SF_up_times_wgt /= sum_wgt;
-      MELAout
+      IVYout
         << "SF on " << hMC_nominal->GetName() << " might be averaged as " << sum_SF_nominal_times_wgt << " [" << sum_SF_dn_times_wgt << ", " << sum_SF_up_times_wgt << "] | "
         << (sum_SF_dn_times_wgt/sum_SF_nominal_times_wgt-1.)*100. << ", " << (sum_SF_up_times_wgt/sum_SF_nominal_times_wgt-1.)*100.
         << endl;
@@ -2186,7 +2186,7 @@ void collectEfficiencies(
     {
       std::vector<TH2F*> tmplist;
       subdir_SingleLeptonTnP_Effs->cd();
-      HelperFunctions::extractHistogramsFromDirectory(subdir_SingleLeptonTnP_Effs, tmplist, TVar::ERROR);
+      HelperFunctions::extractHistogramsFromDirectory(subdir_SingleLeptonTnP_Effs, tmplist, MiscUtils::ERROR);
       for (auto& hh:tmplist){
         TString hname = hh->GetName();
         short idatasim = -1;
@@ -2447,7 +2447,7 @@ void compareDileptonCombinedOrthogonalCounts(TString period, TString prodVersion
       {
         subdir_Dileptons_var->cd();
         std::vector<TH1F*> tmplist;
-        HelperFunctions::extractHistogramsFromDirectory(subdir_Dileptons_var, tmplist, TVar::SILENT);
+        HelperFunctions::extractHistogramsFromDirectory(subdir_Dileptons_var, tmplist, MiscUtils::SILENT);
         for (auto& hh:tmplist){
           TString hname = hh->GetName();
           short idatasim = -1;
@@ -2477,7 +2477,7 @@ void compareDileptonCombinedOrthogonalCounts(TString period, TString prodVersion
       {
         subdir_Dileptons_wcuts_var->cd();
         std::vector<TH1F*> tmplist;
-        HelperFunctions::extractHistogramsFromDirectory(subdir_Dileptons_wcuts_var, tmplist, TVar::SILENT);
+        HelperFunctions::extractHistogramsFromDirectory(subdir_Dileptons_wcuts_var, tmplist, MiscUtils::SILENT);
         for (auto& hh:tmplist){
           TString hname = hh->GetName();
           short idatasim = -1;
@@ -2506,7 +2506,7 @@ void compareDileptonCombinedOrthogonalCounts(TString period, TString prodVersion
       curdir->cd();
 
       unsigned short const nchannels = hcounts_combined[0][0][0].size();
-      MELAout << "Plotting nchannels = " << nchannels << endl;
+      IVYout << "Plotting nchannels = " << nchannels << endl;
       for (unsigned int ich=0; ich<nchannels; ich++){
         TGraphAsymmErrors* gratios[2][2];
         for (unsigned short ic=0; ic<2; ic++){

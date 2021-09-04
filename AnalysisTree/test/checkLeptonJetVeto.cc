@@ -5,7 +5,7 @@
 #include "TText.h"
 #include "TPaveText.h"
 #include "TLegend.h"
-#include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
+#include <IvyFramework/IvyAutoMELA/interface/IvyMELAHelpers.h>
 
 
 using namespace reco;
@@ -478,7 +478,7 @@ void count(int procsel, int ichunk, int nchunks, TString strdate){
       TH2D* hCounters = (TH2D*) fFirstFile->Get("cms3ntuple/Counters");
       if (hCounters) sum_wgts = hCounters->GetBinContent(1, 1);
       else{
-        MELAout << "Initial MC loop over " << nEntries << " events in " << sample_tree.sampleIdentifier << " to determine sample normalization:" << endl;
+        IVYout << "Initial MC loop over " << nEntries << " events in " << sample_tree.sampleIdentifier << " to determine sample normalization:" << endl;
         for (int ev=0; ev<nEntries; ev++){
           HelperFunctions::progressbar(ev, nEntries);
           sample_tree.getSelectedEvent(ev);
@@ -553,7 +553,7 @@ void count(int procsel, int ichunk, int nchunks, TString strdate){
     eventFilter.bookBranches(&sample_tree);
     eventFilter.wrapTree(&sample_tree);
 
-    MELAout << "Completed getting the handles..." << endl;
+    IVYout << "Completed getting the handles..." << endl;
     sample_tree.silenceUnused();
 
     float Nevents_noLepVeto[3][2]={ 0 };
@@ -566,7 +566,7 @@ void count(int procsel, int ichunk, int nchunks, TString strdate){
       ev_start = ev_inc*ichunk;
       ev_end = std::min(nEntries, (ichunk == nchunks-1 ? nEntries : ev_start+ev_inc));
     }
-    MELAout << "Looping over " << nEntries << " events, starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
+    IVYout << "Looping over " << nEntries << " events, starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
     bool firstEvent=true;
     for (int ev=ev_start; ev<ev_end; ev++){
       HelperFunctions::progressbar(ev, nEntries);
@@ -584,7 +584,7 @@ void count(int procsel, int ichunk, int nchunks, TString strdate){
       eventFilter.constructFilters();
       if (isData && !eventFilter.isUniqueDataEvent()) continue;
       if (!eventFilter.passMETFilters() || !eventFilter.passCommonSkim() || !eventFilter.hasGoodVertex()) continue;
-      //MELAout << "Pass line " << __LINE__ << endl;
+      //IVYout << "Pass line " << __LINE__ << endl;
 
       float triggerWeight = eventFilter.getTriggerWeight(triggerCheckList);
       event_wgt *= triggerWeight;
@@ -594,19 +594,19 @@ void count(int procsel, int ichunk, int nchunks, TString strdate){
 
       event_wgt *= genInfo->getGenWeight(true);
       if (event_wgt==0.f) continue;
-      //MELAout << "Pass line " << __LINE__ << endl;
+      //IVYout << "Pass line " << __LINE__ << endl;
 
       if (sample.name == "ggZZ_2l2nu_BSI"){ event_wgt *= genInfo->extras.LHE_ME_weights["p_Gen_GG_BSI_kappaTopBot_1_ghz1_1_MCFM"]*genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"]*genInfo->extras.Kfactors["KFactor_QCD_NNLO_ggZZ_Sig_Nominal"]; }
       else if (sample.name == "ggZZ_2l2nu_Sig"){ event_wgt *= genInfo->extras.LHE_ME_weights["p_Gen_GG_SIG_kappaTopBot_1_ghz1_1_MCFM"]*genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"]*genInfo->extras.Kfactors["KFactor_QCD_NNLO_ggZZ_Sig_Nominal"]; }
       else if (sample.name == "VBFZZ_2l2nu_BSI"){ event_wgt *= genInfo->extras.LHE_ME_weights["p_Gen_JJEW_BSI_ghv1_1_MCFM"]*genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"]; }
       else if (sample.name == "VBFZZ_2l2nu_Sig"){ event_wgt *= genInfo->extras.LHE_ME_weights["p_Gen_JJEW_SIG_ghv1_1_MCFM"]*genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"]; }
       if (event_wgt==0.f) continue;
-      //MELAout << "Pass line " << __LINE__ << endl;
+      //IVYout << "Pass line " << __LINE__ << endl;
 
       simEventHandler.constructSimEvent(SystematicsHelpers::sNominal);
       event_wgt *= simEventHandler.getPileUpWeight()*simEventHandler.getL1PrefiringWeight();
       if (event_wgt==0.f) continue;
-      //MELAout << "Pass line " << __LINE__ << endl;
+      //IVYout << "Pass line " << __LINE__ << endl;
 
       muonHandler.constructMuons(SystematicsHelpers::sNominal);
       electronHandler.constructElectrons(SystematicsHelpers::sNominal);
@@ -745,20 +745,20 @@ void count(int procsel, int ichunk, int nchunks, TString strdate){
 
     } // End loop over events
 
-    MELAout << "Event counts before lepton veto for sample " << sample_tree.sampleIdentifier << endl;
+    IVYout << "Event counts before lepton veto for sample " << sample_tree.sampleIdentifier << endl;
     for (unsigned int ix=0; ix<3; ix++){
       for (unsigned int iy=0; iy<2; iy++){
-        MELAout << "Nj = " << ix << ", ";
-        MELAout << (iy==0 ? "mTZZ<350" : "mTZZ>=350") << ": " << Nevents_noLepVeto[ix][iy];
-        MELAout << endl;
+        IVYout << "Nj = " << ix << ", ";
+        IVYout << (iy==0 ? "mTZZ<350" : "mTZZ>=350") << ": " << Nevents_noLepVeto[ix][iy];
+        IVYout << endl;
       }
     }
-    MELAout << "Event counts after lepton veto for sample " << sample_tree.sampleIdentifier << endl;
+    IVYout << "Event counts after lepton veto for sample " << sample_tree.sampleIdentifier << endl;
     for (unsigned int ix=0; ix<3; ix++){
       for (unsigned int iy=0; iy<2; iy++){
-        MELAout << "Nj = " << ix << ", ";
-        MELAout << (iy==0 ? "mTZZ<350" : "mTZZ>=350") << ": " << Nevents_wLepVeto[ix][iy];
-        MELAout << endl;
+        IVYout << "Nj = " << ix << ", ";
+        IVYout << (iy==0 ? "mTZZ<350" : "mTZZ>=350") << ": " << Nevents_wLepVeto[ix][iy];
+        IVYout << endl;
       }
     }
 

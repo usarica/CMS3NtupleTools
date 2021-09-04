@@ -5,7 +5,7 @@
 #include "TText.h"
 #include "TPaveText.h"
 #include "TLegend.h"
-#include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
+#include <IvyFramework/IvyAutoMELA/interface/IvyMELAHelpers.h>
 
 
 struct HistogramObject{
@@ -65,7 +65,7 @@ HistogramObject::HistogramObject(
   hist.GetXaxis()->SetTitle(xlabel);
   hist.GetYaxis()->SetTitle(ylabel);
 
-  MELAout << "Created histogram " << hist.GetName() << " [" << hist.GetTitle() << "]" << endl;
+  IVYout << "Created histogram " << hist.GetName() << " [" << hist.GetTitle() << "]" << endl;
 }
 HistogramObject::HistogramObject(HistogramObject const& other) :
   name(other.name),
@@ -369,19 +369,19 @@ void getHistograms(int doZZWW, int procsel, bool doOldSelection, bool usePuppiME
   genInfoHandler.setAcquireGenParticles(false);
 
   // ME block
-  CMS3MELAHelpers::GMECBlock MEblock;
+  IvyMELAHelpers::GMECBlock MEblock;
   std::vector<std::string> MElist{
     "Name:JJVBF_SIG_ghv1_1_JHUGen_JECNominal Alias:<Name> Process:HSMHiggs Production:JJVBF MatrixElement:JHUGen Cluster:J2JECNominal DefaultME:-1 Options:AddPConst=1",
     "Name:JJQCD_SIG_ghg2_1_JHUGen_JECNominal Alias:<Name> Process:HSMHiggs Production:JJQCD MatrixElement:JHUGen Cluster:J2JECNominal DefaultME:-1 Options:AddPConst=1"
   };
-  CMS3MELAHelpers::setupMela(SampleHelpers::theDataYear, 125., TVar::ERROR); // Sets up MELA only once
+  IvyMELAHelpers::setupMela(SampleHelpers::theDataYear, 125., TVar::ERROR); // Sets up MELA only once
   MEblock.buildMELABranches(MElist, false);
   Discriminant* DjjVBF = DiscriminantClasses::constructKDFromType(
     DiscriminantClasses::kDjjVBF,
     ANALYSISTREEPKGDATAPATH+"RecoMEConstants/SmoothKDConstant_m4l_DjjVBF_13TeV.root", "sp_gr_varReco_Constant_Smooth"
   );
-  CMS3MELAHelpers::melaHandle->setCandidateDecayMode(TVar::CandidateDecay_Stable);
-  MELAout << "getHistograms: DjjVBF is built!" << endl;
+  IvyMELAHelpers::melaHandle->setCandidateDecayMode(TVar::CandidateDecay_Stable);
+  IVYout << "getHistograms: DjjVBF is built!" << endl;
 
   std::vector< std::vector<CutSpecs> > cutsets;
   /*
@@ -470,7 +470,7 @@ void getHistograms(int doZZWW, int procsel, bool doOldSelection, bool usePuppiME
     std::vector<TString> sampledirs;
     SampleHelpers::constructSamplesList(sample.path, theGlobalSyst, sampledirs);
     if (sampledirs.size()>1){
-      MELAout << "Size > 1 not implemented yet!" << endl;
+      IVYout << "Size > 1 not implemented yet!" << endl;
       continue;
     }
     BaseTree sample_tree(SampleHelpers::getDatasetFileName(sampledirs.front()), EVENTS_TREE_NAME, "", "");
@@ -479,7 +479,7 @@ void getHistograms(int doZZWW, int procsel, bool doOldSelection, bool usePuppiME
     TString stroutput = Form("%s/%s%s", coutput_main.Data(), sample.name.data(), ".root");
     TString stroutput_txt = Form("%s/%s%s", coutput_main.Data(), sample.name.data(), ".txt");
     TFile* foutput = TFile::Open(stroutput, "recreate");
-    MELAout.open(stroutput_txt.Data());
+    IVYout.open(stroutput_txt.Data());
 
     // Get cross section
     sample_tree.bookBranch<float>("xsec", 0.f);
@@ -506,7 +506,7 @@ void getHistograms(int doZZWW, int procsel, bool doOldSelection, bool usePuppiME
     eventFilter.bookBranches(&sample_tree);
     eventFilter.wrapTree(&sample_tree);
 
-    MELAout << "Completed getting the handles..." << endl;
+    IVYout << "Completed getting the handles..." << endl;
     sample_tree.silenceUnused();
 
     foutput->cd();
@@ -744,9 +744,9 @@ void getHistograms(int doZZWW, int procsel, bool doOldSelection, bool usePuppiME
 
       dileptonHandler.constructDileptons(&muons, &electrons);
       auto const& dileptons = dileptonHandler.getProducts();
-      //MELAout << "Ndileptons: " << dileptons.size() << " | pTs = ";
-      //for (auto const& dilepton:dileptons) MELAout << dilepton->pt() << " ";
-      //MELAout << endl;
+      //IVYout << "Ndileptons: " << dileptons.size() << " | pTs = ";
+      //for (auto const& dilepton:dileptons) IVYout << dilepton->pt() << " ";
+      //IVYout << endl;
 
       DileptonObject* theChosenDilepton = nullptr;
       size_t nTightDilep = 0;
@@ -869,19 +869,19 @@ void getHistograms(int doZZWW, int procsel, bool doOldSelection, bool usePuppiME
           associated.push_back(SimpleParticle_t(0, ParticleObjectHelpers::convertCMSLorentzVectorToTLorentzVector(ak4jets_tight.at(0)->p4())));
           associated.push_back(SimpleParticle_t(0, ParticleObjectHelpers::convertCMSLorentzVectorToTLorentzVector(ak4jets_tight.at(1)->p4())));
 
-          CMS3MELAHelpers::melaHandle->setInputEvent(&daughters_puppimet, &associated, nullptr, false);
+          IvyMELAHelpers::melaHandle->setInputEvent(&daughters_puppimet, &associated, nullptr, false);
           MEblock.computeMELABranches();
           MEblock.pushMELABranches();
           MEblock.getBranchValues(ME_values); // Record the MEs into the EDProducer product
-          CMS3MELAHelpers::melaHandle->resetInputEvent();
+          IvyMELAHelpers::melaHandle->resetInputEvent();
           DjjVBF->update({ ME_values["p_JJVBF_SIG_ghv1_1_JHUGen_JECNominal"], ME_values["p_JJQCD_SIG_ghg2_1_JHUGen_JECNominal"] }, mZZ_puppimet);
           DjjVBF_puppimet = *DjjVBF;
 
-          CMS3MELAHelpers::melaHandle->setInputEvent(&daughters_pfmet, &associated, nullptr, false);
+          IvyMELAHelpers::melaHandle->setInputEvent(&daughters_pfmet, &associated, nullptr, false);
           MEblock.computeMELABranches();
           MEblock.pushMELABranches();
           MEblock.getBranchValues(ME_values); // Record the MEs into the EDProducer product
-          CMS3MELAHelpers::melaHandle->resetInputEvent();
+          IvyMELAHelpers::melaHandle->resetInputEvent();
           DjjVBF->update({ ME_values["p_JJVBF_SIG_ghv1_1_JHUGen_JECNominal"], ME_values["p_JJQCD_SIG_ghg2_1_JHUGen_JECNominal"] }, mZZ_pfmet);
           DjjVBF_pfmet = *DjjVBF;
         }
@@ -981,7 +981,7 @@ void getHistograms(int doZZWW, int procsel, bool doOldSelection, bool usePuppiME
     }
     sample.writeHistograms();
 
-    MELAout
+    IVYout
       << "xsec: " << xsec << '\n'
       << "sum_wgts: " << sum_wgts << '\n'
       << "xsec_ee: " << sum_ee * xsec / sum_wgts << '\n'
@@ -998,7 +998,7 @@ void getHistograms(int doZZWW, int procsel, bool doOldSelection, bool usePuppiME
       << "frac_emu_selected: " << sum_emu_selected / sum_wgts << '\n'
       << endl;
 
-    MELAout.close();
+    IVYout.close();
     foutput->Close();
 
     SampleHelpers::addToCondorTransferList(stroutput);
@@ -1031,7 +1031,7 @@ void makePlots(
   gSystem->mkdir(coutput_main, true);
 
   TString stroutput_txt = Form("%s/Integrals.txt", coutput_main.Data());
-  MELAout.open(stroutput_txt.Data());
+  IVYout.open(stroutput_txt.Data());
   {
     // Special case to copy index.php if you have one
     std::vector<TString> tmplist;
@@ -1039,13 +1039,13 @@ void makePlots(
     TString indexDir = "${CMSSW_BASE}/src/CMSDataTools/AnalysisTree/data/plotting/index.php";
     HostHelpers::ExpandEnvironmentVariables(indexDir);
     if (HostHelpers::FileReadable(indexDir)){
-      MELAout << "Attempting to copy index.php" << endl;
+      IVYout << "Attempting to copy index.php" << endl;
       TString tmpdir = tmplist.at(0) + '/';
       for (size_t idir=1; idir<tmplist.size(); idir++){
         tmpdir = tmpdir + tmplist.at(idir) + '/';
         TString tmpCmd = "cp ~/public_html/index.pages.php ";
         tmpCmd += tmpdir + "index.php";
-        MELAout << "Copying index.php into " << tmpdir << endl;
+        IVYout << "Copying index.php into " << tmpdir << endl;
         HostHelpers::ExecuteCommand(tmpCmd);
       }
     }
@@ -1097,7 +1097,7 @@ void makePlots(
     for (size_t is=0; is<samplePlottedList.size(); is++){
       auto& sample = samplePlottedList.at(is);
       TH1F* hist = sample_hist_map[sample].at(iplot);
-      MELAout << "Integral[" << histname << "::" << sample << "] = " << hist->Integral() << endl;
+      IVYout << "Integral[" << histname << "::" << sample << "] = " << hist->Integral() << endl;
     }
     if ((histname.Contains("mTZZ") || histname.Contains("mZZ"))){
       for (size_t is=0; is<samplePlottedList.size(); is++){
@@ -1105,7 +1105,7 @@ void makePlots(
         TH1F* hist = sample_hist_map[sample].at(iplot);
         int bin350 = hist->GetXaxis()->FindBin(350);
         float xstart = hist->GetXaxis()->GetBinLowEdge(bin350);
-        MELAout << "Integral[" << histname << "::" << sample << "] (x>=" << xstart << ") = " << hist->Integral(bin350, hist->GetNbinsX()) << endl;
+        IVYout << "Integral[" << histname << "::" << sample << "] (x>=" << xstart << ") = " << hist->Integral(bin350, hist->GetNbinsX()) << endl;
       }
     }
   }
@@ -1352,5 +1352,5 @@ void makePlots(
   }
 
   for (TFile*& finput:finputlist) finput->Close();
-  MELAout.close();
+  IVYout.close();
 }

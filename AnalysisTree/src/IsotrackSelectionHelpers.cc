@@ -1,6 +1,6 @@
 #include <cassert>
 #include "IsotrackSelectionHelpers.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 // These are functions hidden from the user
@@ -14,8 +14,7 @@ namespace IsotrackSelectionHelpers{
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
-using namespace reco;
+using namespace IvyStreamHelpers;
 
 
 float IsotrackSelectionHelpers::getIsolationDRmax(IsotrackObject const& part){
@@ -27,7 +26,7 @@ float IsotrackSelectionHelpers::getIsolationDRmax(IsotrackObject const& part){
   case kMiniIsoComb:
     return (10. / std::min(std::max(part.pt(), 50.), 200.));
   default:
-    MELAerr << "IsotrackSelectionHelpers::getIsolationDRmax: Isolation type " << isoType_preselection << " is not implemented." << endl;
+    IVYerr << "IsotrackSelectionHelpers::getIsolationDRmax: Isolation type " << isoType_preselection << " is not implemented." << endl;
     assert(0);
     return -1;
   }
@@ -50,7 +49,7 @@ float IsotrackSelectionHelpers::computeAbsIso(IsotrackObject const& part){
   else if (isoType_preselection == kMiniIsoComb) return absMiniIsoComb(part);
   else if (isoType_preselection == kPFIsoChargedDR0p3) return absPFIsoCharged_DR0p3(part);
   else if (isoType_preselection == kMiniIsoCharged) return absMiniIsoCharged(part);
-  else MELAerr << "IsotrackSelectionHelpers::computeAbsIso: Isolation " << isoType_preselection << " is not implemented." << endl;
+  else IVYerr << "IsotrackSelectionHelpers::computeAbsIso: Isolation " << isoType_preselection << " is not implemented." << endl;
   return 999.f;
 }
 
@@ -59,7 +58,7 @@ float IsotrackSelectionHelpers::computeRelIso(IsotrackObject const& part){
   else if (isoType_preselection == kMiniIsoComb) return relMiniIsoComb(part);
   else if (isoType_preselection == kPFIsoChargedDR0p3) return relPFIsoCharged_DR0p3(part);
   else if (isoType_preselection == kMiniIsoCharged) return relMiniIsoCharged(part);
-  else MELAerr << "IsotrackSelectionHelpers::computeRelIso: Isolation " << isoType_preselection << " is not implemented." << endl;
+  else IVYerr << "IsotrackSelectionHelpers::computeRelIso: Isolation " << isoType_preselection << " is not implemented." << endl;
   return 999.f;
 }
 

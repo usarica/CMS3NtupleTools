@@ -2,14 +2,15 @@
 #define CMS3_COMMONTYPEDEFS_H
 
 #include <cstdint>
+#include "IvyDataTypes.h"
 
 
-typedef unsigned short cms3_listIndex_short_t;
-typedef unsigned int cms3_listIndex_long_t;
-typedef cms3_listIndex_short_t cms3_listSize_t;
+typedef ivy_listIndex_short_t cms3_listIndex_short_t;
+typedef ivy_listIndex_long_t cms3_listIndex_long_t;
+typedef ivy_listSize_t cms3_listSize_t;
 
-typedef short cms3_listIndex_signed_short_t;
-typedef int cms3_listIndex_signed_long_t;
+typedef ivy_listIndex_signed_short_t cms3_listIndex_signed_short_t;
+typedef ivy_listIndex_signed_long_t cms3_listIndex_signed_long_t;
 
 typedef cms3_listSize_t cms3_vtxs_nvtxs_t;
 
@@ -18,8 +19,8 @@ typedef cms3_listIndex_short_t cms3_triggerIndex_t;
 
 typedef char cms3_charge_t;
 
-typedef int cms3_id_t;
-typedef unsigned int cms3_absid_t;
+typedef ivy_id_t cms3_id_t;
+typedef ivy_absid_t cms3_absid_t;
 
 typedef short cms3_genstatus_t;
 typedef unsigned short cms3_nShowerGluons_t;

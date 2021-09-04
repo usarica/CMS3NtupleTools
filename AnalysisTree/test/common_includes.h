@@ -1,5 +1,7 @@
 #include <cassert>
 
+#include "VerbosityLevel.h"
+
 #include "SamplesCore.h"
 #include "RunLumiEventBlock.h"
 #include "OffshellSampleHelpers.h"
@@ -49,7 +51,7 @@
 #include "HostHelpersCore.h"
 #include "HelperFunctions.h"
 #include "StatisticsHelpers.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 #include "TSystem.h"
 #include "TDirectory.h"
 #include "TFile.h"
@@ -65,4 +67,4 @@
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;

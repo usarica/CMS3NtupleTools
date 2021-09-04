@@ -9,11 +9,11 @@
 #include "MuonSelectionHelpers.h"
 #include "ElectronSelectionHelpers.h"
 #include "ParticleSelectionHelpers.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 #define VECTOR_ITERATOR_HANDLER_DIRECTIVES \
@@ -57,15 +57,15 @@ bool FSRHandler::constructPostFSRParticles(std::vector<MuonObject*> const* muons
   if (!currentTree) return false;
 
   if (!muons){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "FSRHandler::constructPostFSRParticles: The input muon collection cannot be empty!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "FSRHandler::constructPostFSRParticles: The input muon collection cannot be empty!" << endl;
     assert(0);
   }
   if (!electrons){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "FSRHandler::constructPostFSRParticles: The input electron collection cannot be empty!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "FSRHandler::constructPostFSRParticles: The input electron collection cannot be empty!" << endl;
     assert(0);
   }
   if (!photons){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "FSRHandler::constructPostFSRParticles: The input photon collection cannot be empty!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "FSRHandler::constructPostFSRParticles: The input photon collection cannot be empty!" << endl;
     assert(0);
   }
   bool res = constructFSRObjects() && associatePFCandidates(pfcandidates) && reconstructPostFSRObjects(muons, electrons, photons);
@@ -90,11 +90,11 @@ bool FSRHandler::constructFSRObjects(){
 #undef FSR_VARIABLE
 
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "FSRHandler::constructFSRObjects: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "FSRHandler::constructFSRObjects: Not all variables are consumed properly!" << endl;
     assert(0);
   }
 
-  if (this->verbosity>=TVar::DEBUG) MELAout << "FSRHandler::constructFSRObjects: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "FSRHandler::constructFSRObjects: All variables are set up!" << endl;
 
   if (itBegin_pt == itEnd_pt) return true; // Construction is successful, it is just that no photons exist.
 
@@ -108,7 +108,7 @@ bool FSRHandler::constructFSRObjects(){
   {
     size_t ip=0;
     while (it_pt != itEnd_pt){
-      if (this->verbosity>=TVar::DEBUG) MELAout << "FSRHandler::constructFSRObjects: Attempting photon " << ip << "..." << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "FSRHandler::constructFSRObjects: Attempting photon " << ip << "..." << endl;
 
       ParticleObject::LorentzVector_t momentum;
       momentum = ParticleObject::PolarLorentzVector_t(*it_pt, *it_eta, *it_phi, *it_mass); // Yes you have to do this on a separate line because CMSSW...
@@ -125,7 +125,7 @@ bool FSRHandler::constructFSRObjects(){
       // Set particle index as its unique identifier
       obj->setUniqueIdentifier(ip);
 
-      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "\t- Success!" << endl;
 
       ip++;
 #define FSR_VARIABLE(TYPE, NAME, DEFVAL) it_##NAME++;

@@ -16,11 +16,11 @@
 
 #include "HelperFunctions.h"
 #include "HostHelpersCore.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 BaseTreeLooper::BaseTreeLooper() :
@@ -100,7 +100,7 @@ void BaseTreeLooper::addTree(BaseTree* tree, std::unordered_map<SystematicsHelpe
 
 void BaseTreeLooper::addExternalFunction(TString fcnname, BaseTreeLooper::LooperExtFunction_t fcn){
   if (!fcn) return;
-  if (externalFunctions.find(fcnname)!=externalFunctions.end()) MELAerr << "BaseTreeLooper::addExternalFunction: " << fcnname << " already exists but will override it regardless." << endl;
+  if (externalFunctions.find(fcnname)!=externalFunctions.end()) IVYerr << "BaseTreeLooper::addExternalFunction: " << fcnname << " already exists but will override it regardless." << endl;
   externalFunctions[fcnname] = fcn;
 }
 void BaseTreeLooper::addObjectHandler(IvyBase* handler){
@@ -112,36 +112,36 @@ void BaseTreeLooper::addSFHandler(ScaleFactorHandlerBase* handler){
 
 void BaseTreeLooper::addReweightingBuilder(TString name, BulkReweightingBuilder* rewgtBuilder){
   if (!rewgtBuilder){
-    MELAerr << "BaseTreeLooper::addReweightingBuilder: Reweighting builder " << name << " is null." << endl;
+    IVYerr << "BaseTreeLooper::addReweightingBuilder: Reweighting builder " << name << " is null." << endl;
     return;
   }
-  if (registeredRewgtBuilders.find(name)!=registeredRewgtBuilders.end()) MELAerr << "BaseTreeLooper::addReweightingBuilder: Reweighting builder " << name << " already exists but will override it regardless." << endl;
+  if (registeredRewgtBuilders.find(name)!=registeredRewgtBuilders.end()) IVYerr << "BaseTreeLooper::addReweightingBuilder: Reweighting builder " << name << " already exists but will override it regardless." << endl;
   registeredRewgtBuilders[name] = rewgtBuilder;
 }
 
 void BaseTreeLooper::addHLTMenu(TString name, std::vector< std::string > const& hltmenu){
-  if (registeredHLTMenus.find(name)!=registeredHLTMenus.end()) MELAerr << "BaseTreeLooper::addHLTMenu: Simple HLT menu " << name << " already exists but will override it regardless." << endl;
+  if (registeredHLTMenus.find(name)!=registeredHLTMenus.end()) IVYerr << "BaseTreeLooper::addHLTMenu: Simple HLT menu " << name << " already exists but will override it regardless." << endl;
   registeredHLTMenus[name] = hltmenu;
 }
 void BaseTreeLooper::addHLTMenu(TString name, std::vector< std::pair<TriggerHelpers::TriggerType, HLTTriggerPathProperties const*> > const& hltmenu){
-  if (registeredHLTMenuProperties.find(name)!=registeredHLTMenuProperties.end()) MELAerr << "BaseTreeLooper::addHLTMenu: HLT menu properties " << name << " already exists but will override it regardless." << endl;
+  if (registeredHLTMenuProperties.find(name)!=registeredHLTMenuProperties.end()) IVYerr << "BaseTreeLooper::addHLTMenu: HLT menu properties " << name << " already exists but will override it regardless." << endl;
   registeredHLTMenuProperties[name] = hltmenu;
 }
 
 void BaseTreeLooper::setMatrixElementList(std::vector<std::string> const& MElist, bool const& isGen){
-  MELAout << "BaseTreeLooper::setMatrixElementList: Setting " << (isGen ? "gen." : "reco.") << " matrix elements:" << endl;
-  for (auto const& sme:MElist) MELAout << '\t' << sme << endl;
+  IVYout << "BaseTreeLooper::setMatrixElementList: Setting " << (isGen ? "gen." : "reco.") << " matrix elements:" << endl;
+  for (auto const& sme:MElist) IVYout << '\t' << sme << endl;
   if (isGen) lheMElist = MElist;
   else recoMElist = MElist;
 }
 void BaseTreeLooper::setMatrixElementListFromFile(std::string fname, std::string const& MElistTypes, bool const& isGen){
   if (MElistTypes==""){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "BaseTreeLooper::setMatrixElementListFromFile: The ME list types must be specified." << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "BaseTreeLooper::setMatrixElementListFromFile: The ME list types must be specified." << endl;
     assert(0);
   }
   HostHelpers::ExpandEnvironmentVariables(fname);
   if (!HostHelpers::FileReadable(fname.data())){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "BaseTreeLooper::setMatrixElementListFromFile: File " << fname << " is not readable." << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "BaseTreeLooper::setMatrixElementListFromFile: File " << fname << " is not readable." << endl;
     assert(0);
   }
 
@@ -177,7 +177,7 @@ void BaseTreeLooper::setMatrixElementListFromFile(std::string fname, std::string
 
       if (isMEline && acceptString){
         if (isGen && str_in.find("isGen:1")==std::string::npos){
-          if (this->verbosity>=TVar::ERROR) MELAerr << "BaseTreeLooper::setMatrixElementListFromFile: ME string " << str_in << " is not a gen. ME while the acquisition is done for gen. MEs!" << endl;
+          if (this->verbosity>=MiscUtils::ERROR) IVYerr << "BaseTreeLooper::setMatrixElementListFromFile: ME string " << str_in << " is not a gen. ME while the acquisition is done for gen. MEs!" << endl;
           continue;
         }
         MElist.push_back(str_in);
@@ -188,13 +188,13 @@ void BaseTreeLooper::setMatrixElementListFromFile(std::string fname, std::string
 
   if (!MElist.empty()) setMatrixElementList(MElist, isGen);
   else{
-    if (this->verbosity>=TVar::ERROR) MELAerr << "BaseTreeLooper::setMatrixElementListFromFile: File " << fname << " does not contain any of the ME types " << MEtypes << "." << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "BaseTreeLooper::setMatrixElementListFromFile: File " << fname << " does not contain any of the ME types " << MEtypes << "." << endl;
   }
 }
 
 void BaseTreeLooper::setExternalWeight(BaseTree* tree, double const& wgt){
   if (!tree) return;
-  if (this->verbosity>=TVar::INFO && !HelperFunctions::checkListVariable(treeList, tree)) MELAout
+  if (this->verbosity>=MiscUtils::INFO && !HelperFunctions::checkListVariable(treeList, tree)) IVYout
     << "BaseTreeLooper::setExternalWeight: Warning! Tree " << tree->sampleIdentifier
     << " is not in the list of input trees, but a weight of " << wgt << " is being assigned to it."
     << endl;
@@ -204,7 +204,7 @@ void BaseTreeLooper::setExternalWeight(BaseTree* tree, double const& wgt){
 }
 void BaseTreeLooper::setExternalWeights(BaseTree* tree, std::unordered_map<SystematicsHelpers::SystematicVariationTypes, double> const& wgts){
   if (!tree) return;
-  if (this->verbosity>=TVar::INFO && !HelperFunctions::checkListVariable(treeList, tree)) MELAout
+  if (this->verbosity>=MiscUtils::INFO && !HelperFunctions::checkListVariable(treeList, tree)) IVYout
     << "BaseTreeLooper::setExternalWeight: Warning! Tree " << tree->sampleIdentifier
     << " is not in the list of input trees, but a set of weights is being assigned to it."
     << endl;
@@ -221,7 +221,7 @@ void BaseTreeLooper::setCurrentOutputTree(BaseTree* extTree){
   this->currentProductTree = extTree;
   // Print warning if this tree is not in the output tree collection, but do not add.
   if (extTree && !HelperFunctions::checkListVariable(this->productTreeList, extTree)){
-    if (this->verbosity>=TVar::INFO) MELAout << "BaseTreeLooper::setCurrentOutputTree: Current output tree is not in the output tree collection." << endl;
+    if (this->verbosity>=MiscUtils::INFO) IVYout << "BaseTreeLooper::setCurrentOutputTree: Current output tree is not in the output tree collection." << endl;
   }
   // Make sure product list collects some events before flushing
   this->productListRef = &(this->productList);
@@ -309,7 +309,7 @@ void BaseTreeLooper::incrementSelection(TString const& strsel, unsigned int inc)
 
 void BaseTreeLooper::loop(bool keepProducts){
   if (!looperFunction){
-    MELAerr << "BaseTreeLooper::loop: The looper function is not registered. Please register it using BadeTreeLooper::setLooperFunction." << endl;
+    IVYerr << "BaseTreeLooper::loop: The looper function is not registered. Please register it using BadeTreeLooper::setLooperFunction." << endl;
     return;
   }
 
@@ -323,7 +323,7 @@ void BaseTreeLooper::loop(bool keepProducts){
     else hasSimTrees = true;
   }
   if (hasDataTrees && hasSimTrees){
-    MELAerr << "BaseTreeLooper::loop: Looping over both real data and simulation at the same time is forbidden. Please run to separate loopers." << endl;
+    IVYerr << "BaseTreeLooper::loop: Looping over both real data and simulation at the same time is forbidden. Please run to separate loopers." << endl;
     assert(0);
   }
 
@@ -339,7 +339,7 @@ void BaseTreeLooper::loop(bool keepProducts){
       int ev_rem = nevents_total - ev_inc*nchunks;
       eventIndex_begin = ev_inc*ichunk + std::min(ev_rem, ichunk);
       eventIndex_end = ev_inc*(ichunk+1) + std::min(ev_rem, ichunk+1);
-      MELAout << "BaseTreeLooper::loop: A simulation loop will proceed. The requested event range is [" << eventIndex_begin << ", " << eventIndex_end << ")." << endl;
+      IVYout << "BaseTreeLooper::loop: A simulation loop will proceed. The requested event range is [" << eventIndex_begin << ", " << eventIndex_end << ")." << endl;
     }
     else if (hasDataTrees){
       // Assign the range over run numbers
@@ -363,27 +363,27 @@ void BaseTreeLooper::loop(bool keepProducts){
           ) lumi_acc += runnumber_lumi_pair.second;
       }
 
-      MELAout << "BaseTreeLooper::loop: A real data loop will proceed. The requested run range is [" << eventIndex_begin << ", " << eventIndex_end << "]. Total luminosity covered will be " << lumi_acc << " / " << lumi_total << "." << endl;
+      IVYout << "BaseTreeLooper::loop: A real data loop will proceed. The requested run range is [" << eventIndex_begin << ", " << eventIndex_end << "]. Total luminosity covered will be " << lumi_acc << " / " << lumi_total << "." << endl;
     }
   }
 
   // Build the MEs if they are specified
   if (!lheMElist.empty() || !recoMElist.empty()){
-    // Set up MELA (done only once inside CMS3MELAHelpers)
-    CMS3MELAHelpers::setupMela(SampleHelpers::getDataYear(), 125., TVar::ERROR);
+    // Set up MELA (done only once inside IvyMELAHelpers)
+    IvyMELAHelpers::setupMela(SampleHelpers::getDataYear(), 125., this->verbosity);
     // If there are output trees, set the output trees of the MEblock.
     // Do this before building the branches.
-    MELAout << "Setting up ME block output trees..." << endl;
+    IVYout << "Setting up ME block output trees..." << endl;
     for (auto const& outtree_:productTreeList){
-      MELAout << "\t- Extracting valid output trees" << endl;
-      if (!outtree_) MELAerr << "Output tree is NULL!" << endl;
+      IVYout << "\t- Extracting valid output trees" << endl;
+      if (!outtree_) IVYerr << "Output tree is NULL!" << endl;
       std::vector<TTree*> const& treelist_ = outtree_->getValidTrees();
-      MELAout << "\t- Registering " << treelist_.size() << " trees" << endl;
+      IVYout << "\t- Registering " << treelist_.size() << " trees" << endl;
       for (auto const& tree_:treelist_) MEblock.addRefTree(tree_);
-      MELAout << "\t- Done" << endl;
+      IVYout << "\t- Done" << endl;
     }
     // Build the MEs
-    MELAout << "Building the MEs..." << endl;
+    IVYout << "Building the MEs..." << endl;
     if (!lheMElist.empty()) this->MEblock.buildMELABranches(lheMElist, true);
     if (!recoMElist.empty()) this->MEblock.buildMELABranches(recoMElist, false);
   }
@@ -408,7 +408,7 @@ void BaseTreeLooper::loop(bool keepProducts){
       RUNLUMIEVENT_VARIABLES;
 #undef RUNLUMIEVENT_VARIABLE
       if (!rlenPresent){
-        if (this->verbosity>=TVar::ERROR) MELAerr << "BaseTreeLooper::loop: Run number, lumi block, or event number are not consumed properly..." << endl;
+        if (this->verbosity>=MiscUtils::ERROR) IVYerr << "BaseTreeLooper::loop: Run number, lumi block, or event number are not consumed properly..." << endl;
         assert(0);
       }
     }
@@ -419,12 +419,12 @@ void BaseTreeLooper::loop(bool keepProducts){
 
     auto it_globalWgt = globalWeights.find(tree);
     if (it_globalWgt==globalWeights.cend()){
-      if (this->verbosity>=TVar::ERROR) MELAerr << "BaseTreeLooper::loop: " << tree->sampleIdentifier << " does not have any weights assigned..." << endl;
+      if (this->verbosity>=MiscUtils::ERROR) IVYerr << "BaseTreeLooper::loop: " << tree->sampleIdentifier << " does not have any weights assigned..." << endl;
       assert(0);
     }
 
     const int nevents = tree->getNEvents();
-    MELAout << "BaseTreeLooper::loop: Looping over " << nevents << " events in " << tree->sampleIdentifier << "..." << endl;
+    IVYout << "BaseTreeLooper::loop: Looping over " << nevents << " events in " << tree->sampleIdentifier << "..." << endl;
     for (int ev=0; ev<nevents; ev++){
       if (
         SampleHelpers::doSignalInterrupt==1
@@ -471,14 +471,14 @@ void BaseTreeLooper::loop(bool keepProducts){
     }
 
     if (!selection_string_count_pairs.empty()){
-      MELAout << "BaseTreeLooper::loop: Number of events passing each selection type:" << endl;
+      IVYout << "BaseTreeLooper::loop: Number of events passing each selection type:" << endl;
       for (auto& pp:selection_string_count_pairs){
-        MELAout << (pp.first.BeginsWith("\t") ? "\t" : "\t- ") << pp.first << ": " << pp.second << endl;
+        IVYout << (pp.first.BeginsWith("\t") ? "\t" : "\t- ") << pp.first << ": " << pp.second << endl;
       }
     }
     resetSelectionCounts();
   } // End loop over the trees
-  MELAout << "BaseTreeLooper::loop: Total number of products: " << ev_rec << " / " << ev_acc << " / " << ev_traversed << endl;
+  IVYout << "BaseTreeLooper::loop: Total number of products: " << ev_rec << " / " << ev_acc << " / " << ev_traversed << endl;
 
   // Restore original event index values
   eventIndex_begin = eventIndex_begin_orig;
@@ -488,10 +488,10 @@ void BaseTreeLooper::loop(bool keepProducts){
 std::vector<SimpleEntry> const& BaseTreeLooper::getProducts() const{ return *productListRef; }
 
 void BaseTreeLooper::moveProducts(std::vector<SimpleEntry>& targetColl){
-  MELAout << "BaseTreeLooper::moveProducts: Moving " << productListRef->size() << " products into a list of initial size " << targetColl.size() << endl;
+  IVYout << "BaseTreeLooper::moveProducts: Moving " << productListRef->size() << " products into a list of initial size " << targetColl.size() << endl;
   std::move(productListRef->begin(), productListRef->end(), std::back_inserter(targetColl));
   clearProducts();
-  MELAout << "BaseTreeLooper::moveProducts: Target list final size: " << targetColl.size() << endl;
+  IVYout << "BaseTreeLooper::moveProducts: Target list final size: " << targetColl.size() << endl;
 }
 
 void BaseTreeLooper::clearProducts(){ productListRef->clear(); }

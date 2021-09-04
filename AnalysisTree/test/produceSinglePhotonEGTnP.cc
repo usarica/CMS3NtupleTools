@@ -4,7 +4,7 @@
 #include "TText.h"
 #include "TPaveText.h"
 #include "TLegend.h"
-#include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
+#include <IvyFramework/IvyAutoMELA/interface/IvyMELAHelpers.h>
 
 
 using namespace reco;
@@ -305,7 +305,7 @@ void getTrees(
         for (unsigned int iperiod=0; iperiod<nValidDataPeriods; iperiod++){
           if (validDataPeriods.at(iperiod)==SampleHelpers::theDataPeriod){ bin_period += iperiod+1; break; }
         }
-        MELAout << "Checking counters histogram bin (" << bin_syst << ", " << bin_period << ") to obtain the sum of weights if the counters histogram exists..." << endl;
+        IVYout << "Checking counters histogram bin (" << bin_syst << ", " << bin_period << ") to obtain the sum of weights if the counters histogram exists..." << endl;
         for (auto const& fname:inputfilenames){
           TFile* ftmp = TFile::Open(fname, "read");
           TH2D* hCounters = (TH2D*) ftmp->Get("cms3ntuple/Counters");
@@ -314,22 +314,22 @@ void getTrees(
             sum_wgts = 0;
             break;
           }
-          MELAout << "\t- Successfully found the counters histogram in " << fname << endl;
+          IVYout << "\t- Successfully found the counters histogram in " << fname << endl;
           sum_wgts += hCounters->GetBinContent(bin_syst, bin_period);
           sum_wgts_raw_withveto += hCounters->GetBinContent(0, 0);
           sum_wgts_raw_noveto += hCounters->GetBinContent(0, 0) / (1. - hCounters->GetBinContent(0, 1));
           ftmp->Close();
         }
-        if (hasCounters) MELAout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
+        if (hasCounters) IVYout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
       }
       if (!hasCounters){
-        MELAerr << "This script is designed to use skim ntuples. Aborting..." << endl;
+        IVYerr << "This script is designed to use skim ntuples. Aborting..." << endl;
         return;
       }
       xsec_scale = sum_wgts_raw_withveto / sum_wgts_raw_noveto;
     }
-    MELAout << "Sample " << sample_tree.sampleIdentifier << " has a gen. weight sum of " << sum_wgts << "." << endl;
-    MELAout << "\t- xsec scale = " << xsec_scale << endl;
+    IVYout << "Sample " << sample_tree.sampleIdentifier << " has a gen. weight sum of " << sum_wgts << "." << endl;
+    IVYout << "\t- xsec scale = " << xsec_scale << endl;
 
     // Set data tracking options
     eventFilter.setTrackDataEvents(isData);
@@ -357,7 +357,7 @@ void getTrees(
     eventFilter.bookBranches(&sample_tree);
     eventFilter.wrapTree(&sample_tree);
 
-    MELAout << "Completed getting the handles..." << endl;
+    IVYout << "Completed getting the handles..." << endl;
     sample_tree.silenceUnused();
 
     TString stroutput = Form("%s/%s", coutput_main.Data(), coutput.Data());
@@ -366,7 +366,7 @@ void getTrees(
     stroutput += ".root";
     TFile* foutput = TFile::Open(stroutput, "recreate");
     TTree* tout = new TTree("EGTree", "");
-    MELAout << "Created output file " << stroutput << "..." << endl;
+    IVYout << "Created output file " << stroutput << "..." << endl;
 
 #define BRANCHES_COMMON \
 BRANCH_COMMAND(float, event_wgt) \
@@ -450,7 +450,7 @@ BRANCH_COMMAND(float, photon_dR_genMatch)
       ev_start = ev_inc*ichunk;
       ev_end = std::min(nEntries, (ichunk == nchunks-1 ? nEntries : ev_start+ev_inc));
     }
-    MELAout << "Looping over " << nEntries << " events from " << sample_tree.sampleIdentifier << ", starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
+    IVYout << "Looping over " << nEntries << " events from " << sample_tree.sampleIdentifier << ", starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
 
     size_t n_pass_genWeights=0;
     size_t n_pass_hasEGPairs=0;
@@ -746,7 +746,7 @@ BRANCH_COMMAND(float, photon_dR_genMatch)
         static bool printOnce=true;
         if (printOnce && genpromptparts.empty()){
           for (auto const& part:genparticles){
-            MELAout
+            IVYout
               << "Gen particle id = " << part->pdgId() << ", st = " << part->status()
               << ", isPromptFinalState = " << part->extras.isPromptFinalState
               << ", isDirectPromptTauDecayProductFinalState = " << part->extras.isDirectPromptTauDecayProductFinalState
@@ -947,8 +947,8 @@ BRANCH_COMMAND(float, photon_dR_genMatch)
       if (hasFirstPair) tout->Fill();
     } // End loop over events
 
-    MELAout << "Number of events accepted from " << sample_tree.sampleIdentifier << ": " << n_evts_acc << " (duplicates: " << n_evts_duplicate << ") / " << (ev_end - ev_start) << endl;
-    MELAout << "\t- Number of events passing each cut:\n"
+    IVYout << "Number of events accepted from " << sample_tree.sampleIdentifier << ": " << n_evts_acc << " (duplicates: " << n_evts_duplicate << ") / " << (ev_end - ev_start) << endl;
+    IVYout << "\t- Number of events passing each cut:\n"
       << "\t\t- Gen. weights!=0: " << n_pass_genWeights << '\n'
       << "\t\t- Has e-gamma pairs (count=1, 2, >=3): " << n_pass_hasEGPairs << " (" << n_pass_hasEGPairs_nc_1 << ", " << n_pass_hasEGPairs_nc_2 << ", " << n_pass_hasEGPairs_nc_ge_3 << ")" << '\n'
       << "\t\t- Isotrack veto: " << n_pass_isotrackVeto << '\n'

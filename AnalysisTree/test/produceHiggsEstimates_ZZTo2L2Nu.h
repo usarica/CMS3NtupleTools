@@ -128,7 +128,7 @@ void produceHiggsEstimates_ZZTo2L2Nu(
   TString cinput_rewgtRcd = "output/ReweightingRecords/" + rewgtRcdVersion + "/" + period;
   TString strinput_weights = Form("%s/%s%s", cinput_rewgtRcd.Data(), strSampleSet.Data(), ".root");
   if (!SampleHelpers::checkFileOnWorker(strinput_weights)){
-    MELAerr << "Reweighting file " << strinput_weights << " does not exist locally and on the worker directory." << endl;
+    IVYerr << "Reweighting file " << strinput_weights << " does not exist locally and on the worker directory." << endl;
     exit(1);
   }
 
@@ -221,29 +221,29 @@ void produceHiggsEstimates_ZZTo2L2Nu(
       if (!HostHelpers::FileReadable(strinput_customSyst)) strinput_customSyst = "";
     }
     if (strinput_customSyst!=""){
-      MELAout << "Acquiring the systematics file " << strinput_customSyst << ":" << endl;
+      IVYout << "Acquiring the systematics file " << strinput_customSyst << ":" << endl;
       TFile* finput_syst = TFile::Open(strinput_customSyst, "read");
       if (HelperFunctions::checkListVariable(allowedSysts_1D, theGlobalSyst)){
         TH1F* htmp = (TH1F*) finput_syst->Get("h_ratio");
         foutput->cd();
         h_ratio_syst_1D = (TH1F*) htmp->Clone(htmp->GetName());
-        if (h_ratio_syst_1D) MELAout << "\t- A 1D reweighting histogram " << h_ratio_syst_1D->GetName() << " is found." << endl;
+        if (h_ratio_syst_1D) IVYout << "\t- A 1D reweighting histogram " << h_ratio_syst_1D->GetName() << " is found." << endl;
       }
       else if (HelperFunctions::checkListVariable(allowedSysts_2D, theGlobalSyst)){
         TH2F* htmp = (TH2F*) finput_syst->Get("h_ratio");
         foutput->cd();
         h_ratio_syst_2D = (TH2F*) htmp->Clone(htmp->GetName());
-        if (h_ratio_syst_2D) MELAout << "\t- A 2D reweighting histogram " << h_ratio_syst_2D->GetName() << " is found." << endl;
+        if (h_ratio_syst_2D) IVYout << "\t- A 2D reweighting histogram " << h_ratio_syst_2D->GetName() << " is found." << endl;
       }
       else if (HelperFunctions::checkListVariable(allowedSysts_3D, theGlobalSyst)){
         TH3F* htmp = (TH3F*) finput_syst->Get("h_ratio");
         foutput->cd();
         h_ratio_syst_3D = (TH3F*) htmp->Clone(htmp->GetName());
-        if (h_ratio_syst_3D) MELAout << "\t- A 3D reweighting histogram " << h_ratio_syst_3D->GetName() << " is found." << endl;
+        if (h_ratio_syst_3D) IVYout << "\t- A 3D reweighting histogram " << h_ratio_syst_3D->GetName() << " is found." << endl;
       }
       finput_syst->Close();
       if (!h_ratio_syst_1D && !h_ratio_syst_2D && !h_ratio_syst_3D){
-        MELAerr << "\t- No 1, 2, or 3D reweighting could be acquired. Aborting..." << endl;
+        IVYerr << "\t- No 1, 2, or 3D reweighting could be acquired. Aborting..." << endl;
         assert(0);
       }
     }
@@ -255,7 +255,7 @@ void produceHiggsEstimates_ZZTo2L2Nu(
     (h_ratio_syst_1D || h_ratio_syst_2D || h_ratio_syst_3D)
     ){
     applyPythiaScaleExternally = true;
-    MELAout << "Applying Pythia scale through external input..." << endl;
+    IVYout << "Applying Pythia scale through external input..." << endl;
   }
 
   foutput->cd();
@@ -360,7 +360,7 @@ void produceHiggsEstimates_ZZTo2L2Nu(
     TString sid = SampleHelpers::getSampleIdentifier(sname);
     float xsec_scale = 1;
     SampleHelpers::hasXSecException(sid, SampleHelpers::getDataYear(), &xsec_scale);
-    if (xsec_scale!=1.f) MELAout << "\t- Sample " << sname << " has a cross section exception with scale " << xsec_scale << "." << endl;
+    if (xsec_scale!=1.f) IVYout << "\t- Sample " << sname << " has a cross section exception with scale " << xsec_scale << "." << endl;
 
     curdir->cd();
 
@@ -368,7 +368,7 @@ void produceHiggsEstimates_ZZTo2L2Nu(
     BaseTree* tin = new BaseTree(cinput, "SkimTree", "", "");
     tin->sampleIdentifier = sid;
     xsec_scale_map[tin] = xsec_scale;
-    MELAout << "\t- Successfully added the input files for " << sname << " from " << cinput << "..." << endl;
+    IVYout << "\t- Successfully added the input files for " << sname << " from " << cinput << "..." << endl;
     samples_all.emplace_back(sname, tin);
     norm_map[tin] = 1;
 
@@ -437,20 +437,20 @@ void produceHiggsEstimates_ZZTo2L2Nu(
     double const& xsec_scale = xsec_scale_map.find(tin)->second;
     double const& norm_scale = norm_map.find(tin)->second;
 
-    MELAout << "Setting up " << tin->sampleIdentifier << "..." << endl;
+    IVYout << "Setting up " << tin->sampleIdentifier << "..." << endl;
 
     constexpr bool useNNPDF30 = true;
     constexpr bool requireGenMatchedLeptons = false;
 
-    MELAout << "\t- Setting up references to standard variables..." << endl;
+    IVYout << "\t- Setting up references to standard variables..." << endl;
 #define BRANCH_COMMAND(TYPE, NAME) tin->getValRef(#NAME, inptr_##NAME);
     BRANCH_COMMANDS;
 #undef BRANCH_COMMAND
-    MELAout << "\t- Setting up references to ME and K factor variables..." << endl;
+    IVYout << "\t- Setting up references to ME and K factor variables..." << endl;
     for (auto& it:ME_Kfactor_values) tin->getValRef(it.first, it.second);
 
     {
-      MELAout << "\t- Setting up references to custom. systematics evaluation variables..." << endl;
+      IVYout << "\t- Setting up references to custom. systematics evaluation variables..." << endl;
 
       std::vector<TString> allbranchnames_booked;
       tin->getValidBranchNamesWithoutAlias(allbranchnames_booked, true);
@@ -463,13 +463,13 @@ void produceHiggsEstimates_ZZTo2L2Nu(
 
     foutput->cd();
 
-    MELAout << "\t- Assigning pointers to references for standard variables..." << endl;
+    IVYout << "\t- Assigning pointers to references for standard variables..." << endl;
 #define BRANCH_COMMAND(TYPE, NAME) auto& NAME = *inptr_##NAME;
     BRANCH_COMMANDS;
 #undef BRANCH_COMMAND
 
     // Reset ME and K factor values
-    MELAout << "\t- Assigning the K factor pointer..." << endl;
+    IVYout << "\t- Assigning the K factor pointer..." << endl;
     float* val_Kfactor_QCD = nullptr;
     if (isGG){
       switch (theGlobalSyst){
@@ -503,16 +503,16 @@ void produceHiggsEstimates_ZZTo2L2Nu(
       }
     }
 
-    MELAout << "\t- Assigning the CPS reweighting pointer..." << endl;
+    IVYout << "\t- Assigning the CPS reweighting pointer..." << endl;
     float* val_ME_CPS = ME_Kfactor_values.find("p_Gen_CPStoBWPropRewgt")->second;
-    if (!val_ME_CPS) MELAerr << "\t\t- Cannot find 'p_Gen_CPStoBWPropRewgt' in ME_Kfactor_values." << endl;
+    if (!val_ME_CPS) IVYerr << "\t\t- Cannot find 'p_Gen_CPStoBWPropRewgt' in ME_Kfactor_values." << endl;
 
-    MELAout << "\t- Assigning the LHECandMass pointer..." << endl;
+    IVYout << "\t- Assigning the LHECandMass pointer..." << endl;
     float* val_LHECandMass = ME_Kfactor_values.find("LHECandMass")->second;
-    if (!val_LHECandMass) MELAerr << "\t\t- Cannot find 'LHECandMass' in ME_Kfactor_values." << endl;
+    if (!val_LHECandMass) IVYerr << "\t\t- Cannot find 'LHECandMass' in ME_Kfactor_values." << endl;
 
 
-    MELAout << "\t- Assigning pointers to various event weight factors..." << endl;
+    IVYout << "\t- Assigning pointers to various event weight factors..." << endl;
     float* ptr_event_wgt = &event_wgt;
     float* ptr_event_wgt_adjustment = (!useNNPDF30 ? nullptr : &event_wgt_adjustment_NNPDF30);
     float* ptr_event_wgt_syst_adjustment = nullptr;
@@ -631,7 +631,7 @@ void produceHiggsEstimates_ZZTo2L2Nu(
     }
 
     int const nEntries = tin->getNEvents();
-    MELAout << "\t- Begin looping over " << nEntries << " events:" << endl;
+    IVYout << "\t- Begin looping over " << nEntries << " events:" << endl;
     for (int ev=0; ev<nEntries; ev++){
       if (SampleHelpers::doSignalInterrupt==1) break;
 
@@ -681,7 +681,7 @@ void produceHiggsEstimates_ZZTo2L2Nu(
         &&
         (theGlobalSyst==tHardJetsDn || theGlobalSyst==tHardJetsUp)
         ) syst_corr = EvalSystHistogram(h_ratio_syst_3D, *inptr_lheHiggs_mass, (*inptr_genak4jets_pt)->size(), *inptr_lheHiggs_pt / *inptr_lheHiggs_mass);
-      //MELAout << syst_corr << endl;
+      //IVYout << syst_corr << endl;
 
       *ptr_event_wgt_SFs_PUJetId = std::min(*ptr_event_wgt_SFs_PUJetId, 3.f);
       float wgt =
@@ -818,7 +818,7 @@ void produceHiggsEstimates_ZZTo2L2Nu(
         tout->resetBranches();
       }
     }
-    MELAout << "Accumulated " << tout->getNEvents() << " events." << endl;
+    IVYout << "Accumulated " << tout->getNEvents() << " events." << endl;
 
     curdir->cd();
   }

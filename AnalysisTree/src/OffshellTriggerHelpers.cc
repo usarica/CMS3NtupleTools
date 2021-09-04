@@ -1,7 +1,7 @@
 #include <cassert>
 #include "OffshellSampleHelpers.h"
 #include "OffshellTriggerHelpers.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 namespace TriggerHelpers{
@@ -15,7 +15,7 @@ namespace TriggerHelpers{
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 std::vector<std::string> TriggerHelpers::getHLTMenus(TriggerHelpers::TriggerType type){ return getHLTMenus(std::vector<TriggerHelpers::TriggerType>{ type }); }
@@ -33,7 +33,7 @@ std::vector< std::pair<TriggerHelpers::TriggerType, HLTTriggerPathProperties con
   for (auto const& type:types){
     std::unordered_map< TriggerHelpers::TriggerType, std::vector<HLTTriggerPathProperties> >::const_iterator it = HLT_type_proplist_map.find(type);
     if (it == HLT_type_proplist_map.cend()){
-      MELAerr << "TriggerHelpers::getHLTMenuProperties: Trigger type " << type << " is not defined in the HLT type-properties map." << endl;
+      IVYerr << "TriggerHelpers::getHLTMenuProperties: Trigger type " << type << " is not defined in the HLT type-properties map." << endl;
       assert(0);
     }
     isize += it->second.size();
@@ -43,7 +43,7 @@ std::vector< std::pair<TriggerHelpers::TriggerType, HLTTriggerPathProperties con
   for (auto const& type:types){
     std::unordered_map< TriggerHelpers::TriggerType, std::vector<HLTTriggerPathProperties> >::const_iterator it = HLT_type_proplist_map.find(type);
     if (it == HLT_type_proplist_map.cend()){
-      MELAerr << "TriggerHelpers::getHLTMenuProperties: Trigger type " << type << " is not defined in the HLT type-properties map." << endl;
+      IVYerr << "TriggerHelpers::getHLTMenuProperties: Trigger type " << type << " is not defined in the HLT type-properties map." << endl;
       assert(0);
     }
     for (auto const& hltprop:it->second) res.emplace_back(type, &hltprop);
@@ -56,7 +56,7 @@ void TriggerHelpers::dropSelectionCuts(TriggerHelpers::TriggerType type){
   std::unordered_map< TriggerHelpers::TriggerType, std::vector<HLTTriggerPathProperties> >::iterator it = HLT_type_proplist_map.find(type);
   if (it != HLT_type_proplist_map.end()){ for (auto& props:it->second) props.resetCuts(); }
   else{
-    MELAerr << "TriggerHelpers::dropSelectionCuts: Trigger type " << type << " is not defined." << endl;
+    IVYerr << "TriggerHelpers::dropSelectionCuts: Trigger type " << type << " is not defined." << endl;
     assert(0);
   }
 }
@@ -86,7 +86,7 @@ void TriggerHelpers::assignRunRangeExclusions(std::string const& name, std::vect
     for (auto& hltprop:it->second){
       if (!hltprop.isSameTrigger(name)) continue;
 
-      MELAout << "TriggerHelpers::assignRunRangeExclusions: Adding run range exclusion to " << name << ". Excluded ranges = " << rangelist_eff << endl;
+      IVYout << "TriggerHelpers::assignRunRangeExclusions: Adding run range exclusion to " << name << ". Excluded ranges = " << rangelist_eff << endl;
 
       hltprop.setExcludedRunRanges(rangelist_eff);
       runRangeExcluded_HLTprop_list.push_back(&hltprop);
@@ -110,7 +110,7 @@ void TriggerHelpers::assignTriggerObjectCheckException(std::string const& name, 
     for (auto& hltprop:it->second){
       if (!hltprop.isSameTrigger(name)) continue;
 
-      MELAout << "TriggerHelpers::assignTriggerObjectCheckException: Adding TO exception of type " << flag << " to " << name << "." << endl;
+      IVYout << "TriggerHelpers::assignTriggerObjectCheckException: Adding TO exception of type " << flag << " to " << name << "." << endl;
 
       hltprop.setTOException(flag);
     }
@@ -119,7 +119,7 @@ void TriggerHelpers::assignTriggerObjectCheckException(std::string const& name, 
 
 void TriggerHelpers::configureHLTmap(){
   if (!SampleHelpers::runConfigure){
-    MELAerr << "TriggerHelpers::configureHLTmap: Need to call SampleHelpers::configure(period, tag) first!" << endl;
+    IVYerr << "TriggerHelpers::configureHLTmap: Need to call SampleHelpers::configure(period, tag) first!" << endl;
     assert(0);
   }
 
@@ -788,7 +788,7 @@ void TriggerHelpers::configureHLTmap(){
   // Check that all triggers are defined
   for (int itt=0; itt!=(int) nTriggerTypes; itt++){
     if (HLT_type_proplist_map.find((TriggerType) itt)==HLT_type_proplist_map.cend()){
-      MELAerr << "TriggerHelpers::configureHLTmap: Triggers for type " << itt << " are not defined for year " << SampleHelpers::getDataYear() << ". Please fix the map HLT_type_proplist_map." << endl;
+      IVYerr << "TriggerHelpers::configureHLTmap: Triggers for type " << itt << " are not defined for year " << SampleHelpers::getDataYear() << ". Please fix the map HLT_type_proplist_map." << endl;
       assert(0);
     }
   }

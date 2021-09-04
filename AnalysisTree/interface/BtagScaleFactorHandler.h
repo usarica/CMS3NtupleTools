@@ -2,7 +2,7 @@
 #define BTAGSCALEFACTORHANDLER_H
 
 #include <unordered_map>
-#include <CMSDataTools/AnalysisTree/interface/ExtendedHistogram_2D.h>
+#include "ExtendedHistogram_2D.h"
 #include "BTagCalibrationStandalone.h"
 #include "ScaleFactorHandlerBase.h"
 #include "AK4JetObject.h"

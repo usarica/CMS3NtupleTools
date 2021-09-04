@@ -1,11 +1,11 @@
 #include "ScaleFactorHandlerBase.h"
 #include "TDirectory.h"
 #include "HelperFunctions.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 void ScaleFactorHandlerBase::closeFile(TFile*& f){
@@ -34,7 +34,7 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH1F, ExtendedHistogram_1D_
 
   if (hh){
     if (!HelperFunctions::checkHistogramIntegrity(hh)){
-      MELAerr << "ScaleFactorHandlerBase::getHistogram: " << hh->GetName() << " does not have integrity!" << endl;
+      IVYerr << "ScaleFactorHandlerBase::getHistogram: " << hh->GetName() << " does not have integrity!" << endl;
       return false;
     }
 
@@ -49,7 +49,7 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH1F, ExtendedHistogram_1D_
       th->SetBinError(ix, hh->GetBinError(ix));
     }
   }
-  else MELAerr << "ScaleFactorHandlerBase::getHistogram: " << s << " cannot be acquired!" << endl;
+  else IVYerr << "ScaleFactorHandlerBase::getHistogram: " << s << " cannot be acquired!" << endl;
 
   return (hh!=nullptr);
 }
@@ -69,7 +69,7 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH1D, ExtendedHistogram_1D_
 
   if (hh){
     if (!HelperFunctions::checkHistogramIntegrity(hh)){
-      MELAerr << "ScaleFactorHandlerBase::getHistogram: " << hh->GetName() << " does not have integrity!" << endl;
+      IVYerr << "ScaleFactorHandlerBase::getHistogram: " << hh->GetName() << " does not have integrity!" << endl;
       return false;
     }
 
@@ -84,7 +84,7 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH1D, ExtendedHistogram_1D_
       th->SetBinError(ix, hh->GetBinError(ix));
     }
   }
-  else MELAerr << "ScaleFactorHandlerBase::getHistogram: " << s << " cannot be acquired!" << endl;
+  else IVYerr << "ScaleFactorHandlerBase::getHistogram: " << s << " cannot be acquired!" << endl;
 
   return (hh!=nullptr);
 }
@@ -104,7 +104,7 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH2F, ExtendedHistogram_2D_
 
   if (hh){
     if (!HelperFunctions::checkHistogramIntegrity(hh)){
-      MELAerr << "ScaleFactorHandlerBase::getHistogram: " << hh->GetName() << " does not have integrity!" << endl;
+      IVYerr << "ScaleFactorHandlerBase::getHistogram: " << hh->GetName() << " does not have integrity!" << endl;
       return false;
     }
 
@@ -125,7 +125,7 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH2F, ExtendedHistogram_2D_
       }
     }
   }
-  else MELAerr << "ScaleFactorHandlerBase::getHistogram: " << s << " cannot be acquired!" << endl;
+  else IVYerr << "ScaleFactorHandlerBase::getHistogram: " << s << " cannot be acquired!" << endl;
 
   return (hh!=nullptr);
 }
@@ -145,7 +145,7 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH2D, ExtendedHistogram_2D_
 
   if (hh){
     if (!HelperFunctions::checkHistogramIntegrity(hh)){
-      MELAerr << "ScaleFactorHandlerBase::getHistogram: " << hh->GetName() << " does not have integrity!" << endl;
+      IVYerr << "ScaleFactorHandlerBase::getHistogram: " << hh->GetName() << " does not have integrity!" << endl;
       return false;
     }
 
@@ -166,7 +166,7 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH2D, ExtendedHistogram_2D_
       }
     }
   }
-  else MELAerr << "ScaleFactorHandlerBase::getHistogram: " << s << " cannot be acquired!" << endl;
+  else IVYerr << "ScaleFactorHandlerBase::getHistogram: " << s << " cannot be acquired!" << endl;
 
   return (hh!=nullptr);
 }
@@ -188,11 +188,11 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH1F, Extende
 
   if (hh){
     if (!HelperFunctions::checkHistogramIntegrity(hh)){
-      MELAerr << "ScaleFactorHandlerBase::getHistogram: " << hh->GetName() << " does not have integrity!" << endl;
+      IVYerr << "ScaleFactorHandlerBase::getHistogram: " << hh->GetName() << " does not have integrity!" << endl;
       return false;
     }
     if (!HelperFunctions::checkHistogramIntegrity(hu)){
-      MELAerr << "ScaleFactorHandlerBase::getHistogram: " << hu->GetName() << " does not have integrity!" << endl;
+      IVYerr << "ScaleFactorHandlerBase::getHistogram: " << hu->GetName() << " does not have integrity!" << endl;
       return false;
     }
 
@@ -207,7 +207,7 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH1F, Extende
       th->SetBinError(ix, hu->GetBinContent(ix));
     }
   }
-  else MELAerr << "ScaleFactorHandlerBase::getHistogramWithUncertainy: " << s << " or " << su << " cannot be acquired!" << endl;
+  else IVYerr << "ScaleFactorHandlerBase::getHistogramWithUncertainy: " << s << " or " << su << " cannot be acquired!" << endl;
 
   return (hh!=nullptr);
 }
@@ -228,11 +228,11 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH1D, Extende
 
   if (hh && hu){
     if (!HelperFunctions::checkHistogramIntegrity(hh)){
-      MELAerr << "ScaleFactorHandlerBase::getHistogram: " << hh->GetName() << " does not have integrity!" << endl;
+      IVYerr << "ScaleFactorHandlerBase::getHistogram: " << hh->GetName() << " does not have integrity!" << endl;
       return false;
     }
     if (!HelperFunctions::checkHistogramIntegrity(hu)){
-      MELAerr << "ScaleFactorHandlerBase::getHistogram: " << hu->GetName() << " does not have integrity!" << endl;
+      IVYerr << "ScaleFactorHandlerBase::getHistogram: " << hu->GetName() << " does not have integrity!" << endl;
       return false;
     }
 
@@ -247,7 +247,7 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH1D, Extende
       th->SetBinError(ix, hu->GetBinContent(ix));
     }
   }
-  else MELAerr << "ScaleFactorHandlerBase::getHistogramWithUncertainy: " << s << " or " << su << " cannot be acquired!" << endl;
+  else IVYerr << "ScaleFactorHandlerBase::getHistogramWithUncertainy: " << s << " or " << su << " cannot be acquired!" << endl;
 
   return (hh!=nullptr);
 }
@@ -268,11 +268,11 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH2F, Extende
 
   if (hh && hu){
     if (!HelperFunctions::checkHistogramIntegrity(hh)){
-      MELAerr << "ScaleFactorHandlerBase::getHistogram: " << hh->GetName() << " does not have integrity!" << endl;
+      IVYerr << "ScaleFactorHandlerBase::getHistogram: " << hh->GetName() << " does not have integrity!" << endl;
       return false;
     }
     if (!HelperFunctions::checkHistogramIntegrity(hu)){
-      MELAerr << "ScaleFactorHandlerBase::getHistogram: " << hu->GetName() << " does not have integrity!" << endl;
+      IVYerr << "ScaleFactorHandlerBase::getHistogram: " << hu->GetName() << " does not have integrity!" << endl;
       return false;
     }
 
@@ -293,7 +293,7 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH2F, Extende
       }
     }
   }
-  else MELAerr << "ScaleFactorHandlerBase::getHistogramWithUncertainy: " << s << " or " << su << " cannot be acquired!" << endl;
+  else IVYerr << "ScaleFactorHandlerBase::getHistogramWithUncertainy: " << s << " or " << su << " cannot be acquired!" << endl;
 
   return (hh!=nullptr);
 }
@@ -314,11 +314,11 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH2D, Extende
 
   if (hh && hu){
     if (!HelperFunctions::checkHistogramIntegrity(hh)){
-      MELAerr << "ScaleFactorHandlerBase::getHistogram: " << hh->GetName() << " does not have integrity!" << endl;
+      IVYerr << "ScaleFactorHandlerBase::getHistogram: " << hh->GetName() << " does not have integrity!" << endl;
       return false;
     }
     if (!HelperFunctions::checkHistogramIntegrity(hu)){
-      MELAerr << "ScaleFactorHandlerBase::getHistogram: " << hu->GetName() << " does not have integrity!" << endl;
+      IVYerr << "ScaleFactorHandlerBase::getHistogram: " << hu->GetName() << " does not have integrity!" << endl;
       return false;
     }
 
@@ -339,7 +339,7 @@ template<> bool ScaleFactorHandlerBase::getHistogramWithUncertainy<TH2D, Extende
       }
     }
   }
-  else MELAerr << "ScaleFactorHandlerBase::getHistogramWithUncertainy: " << s << " or " << su << " cannot be acquired!" << endl;
+  else IVYerr << "ScaleFactorHandlerBase::getHistogramWithUncertainy: " << s << " or " << su << " cannot be acquired!" << endl;
 
   return (hh!=nullptr);
 }

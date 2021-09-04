@@ -1,13 +1,13 @@
 #include <cassert>
-#include <CMSDataTools/AnalysisTree/interface/HostHelpersCore.h>
+#include "HostHelpersCore.h"
 #include "BtagHelpers.h"
 #include "SamplesCore.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
 using namespace SampleHelpers;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 namespace BtagHelpers{
@@ -59,7 +59,7 @@ float BtagHelpers::getBtagWP(BtagHelpers::BtagWPType type, bool is80X){
     WP_DEEPCSV_LOOSE = 0.1241;
   }
   else{
-    MELAerr << "BtagHelpers::getBtagWP: Cannot determine the b tag SF file name for year " << theDataYear << ". Aborting..." << endl;
+    IVYerr << "BtagHelpers::getBtagWP: Cannot determine the b tag SF file name for year " << theDataYear << ". Aborting..." << endl;
     assert(0);
   }
   switch (type){
@@ -76,7 +76,7 @@ float BtagHelpers::getBtagWP(BtagHelpers::BtagWPType type, bool is80X){
   case kDeepFlav_Tight:
     return WP_DEEPFLAV_TIGHT;
   default:
-    MELAerr << "BtagHelpers::getBtagWP: No implementation for the b tagging WP type " << type << ". Aborting..." << endl;
+    IVYerr << "BtagHelpers::getBtagWP: No implementation for the b tagging WP type " << type << ". Aborting..." << endl;
     assert(0);
     return 0; // Just return to avoid warnings
   }
@@ -100,7 +100,7 @@ std::vector<float> BtagHelpers::getBtagWPs(bool is80X){
     res.push_back(getBtagWP(kDeepFlav_Tight, is80X));
     break;
   default:
-    MELAerr << "BtagHelpers::getBtagWPs: No implementation for the b tagging WP type " << btagWPType << ". Aborting..." << endl;
+    IVYerr << "BtagHelpers::getBtagWPs: No implementation for the b tagging WP type " << btagWPType << ". Aborting..." << endl;
     assert(0);
   }
   return res;
@@ -158,14 +158,14 @@ TString BtagHelpers::getBtagSFFileName(BtagWPType type){
     }
   }
   if (res == ""){
-    MELAerr << "BtagHelpers::getBtagSFFileName: WP " << type << " is not implemented for year " << theDataYear << "." << endl;
+    IVYerr << "BtagHelpers::getBtagSFFileName: WP " << type << " is not implemented for year " << theDataYear << "." << endl;
     assert(0);
   }
 
   res = ANALYSISTREEPKGDATAPATH + Form("ScaleFactors/bTagging/%i/", theDataYear) + res;
   HostHelpers::ExpandEnvironmentVariables(res);
   if (!HostHelpers::FileReadable(res.Data())){
-    MELAerr << "BtagHelpers::getBtagSFFileName: File " << res << " is not readable." << endl;
+    IVYerr << "BtagHelpers::getBtagSFFileName: File " << res << " is not readable." << endl;
     assert(0);
   }
 
@@ -175,7 +175,7 @@ TString BtagHelpers::getBtagEffFileName(){
   TString res = ANALYSISTREEPKGDATAPATH + Form("ScaleFactors/bTagging/%i/Final_bTag_Efficiencies_AllMC.root", theDataYear);
   HostHelpers::ExpandEnvironmentVariables(res);
   if (!HostHelpers::FileReadable(res.Data())){
-    MELAerr << "BtagHelpers::getBtagEffFileName: File " << res << " is not readable." << endl;
+    IVYerr << "BtagHelpers::getBtagEffFileName: File " << res << " is not readable." << endl;
     assert(0);
   }
   return res;
@@ -195,7 +195,7 @@ TString BtagHelpers::getBtagEffHistName(BtagWPType type, const char* jet_type){
   case kDeepFlav_Tight:
     return Form("DeepFlavor_TightJets_%s", jet_type);
   default:
-    MELAerr << "BtagHelpers::getBtagEffHistName: WP " << type << " is not implemented." << endl;
+    IVYerr << "BtagHelpers::getBtagEffHistName: WP " << type << " is not implemented." << endl;
     assert(0);
     break;
   }

@@ -1,14 +1,15 @@
 #include <cassert>
+#include "TRandom3.h"
 #include "HostHelpersCore.h"
 #include "SampleHelpersCore.h"
 #include "SamplesCore.h"
 #include "METCorrectionHandler.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
 using namespace SampleHelpers;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 METCorrectionParameters::METCorrectionParameters(){
@@ -117,7 +118,7 @@ bool METCorrectionHandler::setup(){
             auto it = theMap->find(period);
 
             if (it == theMap->end()){
-              MELAerr << "METCorrectionHandler::setup: "
+              IVYerr << "METCorrectionHandler::setup: "
                 << (isPFMET==1 ? "pfmet_JEC" : "puppimet_JEC")
                 << (iXY==1 ? "_XY" : "")
                 << (iJER==1 ? "_JER" : "")
@@ -132,7 +133,7 @@ bool METCorrectionHandler::setup(){
               auto it_syst_data = it->second.find(SystematicsHelpers::nSystematicVariations);
               auto it_syst_MC = it->second.find(syst);
               if (it_syst_data == it->second.end()){
-                MELAerr << "METCorrectionHandler::setup: "
+                IVYerr << "METCorrectionHandler::setup: "
                   << (isPFMET==1 ? "pfmet_JEC" : "puppimet_JEC")
                   << (iXY==1 ? "_XY" : "")
                   << (iJER==1 ? "_JER" : "")
@@ -144,7 +145,7 @@ bool METCorrectionHandler::setup(){
                 res = false;
               }
               if (it_syst_MC == it->second.end()){
-                MELAerr << "METCorrectionHandler::setup: "
+                IVYerr << "METCorrectionHandler::setup: "
                   << (isPFMET==1 ? "pfmet_JEC" : "puppimet_JEC")
                   << (iXY==1 ? "_XY" : "")
                   << (iJER==1 ? "_JER" : "")
@@ -168,7 +169,7 @@ bool METCorrectionHandler::setup(){
 }
 void METCorrectionHandler::readFile(TString const& strinput, std::unordered_map<SystematicsHelpers::SystematicVariationTypes, METCorrectionParameters>& pars){
   if (!HostHelpers::FileReadable(strinput.Data())){
-    MELAerr << "METCorrectionHandler::setup: File " << strinput << " is not readable." << endl;
+    IVYerr << "METCorrectionHandler::setup: File " << strinput << " is not readable." << endl;
     assert(0);
   }
 
@@ -190,7 +191,7 @@ void METCorrectionHandler::readFile(TString const& strinput, std::unordered_map<
         else if (str_in.find("MC")!=std::string::npos && str_in.find("PUDn ")!=std::string::npos) currentSyst = SystematicsHelpers::ePUDn;
         else if (str_in.find("MC")!=std::string::npos && str_in.find("PUUp ")!=std::string::npos) currentSyst = SystematicsHelpers::ePUUp;
         else{
-          MELAerr << "METCorrectionHandler::readFile: Cannot determine the systematic for line " << str_in << endl;
+          IVYerr << "METCorrectionHandler::readFile: Cannot determine the systematic for line " << str_in << endl;
           assert(0);
         }
         pars[currentSyst].sigmas_nominal.clear();
@@ -283,7 +284,7 @@ void METCorrectionHandler::applyCorrections(
 
         auto it = theMap->find(effDataPeriod);
         if (it==theMap->cend()){
-          MELAerr << "METCorrectionHandler::applyCorrections: The data period " << effDataPeriod << " for (XY, JER, p4Preserve) = (" << iXY << ", " << iJER << ", " << iP4Preserve << ") cannot be found!" << endl;
+          IVYerr << "METCorrectionHandler::applyCorrections: The data period " << effDataPeriod << " for (XY, JER, p4Preserve) = (" << iXY << ", " << iJER << ", " << iP4Preserve << ") cannot be found!" << endl;
           assert(0);
         }
         METCorrectionParameters const& pars_data = it->second.find(SystematicsHelpers::nSystematicVariations)->second;
@@ -327,18 +328,18 @@ void METCorrectionHandler::printParameters(
   > const& met_map,
   TString const& mname
 ) const{
-  MELAout << "****************************" << endl;
-  MELAout << "METCorrectionHandler::printParameters: Parameters of " << mname << " corrections:" << endl;
+  IVYout << "****************************" << endl;
+  IVYout << "METCorrectionHandler::printParameters: Parameters of " << mname << " corrections:" << endl;
   for (auto const& it:met_map){
     for (auto const& it2:it.second){
-      MELAout << "\t- Period " << it.first << ", systematic " << (it2.first!=SystematicsHelpers::nSystematicVariations ? SystematicsHelpers::getSystName(it2.first) : "data") << ": " << endl;
-      MELAout << "\t\t- Fractions: " << it2.second.fracs << endl;
-      MELAout << "\t\t- Nominal sigmas: " << it2.second.sigmas_nominal << endl;
-      MELAout << "\t\t- MET dn sigmas: " << it2.second.sigmas_dn << endl;
-      MELAout << "\t\t- MET up sigmas: " << it2.second.sigmas_up << endl;
+      IVYout << "\t- Period " << it.first << ", systematic " << (it2.first!=SystematicsHelpers::nSystematicVariations ? SystematicsHelpers::getSystName(it2.first) : "data") << ": " << endl;
+      IVYout << "\t\t- Fractions: " << it2.second.fracs << endl;
+      IVYout << "\t\t- Nominal sigmas: " << it2.second.sigmas_nominal << endl;
+      IVYout << "\t\t- MET dn sigmas: " << it2.second.sigmas_dn << endl;
+      IVYout << "\t\t- MET up sigmas: " << it2.second.sigmas_up << endl;
     }
   }
-  MELAout << "****************************" << endl;
+  IVYout << "****************************" << endl;
 }
 
 

@@ -1,10 +1,10 @@
 #include <cassert>
 #include "DileptonObject.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 namespace OffshellCutflow{
@@ -49,7 +49,7 @@ namespace OffshellCutflow{
       thr=20.f;
       break;
     default:
-      MELAerr << "OffshellCutflow::check_pTmiss: The active final state " << activeFinalState << " is not specified." << endl;
+      IVYerr << "OffshellCutflow::check_pTmiss: The active final state " << activeFinalState << " is not specified." << endl;
       assert(0);
       break;
     }
@@ -69,7 +69,7 @@ namespace OffshellCutflow{
       thr=25.f;
       break;
     default:
-      MELAerr << "OffshellCutflow::check_pTl1: The active final state " << activeFinalState << " is not specified." << endl;
+      IVYerr << "OffshellCutflow::check_pTl1: The active final state " << activeFinalState << " is not specified." << endl;
       assert(0);
       break;
     }
@@ -87,7 +87,7 @@ namespace OffshellCutflow{
       thr=20.f;
       break;
     default:
-      MELAerr << "OffshellCutflow::check_pTl2: The active final state " << activeFinalState << " is not specified." << endl;
+      IVYerr << "OffshellCutflow::check_pTl2: The active final state " << activeFinalState << " is not specified." << endl;
       assert(0);
       break;
     }
@@ -99,14 +99,14 @@ namespace OffshellCutflow{
     switch (activeFinalState){
     case fs_ZZ_2l2nu:
     case fs_WW_2l2nu:
-      MELAerr << "OffshellCutflow::check_pTl3: This function should not be called for the active final state " << activeFinalState << "." << endl;
+      IVYerr << "OffshellCutflow::check_pTl3: This function should not be called for the active final state " << activeFinalState << "." << endl;
       return false;
       break;
     case fs_ZW_3l1nu:
       thr=10.f;
       break;
     default:
-      MELAerr << "OffshellCutflow::check_pTl3: The active final state " << activeFinalState << " is not specified." << endl;
+      IVYerr << "OffshellCutflow::check_pTl3: The active final state " << activeFinalState << " is not specified." << endl;
       assert(0);
       break;
     }
@@ -124,7 +124,7 @@ namespace OffshellCutflow{
     case fs_WW_2l2nu:
       break;
     default:
-      MELAerr << "OffshellCutflow::check_pTZ1: The active final state " << activeFinalState << " is not specified." << endl;
+      IVYerr << "OffshellCutflow::check_pTZ1: The active final state " << activeFinalState << " is not specified." << endl;
       assert(0);
       break;
     }
@@ -141,7 +141,7 @@ namespace OffshellCutflow{
     case fs_WW_2l2nu:
       break;
     default:
-      MELAerr << "OffshellCutflow::check_pTZ2: The active final state " << activeFinalState << " is not specified." << endl;
+      IVYerr << "OffshellCutflow::check_pTZ2: The active final state " << activeFinalState << " is not specified." << endl;
       assert(0);
       break;
     }
@@ -157,7 +157,7 @@ namespace OffshellCutflow{
     case fs_WW_2l2nu:
       break;
     default:
-      MELAerr << "OffshellCutflow::check_pTlW: The active final state " << activeFinalState << " is not specified." << endl;
+      IVYerr << "OffshellCutflow::check_pTlW: The active final state " << activeFinalState << " is not specified." << endl;
       assert(0);
       break;
     }
@@ -175,7 +175,7 @@ namespace OffshellCutflow{
     case fs_WW_2l2nu:
       return true;
     default:
-      MELAerr << "OffshellCutflow::check_mTlW_pTmiss: The active final state " << activeFinalState << " is not specified." << endl;
+      IVYerr << "OffshellCutflow::check_mTlW_pTmiss: The active final state " << activeFinalState << " is not specified." << endl;
       assert(0);
       return true;
     }
@@ -192,7 +192,7 @@ namespace OffshellCutflow{
     case fs_ZW_3l1nu:
       break;
     default:
-      MELAerr << "OffshellCutflow::check_pTboson: The active final state " << activeFinalState << " is not specified." << endl;
+      IVYerr << "OffshellCutflow::check_pTboson: The active final state " << activeFinalState << " is not specified." << endl;
       assert(0);
       break;
     }
@@ -209,7 +209,7 @@ namespace OffshellCutflow{
     case fs_WW_2l2nu:
       break;
     default:
-      MELAerr << "OffshellCutflow::check_mll_QCDsuppression: The active final state " << activeFinalState << " is not specified." << endl;
+      IVYerr << "OffshellCutflow::check_mll_QCDsuppression: The active final state " << activeFinalState << " is not specified." << endl;
       assert(0);
       break;
     }
@@ -228,7 +228,7 @@ namespace OffshellCutflow{
       thr[0]=MZ_VAL_CUTS+15.f;
       break;
     default:
-      MELAerr << "OffshellCutflow::check_mll: The active final state " << activeFinalState << " is not specified." << endl;
+      IVYerr << "OffshellCutflow::check_mll: The active final state " << activeFinalState << " is not specified." << endl;
       assert(0);
       break;
     }

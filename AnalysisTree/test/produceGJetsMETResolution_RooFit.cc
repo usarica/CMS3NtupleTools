@@ -5,7 +5,7 @@
 #include "TText.h"
 #include "TPaveText.h"
 #include "TLegend.h"
-#include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
+#include <IvyFramework/IvyAutoMELA/interface/IvyMELAHelpers.h>
 #include "ExtendedHistogram_3D.h"
 #include "RooArgList.h"
 #include "RooConstVar.h"
@@ -113,8 +113,8 @@ void getFitCovarianceMatrix(RooFitResult const* fitResult, RooArgList const& ord
   const int nFinalPars = pars.getSize();
   TMatrixDSym mat_tmp = fitResult->covarianceMatrix();
   const int nDimCovMat = mat_tmp.GetNcols();
-  if (nFinalDimCovMat<nDimCovMat) MELAout << "getFitCovarianceMatrix: Not all fit parameters are included in the ordered_args argument!" << endl;
-  if (nFinalPars!=nDimCovMat){ MELAout << "getFitCovarianceMatrix: nFinalPars!=nDimCovMat! No matrix can be returned" << endl; return; }
+  if (nFinalDimCovMat<nDimCovMat) IVYout << "getFitCovarianceMatrix: Not all fit parameters are included in the ordered_args argument!" << endl;
+  if (nFinalPars!=nDimCovMat){ IVYout << "getFitCovarianceMatrix: nFinalPars!=nDimCovMat! No matrix can be returned" << endl; return; }
 
   res.ResizeTo(nFinalDimCovMat, nFinalDimCovMat); for (int ix=0; ix<nFinalDimCovMat; ix++){ for (int iy=0; iy<nFinalDimCovMat; iy++) res[ix][iy] = 0; }
   std::vector<int> order(nFinalDimCovMat, -1);
@@ -208,7 +208,7 @@ float getWeightThreshold(TTree* tin, std::vector<float const*> weights){
   last1percentweights.reserve(nLast1percent+1);
   float smallest_wgt = 9e9;
 
-  MELAout << "Scanning for weight thresholds (nLast1percent=" << nLast1percent << ", multiplier=" << multiplier << ")..." << endl;
+  IVYout << "Scanning for weight thresholds (nLast1percent=" << nLast1percent << ", multiplier=" << multiplier << ")..." << endl;
   for (int ev=0; ev<nEntries; ev++){
     tin->GetEntry(ev);
     HelperFunctions::progressbar(ev, nEntries);
@@ -230,10 +230,10 @@ float getWeightThreshold(TTree* tin, std::vector<float const*> weights){
     else break;
   }
 
-  MELAout << "Smallest weight: " << smallest_wgt << endl;
-  MELAout << "Smallest accumulated weight: " << last1percentweights.back() << endl;
-  MELAout << "Largest weight: " << last1percentweights.front() << endl;
-  MELAout << "Will trim weights at " << res << " for " << idx_trim << " / " << nEntries << " events..." << endl;
+  IVYout << "Smallest weight: " << smallest_wgt << endl;
+  IVYout << "Smallest accumulated weight: " << last1percentweights.back() << endl;
+  IVYout << "Largest weight: " << last1percentweights.front() << endl;
+  IVYout << "Will trim weights at " << res << " for " << idx_trim << " / " << nEntries << " events..." << endl;
 
   return res;
 }
@@ -289,7 +289,7 @@ Variable getVariable(TString name){
     return Variable(name, "p_{T}^{miss} (GeV)", binning);
   }
   else{
-    MELAerr << "getVariable: Name " << name << " is undefined." << endl;
+    IVYerr << "getVariable: Name " << name << " is undefined." << endl;
     assert(0);
     return Variable();
   }
@@ -337,7 +337,7 @@ void produceCorrection(
 
   TString thiscorr = Form("Step%u_%s", istep, strSystName.data());
   TString stroutput = Form("%s/%s%s", coutput_main.Data(), thiscorr.Data(), ".root");
-  MELAout << "Opening output file " << stroutput << endl;
+  IVYout << "Opening output file " << stroutput << endl;
   TFile* foutput = TFile::Open(stroutput, "recreate");
 
   // Get sample specifications
@@ -357,7 +357,7 @@ void produceCorrection(
     TString strinput = Form("%s/%s", cinput_main.Data(), cinput.Data());
     strinput += Form("*_%s", SystematicsHelpers::getSystName(SystematicsHelpers::sNominal).data());
     strinput += ".root";
-    MELAout << "Adding " << strinput << " to the data tree chain..." << endl;
+    IVYout << "Adding " << strinput << " to the data tree chain..." << endl;
 
     tins.back()->Add(strinput);
   }
@@ -372,12 +372,12 @@ void produceCorrection(
     TString strinput = Form("%s/%s", cinput_main.Data(), cinput.Data());
     strinput += Form("*_%s", strSystName.data());
     strinput += ".root";
-    MELAout << "Adding " << strinput << " to the MC tree chain..." << endl;
+    IVYout << "Adding " << strinput << " to the MC tree chain..." << endl;
 
     int nfiles = tins.back()->Add(strinput);
-    MELAout << "\t- Added " << nfiles << " files" << endl;
+    IVYout << "\t- Added " << nfiles << " files" << endl;
   }
-  for (auto const& tin:tins) MELAout << "Total number of events: " << tin->GetEntries() << endl;
+  for (auto const& tin:tins) IVYout << "Total number of events: " << tin->GetEntries() << endl;
 
 #define BRANCH_COMMAND(type, name) type name = 0;
   BRANCH_COMMANDS;
@@ -395,7 +395,7 @@ void produceCorrection(
 
   foutput->cd();
 
-  MELAout << "Building variables..." << endl;
+  IVYout << "Building variables..." << endl;
   std::vector<Variable*> allvars;
   Variable var_pTG = getVariable("pt_gamma"); allvars.push_back(&var_pTG);
   Variable var_etaG = getVariable("eta_gamma"); allvars.push_back(&var_etaG);
@@ -414,7 +414,7 @@ void produceCorrection(
   };
   std::vector<Variable*>& varlist = varlists.at(istep-1);
 
-  MELAout << "Acquiring corrections from previous steps" << endl;
+  IVYout << "Acquiring corrections from previous steps" << endl;
   std::vector<TFile*> finput_prevcorrs;
   std::vector<TH3F*> hprevcorrs;
   for (unsigned int i=0; i<istep-1; i++){
@@ -427,7 +427,7 @@ void produceCorrection(
       if (htmp){
         finput_prevcorrs.push_back(finput_prevcorr);
         hprevcorrs.push_back(htmp);
-        MELAout << "\t- Corrections from step " << i+1 << " acquired..." << endl;
+        IVYout << "\t- Corrections from step " << i+1 << " acquired..." << endl;
       }
       else finput_prevcorr->Close();
     }
@@ -448,7 +448,7 @@ void produceCorrection(
     TTree* tin = tins.at(it);
     ExtendedHistogram_3D& hfill = (it==0 ? hdata : hMC);
 
-    MELAout << "Looping over the " << (it==0 ? "data" : "MC") << " tree..." << endl;
+    IVYout << "Looping over the " << (it==0 ? "data" : "MC") << " tree..." << endl;
     int const nEntries = tin->GetEntries();
     for (int ev=0; ev<nEntries; ev++){
       tin->GetEntry(ev);
@@ -597,7 +597,7 @@ bool printParameterWithAsymErrors(RooRealVar const& par, TString prefix){
   double errAsym[2];
   bool res = getParameterErrors(par, errAsym[0], errAsym[1]);
 
-  MELAout << prefix << ": " << par.getVal() << " -" << errAsym[0] << " +" << errAsym[1] << endl;
+  IVYout << prefix << ": " << par.getVal() << " -" << errAsym[0] << " +" << errAsym[1] << endl;
 
   return res;
 }
@@ -667,13 +667,13 @@ void produceFinalFits(
     TString indexDir = "${CMSSW_BASE}/src/CMSDataTools/AnalysisTree/data/plotting/index.php";
     HostHelpers::ExpandEnvironmentVariables(indexDir);
     if (HostHelpers::FileReadable(indexDir)){
-      MELAout << "Attempting to copy index.php" << endl;
+      IVYout << "Attempting to copy index.php" << endl;
       TString tmpdir = tmplist.at(0) + '/';
       for (size_t idir=1; idir<tmplist.size(); idir++){
         tmpdir = tmpdir + tmplist.at(idir) + '/';
         TString tmpCmd = "cp ~/public_html/index.pages.php ";
         tmpCmd += tmpdir + "index.php";
-        MELAout << "Copying index.php into " << tmpdir << endl;
+        IVYout << "Copying index.php into " << tmpdir << endl;
         HostHelpers::ExecuteCommand(tmpCmd);
       }
     }
@@ -770,7 +770,7 @@ void produceFinalFits(
       TString strinput = Form("%s/%s", cinput_main.Data(), cinput.Data());
       strinput += Form("*_%s", strSystName.data());
       strinput += ".root";
-      MELAout << "Adding " << strinput << " to the " << (it==0 ? "data" : "MC") << " tree chain..." << endl;
+      IVYout << "Adding " << strinput << " to the " << (it==0 ? "data" : "MC") << " tree chain..." << endl;
 
       tin->Add(strinput);
     }
@@ -891,7 +891,7 @@ void produceFinalFits(
           }
           else break;
         }
-        MELAout << "Will trim corrected weights at " << MC_wgt_corr_thr << " for " << idx_trim << " / " << nEntries << " events..." << endl;
+        IVYout << "Will trim corrected weights at " << MC_wgt_corr_thr << " for " << idx_trim << " / " << nEntries << " events..." << endl;
       }
     }
 
@@ -980,24 +980,24 @@ void produceFinalFits(
         g1_sigma.setRange(10, 30); g1_sigma.setVal(20);
         pdf = &pdf1;
         fit_data_restricted = fit_data.reduce(Form("abs(%s)<%.1f", xvar.GetName(), g1_sigma.getMax()));
-        MELAout << "****************************" << endl;
-        MELAout << "Pre-fit iteration 1" << endl;
-        MELAout << "\t- Range = [ " << -g1_sigma.getMax() << ", " << g1_sigma.getMax() << " ]" << endl;
-        MELAout << "\t- Sigma 1 = ( " << g1_sigma.getVal() << ", [ " << g1_sigma.getMin() << ", " << g1_sigma.getMax() << " ] )" << endl;
-        MELAout << "****************************" << endl;
+        IVYout << "****************************" << endl;
+        IVYout << "Pre-fit iteration 1" << endl;
+        IVYout << "\t- Range = [ " << -g1_sigma.getMax() << ", " << g1_sigma.getMax() << " ]" << endl;
+        IVYout << "\t- Sigma 1 = ( " << g1_sigma.getVal() << ", [ " << g1_sigma.getMin() << ", " << g1_sigma.getMax() << " ] )" << endl;
+        IVYout << "****************************" << endl;
         while (fitStatus!=0){
           delete fitResult_prev; fitResult_prev = fitResult;
           fitResult = pdf->fitTo(*fit_data_restricted, cmdList);
           fitStatus = fitResult->status();
           int covQual = fitResult->covQual();
           bool isIdentical = (!fitResult_prev || covQual<0 ? false : fitResult->isIdentical(*fitResult_prev, 1e-5, 1e-4, false));
-          MELAout << "****************************" << endl;
-          MELAout << "Fitted parameters:\n";
-          MELAout << "\t- Status: " << fitStatus << endl;
-          MELAout << "\t- Sigma 1: " << g1_sigma.getVal() << " +- " << g1_sigma.getError() << endl;
-          MELAout << "\t- Covariance matrix quality: " << covQual << endl;
-          if (fitResult_prev) MELAout << "\t- Is identical to previous fit iteration?: " << isIdentical << endl;
-          MELAout << "****************************" << endl;
+          IVYout << "****************************" << endl;
+          IVYout << "Fitted parameters:\n";
+          IVYout << "\t- Status: " << fitStatus << endl;
+          IVYout << "\t- Sigma 1: " << g1_sigma.getVal() << " +- " << g1_sigma.getError() << endl;
+          IVYout << "\t- Covariance matrix quality: " << covQual << endl;
+          if (fitResult_prev) IVYout << "\t- Is identical to previous fit iteration?: " << isIdentical << endl;
+          IVYout << "****************************" << endl;
 
           itry++;
           if (itry==ntries) break;
@@ -1010,10 +1010,10 @@ void produceFinalFits(
         }
         delete fitResult_prev; fitResult_prev=nullptr;
         if (fitStatus==0 || fitStatus==4){
-          MELAout << "****************************" << endl;
-          MELAout << "Iteration 1 fitted parameters for systematic " << systname << " in " << (it==0 ? "data" : "MC") << ":" << endl;
-          MELAout << "\t- Sigma 1: " << g1_sigma.getVal() << " +- " << g1_sigma.getError() << endl;
-          MELAout << "****************************" << endl;
+          IVYout << "****************************" << endl;
+          IVYout << "Iteration 1 fitted parameters for systematic " << systname << " in " << (it==0 ? "data" : "MC") << ":" << endl;
+          IVYout << "\t- Sigma 1: " << g1_sigma.getVal() << " +- " << g1_sigma.getError() << endl;
+          IVYout << "****************************" << endl;
         }
         delete fitResult; fitResult=nullptr;
         delete fit_data_restricted; fit_data_restricted=nullptr;
@@ -1031,27 +1031,27 @@ void produceFinalFits(
       }
       pdf = &pdf2;
       fit_data_restricted = fit_data.reduce(Form("abs(%s)<%.1f", xvar.GetName(), g2_sigma.getMax()));
-      MELAout << "****************************" << endl;
-      MELAout << "Pre-fit iteration 2" << endl;
-      MELAout << "\t- Range = [ " << -g2_sigma.getMax() << ", " << g2_sigma.getMax() << " ]" << endl;
-      MELAout << "\t- Sigma 1 = ( " << g1_sigma.getVal() << ", [ " << g1_sigma.getMin() << ", " << g1_sigma.getMax() << " ] )" << endl;
-      MELAout << "\t- Sigma 2 = ( " << g2_sigma.getVal() << ", [ " << g2_sigma.getMin() << ", " << g2_sigma.getMax() << " ] )" << endl;
-      MELAout << "****************************" << endl;
+      IVYout << "****************************" << endl;
+      IVYout << "Pre-fit iteration 2" << endl;
+      IVYout << "\t- Range = [ " << -g2_sigma.getMax() << ", " << g2_sigma.getMax() << " ]" << endl;
+      IVYout << "\t- Sigma 1 = ( " << g1_sigma.getVal() << ", [ " << g1_sigma.getMin() << ", " << g1_sigma.getMax() << " ] )" << endl;
+      IVYout << "\t- Sigma 2 = ( " << g2_sigma.getVal() << ", [ " << g2_sigma.getMin() << ", " << g2_sigma.getMax() << " ] )" << endl;
+      IVYout << "****************************" << endl;
       while (fitStatus!=0){
         delete fitResult_prev; fitResult_prev = fitResult;
         fitResult = pdf->fitTo(*fit_data_restricted, cmdList);
         fitStatus = fitResult->status();
         int covQual = fitResult->covQual();
         bool isIdentical = (!fitResult_prev || covQual<0 ? false : fitResult->isIdentical(*fitResult_prev, 1e-5, 1e-4, false));
-        MELAout << "****************************" << endl;
-        MELAout << "Fitted parameters:\n";
-        MELAout << "\t- Status: " << fitStatus << endl;
-        MELAout << "\t- Sigma 1: " << g1_sigma.getVal() << " +- " << g1_sigma.getError() << endl;
-        MELAout << "\t- Frac 1: " << g1_frac.getVal() << " +- " << g1_frac.getError() << endl;
-        MELAout << "\t- Sigma 2: " << g2_sigma.getVal() << " +- " << g2_sigma.getError() << endl;
-        MELAout << "\t- Covariance matrix quality: " << covQual << endl;
-        if (fitResult_prev) MELAout << "\t- Is identical to previous fit iteration?: " << isIdentical << endl;
-        MELAout << "****************************" << endl;
+        IVYout << "****************************" << endl;
+        IVYout << "Fitted parameters:\n";
+        IVYout << "\t- Status: " << fitStatus << endl;
+        IVYout << "\t- Sigma 1: " << g1_sigma.getVal() << " +- " << g1_sigma.getError() << endl;
+        IVYout << "\t- Frac 1: " << g1_frac.getVal() << " +- " << g1_frac.getError() << endl;
+        IVYout << "\t- Sigma 2: " << g2_sigma.getVal() << " +- " << g2_sigma.getError() << endl;
+        IVYout << "\t- Covariance matrix quality: " << covQual << endl;
+        if (fitResult_prev) IVYout << "\t- Is identical to previous fit iteration?: " << isIdentical << endl;
+        IVYout << "****************************" << endl;
 
         itry++;
         if (itry==ntries) break;
@@ -1068,12 +1068,12 @@ void produceFinalFits(
       }
       delete fitResult_prev; fitResult_prev=nullptr;
       if (fitStatus==0 || fitStatus==4){
-        MELAout << "****************************" << endl;
-        MELAout << "Iteration 2 fitted parameters for systematic " << systname << " in " << (it==0 ? "data" : "MC") << ":" << endl;
-        MELAout << "\t- Sigma 1: " << g1_sigma.getVal() << " +- " << g1_sigma.getError() << endl;
-        MELAout << "\t- Frac 1: " << g1_frac.getVal() << " +- " << g1_frac.getError() << endl;
-        MELAout << "\t- Sigma 2: " << g2_sigma.getVal() << " +- " << g2_sigma.getError() << endl;
-        MELAout << "****************************" << endl;
+        IVYout << "****************************" << endl;
+        IVYout << "Iteration 2 fitted parameters for systematic " << systname << " in " << (it==0 ? "data" : "MC") << ":" << endl;
+        IVYout << "\t- Sigma 1: " << g1_sigma.getVal() << " +- " << g1_sigma.getError() << endl;
+        IVYout << "\t- Frac 1: " << g1_frac.getVal() << " +- " << g1_frac.getError() << endl;
+        IVYout << "\t- Sigma 2: " << g2_sigma.getVal() << " +- " << g2_sigma.getError() << endl;
+        IVYout << "****************************" << endl;
       }
       delete fitResult; fitResult=nullptr;
       delete fit_data_restricted; fit_data_restricted=nullptr;
@@ -1091,30 +1091,30 @@ void produceFinalFits(
       g3_sigma.setRange(g2_sigma.getVal()+3.*g2_sigma.getError(), g3_sigma.getMax()); g3_sigma.setVal((g3_sigma.getMin() + g3_sigma.getMax())/2.);
       pdf = &pdf3;
       fit_data_restricted = fit_data.reduce(Form("abs(%s)<%.1f", xvar.GetName(), g3_sigma.getMax()));
-      MELAout << "****************************" << endl;
-      MELAout << "Pre-fit iteration 3" << endl;
-      MELAout << "\t- Range = [ " << -g3_sigma.getMax() << ", " << g3_sigma.getMax() << " ]" << endl;
-      MELAout << "\t- Sigma 1 = ( " << g1_sigma.getVal() << ", [ " << g1_sigma.getMin() << ", " << g1_sigma.getMax() << " ] )" << endl;
-      MELAout << "\t- Sigma 2 = ( " << g2_sigma.getVal() << ", [ " << g2_sigma.getMin() << ", " << g2_sigma.getMax() << " ] )" << endl;
-      MELAout << "\t- Sigma 3 = ( " << g3_sigma.getVal() << ", [ " << g3_sigma.getMin() << ", " << g3_sigma.getMax() << " ] )" << endl;
-      MELAout << "****************************" << endl;
+      IVYout << "****************************" << endl;
+      IVYout << "Pre-fit iteration 3" << endl;
+      IVYout << "\t- Range = [ " << -g3_sigma.getMax() << ", " << g3_sigma.getMax() << " ]" << endl;
+      IVYout << "\t- Sigma 1 = ( " << g1_sigma.getVal() << ", [ " << g1_sigma.getMin() << ", " << g1_sigma.getMax() << " ] )" << endl;
+      IVYout << "\t- Sigma 2 = ( " << g2_sigma.getVal() << ", [ " << g2_sigma.getMin() << ", " << g2_sigma.getMax() << " ] )" << endl;
+      IVYout << "\t- Sigma 3 = ( " << g3_sigma.getVal() << ", [ " << g3_sigma.getMin() << ", " << g3_sigma.getMax() << " ] )" << endl;
+      IVYout << "****************************" << endl;
       while (fitStatus!=0){
         delete fitResult_prev; fitResult_prev = fitResult;
         fitResult = pdf->fitTo(*fit_data_restricted, cmdList);
         fitStatus = fitResult->status();
         int covQual = fitResult->covQual();
         bool isIdentical = (!fitResult_prev || covQual<0 ? false : fitResult->isIdentical(*fitResult_prev, 1e-5, 1e-4, false));
-        MELAout << "****************************" << endl;
-        MELAout << "Fitted parameters:\n";
-        MELAout << "\t- Status: " << fitStatus << endl;
-        MELAout << "\t- Sigma 1: " << g1_sigma.getVal() << " +- " << g1_sigma.getError() << endl;
-        MELAout << "\t- Frac 1: " << g1_frac.getVal() << " +- " << g1_frac.getError() << endl;
-        MELAout << "\t- Sigma 2: " << g2_sigma.getVal() << " +- " << g2_sigma.getError() << endl;
-        MELAout << "\t- Frac 2: " << g2_frac.getVal() << " +- " << g2_frac.getError() << endl;
-        MELAout << "\t- Sigma 3: " << g3_sigma.getVal() << " +- " << g3_sigma.getError() << endl;
-        MELAout << "\t- Covariance matrix quality: " << covQual << endl;
-        if (fitResult_prev) MELAout << "\t- Is identical to previous fit iteration?: " << isIdentical << endl;
-        MELAout << "****************************" << endl;
+        IVYout << "****************************" << endl;
+        IVYout << "Fitted parameters:\n";
+        IVYout << "\t- Status: " << fitStatus << endl;
+        IVYout << "\t- Sigma 1: " << g1_sigma.getVal() << " +- " << g1_sigma.getError() << endl;
+        IVYout << "\t- Frac 1: " << g1_frac.getVal() << " +- " << g1_frac.getError() << endl;
+        IVYout << "\t- Sigma 2: " << g2_sigma.getVal() << " +- " << g2_sigma.getError() << endl;
+        IVYout << "\t- Frac 2: " << g2_frac.getVal() << " +- " << g2_frac.getError() << endl;
+        IVYout << "\t- Sigma 3: " << g3_sigma.getVal() << " +- " << g3_sigma.getError() << endl;
+        IVYout << "\t- Covariance matrix quality: " << covQual << endl;
+        if (fitResult_prev) IVYout << "\t- Is identical to previous fit iteration?: " << isIdentical << endl;
+        IVYout << "****************************" << endl;
 
         itry++;
         if (itry==ntries) break;
@@ -1133,14 +1133,14 @@ void produceFinalFits(
       }
       delete fitResult_prev; fitResult_prev=nullptr;
       if (fitStatus==0 || fitStatus==4){
-        MELAout << "****************************" << endl;
-        MELAout << "Iteration 3 fitted parameters for systematic " << systname << " in " << (it==0 ? "data" : "MC") << ":" << endl;
-        MELAout << "\t- Sigma 1: " << g1_sigma.getVal() << " +- " << g1_sigma.getError() << endl;
-        MELAout << "\t- Frac 1: " << g1_frac.getVal() << " +- " << g1_frac.getError() << endl;
-        MELAout << "\t- Sigma 2: " << g2_sigma.getVal() << " +- " << g2_sigma.getError() << endl;
-        MELAout << "\t- Frac 2: " << g2_frac.getVal() << " +- " << g2_frac.getError() << endl;
-        MELAout << "\t- Sigma 3: " << g3_sigma.getVal() << " +- " << g3_sigma.getError() << endl;
-        MELAout << "****************************" << endl;
+        IVYout << "****************************" << endl;
+        IVYout << "Iteration 3 fitted parameters for systematic " << systname << " in " << (it==0 ? "data" : "MC") << ":" << endl;
+        IVYout << "\t- Sigma 1: " << g1_sigma.getVal() << " +- " << g1_sigma.getError() << endl;
+        IVYout << "\t- Frac 1: " << g1_frac.getVal() << " +- " << g1_frac.getError() << endl;
+        IVYout << "\t- Sigma 2: " << g2_sigma.getVal() << " +- " << g2_sigma.getError() << endl;
+        IVYout << "\t- Frac 2: " << g2_frac.getVal() << " +- " << g2_frac.getError() << endl;
+        IVYout << "\t- Sigma 3: " << g3_sigma.getVal() << " +- " << g3_sigma.getError() << endl;
+        IVYout << "****************************" << endl;
       }
       delete fitResult; fitResult=nullptr;
       delete fit_data_restricted; fit_data_restricted=nullptr;
@@ -1161,13 +1161,13 @@ void produceFinalFits(
         g3_sigma.setRange((g2_sigma.getVal()+g3_sigma.getVal())/2., g3_sigma.getMax());
         pdf = &pdf3;
       }
-      MELAout << "Begin final fits..." << endl;
+      IVYout << "Begin final fits..." << endl;
       while (fitStatus!=0 || doImprove){
-        MELAout << "****************************" << endl;
-        MELAout << "Attempt " << itry << endl;
-        MELAout << "****************************" << endl;
+        IVYout << "****************************" << endl;
+        IVYout << "Attempt " << itry << endl;
+        IVYout << "****************************" << endl;
         if (applyImprovement && doImprove){
-          MELAout << "Improving the fit result with a re-trial." << endl;
+          IVYout << "Improving the fit result with a re-trial." << endl;
           cmdList.Add((TObject*) &hesseArg);
           cmdList.Add((TObject*) &initialhesseArg);
           cmdList.Add((TObject*) &minosArg);
@@ -1193,23 +1193,23 @@ void produceFinalFits(
               g1_frac.setConstant(true);
             }
           }
-          MELAout << "New " << g1_sigma.GetName() << " = " << g1_sigma.getVal() << " [ " << g1_sigma.getMin() << ", " << g1_sigma.getMax() << " ]" << endl;
+          IVYout << "New " << g1_sigma.GetName() << " = " << g1_sigma.getVal() << " [ " << g1_sigma.getMin() << ", " << g1_sigma.getMax() << " ]" << endl;
           g2_sigma.setVal(rnd.Uniform(g2_sigma.getMin(), g2_sigma.getMax()));
-          MELAout << "New " << g2_sigma.GetName() << " = " << g2_sigma.getVal() << " [ " << g2_sigma.getMin() << ", " << g2_sigma.getMax() << " ]" << endl;
+          IVYout << "New " << g2_sigma.GetName() << " = " << g2_sigma.getVal() << " [ " << g2_sigma.getMin() << ", " << g2_sigma.getMax() << " ]" << endl;
           g3_sigma.setVal(rnd.Uniform(g3_sigma.getMin(), g3_sigma.getMax()));
-          MELAout << "New " << g3_sigma.GetName() << " = " << g3_sigma.getVal() << " [ " << g3_sigma.getMin() << ", " << g3_sigma.getMax() << " ]" << endl;
+          IVYout << "New " << g3_sigma.GetName() << " = " << g3_sigma.getVal() << " [ " << g3_sigma.getMin() << ", " << g3_sigma.getMax() << " ]" << endl;
           if (nGaussians==4){
             g4_sigma.setVal(rnd.Uniform(g4_sigma.getMin(), g4_sigma.getMax()));
-            MELAout << "New " << g4_sigma.GetName() << " = " << g4_sigma.getVal() << " [ " << g4_sigma.getMin() << ", " << g4_sigma.getMax() << " ]" << endl;
+            IVYout << "New " << g4_sigma.GetName() << " = " << g4_sigma.getVal() << " [ " << g4_sigma.getMin() << ", " << g4_sigma.getMax() << " ]" << endl;
           }
           if (!isConst_fracs){
             if (!fixG1ToNull) g1_frac.setVal(rnd.Uniform(g1_frac.getMin(), g1_frac.getMax()));
-            MELAout << "New " << g1_frac.GetName() << " = " << g1_frac.getVal() << endl;
+            IVYout << "New " << g1_frac.GetName() << " = " << g1_frac.getVal() << endl;
             g2_frac.setVal(rnd.Uniform(g2_frac.getMin(), g2_frac.getMax()));
-            MELAout << "New " << g2_frac.GetName() << " = " << g2_frac.getVal() << endl;
+            IVYout << "New " << g2_frac.GetName() << " = " << g2_frac.getVal() << endl;
             if (nGaussians==4){
               g3_frac.setVal(rnd.Uniform(g3_frac.getMin(), g3_frac.getMax()));
-              MELAout << "New " << g3_frac.GetName() << " = " << g3_frac.getVal() << endl;
+              IVYout << "New " << g3_frac.GetName() << " = " << g3_frac.getVal() << endl;
             }
           }
           delete fitResult; fitResult = nullptr; // No comparison should be made when initial parameters are randomized.
@@ -1218,25 +1218,25 @@ void produceFinalFits(
 
         delete fitResult_prev; fitResult_prev = fitResult;
         fitResult = pdf->fitTo(fit_data, cmdList);
-        if (!fitResult) MELAerr << "No fit results found!" << endl;
+        if (!fitResult) IVYerr << "No fit results found!" << endl;
         fitStatus_preMINOS = fitStatus = fitResult->status();
         int covQual = fitResult->covQual();
         bool isIdentical = (!fitResult_prev || covQual<0 ? false : fitResult->isIdentical(*fitResult_prev, 1e-5, 1e-4, false));
-        MELAout << "****************************" << endl;
-        MELAout << "Fitted parameters:\n";
-        MELAout << "\t- Status: " << fitStatus << endl;
-        MELAout << "\t- Sigma 1: " << g1_sigma.getVal() << " +- " << g1_sigma.getError() << endl;
-        MELAout << "\t- Frac 1: " << g1_frac.getVal() << " +- " << g1_frac.getError() << endl;
-        MELAout << "\t- Sigma 2: " << g2_sigma.getVal() << " +- " << g2_sigma.getError() << endl;
-        MELAout << "\t- Frac 2: " << g2_frac.getVal() << " +- " << g2_frac.getError() << endl;
-        MELAout << "\t- Sigma 3: " << g3_sigma.getVal() << " +- " << g3_sigma.getError() << endl;
+        IVYout << "****************************" << endl;
+        IVYout << "Fitted parameters:\n";
+        IVYout << "\t- Status: " << fitStatus << endl;
+        IVYout << "\t- Sigma 1: " << g1_sigma.getVal() << " +- " << g1_sigma.getError() << endl;
+        IVYout << "\t- Frac 1: " << g1_frac.getVal() << " +- " << g1_frac.getError() << endl;
+        IVYout << "\t- Sigma 2: " << g2_sigma.getVal() << " +- " << g2_sigma.getError() << endl;
+        IVYout << "\t- Frac 2: " << g2_frac.getVal() << " +- " << g2_frac.getError() << endl;
+        IVYout << "\t- Sigma 3: " << g3_sigma.getVal() << " +- " << g3_sigma.getError() << endl;
         if (nGaussians==4){
-          MELAout << "\t- Frac 3: " << g3_frac.getVal() << " +- " << g3_frac.getError() << endl;
-          MELAout << "\t- Sigma 4: " << g4_sigma.getVal() << " +- " << g4_sigma.getError() << endl;
+          IVYout << "\t- Frac 3: " << g3_frac.getVal() << " +- " << g3_frac.getError() << endl;
+          IVYout << "\t- Sigma 4: " << g4_sigma.getVal() << " +- " << g4_sigma.getError() << endl;
         }
-        MELAout << "\t- Covariance matrix quality: " << covQual << endl;
-        if (fitResult_prev) MELAout << "\t- Is identical to previous fit iteration?: " << isIdentical << endl;
-        MELAout << "****************************" << endl;
+        IVYout << "\t- Covariance matrix quality: " << covQual << endl;
+        if (fitResult_prev) IVYout << "\t- Is identical to previous fit iteration?: " << isIdentical << endl;
+        IVYout << "****************************" << endl;
         if (applyImprovement && !doImprove && fitStatus==0) doImprove=true;
         else{
           if (!doImprove){
@@ -1264,7 +1264,7 @@ void produceFinalFits(
           RooLinkedList cmdList_withMinos = cmdList;
           cmdList_withMinos.Add((TObject*) &minosArg);
 
-          MELAout << "Attempting to obtain asymmetric errors through a refit with Minos..." << endl;
+          IVYout << "Attempting to obtain asymmetric errors through a refit with Minos..." << endl;
           if (!isConst_fracs){
             isConst_fracs = true;
             g1_frac.setConstant(true);
@@ -1286,13 +1286,13 @@ void produceFinalFits(
             successfulMinos &= printParameterWithAsymErrors(g4_sigma, "\t- Sigma 4");
           }
           if (!successfulMinos){
-            MELAout << endl;
-            MELAout << "**************************************" << endl;
-            MELAout << "**************************************" << endl;
-            MELAout << "\t- Fit with Minos failed with status " << fitStatus << endl;
-            MELAout << "**************************************" << endl;
-            MELAout << "**************************************" << endl;
-            MELAout << endl;
+            IVYout << endl;
+            IVYout << "**************************************" << endl;
+            IVYout << "**************************************" << endl;
+            IVYout << "\t- Fit with Minos failed with status " << fitStatus << endl;
+            IVYout << "**************************************" << endl;
+            IVYout << "**************************************" << endl;
+            IVYout << endl;
 
             minosImprove = true;
             fitStatus = 4;
@@ -1326,32 +1326,32 @@ void produceFinalFits(
           }
           else{
             minosImprove = false;
-            MELAout << endl;
-            MELAout << "**************************************" << endl;
-            MELAout << "**************************************" << endl;
-            MELAout << "\t- Fit with Minos succeeded!" << endl;
-            MELAout << "**************************************" << endl;
-            MELAout << "**************************************" << endl;
-            MELAout << endl;
+            IVYout << endl;
+            IVYout << "**************************************" << endl;
+            IVYout << "**************************************" << endl;
+            IVYout << "\t- Fit with Minos succeeded!" << endl;
+            IVYout << "**************************************" << endl;
+            IVYout << "**************************************" << endl;
+            IVYout << endl;
           }
         }
 
         if (itry==ntries) break;
       }
       delete fitResult_prev;
-      MELAout << "Iterations ended. Fit status before/after MINOS: " << fitStatus_preMINOS << " / " << fitStatus << endl;
+      IVYout << "Iterations ended. Fit status before/after MINOS: " << fitStatus_preMINOS << " / " << fitStatus << endl;
       if (fitStatus==0 || fitStatus==4 || ((fitStatus==1 || fitStatus_preMINOS==0) && itry==ntries)){
         //TMatrixDSym covMat;
         //if (nGaussians==4) getFitCovarianceMatrix(fitResult, RooArgList(g1_sigma, g1_frac, g2_sigma, g2_frac, g3_sigma, g3_frac, g4_sigma), covMat);
         //else getFitCovarianceMatrix(fitResult, RooArgList(g1_sigma, g1_frac, g2_sigma, g2_frac, g3_sigma), covMat);
-        MELAout << "****************************" << endl;
-        MELAout << "Final fit properties for systematic " << systname << " in " << (it==0 ? "data" : "MC") << ":" << endl;
+        IVYout << "****************************" << endl;
+        IVYout << "Final fit properties for systematic " << systname << " in " << (it==0 ? "data" : "MC") << ":" << endl;
         if (fitResult) fitResult->Print("v");
-        MELAout.open(stroutput.Data(), std::ios_base::app);
-        MELAout << "****************************" << endl;
-        MELAout << "Final fitted parameters for systematic " << systname << " in " << (it==0 ? "data" : "MC") << ":" << endl;
-        if (it==0) MELAout << "\t- Nevents: " << nValidEntries << endl;
-        if (fitStatus_preMINOS!=0 || fitStatus!=0) MELAout << "\t- Fit status before/after MINOS: " << fitStatus_preMINOS << " / " << fitStatus << endl;
+        IVYout.open(stroutput.Data(), std::ios_base::app);
+        IVYout << "****************************" << endl;
+        IVYout << "Final fitted parameters for systematic " << systname << " in " << (it==0 ? "data" : "MC") << ":" << endl;
+        if (it==0) IVYout << "\t- Nevents: " << nValidEntries << endl;
+        if (fitStatus_preMINOS!=0 || fitStatus!=0) IVYout << "\t- Fit status before/after MINOS: " << fitStatus_preMINOS << " / " << fitStatus << endl;
         printParameterWithAsymErrors(g1_sigma, "\t- Sigma 1");
         printParameterWithAsymErrors(g1_frac, "\t- Frac 1");
         printParameterWithAsymErrors(g2_sigma, "\t- Sigma 2");
@@ -1361,15 +1361,15 @@ void produceFinalFits(
           printParameterWithAsymErrors(g3_frac, "\t- Frac 3");
           printParameterWithAsymErrors(g4_sigma, "\t- Sigma 4");
         }
-        //MELAout << "Covariance matrix:" << endl;
+        //IVYout << "Covariance matrix:" << endl;
         //for (int ix=0; ix<covMat.GetNrows(); ix++){
         //  for (int iy=0; iy<covMat.GetNcols(); iy++){
-        //    MELAout << covMat[ix][iy] << " ";
+        //    IVYout << covMat[ix][iy] << " ";
         //  }
-        //  MELAout << endl;
+        //  IVYout << endl;
         //}
-        MELAout << "****************************" << endl;
-        MELAout.close();
+        IVYout << "****************************" << endl;
+        IVYout.close();
 
         RooPlot fit_plot(xvar, xvar.getMin(), xvar.getMax(), 150);
 
@@ -1649,13 +1649,13 @@ void getCorrectionValidationHistograms(
     TString indexDir = "${CMSSW_BASE}/src/CMSDataTools/AnalysisTree/data/plotting/index.php";
     HostHelpers::ExpandEnvironmentVariables(indexDir);
     if (HostHelpers::FileReadable(indexDir)){
-      MELAout << "Attempting to copy index.php" << endl;
+      IVYout << "Attempting to copy index.php" << endl;
       TString tmpdir = tmplist.at(0) + '/';
       for (size_t idir=1; idir<tmplist.size(); idir++){
         tmpdir = tmpdir + tmplist.at(idir) + '/';
         TString tmpCmd = "cp ~/public_html/index.pages.php ";
         tmpCmd += tmpdir + "index.php";
-        MELAout << "Copying index.php into " << tmpdir << endl;
+        IVYout << "Copying index.php into " << tmpdir << endl;
         HostHelpers::ExecuteCommand(tmpCmd);
       }
     }
@@ -1747,8 +1747,8 @@ void getCorrectionValidationHistograms(
       TString strinput = Form("%s/%s", cinput_main.Data(), cinput.Data());
       strinput += Form("*_%s", strSystName.data());
       strinput += ".root";
-      MELAout << "Adding " << strinput << " to the " << (it==0 ? "data" : "MC") << " tree chain..." << endl;
-      MELAout << "\t- Added " << tin->Add(strinput) << " files..." << endl;
+      IVYout << "Adding " << strinput << " to the " << (it==0 ? "data" : "MC") << " tree chain..." << endl;
+      IVYout << "\t- Added " << tin->Add(strinput) << " files..." << endl;
     }
 
     tin->SetBranchStatus("*", 0);
@@ -1889,7 +1889,7 @@ void getCorrectionValidationHistograms(
           }
           else break;
         }
-        MELAout << "Will trim corrected weights at " << MC_wgt_corr_thr << " for " << idx_trim << " / " << nEntries << " events..." << endl;
+        IVYout << "Will trim corrected weights at " << MC_wgt_corr_thr << " for " << idx_trim << " / " << nEntries << " events..." << endl;
       }
     }
 

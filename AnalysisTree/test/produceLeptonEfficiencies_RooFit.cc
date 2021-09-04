@@ -46,7 +46,7 @@
 #include <JHUGenMELA/MELA/interface/TNumericUtil.hh>
 #include <JHUGenMELA/MELA/interface/MELANCSplineFactory_1D.h>
 #include <CMSDataTools/AnalysisTree/interface/ExtendedFunctions.h>
-#include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
+#include <IvyFramework/IvyAutoMELA/interface/IvyMELAHelpers.h>
 
 
 using namespace std;
@@ -162,11 +162,11 @@ void getFitPropertiesFromTag(
   std::regex rgx("([A-Z, a-z]*)_([A-Z, a-z]*)_(.*)minPtTag_([0-9]*)_mll_([0-9]*)_([0-9]*)");
   std::smatch sm; // string match of type std::match_results<string::const_iterator>
   if (!std::regex_match(stmp, sm, rgx)){
-    MELAerr << "getFitPropertiesFromTag: Failed to acquire the properties of tag " << strtag << endl;
+    IVYerr << "getFitPropertiesFromTag: Failed to acquire the properties of tag " << strtag << endl;
     exit(1);
   }
   else if (sm.size()!=7){
-    MELAerr << "getFitPropertiesFromTag: Tag " << strtag << " matched regular expression, but with size " << sm.size() << " != 7." << endl;
+    IVYerr << "getFitPropertiesFromTag: Tag " << strtag << " matched regular expression, but with size " << sm.size() << " != 7." << endl;
     exit(1);
   }
 
@@ -206,7 +206,7 @@ void getFitPropertiesFromWSDCFileName(
   else if (strtmp.Contains("ee_nongap")) strFinalState = "ee_nongap";
   else if (strtmp.Contains("ee_gap")) strFinalState = "ee_gap";
   else{
-    MELAerr << "Cannot find the final state for file name " << fname << endl;
+    IVYerr << "Cannot find the final state for file name " << fname << endl;
     exit(1);
   }
   HelperFunctions::replaceString<TString, TString const>(strtmp, Form("%s_", strFinalState.Data()), "");
@@ -222,7 +222,7 @@ void getFitPropertiesFromWSDCFileName(
       strIdIsoType = ssm;
     }
     else{
-      MELAerr << "getFitPropertiesFromWSDCFileName: Id/iso string " << sstmp << " is not recognized." << endl;
+      IVYerr << "getFitPropertiesFromWSDCFileName: Id/iso string " << sstmp << " is not recognized." << endl;
       exit(1);
     }
   }
@@ -253,7 +253,7 @@ void getFitPropertiesFromWSDCFileName(
       if (eta_probe_high==-99.f && eta_probe_low>0.f) eta_probe_high = (strFinalState.Contains("mumu") ? 2.4 : 2.5);
     }
     else{
-      MELAerr << "getFitPropertiesFromWSDCFileName: eta string " << sstmp << " is not recognized." << endl;
+      IVYerr << "getFitPropertiesFromWSDCFileName: eta string " << sstmp << " is not recognized." << endl;
       exit(1);
     }
   }
@@ -275,7 +275,7 @@ void getFitPropertiesFromWSDCFileName(
       else pt_probe_low = std::stof(strlow);
     }
     else{
-      MELAerr << "getFitPropertiesFromWSDCFileName: pt string " << sstmp << " is not recognized." << endl;
+      IVYerr << "getFitPropertiesFromWSDCFileName: pt string " << sstmp << " is not recognized." << endl;
       exit(1);
     }
   }
@@ -486,7 +486,7 @@ void plotFit(
     else maxY *= (useLogY ? 15. : 1.5);
     fit_plot.SetMinimum(minY);
     fit_plot.SetMaximum(maxY);
-    MELAout << "Setting " << canvasname << " min, max = " << minY << ", " << maxY << "..." << endl;
+    IVYout << "Setting " << canvasname << " min, max = " << minY << ", " << maxY << "..." << endl;
   }
 
   TCanvas can(canvasname, "", 8, 30, 800, 800);
@@ -627,12 +627,12 @@ bool plotFitFromHCombResult(
   TFile* finput = TFile::Open(cinput, "read");
   if (!finput || finput->IsZombie()){
     if (finput) delete finput;
-    MELAerr << "plotFitFromHCombResult: File " << cinput << " is corrupt!" << endl;
+    IVYerr << "plotFitFromHCombResult: File " << cinput << " is corrupt!" << endl;
     return false;
   }
   RooWorkspace* ws = dynamic_cast<RooWorkspace*>(finput->Get("w"));
   if (!ws){
-    MELAerr << "plotFitFromHCombResult: Workspace does not exist in file " << cinput << "!" << endl;
+    IVYerr << "plotFitFromHCombResult: Workspace does not exist in file " << cinput << "!" << endl;
     finput->Close();
     curdir->cd();
     return false;
@@ -643,7 +643,7 @@ bool plotFitFromHCombResult(
   TString const strxvar = "mll";
   RooRealVar* xvar = ws->var(strxvar);
   if (!xvar){
-    MELAerr << "plotFitFromHCombResult: " << strxvar << " does not exist in the workspace from file " << cinput << "!" << endl;
+    IVYerr << "plotFitFromHCombResult: " << strxvar << " does not exist in the workspace from file " << cinput << "!" << endl;
     delete ws;
     finput->Close();
     curdir->cd();
@@ -653,7 +653,7 @@ bool plotFitFromHCombResult(
 
   RooRealVar* frac_sig = (RooRealVar*) ws->var("frac_sig");
   if (!frac_sig){
-    MELAerr << "plotFitFromHCombResult: frac_sig does not exist in the workspace from file " << cinput << "!" << endl;
+    IVYerr << "plotFitFromHCombResult: frac_sig does not exist in the workspace from file " << cinput << "!" << endl;
     delete ws;
     finput->Close();
     curdir->cd();
@@ -673,7 +673,7 @@ bool plotFitFromHCombResult(
     delete it;
   }
   else{
-    MELAerr << "plotFitFromHCombResult: Plotting from individual channels is not implemented." << endl;
+    IVYerr << "plotFitFromHCombResult: Plotting from individual channels is not implemented." << endl;
     delete ws;
     finput->Close();
     curdir->cd();
@@ -681,7 +681,7 @@ bool plotFitFromHCombResult(
   }
 
   if (!ws->loadSnapshot("MultiDimFit")){
-    MELAerr << "plotFitFromHCombResult: Snapshot MultiDimFit does not exist in the workspace from file " << cinput << "!" << endl;
+    IVYerr << "plotFitFromHCombResult: Snapshot MultiDimFit does not exist in the workspace from file " << cinput << "!" << endl;
     delete ws;
     finput->Close();
     curdir->cd();
@@ -692,7 +692,7 @@ bool plotFitFromHCombResult(
   float val_frac_sig = frac_sig->getVal();
   if (fit_res){
     if (std::abs(val_frac_sig - fit_res->front())>0.005){
-      MELAerr << "plotFitFromHCombResult: Fit results from file " << cinput << " are inconsistent!" << endl;
+      IVYerr << "plotFitFromHCombResult: Fit results from file " << cinput << " are inconsistent!" << endl;
       delete ws;
       finput->Close();
       curdir->cd();
@@ -787,10 +787,10 @@ bool plotFitFromHCombResult(
     else if (strcat=="ch_MC") strDataLabel = "DY simulation";
     else if (strcat=="ch_MC_etaOpp") strDataLabel = Form("DY sim. (opposite %s)", (strappend.Contains("mumu") ? "#eta" : "#eta_{SC}"));
     else{
-      MELAerr << "plotFitFromHCombResult: Could not recognize category name " << strcat << ". Skipping..." << endl;
+      IVYerr << "plotFitFromHCombResult: Could not recognize category name " << strcat << ". Skipping..." << endl;
       continue;
     }
-    MELAout << "Making the pad column for " << strDataLabel << endl;
+    IVYout << "Making the pad column for " << strDataLabel << endl;
 
     RooHist* tg_dset = tg_dset_list.at(icat);
     RooCurve* tg_fit = tg_fit_list.at(icat);
@@ -973,14 +973,14 @@ ExtendedBinning getAdaptiveBinning(RooDataSet& dset, RooRealVar& xvar, int nbins
     sum_wgts += dset.weight();
   }
   std::sort(xvals.begin(), xvals.end());
-  MELAout << "getAdaptiveBinning: Accumulated " << xvals.size() << " / " << nEntries << " points (sum weights = " << sum_wgts << ")" << endl;
+  IVYout << "getAdaptiveBinning: Accumulated " << xvals.size() << " / " << nEntries << " points (sum weights = " << sum_wgts << ")" << endl;
 
   ExtendedBinning res(xvar.GetName());
   res.addBinBoundary(xmin);
   res.addBinBoundary(xmax);
   int nbins = std::min(nbinsreq, (int) xvals.size()/10+1);
   unsigned int xstep = std::max(1, (int) xvals.size()/nbins);
-  MELAout << "getAdaptiveBinning: Step size = " << xstep << ", nbins = " << nbins << endl;
+  IVYout << "getAdaptiveBinning: Step size = " << xstep << ", nbins = " << nbins << endl;
 
   for (unsigned int ix = xstep; ix < xvals.size(); ix += xstep){
     if (ix+xstep<xvals.size()) res.addBinBoundary((xvals.at(ix) + xvals.at(ix-1))/2.);
@@ -996,7 +996,7 @@ void getMeanPtEta(
   RooRealVar const& etavar,
   double& eta_mean, double& eta_err
 ){
-  MELAout << "Begin getMeanPtEta(" << dset.GetName() << ")..." << endl;
+  IVYout << "Begin getMeanPtEta(" << dset.GetName() << ")..." << endl;
 
   int nEntries = dset.numEntries();
   double sum_W = 0;
@@ -1031,7 +1031,7 @@ void getMeanPtEta(
   eta_mean = sum_xW[1][0];
   eta_err = std::sqrt((sum_xW[1][1] - std::pow(sum_xW[1][0], 2)) / sum_W);
 
-  MELAout << "\t- Mean pT, eta = " << pt_mean << " +- " << pt_err << ", " << eta_mean << " +- " << eta_err << endl;
+  IVYout << "\t- Mean pT, eta = " << pt_mean << " +- " << pt_err << ", " << eta_mean << " +- " << eta_err << endl;
 }
 
 void getMCTemplatePDF(
@@ -1065,7 +1065,7 @@ void getMCTemplatePDF(
 
     hdata->Fill(xval, wgt);
   }
-  MELAout << "getMCTemplatePDF: Sum of weights of raw histogram = " << hdata->Integral(1, hdata->GetNbinsX()) << endl;
+  IVYout << "getMCTemplatePDF: Sum of weights of raw histogram = " << hdata->Integral(1, hdata->GetNbinsX()) << endl;
 
   std::vector<double> Neffs(xbinning.getNbins(), 0);
   std::vector<double> sXvals(xbinning.getNbins(), 0);
@@ -1081,12 +1081,12 @@ void getMCTemplatePDF(
   indir->cd(); indir->WriteTObject(hdata); curdir->cd();
   hdata->Reset("ICESM"); hdata->SetName(Form("%s_%s_smooth", dset.GetName(), xvar.GetName()));
   for (unsigned int ix=0; ix<xbinning.getNbins(); ix++){
-    MELAout << "\t- Neff[" << xbinning.getBinLowEdge(ix) << ", " << xbinning.getBinHighEdge(ix) << "] = " << Neffs.at(ix) << " (sX = " << sXvals.at(ix) << ")" << endl;
+    IVYout << "\t- Neff[" << xbinning.getBinLowEdge(ix) << ", " << xbinning.getBinHighEdge(ix) << "] = " << Neffs.at(ix) << " (sX = " << sXvals.at(ix) << ")" << endl;
   }
 
   {
     SimpleGaussian gausX(0, 1, SimpleGaussian::kHasLowHighRange, xbinning.getBinningVector().front(), xbinning.getBinningVector().back());
-    MELAout << "getMCTemplatePDF: Looping over the MC data set with " << nEntries << " entries..." << endl;
+    IVYout << "getMCTemplatePDF: Looping over the MC data set with " << nEntries << " entries..." << endl;
     for (int ev=0; ev<nEntries; ev++){
       HelperFunctions::progressbar(ev, nEntries);
 
@@ -1122,14 +1122,14 @@ void getMCTemplatePDF(
 
         if (ix == jx && (fX==0. || (sX==0. && fX!=1.))){
           double const& Neff = Neffs.at(ix);
-          MELAerr << "Fill weight==0! Neff = " << Neff << ", sX = " << sX << ", xval = " << xval << ", xmid = " << xmid << ", gint = " << gausX.integral(xlow, xhigh) << ", gnorm = " << gausX.norm() << endl;
+          IVYerr << "Fill weight==0! Neff = " << Neff << ", sX = " << sX << ", xval = " << xval << ", xmid = " << xmid << ", gint = " << gausX.integral(xlow, xhigh) << ", gnorm = " << gausX.norm() << endl;
         }
 
         hdata->Fill(xmid, fillwgt);
       }
     }
   }
-  MELAout << "getMCTemplatePDF: Sum of weights of smoothened histogram = " << hdata->Integral(1, hdata->GetNbinsX()) << endl;
+  IVYout << "getMCTemplatePDF: Sum of weights of smoothened histogram = " << hdata->Integral(1, hdata->GetNbinsX()) << endl;
   HelperFunctions::divideBinWidth(hdata);
 
   RooArgList obslist(xvar);
@@ -1190,26 +1190,26 @@ void fitMCDataset(
       RooCmdArg rangeArg = RooFit::Range("PeakMCRange"); cmdList_range.Add((TObject*) &rangeArg);
 
       while (fitStatus!=0 || itry_successful==1){
-        MELAout << "****************************" << endl;
-        MELAout << "Attempt " << itry << endl;
-        MELAout << "****************************" << endl;
+        IVYout << "****************************" << endl;
+        IVYout << "Attempt " << itry << endl;
+        IVYout << "****************************" << endl;
 
         delete fitResult_prev; fitResult_prev = fitResult;
         fitResult = pdf_core->fitTo(*fit_data, cmdList_range);
-        MELAout << "****************************" << endl;
-        MELAout << "Fitted parameters:\n";
+        IVYout << "****************************" << endl;
+        IVYout << "Fitted parameters:\n";
         if (!fitResult){
-          MELAerr << "\t- No fit results found!" << endl;
+          IVYerr << "\t- No fit results found!" << endl;
           fitStatus = -1;
         }
         else{
           fitStatus = fitResult->status();
-          MELAout << "\t- Status: " << fitStatus << endl;
+          IVYout << "\t- Status: " << fitStatus << endl;
           int covQual = fitResult->covQual();
-          MELAout << "\t- Covariance matrix quality: " << covQual << endl;
+          IVYout << "\t- Covariance matrix quality: " << covQual << endl;
           bool isIdentical = (itry==0 || !fitResult_prev || covQual<0 || fitStatus>=100 ? false : fitResult->isIdentical(*fitResult_prev, 1e-5, 1e-4, false));
-          if (fitResult_prev) MELAout << "\t- Is identical to previous fit iteration?: " << isIdentical << endl;
-          MELAout << "****************************" << endl;
+          if (fitResult_prev) IVYout << "\t- Is identical to previous fit iteration?: " << isIdentical << endl;
+          IVYout << "****************************" << endl;
           fitResult->Print("v");
         }
 
@@ -1262,26 +1262,26 @@ void fitMCDataset(
 
         RooAbsPdf* pdf_to_fit = (ipass==0 ? pdf_bkg : pdf);
         while (fitStatus!=0 || itry_successful==1){
-          MELAout << "****************************" << endl;
-          MELAout << "Attempt " << itry << endl;
-          MELAout << "****************************" << endl;
+          IVYout << "****************************" << endl;
+          IVYout << "Attempt " << itry << endl;
+          IVYout << "****************************" << endl;
 
           delete fitResult_prev; fitResult_prev = fitResult;
           fitResult = pdf_to_fit->fitTo(*fit_data, cmdList_range);
-          MELAout << "****************************" << endl;
-          MELAout << "Fitted parameters:\n";
+          IVYout << "****************************" << endl;
+          IVYout << "Fitted parameters:\n";
           if (!fitResult){
-            MELAerr << "\t- No fit results found!" << endl;
+            IVYerr << "\t- No fit results found!" << endl;
             fitStatus = -1;
           }
           else{
             fitStatus = fitResult->status();
-            MELAout << "\t- Status: " << fitStatus << endl;
+            IVYout << "\t- Status: " << fitStatus << endl;
             int covQual = fitResult->covQual();
-            MELAout << "\t- Covariance matrix quality: " << covQual << endl;
+            IVYout << "\t- Covariance matrix quality: " << covQual << endl;
             bool isIdentical = (itry==0 || !fitResult_prev || covQual<0 || fitStatus>=100 ? false : fitResult->isIdentical(*fitResult_prev, 1e-5, 1e-4, false));
-            if (fitResult_prev) MELAout << "\t- Is identical to previous fit iteration?: " << isIdentical << endl;
-            MELAout << "****************************" << endl;
+            if (fitResult_prev) IVYout << "\t- Is identical to previous fit iteration?: " << isIdentical << endl;
+            IVYout << "****************************" << endl;
             fitResult->Print("v");
           }
 
@@ -1343,26 +1343,26 @@ void fitMCDataset(
       RooCmdArg rangeArg = RooFit::Range("FitRange"); cmdList_range.Add((TObject*) &rangeArg);
 
       while (fitStatus!=0 || itry_successful==1){
-        MELAout << "****************************" << endl;
-        MELAout << "Attempt " << itry << endl;
-        MELAout << "****************************" << endl;
+        IVYout << "****************************" << endl;
+        IVYout << "Attempt " << itry << endl;
+        IVYout << "****************************" << endl;
 
         delete fitResult_prev; fitResult_prev = fitResult;
         fitResult = pdf->fitTo(*fit_data, cmdList_range);
-        MELAout << "****************************" << endl;
-        MELAout << "Fitted parameters:\n";
+        IVYout << "****************************" << endl;
+        IVYout << "Fitted parameters:\n";
         if (!fitResult){
-          MELAerr << "\t- No fit results found!" << endl;
+          IVYerr << "\t- No fit results found!" << endl;
           fitStatus = -1;
         }
         else{
           fitStatus = fitResult->status();
-          MELAout << "\t- Status: " << fitStatus << endl;
+          IVYout << "\t- Status: " << fitStatus << endl;
           int covQual = fitResult->covQual();
-          MELAout << "\t- Covariance matrix quality: " << covQual << endl;
+          IVYout << "\t- Covariance matrix quality: " << covQual << endl;
           bool isIdentical = (itry==0 || !fitResult_prev || covQual<0 || fitStatus>=100 ? false : fitResult->isIdentical(*fitResult_prev, 1e-5, 1e-4, false));
-          if (fitResult_prev) MELAout << "\t- Is identical to previous fit iteration?: " << isIdentical << endl;
-          MELAout << "****************************" << endl;
+          if (fitResult_prev) IVYout << "\t- Is identical to previous fit iteration?: " << isIdentical << endl;
+          IVYout << "****************************" << endl;
           fitResult->Print("v");
         }
 
@@ -1431,22 +1431,22 @@ void fitMCDataset(
       }
 
       delete fitResult_prev; fitResult_prev = fitResult;
-      MELAout << "****************************" << endl;
-      MELAout << "Attempting to obtain asymmetric errors through a refit with Minos..." << endl;
-      MELAout << "****************************" << endl;
+      IVYout << "****************************" << endl;
+      IVYout << "Attempting to obtain asymmetric errors through a refit with Minos..." << endl;
+      IVYout << "****************************" << endl;
       fitResult = pdf->fitTo(*fit_data, cmdList_withMinos);
-      MELAout << "****************************" << endl;
-      MELAout << "Fitted parameters:\n";
+      IVYout << "****************************" << endl;
+      IVYout << "Fitted parameters:\n";
       if (!fitResult){
-        MELAerr << "\t- No fit results found!" << endl;
+        IVYerr << "\t- No fit results found!" << endl;
         fitStatus = -1;
       }
       else{
         fitStatus = fitResult->status();
-        MELAout << "\t- Status: " << fitStatus << endl;
+        IVYout << "\t- Status: " << fitStatus << endl;
         int covQual = fitResult->covQual();
-        MELAout << "\t- Covariance matrix quality: " << covQual << endl;
-        MELAout << "****************************" << endl;
+        IVYout << "\t- Covariance matrix quality: " << covQual << endl;
+        IVYout << "****************************" << endl;
         fitResult->Print("v");
       }
 
@@ -1525,26 +1525,26 @@ void fitDataset(
     RooCmdArg rangeArg = RooFit::Range("LowObsTail,HighObsTail"); cmdList_range.Add((TObject*) &rangeArg);
 
     while (fitStatus!=0 || itry_successful==1){
-      MELAout << "****************************" << endl;
-      MELAout << "Attempt " << itry << endl;
-      MELAout << "****************************" << endl;
+      IVYout << "****************************" << endl;
+      IVYout << "Attempt " << itry << endl;
+      IVYout << "****************************" << endl;
 
       delete fitResult_prev; fitResult_prev = fitResult;
       fitResult = pdf_bkg->fitTo(*fit_data, cmdList_range);
-      MELAout << "****************************" << endl;
-      MELAout << "Fitted parameters:\n";
+      IVYout << "****************************" << endl;
+      IVYout << "Fitted parameters:\n";
       if (!fitResult){
-        MELAerr << "\t- No fit results found!" << endl;
+        IVYerr << "\t- No fit results found!" << endl;
         fitStatus = -1;
       }
       else{
         fitStatus = fitResult->status();
-        MELAout << "\t- Status: " << fitStatus << endl;
+        IVYout << "\t- Status: " << fitStatus << endl;
         int covQual = fitResult->covQual();
-        MELAout << "\t- Covariance matrix quality: " << covQual << endl;
+        IVYout << "\t- Covariance matrix quality: " << covQual << endl;
         bool isIdentical = (!fitResult_prev || covQual<0 || fitStatus>=100 ? false : fitResult->isIdentical(*fitResult_prev, 1e-5, 1e-4, false));
-        if (fitResult_prev) MELAout << "\t- Is identical to previous fit iteration?: " << isIdentical << endl;
-        MELAout << "****************************" << endl;
+        if (fitResult_prev) IVYout << "\t- Is identical to previous fit iteration?: " << isIdentical << endl;
+        IVYout << "****************************" << endl;
         fitResult->Print("v");
       }
 
@@ -1572,25 +1572,25 @@ void fitDataset(
     RooCmdArg rangeArg = RooFit::Range("FitRange"); cmdList_range.Add((TObject*) &rangeArg);
 
     while (fitStatus!=0 || itry_successful==1){
-      MELAout << "****************************" << endl;
-      MELAout << "Attempt " << itry << endl;
-      MELAout << "****************************" << endl;
+      IVYout << "****************************" << endl;
+      IVYout << "Attempt " << itry << endl;
+      IVYout << "****************************" << endl;
       delete fitResult_prev; fitResult_prev = fitResult;
       fitResult = pdf->fitTo(*fit_data, cmdList_range);
-      MELAout << "****************************" << endl;
-      MELAout << "Fitted parameters:\n";
+      IVYout << "****************************" << endl;
+      IVYout << "Fitted parameters:\n";
       if (!fitResult){
-        MELAerr << "\t- No fit results found!" << endl;
+        IVYerr << "\t- No fit results found!" << endl;
         fitStatus = -1;
       }
       else{
         fitStatus = fitResult->status();
-        MELAout << "\t- Status: " << fitStatus << endl;
+        IVYout << "\t- Status: " << fitStatus << endl;
         int covQual = fitResult->covQual();
-        MELAout << "\t- Covariance matrix quality: " << covQual << endl;
+        IVYout << "\t- Covariance matrix quality: " << covQual << endl;
         bool isIdentical = (itry==0 || !fitResult_prev || covQual<0 || fitStatus>=100 ? false : fitResult->isIdentical(*fitResult_prev, 1e-5, 1e-4, false));
-        if (fitResult_prev) MELAout << "\t- Is identical to previous fit iteration?: " << isIdentical << endl;
-        MELAout << "****************************" << endl;
+        if (fitResult_prev) IVYout << "\t- Is identical to previous fit iteration?: " << isIdentical << endl;
+        IVYout << "****************************" << endl;
         fitResult->Print("v");
       }
 
@@ -1621,25 +1621,25 @@ void fitDataset(
         itry=0;
         itry_successful=0;
         while (fitStatus!=0 || itry_successful==1){
-          MELAout << "****************************" << endl;
-          MELAout << "Attempt " << itry << endl;
-          MELAout << "****************************" << endl;
+          IVYout << "****************************" << endl;
+          IVYout << "Attempt " << itry << endl;
+          IVYout << "****************************" << endl;
           delete fitResult_prev; fitResult_prev = fitResult;
           fitResult = pdf->fitTo(*fit_data, cmdList_range);
-          MELAout << "****************************" << endl;
-          MELAout << "Fitted parameters:\n";
+          IVYout << "****************************" << endl;
+          IVYout << "Fitted parameters:\n";
           if (!fitResult){
-            MELAerr << "\t- No fit results found!" << endl;
+            IVYerr << "\t- No fit results found!" << endl;
             fitStatus = -1;
           }
           else{
             fitStatus = fitResult->status();
-            MELAout << "\t- Status: " << fitStatus << endl;
+            IVYout << "\t- Status: " << fitStatus << endl;
             int covQual = fitResult->covQual();
-            MELAout << "\t- Covariance matrix quality: " << covQual << endl;
+            IVYout << "\t- Covariance matrix quality: " << covQual << endl;
             bool isIdentical = (itry==0 || !fitResult_prev || covQual<0 || fitStatus>=100 ? false : fitResult->isIdentical(*fitResult_prev, 1e-5, 1e-4, false));
-            if (fitResult_prev) MELAout << "\t- Is identical to previous fit iteration?: " << isIdentical << endl;
-            MELAout << "****************************" << endl;
+            if (fitResult_prev) IVYout << "\t- Is identical to previous fit iteration?: " << isIdentical << endl;
+            IVYout << "****************************" << endl;
             fitResult->Print("v");
           }
 
@@ -1656,20 +1656,20 @@ void fitDataset(
       RooLinkedList cmdList_withMinos = cmdList_range;
       cmdList_withMinos.Add((TObject*) &minosArg);
 
-      MELAout << "****************************" << endl;
-      MELAout << "Attempting to obtain asymmetric errors through a refit with Minos..." << endl;
-      MELAout << "****************************" << endl;
+      IVYout << "****************************" << endl;
+      IVYout << "Attempting to obtain asymmetric errors through a refit with Minos..." << endl;
+      IVYout << "****************************" << endl;
       fitResult = pdf->fitTo(*fit_data, cmdList_withMinos);
       fitStatus = fitResult->status();
 
       fitStatus = fitResult->status();
       int covQual = fitResult->covQual();
 
-      MELAout << "****************************" << endl;
-      MELAout << "Fitted parameters:\n";
-      MELAout << "\t- Status: " << fitStatus << endl;
-      MELAout << "\t- Covariance matrix quality: " << covQual << endl;
-      MELAout << "****************************" << endl;
+      IVYout << "****************************" << endl;
+      IVYout << "Fitted parameters:\n";
+      IVYout << "\t- Status: " << fitStatus << endl;
+      IVYout << "\t- Covariance matrix quality: " << covQual << endl;
+      IVYout << "****************************" << endl;
       fitResult->Print("v");
     }
     delete fitResult_prev; fitResult_prev = nullptr;
@@ -1699,7 +1699,7 @@ void compareCoordinate(
   if (outdir) outdir->cd();
 
   //double rescale_factor = fit_obs->sumEntries() / fit_exp->sumEntries();
-  //MELAout << "compareCoordinate: Normalizing the MC data by " << fit_obs->sumEntries() << " / " << fit_exp->sumEntries() << " = " << fit_obs->sumEntries() / fit_exp->sumEntries() << endl;
+  //IVYout << "compareCoordinate: Normalizing the MC data by " << fit_obs->sumEntries() << " / " << fit_exp->sumEntries() << " = " << fit_obs->sumEntries() / fit_exp->sumEntries() << endl;
   RooPlot fit_plot(xvar, xlow, xhigh, nbins);
   fit_obs->plotOn(&fit_plot, LineColor(kBlack), MarkerColor(kBlack), MarkerStyle(30), LineWidth(2), Name("Obs"), XErrorSize(0), Binning(nbins, xlow, xhigh)/*, Rescale(rescale_factor)*/);
   fit_exp->plotOn(&fit_plot, LineColor(kBlue), MarkerColor(kBlue), MarkerStyle(30), LineWidth(2), Name("Exp"), XErrorSize(0), Binning(nbins, xlow, xhigh)/*, Rescale(rescale_factor)*/);
@@ -1882,7 +1882,7 @@ void createWSandDCs(
     + "_" + (use_MET_ParticleMomCorr ? "WithPartMomCorr" : "NoPartMomCorr")
     + "_" + (use_MET_p4Preservation ? "P4Preserved" : "P4Default");
   if (!SampleHelpers::checkFileOnWorker(cinput_main)){
-    MELAerr << "Directory " << cinput_main << " does not exist." << endl;
+    IVYerr << "Directory " << cinput_main << " does not exist." << endl;
     return;
   }
   TString cinput_main_MC =
@@ -1898,7 +1898,7 @@ void createWSandDCs(
     + "_" + (use_MET_corrections ? "ResolutionCorrected" : "ResolutionUncorrected")
     + Form("/%i", SampleHelpers::theDataYear);
   if (!SampleHelpers::checkFileOnWorker(cinput_main_MC)){
-    MELAerr << "Directory " << cinput_main_MC << " does not exist." << endl;
+    IVYerr << "Directory " << cinput_main_MC << " does not exist." << endl;
     return;
   }
   TString const coutput_main = "output/LeptonEfficiencies/WSandDCs/" + strdate + "/" + period;
@@ -1915,7 +1915,7 @@ void createWSandDCs(
   else if (useMC_2l2nu) getMCTrees(samples_MC, SystematicsHelpers::sNominal, "2l2nu");
   else if (useMC_4l) getMCTrees(samples_MC, SystematicsHelpers::sNominal, "4l");
   else{
-    MELAerr << "Cannot determine fit option from the systematics specification " << systOptions << endl;
+    IVYerr << "Cannot determine fit option from the systematics specification " << systOptions << endl;
     return;
   }
 
@@ -1972,7 +1972,7 @@ void createWSandDCs(
     convertFloatToTitleString(minPt_tag).Data(),
     convertFloatToTitleString(fit_low).Data(), convertFloatToTitleString(fit_high).Data()
   );
-  MELAout << "Output name suffix: " << strnameapp << endl;
+  IVYout << "Output name suffix: " << strnameapp << endl;
 
   TString stroutput_counts = Form("%s/Counts_%s%s", coutput_main.Data(), strnameapp.Data(), ".root");
   TFile* foutput_counts = TFile::Open(stroutput_counts, "recreate");
@@ -1995,12 +1995,12 @@ void createWSandDCs(
         TString strinput = Form("%s/%s/%s", cinput_main.Data(), pp.Data(), cinput.Data());
         strinput += Form("*_%s", SystematicsHelpers::getSystName(theGlobalSyst).data());
         strinput += ".root";
-        MELAout << "Adding " << strinput << " to the data tree chain..." << endl;
+        IVYout << "Adding " << strinput << " to the data tree chain..." << endl;
 
         tinlist.back()->Add(strinput);
       }
     }
-    MELAout << "Data tree has a total of " << tinlist.back()->GetEntries() << " entries..." << endl;
+    IVYout << "Data tree has a total of " << tinlist.back()->GetEntries() << " entries..." << endl;
     curdir->cd();
   }
   unsigned int itree_MC_offset = tinlist.size();
@@ -2020,7 +2020,7 @@ void createWSandDCs(
         TString strinput = Form("%s/%s", cinput_main_MC.Data(), cinput.Data());
         strinput += Form("*_%s", SystematicsHelpers::getSystName(theGlobalSyst).data());
         strinput += ".root";
-        MELAout << "Adding " << strinput << " to the MC tree chain..." << endl;
+        IVYout << "Adding " << strinput << " to the MC tree chain..." << endl;
 
         tin->Add(strinput);
 
@@ -2032,7 +2032,7 @@ void createWSandDCs(
           for (unsigned int iperiod=0; iperiod<nValidDataPeriods; iperiod++){
             if (validDataPeriods.at(iperiod)==SampleHelpers::theDataPeriod){ bin_period += iperiod+1; break; }
           }
-          MELAout << "Checking counters histogram bin (" << bin_syst << ", " << bin_period << ") to obtain the sum of weights if the counters histogram exists..." << endl;
+          IVYout << "Checking counters histogram bin (" << bin_syst << ", " << bin_period << ") to obtain the sum of weights if the counters histogram exists..." << endl;
 
           std::vector<TString> inputfilenames = SampleHelpers::getDatasetFileNames(sname);
           for (auto const& fname:inputfilenames){
@@ -2047,9 +2047,9 @@ void createWSandDCs(
             ftmp->Close();
           }
 
-          if (hasCounters) MELAout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
+          if (hasCounters) IVYout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
           else{
-            MELAerr << "This script is designed to use skim ntuples. Aborting..." << endl;
+            IVYerr << "This script is designed to use skim ntuples. Aborting..." << endl;
             assert(0);
           }
         }
@@ -2057,7 +2057,7 @@ void createWSandDCs(
         sum_MC_wgts += sum_wgts;
       }
 
-      MELAout << "MC tree " << tinlist.size()-1 << " has a total of " << tinlist.back()->GetEntries() << " entries and a sum of all weights of " << norm_map[tin] << "..." << endl;
+      IVYout << "MC tree " << tinlist.size()-1 << " has a total of " << tinlist.back()->GetEntries() << " entries and a sum of all weights of " << norm_map[tin] << "..." << endl;
     }
     const double lumi_period = SampleHelpers::getIntegratedLuminosity(SampleHelpers::theDataPeriod);
     const double lumi_total = SampleHelpers::getIntegratedLuminosity(Form("%i", SampleHelpers::theDataYear));
@@ -2065,7 +2065,7 @@ void createWSandDCs(
     for (unsigned int it=itree_MC_offset; it<tinlist.size(); it++){
       auto const& tin = tinlist.at(it);
       norm_map[tin] = norm_map[tin] / sum_MC_wgts * lumi_norm;
-      MELAout << "Normalization factor for MC tree " << it << ": " << norm_map[tin] << endl;
+      IVYout << "Normalization factor for MC tree " << it << ": " << norm_map[tin] << endl;
     }
   }
   curdir->cd();
@@ -2132,7 +2132,7 @@ void createWSandDCs(
     unsigned int it=0;
     for (auto& tin:tinlist){
       bool isDataTree = (it<itree_MC_offset);
-      MELAout << "Looping over " << (isDataTree ? "data" : "MC") << " tree set " << it << endl;
+      IVYout << "Looping over " << (isDataTree ? "data" : "MC") << " tree set " << it << endl;
 
       RooDataSet& fit_dset_all_failId = (isDataTree ? fit_data_all_failId : fit_MC_all_failId);
       RooDataSet& fit_dset_all_passId_failLooseIso = (isDataTree ? fit_data_all_passId_failLooseIso : fit_MC_all_passId_failLooseIso);
@@ -2337,19 +2337,19 @@ void createWSandDCs(
         }
       }
       delete tin; tin=nullptr;
-      MELAout << "Total accumulated pairs / events: " << n_acc << " / " << nEntries << endl;
-      MELAout << "\t- MET selection (events): " << nPassMET << endl;
-      MELAout << "\t- PDG id: " << nPassPDGId << endl;
-      MELAout << "\t- Trigger: " << nPassTrigger << endl;
-      MELAout << "\t- Tight tag: " << nPassTightTag << endl;
-      MELAout << "\t- Probe electron gap selection: " << nPassEleGapOpt << endl;
-      MELAout << "\t- mll window: " << nPassMass << endl;
-      MELAout << "\t- pT_l1: " << nPassPtL1 << endl;
-      MELAout << "\t- dR_l1_l2: " << nPassDeltaR << endl;
-      MELAout << "\t- Bin thresholds: " << nPassBinThrs << endl;
-      MELAout << "\t- Gen. matching: " << nPassGenMatch << endl;
-      MELAout << "\t- Final sum of weights: " << sum_wgts << endl;
-      MELAout << "\t- Number of valid pairs: " << nFinalValidTightPairs[0] << " (1), " << nFinalValidTightPairs[1] << " (2), " << nFinalValidTightPairs[2] << " (>2)" << endl;
+      IVYout << "Total accumulated pairs / events: " << n_acc << " / " << nEntries << endl;
+      IVYout << "\t- MET selection (events): " << nPassMET << endl;
+      IVYout << "\t- PDG id: " << nPassPDGId << endl;
+      IVYout << "\t- Trigger: " << nPassTrigger << endl;
+      IVYout << "\t- Tight tag: " << nPassTightTag << endl;
+      IVYout << "\t- Probe electron gap selection: " << nPassEleGapOpt << endl;
+      IVYout << "\t- mll window: " << nPassMass << endl;
+      IVYout << "\t- pT_l1: " << nPassPtL1 << endl;
+      IVYout << "\t- dR_l1_l2: " << nPassDeltaR << endl;
+      IVYout << "\t- Bin thresholds: " << nPassBinThrs << endl;
+      IVYout << "\t- Gen. matching: " << nPassGenMatch << endl;
+      IVYout << "\t- Final sum of weights: " << sum_wgts << endl;
+      IVYout << "\t- Number of valid pairs: " << nFinalValidTightPairs[0] << " (1), " << nFinalValidTightPairs[1] << " (2), " << nFinalValidTightPairs[2] << " (>2)" << endl;
 
       it++;
     }
@@ -2357,7 +2357,7 @@ void createWSandDCs(
     if (doFits){
       for (auto& dset:fit_data_all_list){
         ExtendedBinning adaptivebins = getAdaptiveBinning(*dset, var_pt_probe, 150);
-        MELAout << "Data set " << dset->GetName() << " is best to have the probe pT binning " << adaptivebins.getBinningVector() << endl;
+        IVYout << "Data set " << dset->GetName() << " is best to have the probe pT binning " << adaptivebins.getBinningVector() << endl;
       }
     }
   }
@@ -2436,7 +2436,7 @@ void createWSandDCs(
         strcut_etaOpp = Form("%s>=%s && %s<%s", var_eta_probe.GetName(), convertFloatToString(etaOpp_low).Data(), var_eta_probe.GetName(), convertFloatToString(etaOpp_high).Data());
       }
 
-      MELAout << "strcut_pt = " << strcut_pt << ", strcut_eta = " << strcut_eta << ", strcut_etaOpp = " << strcut_etaOpp << endl;
+      IVYout << "strcut_pt = " << strcut_pt << ", strcut_eta = " << strcut_eta << ", strcut_etaOpp = " << strcut_etaOpp << endl;
 
       /***** PREPARE PDFS *****/
       curdir->cd();
@@ -2445,92 +2445,92 @@ void createWSandDCs(
       std::vector<RooDataSet*> fit_data_list; fit_data_list.reserve(4);
       std::vector<RooDataSet*> fit_MC_list; fit_MC_list.reserve(4);
       std::vector<RooDataSet*> fit_MC_etaOpp_list; fit_MC_etaOpp_list.reserve(4);
-      MELAout << "Creating the observed id, iso failed data set for " << strbinning_pt << " and " << strbinning_eta << "..." << endl;
+      IVYout << "Creating the observed id, iso failed data set for " << strbinning_pt << " and " << strbinning_eta << "..." << endl;
       RooDataSet* fit_data_bin_failId = (RooDataSet*) fit_data_all_failId.reduce(
         Cut(Form("%s && %s", strcut_pt.Data(), strcut_eta.Data())),
         Name(Form("%s_%s_%s", fit_data_all_failId.GetName(), strbinning_pt.Data(), strbinning_eta.Data()))
       );
-      MELAout << "\t- Remaining events: " << fit_data_bin_failId->sumEntries() << " / " << fit_data_all_failId.sumEntries() << endl;
+      IVYout << "\t- Remaining events: " << fit_data_bin_failId->sumEntries() << " / " << fit_data_all_failId.sumEntries() << endl;
       fit_data_list.push_back(fit_data_bin_failId);
-      MELAout << "Creating the simulation id, iso failed data set for " << strbinning_pt << " and " << strbinning_eta << "..." << endl;
+      IVYout << "Creating the simulation id, iso failed data set for " << strbinning_pt << " and " << strbinning_eta << "..." << endl;
       RooDataSet* fit_MC_bin_failId = (RooDataSet*) fit_MC_all_failId.reduce(
         Cut(Form("%s && %s", strcut_pt.Data(), strcut_eta.Data())),
         Name(Form("%s_%s_%s", fit_MC_all_failId.GetName(), strbinning_pt.Data(), strbinning_eta.Data()))
       );
-      MELAout << "\t- Remaining events: " << fit_MC_bin_failId->sumEntries() << " / " << fit_MC_all_failId.sumEntries() << endl;
+      IVYout << "\t- Remaining events: " << fit_MC_bin_failId->sumEntries() << " / " << fit_MC_all_failId.sumEntries() << endl;
       fit_MC_list.push_back(fit_MC_bin_failId);
-      MELAout << "Creating the simulation id, iso failed data set with abs(eta) for " << strbinning_pt << " and " << strbinning_etaOpp << "..." << endl;
+      IVYout << "Creating the simulation id, iso failed data set with abs(eta) for " << strbinning_pt << " and " << strbinning_etaOpp << "..." << endl;
       RooDataSet* fit_MC_etaOpp_bin_failId = (RooDataSet*) fit_MC_all_failId.reduce(
         Cut(Form("%s && %s", strcut_pt.Data(), strcut_etaOpp.Data())),
         Name(Form("%s_%s_%s", fit_MC_all_failId.GetName(), strbinning_pt.Data(), strbinning_etaOpp.Data()))
       );
-      MELAout << "\t- Remaining events: " << fit_MC_etaOpp_bin_failId->sumEntries() << " / " << fit_MC_all_failId.sumEntries() << endl;
+      IVYout << "\t- Remaining events: " << fit_MC_etaOpp_bin_failId->sumEntries() << " / " << fit_MC_all_failId.sumEntries() << endl;
       fit_MC_etaOpp_list.push_back(fit_MC_etaOpp_bin_failId);
 
-      MELAout << "Creating the observed id pass, loose iso fail data set for " << strbinning_pt << " and " << strbinning_eta << "..." << endl;
+      IVYout << "Creating the observed id pass, loose iso fail data set for " << strbinning_pt << " and " << strbinning_eta << "..." << endl;
       RooDataSet* fit_data_bin_passId_failLooseIso = (RooDataSet*) fit_data_all_passId_failLooseIso.reduce(
         Cut(Form("%s && %s", strcut_pt.Data(), strcut_eta.Data())),
         Name(Form("%s_%s_%s", fit_data_all_passId_failLooseIso.GetName(), strbinning_pt.Data(), strbinning_eta.Data()))
       );
-      MELAout << "\t- Remaining events: " << fit_data_bin_passId_failLooseIso->sumEntries() << " / " << fit_data_all_passId_failLooseIso.sumEntries() << endl;
+      IVYout << "\t- Remaining events: " << fit_data_bin_passId_failLooseIso->sumEntries() << " / " << fit_data_all_passId_failLooseIso.sumEntries() << endl;
       fit_data_list.push_back(fit_data_bin_passId_failLooseIso);
-      MELAout << "Creating the simulation id pass, loose iso fail data set for " << strbinning_pt << " and " << strbinning_eta << "..." << endl;
+      IVYout << "Creating the simulation id pass, loose iso fail data set for " << strbinning_pt << " and " << strbinning_eta << "..." << endl;
       RooDataSet* fit_MC_bin_passId_failLooseIso = (RooDataSet*) fit_MC_all_passId_failLooseIso.reduce(
         Cut(Form("%s && %s", strcut_pt.Data(), strcut_eta.Data())),
         Name(Form("%s_%s_%s", fit_MC_all_passId_failLooseIso.GetName(), strbinning_pt.Data(), strbinning_eta.Data()))
       );
-      MELAout << "\t- Remaining events: " << fit_MC_bin_passId_failLooseIso->sumEntries() << " / " << fit_MC_all_passId_failLooseIso.sumEntries() << endl;
+      IVYout << "\t- Remaining events: " << fit_MC_bin_passId_failLooseIso->sumEntries() << " / " << fit_MC_all_passId_failLooseIso.sumEntries() << endl;
       fit_MC_list.push_back(fit_MC_bin_passId_failLooseIso);
-      MELAout << "Creating the simulation id pass, loose iso fail data set with abs(eta) for " << strbinning_pt << " and " << strbinning_etaOpp << "..." << endl;
+      IVYout << "Creating the simulation id pass, loose iso fail data set with abs(eta) for " << strbinning_pt << " and " << strbinning_etaOpp << "..." << endl;
       RooDataSet* fit_MC_etaOpp_bin_passId_failLooseIso = (RooDataSet*) fit_MC_all_passId_failLooseIso.reduce(
         Cut(Form("%s && %s", strcut_pt.Data(), strcut_etaOpp.Data())),
         Name(Form("%s_%s_%s", fit_MC_all_passId_failLooseIso.GetName(), strbinning_pt.Data(), strbinning_etaOpp.Data()))
       );
-      MELAout << "\t- Remaining events: " << fit_MC_etaOpp_bin_passId_failLooseIso->sumEntries() << " / " << fit_MC_all_passId_failLooseIso.sumEntries() << endl;
+      IVYout << "\t- Remaining events: " << fit_MC_etaOpp_bin_passId_failLooseIso->sumEntries() << " / " << fit_MC_all_passId_failLooseIso.sumEntries() << endl;
       fit_MC_etaOpp_list.push_back(fit_MC_etaOpp_bin_passId_failLooseIso);
 
-      MELAout << "Creating the observed id pass, tight iso fail data set for " << strbinning_pt << " and " << strbinning_eta << "..." << endl;
+      IVYout << "Creating the observed id pass, tight iso fail data set for " << strbinning_pt << " and " << strbinning_eta << "..." << endl;
       RooDataSet* fit_data_bin_passId_failTightIso = (RooDataSet*) fit_data_all_passId_failTightIso.reduce(
         Cut(Form("%s && %s", strcut_pt.Data(), strcut_eta.Data())),
         Name(Form("%s_%s_%s", fit_data_all_passId_failTightIso.GetName(), strbinning_pt.Data(), strbinning_eta.Data()))
       );
-      MELAout << "\t- Remaining events: " << fit_data_bin_passId_failTightIso->sumEntries() << " / " << fit_data_all_passId_failTightIso.sumEntries() << endl;
+      IVYout << "\t- Remaining events: " << fit_data_bin_passId_failTightIso->sumEntries() << " / " << fit_data_all_passId_failTightIso.sumEntries() << endl;
       fit_data_list.push_back(fit_data_bin_passId_failTightIso);
-      MELAout << "Creating the simulation id pass, tight iso fail data set for " << strbinning_pt << " and " << strbinning_eta << "..." << endl;
+      IVYout << "Creating the simulation id pass, tight iso fail data set for " << strbinning_pt << " and " << strbinning_eta << "..." << endl;
       RooDataSet* fit_MC_bin_passId_failTightIso = (RooDataSet*) fit_MC_all_passId_failTightIso.reduce(
         Cut(Form("%s && %s", strcut_pt.Data(), strcut_eta.Data())),
         Name(Form("%s_%s_%s", fit_MC_all_passId_failTightIso.GetName(), strbinning_pt.Data(), strbinning_eta.Data()))
       );
-      MELAout << "\t- Remaining events: " << fit_MC_bin_passId_failTightIso->sumEntries() << " / " << fit_MC_all_passId_failTightIso.sumEntries() << endl;
+      IVYout << "\t- Remaining events: " << fit_MC_bin_passId_failTightIso->sumEntries() << " / " << fit_MC_all_passId_failTightIso.sumEntries() << endl;
       fit_MC_list.push_back(fit_MC_bin_passId_failTightIso);
-      MELAout << "Creating the simulation id pass, tight iso fail data set with abs(eta) for " << strbinning_pt << " and " << strbinning_etaOpp << "..." << endl;
+      IVYout << "Creating the simulation id pass, tight iso fail data set with abs(eta) for " << strbinning_pt << " and " << strbinning_etaOpp << "..." << endl;
       RooDataSet* fit_MC_etaOpp_bin_passId_failTightIso = (RooDataSet*) fit_MC_all_passId_failTightIso.reduce(
         Cut(Form("%s && %s", strcut_pt.Data(), strcut_etaOpp.Data())),
         Name(Form("%s_%s_%s", fit_MC_all_passId_failTightIso.GetName(), strbinning_pt.Data(), strbinning_etaOpp.Data()))
       );
-      MELAout << "\t- Remaining events: " << fit_MC_etaOpp_bin_passId_failTightIso->sumEntries() << " / " << fit_MC_all_passId_failTightIso.sumEntries() << endl;
+      IVYout << "\t- Remaining events: " << fit_MC_etaOpp_bin_passId_failTightIso->sumEntries() << " / " << fit_MC_all_passId_failTightIso.sumEntries() << endl;
       fit_MC_etaOpp_list.push_back(fit_MC_etaOpp_bin_passId_failTightIso);
 
-      MELAout << "Creating the observed id, tight iso pass data set for " << strbinning_pt << " and " << strbinning_eta << "..." << endl;
+      IVYout << "Creating the observed id, tight iso pass data set for " << strbinning_pt << " and " << strbinning_eta << "..." << endl;
       RooDataSet* fit_data_bin_passId_passTightIso = (RooDataSet*) fit_data_all_passId_passTightIso.reduce(
         Cut(Form("%s && %s", strcut_pt.Data(), strcut_eta.Data())),
         Name(Form("%s_%s_%s", fit_data_all_passId_passTightIso.GetName(), strbinning_pt.Data(), strbinning_eta.Data()))
       );
-      MELAout << "\t- Remaining events: " << fit_data_bin_passId_passTightIso->sumEntries() << " / " << fit_data_all_passId_passTightIso.sumEntries() << endl;
+      IVYout << "\t- Remaining events: " << fit_data_bin_passId_passTightIso->sumEntries() << " / " << fit_data_all_passId_passTightIso.sumEntries() << endl;
       fit_data_list.push_back(fit_data_bin_passId_passTightIso);
-      MELAout << "Creating the simulation id, tight iso pass data set for " << strbinning_pt << " and " << strbinning_eta << "..." << endl;
+      IVYout << "Creating the simulation id, tight iso pass data set for " << strbinning_pt << " and " << strbinning_eta << "..." << endl;
       RooDataSet* fit_MC_bin_passId_passTightIso = (RooDataSet*) fit_MC_all_passId_passTightIso.reduce(
         Cut(Form("%s && %s", strcut_pt.Data(), strcut_eta.Data())),
         Name(Form("%s_%s_%s", fit_MC_all_passId_passTightIso.GetName(), strbinning_pt.Data(), strbinning_eta.Data()))
       );
-      MELAout << "\t- Remaining events: " << fit_MC_bin_passId_passTightIso->sumEntries() << " / " << fit_MC_all_passId_passTightIso.sumEntries() << endl;
+      IVYout << "\t- Remaining events: " << fit_MC_bin_passId_passTightIso->sumEntries() << " / " << fit_MC_all_passId_passTightIso.sumEntries() << endl;
       fit_MC_list.push_back(fit_MC_bin_passId_passTightIso);
-      MELAout << "Creating the simulation id, tight iso pass data set with abs(eta) for " << strbinning_pt << " and " << strbinning_etaOpp << "..." << endl;
+      IVYout << "Creating the simulation id, tight iso pass data set with abs(eta) for " << strbinning_pt << " and " << strbinning_etaOpp << "..." << endl;
       RooDataSet* fit_MC_etaOpp_bin_passId_passTightIso = (RooDataSet*) fit_MC_all_passId_passTightIso.reduce(
         Cut(Form("%s && %s", strcut_pt.Data(), strcut_etaOpp.Data())),
         Name(Form("%s_%s_%s", fit_MC_all_passId_passTightIso.GetName(), strbinning_pt.Data(), strbinning_etaOpp.Data()))
       );
-      MELAout << "\t- Remaining events: " << fit_MC_etaOpp_bin_passId_passTightIso->sumEntries() << " / " << fit_MC_all_passId_passTightIso.sumEntries() << endl;
+      IVYout << "\t- Remaining events: " << fit_MC_etaOpp_bin_passId_passTightIso->sumEntries() << " / " << fit_MC_all_passId_passTightIso.sumEntries() << endl;
       fit_MC_etaOpp_list.push_back(fit_MC_etaOpp_bin_passId_passTightIso);
 
       for (unsigned int itype=0; itype<strIdIsoTypes.size(); itype++){
@@ -2664,8 +2664,8 @@ void createWSandDCs(
         // Make the MC output files for combine
         stroutput_txt = stroutput; HelperFunctions::replaceString<TString, char const*>(stroutput_txt, "workspace.root", "datacard.txt");
         // Write the DC
-        MELAout.open(stroutput_txt);
-        MELAout << R"(imax *
+        IVYout.open(stroutput_txt);
+        IVYout << R"(imax *
 jmax *
 kmax *
 ------------ 
@@ -2675,14 +2675,14 @@ shapes * ch_MC_etaOpp workspace.root w_MC_etaOpp:$PROCESS
 ------------
 bin ch_Data ch_MC ch_MC_etaOpp 
 )";
-        MELAout << Form("observation %.0f %.5f %.5f", fit_data->sumEntries(), fit_MC->sumEntries(), fit_MC_etaOpp->sumEntries()) << endl;
-        MELAout << R"(------------
+        IVYout << Form("observation %.0f %.5f %.5f", fit_data->sumEntries(), fit_MC->sumEntries(), fit_MC_etaOpp->sumEntries()) << endl;
+        IVYout << R"(------------
 bin ch_Data ch_MC ch_MC_etaOpp 
 process Data MC MC_etaOpp
 process -2 -1 0 
 )";
-        MELAout << Form("rate %.0f %.5f %.5f\n------------", fit_data->sumEntries(), fit_MC->sumEntries(), fit_MC_etaOpp->sumEntries()) << endl;
-        MELAout.close();
+        IVYout << Form("rate %.0f %.5f %.5f\n------------", fit_data->sumEntries(), fit_MC->sumEntries(), fit_MC_etaOpp->sumEntries()) << endl;
+        IVYout.close();
 
         // Write the data WS
         ws = new RooWorkspace("w_Data");
@@ -2773,7 +2773,7 @@ void replaceSignalModel(
       RooArgList const& coefList = pdfadd_in->coefList();
       RooArgList const& pdfList = pdfadd_in->pdfList();
       if (coefList.getSize()!=2){
-        MELAerr << "Coefficient list has size " << coefList.getSize() << " != 2." << endl;
+        IVYerr << "Coefficient list has size " << coefList.getSize() << " != 2." << endl;
         exit(1);
       }
       for (int icoef=0; icoef<coefList.getSize(); icoef++){
@@ -2785,7 +2785,7 @@ void replaceSignalModel(
     else pdf_sig = pdf_in;
 
     if (!pdf_sig){
-      MELAerr << "Could not find the signal pdf in category " << strcat << "." << endl;
+      IVYerr << "Could not find the signal pdf in category " << strcat << "." << endl;
       exit(1);
     }
 
@@ -2848,7 +2848,7 @@ void replaceSignalModel(
     else if (strSigModel.Contains("FSRGauss")) pdf_FSR = &pdf_gauss_FSR;
     else if (strSigModel.Contains("FSRCB")) pdf_FSR = &pdf_CB_FSR;
     else{
-      MELAerr << "Signal FSR model " << strSigModel << " is not supported." << endl;
+      IVYerr << "Signal FSR model " << strSigModel << " is not supported." << endl;
       exit(1);
     }
 
@@ -2856,7 +2856,7 @@ void replaceSignalModel(
     if (strSigModel.Contains("RelBWxDCB")) pdf_sig_core = &pdf_relBWxDCB;
     else if (strSigModel.Contains("RelBWxGauss")) pdf_sig_core = &pdf_relBWxGauss;
     else{
-      MELAerr << "Signal core model " << strSigModel << " is not supported." << endl;
+      IVYerr << "Signal core model " << strSigModel << " is not supported." << endl;
       exit(1);
     }
 
@@ -2899,7 +2899,7 @@ void addExtraSignalModels(
 
   TString cinput_main = "output/LeptonEfficiencies/WSandDCs/" + strdate + "/" + period;
   if (!SampleHelpers::checkFileOnWorker(cinput_main)){
-    MELAerr << "Directory " << cinput_main << " does not exist." << endl;
+    IVYerr << "Directory " << cinput_main << " does not exist." << endl;
     return;
   }
 
@@ -2953,8 +2953,8 @@ void addExtraSignalModels(
     }
     if (doSkip) continue;
 
-    MELAout << "Making new workspaces from " << cinput_tar << ":" << endl;
-    //MELAout << Form("=> Command: tar xf %s", cinput_tar.Data()) << endl;
+    IVYout << "Making new workspaces from " << cinput_tar << ":" << endl;
+    //IVYout << Form("=> Command: tar xf %s", cinput_tar.Data()) << endl;
     HostHelpers::ExecuteCommand(Form("tar xf %s", cinput_tar.Data()));
 
     for (auto const& strSignalModel:strSignalModels){
@@ -2962,20 +2962,20 @@ void addExtraSignalModels(
       HelperFunctions::replaceString<TString, TString const>(stroutput, strSignalFcn, strSignalModel);
       if (!replaceExisting && HostHelpers::FileExists(stroutput + ".tar")) continue;
 
-      MELAout << "\t- Creating " << stroutput << endl;
+      IVYout << "\t- Creating " << stroutput << endl;
       replaceSignalModel(cinput, stroutput, strSignalModel);
-      //MELAout << Form("=> Command: tar Jcf %s%s %s", stroutput.Data(), ".tar", stroutput.Data()) << endl;
+      //IVYout << Form("=> Command: tar Jcf %s%s %s", stroutput.Data(), ".tar", stroutput.Data()) << endl;
       HostHelpers::ExecuteCommand(Form("tar Jcf %s%s %s", stroutput.Data(), ".tar", stroutput.Data()));
-      //MELAout << Form("=> Command: rm -r %s", stroutput.Data()) << endl;
+      //IVYout << Form("=> Command: rm -r %s", stroutput.Data()) << endl;
       HostHelpers::ExecuteCommand(Form("rm -r %s", stroutput.Data()));
       nws++;
     }
 
-    //MELAout << Form("=> Command: rm -r %s", cinput.Data()) << endl;
+    //IVYout << Form("=> Command: rm -r %s", cinput.Data()) << endl;
     HostHelpers::ExecuteCommand(Form("rm -r %s", cinput.Data()));
   }
 
-  MELAout << "Total number of new workspaces: " << nws << endl;
+  IVYout << "Total number of new workspaces: " << nws << endl;
 }
 
 
@@ -2984,7 +2984,7 @@ void checkInvalidFits(
 ){
   TString cinput_main = "output/LeptonEfficiencies/DataFits/" + fitVersion + "/" + period;
   if (!SampleHelpers::checkFileOnWorker(cinput_main)){
-    MELAerr << "Directory " << cinput_main << " does not exist." << endl;
+    IVYerr << "Directory " << cinput_main << " does not exist." << endl;
     return;
   }
 
@@ -3009,12 +3009,12 @@ void checkInvalidFits(
     getParameterErrors(*fsig, errLo, errHi);
     if (errLo==0. && errHi==0.){
       strfailed_minos.push_back(strinput);
-      MELAout << strinput << " did not run Minos properly. Parameter = " << fsig->getVal() << " -" << errLo << " / +" << errHi << endl;
+      IVYout << strinput << " did not run Minos properly. Parameter = " << fsig->getVal() << " -" << errLo << " / +" << errHi << endl;
     }
     finput->Close();
   }
-  MELAout << "Total failed: " << endl;
-  MELAout << "\t- MINOS: " << strfailed_minos.size() << endl;
+  IVYout << "Total failed: " << endl;
+  IVYout << "\t- MINOS: " << strfailed_minos.size() << endl;
 }
 
 
@@ -3114,7 +3114,7 @@ void getNLLRecovery(
   TString coutput_main = "output/LeptonEfficiencies/NLLVals/" + strdate + "/" + period;
   TString coutput = coutput_main + "/" + wsdcname + ".txt";
   if (!SampleHelpers::checkFileOnWorker(cinput_main)){
-    MELAerr << "Directory " << cinput_main << " does not exist." << endl;
+    IVYerr << "Directory " << cinput_main << " does not exist." << endl;
     return;
   }
 
@@ -3143,14 +3143,14 @@ void getNLLRecovery(
 
           cacheutils::CachingSimNLL* nll_cached = dynamic_cast<cacheutils::CachingSimNLL*>(nll);
           if (nll_cached){
-            MELAout << "Cached NLL found in " << fname << ". Removing its zero points..." << endl;
+            IVYout << "Cached NLL found in " << fname << ". Removing its zero points..." << endl;
             nll_cached->clearConstantZeroPoint();
             nll_cached->clearZeroPoint();
             long double nll_val = nll_cached->getVal()*2.L;
             min_nll_val = std::min(min_nll_val, nll_val);
           }
           else{
-            MELAout << "Cached NLL does not exist in " << fname << ". Taking default values..." << endl;
+            IVYout << "Cached NLL does not exist in " << fname << ". Taking default values..." << endl;
             long double nll_val = nll->getVal()*2.L;
             min_nll_val = std::min(min_nll_val, nll_val);
           }
@@ -3164,9 +3164,9 @@ void getNLLRecovery(
   }
   if (npars<0.){
     TString cinput = cinput_main + "/VALID_FAIL.txt";
-    MELAout << "No valid files found. Checking for " << cinput << "." << endl;
+    IVYout << "No valid files found. Checking for " << cinput << "." << endl;
     if (HostHelpers::FileExists(cinput)){
-      MELAout << "Valid fail found as " << cinput << "." << endl;
+      IVYout << "Valid fail found as " << cinput << "." << endl;
       min_nll_val=0;
       npars=0;
     }
@@ -3175,9 +3175,9 @@ void getNLLRecovery(
   if (npars>=0.){
     gSystem->mkdir(coutput_main, true);
 
-    MELAout.open(coutput.Data());
-    MELAout << setprecision(15) << min_nll_val << " " << setprecision(15) << npars << endl;
-    MELAout.close();
+    IVYout.open(coutput.Data());
+    IVYout << setprecision(15) << min_nll_val << " " << setprecision(15) << npars << endl;
+    IVYout.close();
     SampleHelpers::addToCondorTransferList(coutput);
   }
 }
@@ -3191,7 +3191,7 @@ void getNLLRecoverySet(
   TString cinput_main = "output/LeptonEfficiencies/DataFits/" + fitVersion + "/" + period;
   TString coutput_main = "output/LeptonEfficiencies/NLLVals/" + strdate + "/" + period;
   if (!SampleHelpers::checkFileOnWorker(cinput_main)){
-    MELAerr << "Directory " << cinput_main << " does not exist." << endl;
+    IVYerr << "Directory " << cinput_main << " does not exist." << endl;
     return;
   }
 
@@ -3200,10 +3200,10 @@ void getNLLRecoverySet(
     if (SampleHelpers::doSignalInterrupt==1) break;
     TString coutput = coutput_main + "/" + wsdcname + ".txt";
     if (HostHelpers::FileExists(coutput)){
-      //MELAout << "Skipping " << coutput << "..." << endl;
+      //IVYout << "Skipping " << coutput << "..." << endl;
       continue;
     }
-    MELAout << "Generating " << coutput << "..." << endl;
+    IVYout << "Generating " << coutput << "..." << endl;
     getNLLRecovery(strdate, period, fitVersion, wsdcname);
   }
 }
@@ -3225,7 +3225,7 @@ int getBestFitAndErrorsFromFitSet(
   res.clear(); res.assign(n_fit_res, -1);
   std::vector< std::vector<double> > vals_list(2, std::vector<double>(n_fit_res, -1));
   vals_list.at(0).at(7) = vals_list.at(1).at(7) = res.at(7) = 1e6; // nll should be as large as possible.
-  MELAout << cinput_main; // No endl yet.
+  IVYout << cinput_main; // No endl yet.
   {
     unsigned short ifile=0;
     for (auto const& fname:fnames){
@@ -3337,7 +3337,7 @@ int getBestFitAndErrorsFromFitSet(
     }
 
 
-    MELAout
+    IVYout
       << " " << vals_list.at(0).at(0) << "/" << vals_list.at(0).at(1) << "/" << vals_list.at(0).at(2)
       << " " << vals_list.at(1).at(0) << "/" << vals_list.at(1).at(1) << "/" << vals_list.at(1).at(2)
       << " " << Form("%.0f", vals_list.at(0).at(3)) << " " << Form("%.5f", vals_list.at(0).at(4)) << " " << Form("%.5f", vals_list.at(0).at(5))
@@ -3457,9 +3457,9 @@ int getBestFitAndErrorsFromFitSet(
     }
   }
 
-  MELAout << " " << res.at(0) << "/" << res.at(1) << "/" << res.at(2) << " " << res.at(6) << " " << res.at(7);
+  IVYout << " " << res.at(0) << "/" << res.at(1) << "/" << res.at(2) << " " << res.at(6) << " " << res.at(7);
 
-  MELAout << endl;
+  IVYout << endl;
 
   return ret;
 }
@@ -3476,7 +3476,7 @@ void summarizeFits(
 
   TString cinput_main = "output/LeptonEfficiencies/DataFits/" + fitVersion + "/" + period;
   if (!SampleHelpers::checkFileOnWorker(cinput_main)){
-    MELAerr << "Directory " << cinput_main << " does not exist." << endl;
+    IVYerr << "Directory " << cinput_main << " does not exist." << endl;
     return;
   }
 
@@ -3552,7 +3552,7 @@ void summarizeFits(
         tout->Branch("frac_sig_85_95", &(fit_res.at(6)));
         tout->Branch("nll2", &(fit_res.at(7)));
 
-        MELAout << "Created the summary tree for " << pt_eta_idiso_strings.back() << endl;
+        IVYout << "Created the summary tree for " << pt_eta_idiso_strings.back() << endl;
 
         curdir->cd();
       }
@@ -3560,7 +3560,7 @@ void summarizeFits(
   }
 
   TString stroutput_txt = stroutput; HelperFunctions::replaceString<TString, TString const>(stroutput_txt, ".root", ".txt");
-  MELAout.open(stroutput_txt.Data());
+  IVYout.open(stroutput_txt.Data());
 
   auto indirs = SampleHelpers::lsdir(cinput_main);
   for (auto const& indir:indirs){
@@ -3602,7 +3602,7 @@ void summarizeFits(
     }
     if (tout) tout->Fill();
     else{
-      MELAerr << "Could not find the output tree for " << strindir << endl;
+      IVYerr << "Could not find the output tree for " << strindir << endl;
       exit(1);
     }
   }
@@ -3612,8 +3612,8 @@ void summarizeFits(
     pt_eta_idiso_dirs.at(it)->cd();
 
     int nEntries = pt_eta_idiso_trees.at(it)->GetEntries();
-    MELAout << "Number of entries in " << pt_eta_idiso_strings.at(it) << ": " << nEntries << endl;
-    if (nEntries==0) MELAerr << "No entries in " << pt_eta_idiso_strings.at(it) << "." << endl;
+    IVYout << "Number of entries in " << pt_eta_idiso_strings.at(it) << ": " << nEntries << endl;
+    if (nEntries==0) IVYerr << "No entries in " << pt_eta_idiso_strings.at(it) << "." << endl;
 
     pt_eta_idiso_dirs.at(it)->WriteTObject(pt_eta_idiso_trees.at(it));
 
@@ -3622,7 +3622,7 @@ void summarizeFits(
     curdir->cd();
   }
 
-  MELAout.close();
+  IVYout.close();
   foutput->Close();
 
   SampleHelpers::addToCondorTransferList(stroutput);
@@ -3842,7 +3842,7 @@ std::vector<TH2D*> getPOGIDEffSF(bool is_ee, unsigned int is_data_MC_SF){
       }
     }
   }
-  MELAout << "getPOGIDEffSF: cinput = " << cinput << ", hname = " << hname << endl;
+  IVYout << "getPOGIDEffSF: cinput = " << cinput << ", hname = " << hname << endl;
   if (cinput == "" || hname == "" || !HostHelpers::FileExists(cinput)) return hlist;
 
   TFile* finput = TFile::Open(cinput, "read");
@@ -3915,7 +3915,7 @@ std::vector<TGraphAsymmErrors*> getEffSF_PtSliceGraphs(std::vector<TH2D*> const&
       errorDns.at(ipt).second = std::sqrt(errorDns.at(ipt).second);
       errorUps.at(ipt).second = std::sqrt(errorUps.at(ipt).second);
 
-      //MELAout << "Point " << ipt << " = (" << points.at(ipt).first << " +" << errorUps.at(ipt).first << " / -" << errorDns.at(ipt).first << ", " << points.at(ipt).second << " +" << errorUps.at(ipt).second << " / -" << errorDns.at(ipt).second << ")" << endl;
+      //IVYout << "Point " << ipt << " = (" << points.at(ipt).first << " +" << errorUps.at(ipt).first << " / -" << errorDns.at(ipt).first << ", " << points.at(ipt).second << " +" << errorUps.at(ipt).second << " / -" << errorDns.at(ipt).second << ")" << endl;
     }
 
     res.at(ieta) = HelperFunctions::makeGraphAsymErrFromPair(points, errorDns, errorUps, TString("gr_")+htmplist.front()->GetName());
@@ -3937,7 +3937,7 @@ void plotEffSFEtaSlice(TString const& coutput_main, TString cname_app, TString f
   bool isData = cname_app.Contains("eff_data");
   bool is_ee = !cname_app.Contains("mumu");
   bool checkPOGID = !cname_app.Contains("passId_pass") && (!is_ee || (is_ee && cname_app.Contains("nongap_gap")));
-  MELAout << "plotEffSFEtaSlice: Plotting " << cname_app << " + " << fslabel << " " << ptitle << endl;
+  IVYout << "plotEffSFEtaSlice: Plotting " << cname_app << " + " << fslabel << " " << ptitle << endl;
 
   double ymin=99, ymax=-99;
 
@@ -3945,12 +3945,12 @@ void plotEffSFEtaSlice(TString const& coutput_main, TString cname_app, TString f
   std::vector<TGraphAsymmErrors*> grlist_POG;
   std::vector<TString> labels_POG;
   if (checkPOGID){
-    MELAout << "plotEffSFEtaSlice: Acquiring POG histograms..." << endl;
+    IVYout << "plotEffSFEtaSlice: Acquiring POG histograms..." << endl;
     hlist_POG = getPOGIDEffSF(is_ee, 0*isData + 1*(!isSF && !isData) + 2*isSF);
   }
   bool hasPOGRefs = !hlist_POG.empty();
   ExtendedBinning binning_eta_POG;
-  if (checkPOGID && !hasPOGRefs) MELAerr << "plotEffSFEtaSlice: Attempted to acquire POG historams but failed." << endl;
+  if (checkPOGID && !hasPOGRefs) IVYerr << "plotEffSFEtaSlice: Attempted to acquire POG historams but failed." << endl;
   if (hasPOGRefs){
     grlist_POG = getEffSF_PtSliceGraphs(hlist_POG);
     HelperFunctions::getExtendedBinning(hlist_POG.front(), 0, binning_eta_POG);
@@ -4029,7 +4029,7 @@ void plotEffSFEtaSlice(TString const& coutput_main, TString cname_app, TString f
         theColor = kBlue+2;
         break;
       default:
-        MELAerr << "Please define more colors!" << endl;
+        IVYerr << "Please define more colors!" << endl;
         assert(0);
         theColor = kBlack;
         break;
@@ -4118,7 +4118,7 @@ void plotEffSFEtaSlice(TString const& coutput_main, TString cname_app, TString f
       theColor = kBlue+2;
       break;
     default:
-      MELAerr << "Please define more colors!" << endl;
+      IVYerr << "Please define more colors!" << endl;
       assert(0);
       theColor = kBlack;
       break;
@@ -4217,8 +4217,8 @@ void plotEffSFEtaSlice(TString const& coutput_main, TString cname_app, TString f
   for (unsigned int ig=0; ig<grlist.size();ig++){
     auto& gr = grlist.at(ig);
     if (isFirstGraph){
-      MELAout << "Graph x title: " << gr->GetXaxis()->GetTitle() << endl;
-      MELAout << "Graph y title: " << gr->GetYaxis()->GetTitle() << endl;
+      IVYout << "Graph x title: " << gr->GetXaxis()->GetTitle() << endl;
+      IVYout << "Graph y title: " << gr->GetYaxis()->GetTitle() << endl;
     }
     TString stropt = (isFirstGraph ? "ae1p" : "e1psame");
     gr->Draw(stropt);
@@ -4354,7 +4354,7 @@ void fit_summary::applyNLL2Offset(){
   else if (fit_condition.Contains("RelBWxDCBFSRGauss_Bernstein")) nll2_central -= 34.L;
   else if (fit_condition.Contains("RelBWxDCBFSRGauss_Exponential")) nll2_central -= 30.L;
   else{
-    MELAerr << "fit_summary::applyNLL2Offset: Fit condition " << fit_condition << " is not defined. Please fix the implementation." << endl;
+    IVYerr << "fit_summary::applyNLL2Offset: Fit condition " << fit_condition << " is not defined. Please fix the implementation." << endl;
     exit(1);
   }
 }
@@ -4397,7 +4397,7 @@ int fit_summary::findWidestInterval(std::vector<fit_summary> const& fslist, doub
       ifit++;
     }
   }
-  //MELAout << "Best fit: " << fsig_nominal << " @ " << nll2_best_fit << endl;
+  //IVYout << "Best fit: " << fsig_nominal << " @ " << nll2_best_fit << endl;
   // Last, get the range by manually traversing the entire range with a step size of 1e-6.
   long double fsig_step = (fsig_nominal - fsig_inf)*1e-6;
   long double dnll2 = -1;
@@ -4409,7 +4409,7 @@ int fit_summary::findWidestInterval(std::vector<fit_summary> const& fslist, doub
         long double const nll2_tmp = fs.calculateNLL2(fsig, nFit_smallest);
         if (nll2_tmp<nll2_min) nll2_min=nll2_tmp;
       }
-      //MELAout << "[" << fsig << "]: " << nll2_min << endl;
+      //IVYout << "[" << fsig << "]: " << nll2_min << endl;
       long double dnll2_tmp = nll2_min - (nll2_best_fit+1.L);
       long double dnll2_abs_tmp = std::abs(dnll2_tmp);
       if (dnll2<0. || dnll2_abs_tmp<dnll2){
@@ -4429,7 +4429,7 @@ int fit_summary::findWidestInterval(std::vector<fit_summary> const& fslist, doub
         long double const nll2_tmp = fs.calculateNLL2(fsig, nFit_smallest);
         if (nll2_tmp<nll2_min) nll2_min=nll2_tmp;
       }
-      //MELAout << "[" << fsig << "]: " << nll2_min << endl;
+      //IVYout << "[" << fsig << "]: " << nll2_min << endl;
       long double dnll2_tmp = nll2_min - (nll2_best_fit+1.L);
       long double dnll2_abs_tmp = std::abs(dnll2_tmp);
       if (dnll2<0. || dnll2_abs_tmp<dnll2){
@@ -4514,16 +4514,16 @@ void combineEfficiencies(
   TString cinput_nllrecovery = "output/LeptonEfficiencies/NLLVals/" + fitVersion + "/" + period;
   TString const coutput_main = "output/LeptonEfficiencies/FinalEffs/" + strdate  + "/" + period;
   if (!SampleHelpers::checkFileOnWorker(cinput_wsdcs)){
-    MELAerr << "Directory " << cinput_wsdcs << " does not exist." << endl;
+    IVYerr << "Directory " << cinput_wsdcs << " does not exist." << endl;
     return;
   }
   if (!SampleHelpers::checkFileOnWorker(cinput_fitsummary)){
-    MELAerr << "Directory " << cinput_fitsummary << " does not exist." << endl;
+    IVYerr << "Directory " << cinput_fitsummary << " does not exist." << endl;
     return;
   }
   bool const hasFitNLLRecovery = (SampleHelpers::checkFileOnWorker(cinput_nllrecovery));
   if (hasFitNLLRecovery){
-    MELAout << "NLL recovery detected." << endl;
+    IVYout << "NLL recovery detected." << endl;
   }
 
   gSystem->mkdir(coutput_main, true);
@@ -4578,8 +4578,8 @@ void combineEfficiencies(
   TString coutput_txtout = coutput; HelperFunctions::replaceString(coutput_txtout, ".root", ".out");
   TString coutput_txterr = coutput; HelperFunctions::replaceString(coutput_txterr, ".root", ".err");
   TFile* foutput = TFile::Open(coutput, "recreate");
-  MELAout.open(coutput_txtout.Data());
-  MELAerr.open(coutput_txterr.Data());
+  IVYout.open(coutput_txtout.Data());
+  IVYerr.open(coutput_txterr.Data());
 
   curdir->cd();
 
@@ -4632,7 +4632,7 @@ void combineEfficiencies(
       std::vector<TH2D*> tmplist; tmplist.reserve(strIdIsoTypes.size());
       for (auto const& strIdIsoType:strIdIsoTypes){
         tmplist.push_back(dynamic_cast<TH2D*>(finput_counts->Get(Form("evts_data_%s", strIdIsoType.Data()))));
-        if (!tmplist.back()){ MELAerr << "Could not acquire data count histogram for " << strIdIsoType << " in file " << wsdc_file << endl; exit(1); }
+        if (!tmplist.back()){ IVYerr << "Could not acquire data count histogram for " << strIdIsoType << " in file " << wsdc_file << endl; exit(1); }
       }
       hevts_list_ref[count_tag] = tmplist;
 
@@ -4649,7 +4649,7 @@ void combineEfficiencies(
       std::vector<TH2D*> tmplist; tmplist.reserve(strIdIsoTypes.size());
       for (auto const& strIdIsoType:strIdIsoTypes){
         tmplist.push_back(dynamic_cast<TH2D*>(finput_counts->Get(Form("evts_MC_%s", strIdIsoType.Data()))));
-        if (!tmplist.back()){ MELAerr << "Could not acquire data count histogram for " << strIdIsoType << " in file " << wsdc_file << endl; exit(1); }
+        if (!tmplist.back()){ IVYerr << "Could not acquire data count histogram for " << strIdIsoType << " in file " << wsdc_file << endl; exit(1); }
       }
       hevts_list_ref[count_tag] = tmplist;
     }
@@ -4660,7 +4660,7 @@ void combineEfficiencies(
   // Acquire fitted frac_sig values
   {
     TFile* finput_fitsummary = TFile::Open(cinput_fitsummary + "/" + strFinalState + ".root", "read");
-    if (!finput_fitsummary || finput_fitsummary->IsZombie()){ MELAerr << "Cannot open fit summary." << endl; exit(1); }
+    if (!finput_fitsummary || finput_fitsummary->IsZombie()){ IVYerr << "Cannot open fit summary." << endl; exit(1); }
     finput_fitsummary->cd();
     for (unsigned int ix=0; ix<nbins_pt; ix++){
       float pt_low = binning_pt.getBinLowEdge(ix);
@@ -4683,11 +4683,11 @@ void combineEfficiencies(
           TString strindir = strbinning_pt + "_" + strbinning_eta + "_" + strIdIsoType;
 
           bool const hasECALGapException = is_ee && strFinalState.Contains("_gap") && 1.4442<std::abs(eta_center) && std::abs(eta_center)<1.566 && pt_center<36. && strIdIsoType=="passId_failLooseIso";
-          if (hasECALGapException) MELAout << "Gap exceptions are present in this " << strindir << " bin." << endl;
+          if (hasECALGapException) IVYout << "Gap exceptions are present in this " << strindir << " bin." << endl;
 
-          MELAout << "Collecting the fit summary for " << strindir << "..." << endl;
+          IVYout << "Collecting the fit summary for " << strindir << "..." << endl;
           TTree* tin = dynamic_cast<TTree*>(finput_fitsummary->Get(strindir + "/Summary"));
-          if (!tin){ MELAerr << "Could not acquire the fit summary " << strindir << endl; continue; }
+          if (!tin){ IVYerr << "Could not acquire the fit summary " << strindir << endl; continue; }
 
           TString* fit_condition = nullptr;
           double frac_sig_central=-1, frac_sig_low=-1, frac_sig_high=-1, frac_sig_85_95=-1, NFit_Data=-1, NFit_MC=-1, NFit_MC_etaOpp=-1, nll2=1e6;
@@ -4706,7 +4706,7 @@ void combineEfficiencies(
 
             // Skip if gap exception needs to trigger.
             if (hasECALGapException && !fit_condition->Contains("mll_70_110")){
-              MELAout << "\t- Fit condition " << *fit_condition << " fails ECAL gap exception. Skipping this tag..." << endl;
+              IVYout << "\t- Fit condition " << *fit_condition << " fails ECAL gap exception. Skipping this tag..." << endl;
               continue;
             }
 
@@ -4731,7 +4731,7 @@ void combineEfficiencies(
                 if ((NFit_Data+NFit_MC+NFit_MC_etaOpp)>100.) nll2 += npars2;
               }
               else{
-                MELAerr << "Cannot detect " << cinput_NLL << " for " << *fit_condition << endl;
+                IVYerr << "Cannot detect " << cinput_NLL << " for " << *fit_condition << endl;
                 continue;
               }
             }
@@ -4741,7 +4741,7 @@ void combineEfficiencies(
             fit_tag = fit_tag(fit_tag.First('_')+1, fit_tag.Length());
 
             if (!HelperFunctions::checkListVariable(all_tags, fit_tag)){
-              MELAerr << "Cannot find the associated counts for tag " << fit_tag << " (fit condition: " << *fit_condition << ")." << endl;
+              IVYerr << "Cannot find the associated counts for tag " << fit_tag << " (fit condition: " << *fit_condition << ")." << endl;
               exit(1);
             }
 
@@ -4823,7 +4823,7 @@ void combineEfficiencies(
     for (unsigned int bin_eta=0; bin_eta<nbins_eta; bin_eta++){
       curdir->cd();
 
-      MELAout
+      IVYout
         << "Examining pT, eta bin ["
         << binning_pt.getBinLowEdge(bin_pt) << ", " << binning_pt.getBinHighEdge(bin_pt) << ") : ["
         << binning_eta.getBinLowEdge(bin_eta) << ", " << binning_eta.getBinHighEdge(bin_eta) << ")"
@@ -4860,9 +4860,9 @@ void combineEfficiencies(
         syst_effs_MC_StatNominal_map[syst] = std::vector<double>(); for (auto const& v:effvals_MC) syst_effs_MC_StatNominal_map[syst].push_back(v.at(0));
         syst_effs_MC_StatDn_map[syst] = std::vector<double>(); for (auto const& v:effvals_MC) syst_effs_MC_StatDn_map[syst].push_back(v.at(1));
         syst_effs_MC_StatUp_map[syst] = std::vector<double>(); for (auto const& v:effvals_MC) syst_effs_MC_StatUp_map[syst].push_back(v.at(2));
-        MELAout << "\t- Collected nominal MC effs.: " << syst_effs_MC_StatNominal_map[syst] << endl;
-        MELAout << "\t- Collected stat. dn. MC effs.: " << syst_effs_MC_StatDn_map[syst] << endl;
-        MELAout << "\t- Collected stat. up MC effs.: " << syst_effs_MC_StatUp_map[syst] << endl;
+        IVYout << "\t- Collected nominal MC effs.: " << syst_effs_MC_StatNominal_map[syst] << endl;
+        IVYout << "\t- Collected stat. dn. MC effs.: " << syst_effs_MC_StatDn_map[syst] << endl;
+        IVYout << "\t- Collected stat. up MC effs.: " << syst_effs_MC_StatUp_map[syst] << endl;
       }
 
       // Acquire PU Dn/Up efficiencies
@@ -4877,7 +4877,7 @@ void combineEfficiencies(
         }
         calculateRecursiveEfficiencies(sum_indices, vals_MC, effvals_MC);
         syst_effs_MC_PUDn_map[syst] = std::vector<double>(); for (auto const& v:effvals_MC) syst_effs_MC_PUDn_map[syst].push_back(v.at(0));
-        MELAout << "\t- Collected PU dn. MC effs.: " << syst_effs_MC_PUDn_map[syst] << " (tag: " << tag_hlist_pair.first << ")" << endl;
+        IVYout << "\t- Collected PU dn. MC effs.: " << syst_effs_MC_PUDn_map[syst] << " (tag: " << tag_hlist_pair.first << ")" << endl;
       }
       for (auto const& tag_hlist_pair:hevts_MC_PUUp_list){
         TString const& syst = tag_hlist_pair.first;
@@ -4890,7 +4890,7 @@ void combineEfficiencies(
         }
         calculateRecursiveEfficiencies(sum_indices, vals_MC, effvals_MC);
         syst_effs_MC_PUUp_map[syst] = std::vector<double>(); for (auto const& v:effvals_MC) syst_effs_MC_PUUp_map[syst].push_back(v.at(0));
-        MELAout << "\t- Collected PU up MC effs.: " << syst_effs_MC_PUUp_map[syst] << " (tag: " << tag_hlist_pair.first << ")" << endl;
+        IVYout << "\t- Collected PU up MC effs.: " << syst_effs_MC_PUUp_map[syst] << " (tag: " << tag_hlist_pair.first << ")" << endl;
       }
 
       // Acquire alternative MC efficiencies
@@ -4910,8 +4910,8 @@ void combineEfficiencies(
           syst_effs_MC_2l2nu_map[syst].push_back(v.at(0));
           syst_effs_MC_2l2nu_intsize_map[syst].push_back(v.at(2) - v.at(1));
         }
-        MELAout << "\t- Collected 2l2nu MC effs.: " << syst_effs_MC_2l2nu_map[syst] << " (tag: " << tag_hlist_pair.first << ")" << endl;
-        MELAout << "\t- Collected 2l2nu MC interval sizes: " << syst_effs_MC_2l2nu_intsize_map[syst] << " (tag: " << tag_hlist_pair.first << ")" << endl;
+        IVYout << "\t- Collected 2l2nu MC effs.: " << syst_effs_MC_2l2nu_map[syst] << " (tag: " << tag_hlist_pair.first << ")" << endl;
+        IVYout << "\t- Collected 2l2nu MC interval sizes: " << syst_effs_MC_2l2nu_intsize_map[syst] << " (tag: " << tag_hlist_pair.first << ")" << endl;
       }
       for (auto const& tag_hlist_pair:hevts_MC_4l_list){
         TString const& syst = tag_hlist_pair.first;
@@ -4929,8 +4929,8 @@ void combineEfficiencies(
           syst_effs_MC_4l_map[syst].push_back(v.at(0));
           syst_effs_MC_4l_intsize_map[syst].push_back(v.at(2) - v.at(1));
         }
-        MELAout << "\t- Collected 4l MC effs.: " << syst_effs_MC_4l_map[syst] << " (tag: " << tag_hlist_pair.first << ")" << endl;
-        MELAout << "\t- Collected 4l MC interval sizes: " << syst_effs_MC_4l_intsize_map[syst] << " (tag: " << tag_hlist_pair.first << ")" << endl;
+        IVYout << "\t- Collected 4l MC effs.: " << syst_effs_MC_4l_map[syst] << " (tag: " << tag_hlist_pair.first << ")" << endl;
+        IVYout << "\t- Collected 4l MC interval sizes: " << syst_effs_MC_4l_intsize_map[syst] << " (tag: " << tag_hlist_pair.first << ")" << endl;
       }
 
       // Acquire efficiencies for data
@@ -4938,11 +4938,11 @@ void combineEfficiencies(
         auto it_fit_summary_list = tag_fit_summary_map.find(syst);
         if (it_fit_summary_list==tag_fit_summary_map.end()) continue;
 
-        MELAout << "\t- Checking systematic " << syst << " for data efficiencies..." << endl;
+        IVYout << "\t- Checking systematic " << syst << " for data efficiencies..." << endl;
         bool doSkip = false;
         for (unsigned int isel=0; isel<strIdIsoTypes.size(); isel++){
           if (it_fit_summary_list->second.at(isel).at(bin_pt).at(bin_eta).empty()){
-            MELAout 
+            IVYout 
               << "\t\t- Fit for " << strIdIsoTypes.at(isel) << " in systematic " << syst << " seems to have failed.\n"
               << "\t\t  Skipping this tag completely because one cannot calculate an efficiency with a missing ID/iso. category." << endl;
             doSkip = true;
@@ -4958,26 +4958,26 @@ void combineEfficiencies(
 
           double frac_sig_Nominal=0.5, frac_sig_StatDn=0, frac_sig_StatUp=1;
           int ibest_fit = fit_summary::findWidestInterval(it_fit_summary_list->second.at(isel).at(bin_pt).at(bin_eta), frac_sig_Nominal, frac_sig_StatDn, frac_sig_StatUp);
-          if (ibest_fit<0) MELAerr
+          if (ibest_fit<0) IVYerr
             << "ERROR: NO BEST FIT FOUND IN ID/ISO CATEGORY " << strIdIsoTypes.at(isel)
             << ". SIZE OF THE FIT SUMMARY VECTOR: " << it_fit_summary_list->second.at(isel).at(bin_pt).at(bin_eta).size()
             << endl;
           else{
-            MELAout
+            IVYout
               << "\t\t- Best fit for " << strIdIsoTypes.at(isel)
               << " is given by fit condition " << it_fit_summary_list->second.at(isel).at(bin_pt).at(bin_eta).at(ibest_fit).fit_condition
               << " with the combined frac_sig range " << frac_sig_Nominal << " [" << frac_sig_StatDn << ", " << frac_sig_StatUp << "]"
               << ". The available conditions were as follows:" 
               << endl;
-            MELAout << "\t\t\tTag | nominal | stat. dn. | stat. up | nll2 | sum of all weights used" << endl;
+            IVYout << "\t\t\tTag | nominal | stat. dn. | stat. up | nll2 | sum of all weights used" << endl;
             for (auto const& fs_obj:it_fit_summary_list->second.at(isel).at(bin_pt).at(bin_eta)){
-              MELAout << "\t\t\t";
-              MELAout << fs_obj.fit_condition << " | ";
-              MELAout << fs_obj.fsig_central << " | ";
-              MELAout << fs_obj.fsig_low << " | ";
-              MELAout << fs_obj.fsig_high << " | ";
-              MELAout << fs_obj.nll2_central << " | ";
-              MELAout << fs_obj.nFit_total << endl;
+              IVYout << "\t\t\t";
+              IVYout << fs_obj.fit_condition << " | ";
+              IVYout << fs_obj.fsig_central << " | ";
+              IVYout << fs_obj.fsig_low << " | ";
+              IVYout << fs_obj.fsig_high << " | ";
+              IVYout << fs_obj.nll2_central << " | ";
+              IVYout << fs_obj.nFit_total << endl;
             }
           }
 
@@ -4989,7 +4989,7 @@ void combineEfficiencies(
           vals_data_frac_up.at(isel).first *= frac_sig_StatUp; vals_data_frac_up.at(isel).second *= std::pow(frac_sig_StatUp, 2);
         }
 
-        MELAout << "\t\t- Extracting data efficiencies..." << endl;
+        IVYout << "\t\t- Extracting data efficiencies..." << endl;
         std::vector<std::vector<double>> effvals_data_frac_nominal(strIdIsoOutTypes.size(), std::vector<double>(3, 0)); // [Id/iso type][Nominal, low, high]
         std::vector<std::vector<double>> effvals_data_frac_dn(strIdIsoOutTypes.size(), std::vector<double>(3, 0)); // [Id/iso type][Nominal, low, high]
         std::vector<std::vector<double>> effvals_data_frac_up(strIdIsoOutTypes.size(), std::vector<double>(3, 0)); // [Id/iso type][Nominal, low, high]
@@ -5009,15 +5009,15 @@ void combineEfficiencies(
           syst_effs_data_StatDn_map[syst].push_back(std::max(0., vnom - std::sqrt(std::pow(v_frac_dn - vnom, 2) + std::pow(v_eff_dn - vnom, 2))));
           syst_effs_data_StatUp_map[syst].push_back(std::min(1., vnom + std::sqrt(std::pow(v_frac_up - vnom, 2) + std::pow(v_eff_up - vnom, 2))));
         }
-        MELAout << "\t\t- Collected nominal data effs.: " << syst_effs_data_StatNominal_map[syst] << endl;
-        MELAout << "\t\t- Collected stat. dn. data effs.: " << syst_effs_data_StatDn_map[syst] << endl;
-        MELAout << "\t\t- Collected stat. up data effs.: " << syst_effs_data_StatUp_map[syst] << endl;
+        IVYout << "\t\t- Collected nominal data effs.: " << syst_effs_data_StatNominal_map[syst] << endl;
+        IVYout << "\t\t- Collected stat. dn. data effs.: " << syst_effs_data_StatDn_map[syst] << endl;
+        IVYout << "\t\t- Collected stat. up data effs.: " << syst_effs_data_StatUp_map[syst] << endl;
       }
 
       for (unsigned int osel=0; osel<strIdIsoOutTypes.size(); osel++){
-        MELAout << "\t- Building efficiencies for " << strIdIsoOutTypes.at(osel) << ":" << endl;
+        IVYout << "\t- Building efficiencies for " << strIdIsoOutTypes.at(osel) << ":" << endl;
 
-        MELAout << "\t\t- Building for data..." << endl;
+        IVYout << "\t\t- Building for data..." << endl;
         std::vector<double> eff_coll_data_StatNominal; for (auto const& it:syst_effs_data_StatNominal_map) eff_coll_data_StatNominal.push_back(it.second.at(osel));
         std::vector<double> eff_coll_data_StatDn; for (auto const& it:syst_effs_data_StatDn_map) eff_coll_data_StatDn.push_back(it.second.at(osel));
         std::vector<double> eff_coll_data_StatUp; for (auto const& it:syst_effs_data_StatUp_map) eff_coll_data_StatUp.push_back(it.second.at(osel));
@@ -5036,10 +5036,10 @@ void combineEfficiencies(
         findModeAndConfidenceInterval(eff_coll_data_StatUp, mode_data_StatUp, clow_data_StatUp, chigh_data_StatUp);
         h_eff_data_StatUp_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, mode_data_StatUp);
 
-        MELAout << "\t\t\t- Nominal, syst dn, syst up, stat dn, stat up: " << std::vector<double>{ mode_data_StatNominal, clow_data_StatNominal, chigh_data_StatNominal, mode_data_StatDn, mode_data_StatUp  } << endl;
+        IVYout << "\t\t\t- Nominal, syst dn, syst up, stat dn, stat up: " << std::vector<double>{ mode_data_StatNominal, clow_data_StatNominal, chigh_data_StatNominal, mode_data_StatDn, mode_data_StatUp  } << endl;
 
 
-        MELAout << "\t\t- Building for MC..." << endl;
+        IVYout << "\t\t- Building for MC..." << endl;
         std::vector<double> eff_coll_MC_StatNominal; for (auto const& it:syst_effs_MC_StatNominal_map) eff_coll_MC_StatNominal.push_back(it.second.at(osel));
         std::vector<double> eff_coll_MC_StatDn; for (auto const& it:syst_effs_MC_StatDn_map) eff_coll_MC_StatDn.push_back(it.second.at(osel));
         std::vector<double> eff_coll_MC_StatUp; for (auto const& it:syst_effs_MC_StatUp_map) eff_coll_MC_StatUp.push_back(it.second.at(osel));
@@ -5050,14 +5050,14 @@ void combineEfficiencies(
         std::vector<double> eff_coll_MC_4l; for (auto const& it:syst_effs_MC_4l_map) eff_coll_MC_4l.push_back(it.second.at(osel));
         std::vector<double> eff_coll_MC_4l_intsize; for (auto const& it:syst_effs_MC_4l_intsize_map) eff_coll_MC_4l_intsize.push_back(it.second.at(osel));
 
-        MELAout << "\t\t\t- Stat. nominal and syst. variations..." << endl;
+        IVYout << "\t\t\t- Stat. nominal and syst. variations..." << endl;
         double mode_MC_StatNominal, clow_MC_StatNominal, chigh_MC_StatNominal;
         findModeAndConfidenceInterval(eff_coll_MC_StatNominal, mode_MC_StatNominal, clow_MC_StatNominal, chigh_MC_StatNominal);
         h_eff_MC_Nominal_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, mode_MC_StatNominal);
         h_eff_MC_SystDn_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, clow_MC_StatNominal);
         h_eff_MC_SystUp_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, chigh_MC_StatNominal);
 
-        MELAout << "\t\t\t- Stat. down/up..." << endl;
+        IVYout << "\t\t\t- Stat. down/up..." << endl;
         double mode_MC_StatDn, clow_MC_StatDn, chigh_MC_StatDn;
         findModeAndConfidenceInterval(eff_coll_MC_StatDn, mode_MC_StatDn, clow_MC_StatDn, chigh_MC_StatDn);
         h_eff_MC_StatDn_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, mode_MC_StatDn);
@@ -5066,7 +5066,7 @@ void combineEfficiencies(
         findModeAndConfidenceInterval(eff_coll_MC_StatUp, mode_MC_StatUp, clow_MC_StatUp, chigh_MC_StatUp);
         h_eff_MC_StatUp_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, mode_MC_StatUp);
 
-        MELAout << "\t\t\t- PU down/up..." << endl;
+        IVYout << "\t\t\t- PU down/up..." << endl;
         double mode_MC_PUDn, clow_MC_PUDn, chigh_MC_PUDn;
         findModeAndConfidenceInterval(eff_coll_MC_PUDn, mode_MC_PUDn, clow_MC_PUDn, chigh_MC_PUDn);
         h_eff_MC_PUDn_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, mode_MC_PUDn);
@@ -5075,7 +5075,7 @@ void combineEfficiencies(
         findModeAndConfidenceInterval(eff_coll_MC_PUUp, mode_MC_PUUp, clow_MC_PUUp, chigh_MC_PUUp);
         h_eff_MC_PUUp_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, mode_MC_PUUp);
 
-        MELAout << "\t\t\t- Alt. MC down/up..." << endl;
+        IVYout << "\t\t\t- Alt. MC down/up..." << endl;
         double mode_MC_AltMCUp, clow_MC_AltMCUp, chigh_MC_AltMCUp;
         {
           std::vector<double> eff_coll_MC_AltMC;
@@ -5092,7 +5092,7 @@ void combineEfficiencies(
         h_eff_MC_AltMCDn_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, 2.*mode_MC_StatNominal - mode_MC_AltMCUp);
         h_eff_MC_AltMCUp_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, mode_MC_AltMCUp);
 
-        MELAout << "\t\t\t- Nominal, syst dn, syst up, stat dn, stat up, PU dn, PU up, AltMC dn, AltMC up: " << std::vector<double>{ mode_MC_StatNominal, clow_MC_StatNominal, chigh_MC_StatNominal, mode_MC_StatDn, mode_MC_StatUp, mode_MC_PUDn, mode_MC_PUUp, 2.*mode_MC_StatNominal - mode_MC_AltMCUp, mode_MC_AltMCUp  } << endl;
+        IVYout << "\t\t\t- Nominal, syst dn, syst up, stat dn, stat up, PU dn, PU up, AltMC dn, AltMC up: " << std::vector<double>{ mode_MC_StatNominal, clow_MC_StatNominal, chigh_MC_StatNominal, mode_MC_StatDn, mode_MC_StatUp, mode_MC_PUDn, mode_MC_PUUp, 2.*mode_MC_StatNominal - mode_MC_AltMCUp, mode_MC_AltMCUp  } << endl;
       }
 
       curdir->cd();
@@ -5100,7 +5100,7 @@ void combineEfficiencies(
   } // End pT bin loop
 
 
-  MELAout << "Writing the efficiency histograms" << endl;
+  IVYout << "Writing the efficiency histograms" << endl;
   foutput->cd();
   for (auto& hh:h_eff_data_Nominal_list) foutput->WriteTObject(&hh);
   for (auto& hh:h_eff_data_StatDn_list) foutput->WriteTObject(&hh);
@@ -5155,7 +5155,7 @@ void combineEfficiencies(
         double val_SF_AltMCDn = (val_eff_MC_AltMCDn==0. ? 0. : val_eff_data_Nominal / val_eff_MC_AltMCDn);
         double val_SF_AltMCUp = (val_eff_MC_AltMCUp==0. ? 0. : val_eff_data_Nominal / val_eff_MC_AltMCUp);
 #define HIST_COMMAND(name) \
-        if (!HelperFunctions::checkVarNanInf(val_##name)) MELAerr << "BIN " << bin_eta+1 << ", " << bin_pt+1 << "HAS NAN/INF FOR " << #name << " " << strIdIsoOutTypes.at(osel) << "." << endl; \
+        if (!HelperFunctions::checkVarNanInf(val_##name)) IVYerr << "BIN " << bin_eta+1 << ", " << bin_pt+1 << "HAS NAN/INF FOR " << #name << " " << strIdIsoOutTypes.at(osel) << "." << endl; \
         h_##name##_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, val_##name); if (val_##name>0.){ zmin_SF = std::min(zmin_SF, val_##name); zmax_SF = std::max(zmax_SF, val_##name); }
         HIST_COMMAND(SF_Nominal);
         HIST_COMMAND(SF_StatDn);
@@ -5338,7 +5338,7 @@ void combineEfficiencies(
     curdir->cd();
   }
 
-  MELAout << "Writing the SF histograms" << endl;
+  IVYout << "Writing the SF histograms" << endl;
   foutput->cd();
   for (auto& hh:h_SF_Nominal_list) foutput->WriteTObject(&hh);
   for (auto& hh:h_SF_StatDn_list) foutput->WriteTObject(&hh);
@@ -5400,13 +5400,13 @@ void combineEfficiencies(
   }
 
   // Close files
-  MELAout.close();
-  MELAerr.close();
+  IVYout.close();
+  IVYerr.close();
 
-  MELAout << "Closing the input count files..." << endl;
+  IVYout << "Closing the input count files..." << endl;
   for (auto& finput:finput_counts_list) finput->Close();
 
-  MELAout << "Closing the output..." << endl;
+  IVYout << "Closing the output..." << endl;
   foutput->Close();
 
   curdir->cd();
@@ -5443,7 +5443,7 @@ void plotAllFits(
 
   TString cinput_main = "output/LeptonEfficiencies/DataFits/" + fitVersion + "/" + period;
   if (!SampleHelpers::checkFileOnWorker(cinput_main)){
-    MELAerr << "Directory " << cinput_main << " does not exist." << endl;
+    IVYerr << "Directory " << cinput_main << " does not exist." << endl;
     return;
   }
 
@@ -5501,9 +5501,9 @@ void plotAllFits(
     std::vector<double> fit_res;
     int idx_best_file = getBestFitAndErrorsFromFitSet(dname, fit_res);
     if (fit_res.at(0)<0. || fit_res.at(1)<0. || fit_res.at(2)<0.) continue;
-    if (idx_best_file<0) MELAerr << "Best file index for " << dname << " is " << idx_best_file << endl;
+    if (idx_best_file<0) IVYerr << "Best file index for " << dname << " is " << idx_best_file << endl;
 
-    MELAout << "Attempting to plot " << indir << " to " << stroutdir << endl;
+    IVYout << "Attempting to plot " << indir << " to " << stroutdir << endl;
     {
       int ifile = 0;
       for (auto const& fname:fnames){

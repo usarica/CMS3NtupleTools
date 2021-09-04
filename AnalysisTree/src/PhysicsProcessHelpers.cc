@@ -2,12 +2,12 @@
 #include "HelperFunctions.h"
 #include "PhysicsProcessHelpers.h"
 #include "MELAAccumulators.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
 using namespace TNumericUtil;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 namespace PhysicsProcessHelpers{
@@ -926,7 +926,7 @@ namespace PhysicsProcessHelpers{
         proctype==kProcess_WH
         )
       ){
-      MELAout << "VVProcessHandler::VVProcessHandler: Process type " << getProcessName() << " is not supported!" << endl;
+      IVYout << "VVProcessHandler::VVProcessHandler: Process type " << getProcessName() << " is not supported!" << endl;
       assert(0);
     }
   }

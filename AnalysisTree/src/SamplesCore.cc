@@ -6,7 +6,7 @@
 #include "HelperFunctions.h"
 #include "SamplesCore.h"
 #include "SamplesCore.hpp"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 #include "TRandom3.h"
 
 
@@ -23,7 +23,7 @@ namespace SampleHelpers{
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 void SampleHelpers::setDataPeriod(TString s){
@@ -33,14 +33,14 @@ void SampleHelpers::setDataPeriod(TString s){
   else if (theDataPeriod.Contains("2017")) theDataYear = 2017;
   else if (theDataPeriod.Contains("2018")) theDataYear = 2018;
   else{
-    MELAerr << "SampleHelpers::setDataPeriod: Could not recognize the data period string " << s << " to assign the data year." << endl;
+    IVYerr << "SampleHelpers::setDataPeriod: Could not recognize the data period string " << s << " to assign the data year." << endl;
     assert(0);
   }
 }
 void SampleHelpers::setInputDirectory(TString s){
   HostHelpers::ExpandEnvironmentVariables(s);
   if (!HostHelpers::DirectoryExists(s)){
-    MELAerr << "SampleHelpers::setInputDirectory: Directory " << s << " does not exist." << endl;
+    IVYerr << "SampleHelpers::setInputDirectory: Directory " << s << " does not exist." << endl;
     assert(0);
   }
   theInputDirectory=s;
@@ -61,7 +61,7 @@ TString SampleHelpers::getSqrtsString(){
   case 2018:
     return "13";
   default:
-    MELAerr << "SampleHelpers::getSqrtsString: Undefined year " << theDataYear << "." << endl;
+    IVYerr << "SampleHelpers::getSqrtsString: Undefined year " << theDataYear << "." << endl;
     assert(0);
     return "";
   }
@@ -99,7 +99,7 @@ int SampleHelpers::getDataYearFromPeriod(TString const& period){
     strtmp.erase(std::remove_if(strtmp.begin(), strtmp.end(), [] (char c){ return !std::isalpha(c); }), strtmp.end());
     try{ try_year = std::stoi(strtmp.data()); }
     catch (std::invalid_argument& e){
-      MELAerr << "SampleHelpers::getDataYearFromPeriod: Failed to acquire year from period " << period << endl;
+      IVYerr << "SampleHelpers::getDataYearFromPeriod: Failed to acquire year from period " << period << endl;
       assert(0);
     }
   }
@@ -112,7 +112,7 @@ std::vector<TString> SampleHelpers::getValidDataPeriods(){
   else if (theDataYear == 2017) res = std::vector<TString>{ "2017B", "2017C", "2017D", "2017E", "2017F" };
   else if (theDataYear == 2018) res = std::vector<TString>{ "2018A", "2018B", "2018C", "2018D" };
   else{
-    MELAerr << "SampleHelpers::getValidDataPeriods: Data periods for year " << theDataYear << " are undefined." << endl;
+    IVYerr << "SampleHelpers::getValidDataPeriods: Data periods for year " << theDataYear << " are undefined." << endl;
     assert(0);
   }
   return res;
@@ -126,7 +126,7 @@ TString SampleHelpers::getDataPeriodFromRunNumber(unsigned int run){
     }
   }
   if (res==""){
-    MELAerr << "SampleHelpers::getDataPeriodFromRunNumber: Run " << run << " is not defined in any range. Please check the implementation of SampleHelpers::define_runRange_dataPeriod_pair_list!" << endl;
+    IVYerr << "SampleHelpers::getDataPeriodFromRunNumber: Run " << run << " is not defined in any range. Please check the implementation of SampleHelpers::define_runRange_dataPeriod_pair_list!" << endl;
     assert(0);
   }
   return res;
@@ -142,7 +142,7 @@ std::pair<unsigned int, unsigned int> SampleHelpers::getRunRangeFromDataPeriod(T
     }
   }
   if (res.first == res.second){
-    MELAerr << "SampleHelpers::getRunRangeFromDataPeriod: Period " << period << " is not defined for any range. Please check the implementation of SampleHelpers::define_runRange_dataPeriod_pair_list!" << endl;
+    IVYerr << "SampleHelpers::getRunRangeFromDataPeriod: Period " << period << " is not defined for any range. Please check the implementation of SampleHelpers::define_runRange_dataPeriod_pair_list!" << endl;
     assert(0);
   }
   return res;
@@ -150,7 +150,7 @@ std::pair<unsigned int, unsigned int> SampleHelpers::getRunRangeFromDataPeriod(T
 std::vector< std::pair<unsigned int, double> > const& SampleHelpers::getRunNumberLumiPairsForDataPeriod(TString const& period){
   std::unordered_map< TString, std::vector< std::pair<unsigned int, double> > >::const_iterator it;
   if (!HelperFunctions::getUnorderedMapIterator(period, dataPeriod_runNumber_lumi_pairs_map, it)){
-    MELAerr << "SampleHelpers::getRunNumberLumiPairsForDataPeriod: Period " << period << " is not found in the data period - run numbers map. Please revise the construction of this map!" << endl;
+    IVYerr << "SampleHelpers::getRunNumberLumiPairsForDataPeriod: Period " << period << " is not found in the data period - run numbers map. Please revise the construction of this map!" << endl;
     assert(0);
   }
   return it->second;
@@ -161,7 +161,7 @@ double SampleHelpers::getIntegratedLuminosity(TString const& period){
   std::unordered_map<TString, double>::const_iterator it;
   if (HelperFunctions::getUnorderedMapIterator(period, dataPeriod_lumi_map, it)) return it->second;
   else{
-    MELAerr << "SampleHelpers::getIntegratedLuminosity: Period " << period << " is not found in the data period - luminosity map. Please revise the construction of this map!" << endl;
+    IVYerr << "SampleHelpers::getIntegratedLuminosity: Period " << period << " is not found in the data period - luminosity map. Please revise the construction of this map!" << endl;
     assert(0);
     return 0;
   }
@@ -232,7 +232,7 @@ int SampleHelpers::translateRandomNumberToRunNumber(TString const& period, doubl
   int res = -1;
   std::unordered_map< TString, std::vector< std::pair<unsigned int, double> > >::const_iterator it;
   if (!HelperFunctions::getUnorderedMapIterator(period, dataPeriod_runNumber_lumi_pairs_map, it)){
-    MELAerr << "SampleHelpers::translateRandomNumberToRunNumber: Period " << period << " is not found in the dataPeriod_runNumber_lumi_pairs_map. Please revise the implementation." << endl;
+    IVYerr << "SampleHelpers::translateRandomNumberToRunNumber: Period " << period << " is not found in the dataPeriod_runNumber_lumi_pairs_map. Please revise the implementation." << endl;
     assert(0);
   }
 

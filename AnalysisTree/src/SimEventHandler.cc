@@ -6,12 +6,12 @@
 #include "SamplesCore.h"
 #include "SampleExceptions.h"
 #include "HelperFunctions.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 #include "TDirectory.h"
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 #define SIMEVENT_RNDVARIABLES \
@@ -118,7 +118,7 @@ void SimEventHandler::setupPUHistograms(){
     };
     break;
   default:
-    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::setupPUHistograms: Data year " << SampleHelpers::getDataYear() << " is not defined." << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "SimEventHandler::setupPUHistograms: Data year " << SampleHelpers::getDataYear() << " is not defined." << endl;
     assert(0);
     break;
   }
@@ -188,7 +188,7 @@ void SimEventHandler::setupPUHistograms(){
       }
       assert(htmp!=nullptr);
       if (htmp->GetNbinsX() != hmc->GetNbinsX()){
-        if (this->verbosity>=TVar::ERROR) MELAerr
+        if (this->verbosity>=MiscUtils::ERROR) IVYerr
           << "SimEventHandler::setupPUHistograms: " << strsample  << " PU exception has " << htmp->GetNbinsX() << " bins while the default MC histogram has " << hmc->GetNbinsX() << " bins."
           << endl;
       }
@@ -245,10 +245,10 @@ bool SimEventHandler::constructRandomNumbers(){
 #undef SIMEVENT_RNDVARIABLE
 
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::constructRandomNumbers: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "SimEventHandler::constructRandomNumbers: Not all variables are consumed properly!" << endl;
     assert(0);
   }
-  if (this->verbosity>=TVar::DEBUG) MELAout << "SimEventHandler::constructRandomNumbers: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "SimEventHandler::constructRandomNumbers: All variables are set up!" << endl;
 
   // Get random number seeds first
   unsigned long long const rndDataPeriod = static_cast<unsigned long long>(std::abs((*genmet_met)*1000.f)) + ((*EventNumber) % 1000000);
@@ -305,13 +305,13 @@ bool SimEventHandler::constructRandomNumbers(){
   else hasHEM2018Issue = false;
 
 
-  if (this->verbosity>=TVar::DEBUG){
-    MELAout << "SimEventHandler::constructRandomNumbers:\n\t- Random numbers used:" << endl;
-    MELAout << "\t\t- Global data period = " << product_rndnums[kDataPeriod_global] << endl;
-    MELAout << "\t\t- Local data period = " << product_rndnums[kDataPeriod_local] << endl;
-    MELAout << "\t\t- MET smear = " << product_rndnums[kGenMETSmear] << endl;
-    MELAout << "\t- Identified period: " << theChosenDataPeriod << endl;
-    MELAout << "\t- Has HEM issue? " << (hasHEM2018Issue ? 'y' : 'n') << endl;
+  if (this->verbosity>=MiscUtils::DEBUG){
+    IVYout << "SimEventHandler::constructRandomNumbers:\n\t- Random numbers used:" << endl;
+    IVYout << "\t\t- Global data period = " << product_rndnums[kDataPeriod_global] << endl;
+    IVYout << "\t\t- Local data period = " << product_rndnums[kDataPeriod_local] << endl;
+    IVYout << "\t\t- MET smear = " << product_rndnums[kGenMETSmear] << endl;
+    IVYout << "\t- Identified period: " << theChosenDataPeriod << endl;
+    IVYout << "\t- Has HEM issue? " << (hasHEM2018Issue ? 'y' : 'n') << endl;
   }
 
   return true;
@@ -328,13 +328,13 @@ bool SimEventHandler::constructPUWeight(){
 #undef SIMEVENT_PUVARIABLE
 
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::constructPUWeight: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "SimEventHandler::constructPUWeight: Not all variables are consumed properly!" << endl;
     assert(0);
   }
-  if (this->verbosity>=TVar::DEBUG) MELAout << "SimEventHandler::constructPUWeight: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "SimEventHandler::constructPUWeight: All variables are set up!" << endl;
 
   if (!HelperFunctions::checkVarNanInf(*n_true_int) || *n_true_int<0){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::constructPUWeight: Number of true interactions (" << *n_true_int << ") is invalid." << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "SimEventHandler::constructPUWeight: Number of true interactions (" << *n_true_int << ") is invalid." << endl;
     for (auto& pileupWeight:pileupWeights) pileupWeight = 0.f;
     return true;
   }
@@ -343,7 +343,7 @@ bool SimEventHandler::constructPUWeight(){
   if (this->hasPUException){
     auto itpu = map_exceptionalPUHistList.find(currentTree->sampleIdentifier);
     if (itpu == map_exceptionalPUHistList.cend()){
-      if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::constructPUWeight: No histogram file found in the PU exception map for sample " << currentTree->sampleIdentifier << endl;
+      if (this->verbosity>=MiscUtils::ERROR) IVYerr << "SimEventHandler::constructPUWeight: No histogram file found in the PU exception map for sample " << currentTree->sampleIdentifier << endl;
       assert(0);
     }
     else{
@@ -352,7 +352,7 @@ bool SimEventHandler::constructPUWeight(){
       if (wgt_den != 0.f) puwgt_mult /= wgt_den;
       else puwgt_mult = 0;
 
-      if (this->verbosity>=TVar::DEBUG) MELAout
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout
         << "SimEventHandler::constructPUWeight: PU exception correction = 1/" << wgt_den
         << " evaluated from " << hpurewgt->GetName()
         << endl;
@@ -361,27 +361,27 @@ bool SimEventHandler::constructPUWeight(){
 
   auto it = map_DataPeriod_PUHistList.find(theChosenDataPeriod);
   if (it == map_DataPeriod_PUHistList.cend()){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::constructPUWeight: Histogram map for period \'" << theChosenDataPeriod << "\' is not found!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "SimEventHandler::constructPUWeight: Histogram map for period \'" << theChosenDataPeriod << "\' is not found!" << endl;
     assert(0);
     return false;
   }
   auto const& hlist = it->second;
   if (hlist.size()!=3){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::constructPUWeight: PU histogram list has size " << hlist.size() << ", but the expected size is 3." << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "SimEventHandler::constructPUWeight: PU histogram list has size " << hlist.size() << ", but the expected size is 3." << endl;
     assert(0);
   }
 
   unsigned short isyst = 0;
   for (auto const& hpu_data_MC:hlist){
-    if (this->verbosity>=TVar::DEBUG) MELAout << "SimEventHandler::constructPUWeight: Systematics index = " << isyst << endl;
+    if (this->verbosity>=MiscUtils::DEBUG) IVYout << "SimEventHandler::constructPUWeight: Systematics index = " << isyst << endl;
     float pileupWeight = hpu_data_MC->GetBinContent(hpu_data_MC->FindBin(*n_true_int))*puwgt_mult;
-    if (this->verbosity>=TVar::DEBUG) MELAout
+    if (this->verbosity>=MiscUtils::DEBUG) IVYout
       << "SimEventHandler::constructPUWeight: Extracted PU ratio " << pileupWeight
       << " from " << hpu_data_MC->GetName()
       << " evaluated at N_true^int = " << *n_true_int
       << endl;
     if (pileupWeight == 0.f){
-      if (this->verbosity>=TVar::ERROR) MELAerr
+      if (this->verbosity>=MiscUtils::ERROR) IVYerr
         << "SimEventHandler::constructPUWeight: PU weight = 0 for n_true_int = " << *n_true_int
         << ", isyst = " << isyst
         << ", chosen data period = " << theChosenDataPeriod
@@ -407,10 +407,10 @@ bool SimEventHandler::constructL1PrefiringWeight(){
 #undef SIMEVENT_L1PREFIRINGVARIABLE
 
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::constructL1PrefiringWeight: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "SimEventHandler::constructL1PrefiringWeight: Not all variables are consumed properly!" << endl;
     assert(0);
   }
-  if (this->verbosity>=TVar::DEBUG) MELAout << "SimEventHandler::constructL1PrefiringWeight: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "SimEventHandler::constructL1PrefiringWeight: All variables are set up!" << endl;
 
   l1prefiringWeights = std::vector<float const*>{
     prefiringWeight_Nominal,
@@ -425,7 +425,7 @@ bool SimEventHandler::wrapTree(BaseTree* tree){
   if (!tree) return false;
 
   hasPUException = (SampleHelpers::hasPUException(tree->sampleIdentifier, SampleHelpers::getDataYear()));
-  if (hasPUException) MELAout << "SimEventHandler::wrapTree: Warning! Sample " << tree->sampleIdentifier << " has a PU exception." << endl;
+  if (hasPUException) IVYout << "SimEventHandler::wrapTree: Warning! Sample " << tree->sampleIdentifier << " has a PU exception." << endl;
 
   return IvyBase::wrapTree(tree);
 }
@@ -445,14 +445,14 @@ void SimEventHandler::bookBranches(BaseTree* tree){
 
 TString const& SimEventHandler::getChosenDataPeriod() const{
   if (theChosenDataPeriod == ""){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::getChosenDataPeriod: SimEventHandler::constructSimEvent() needs to be called first..." << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "SimEventHandler::getChosenDataPeriod: SimEventHandler::constructSimEvent() needs to be called first..." << endl;
     assert(0);
   }
   return theChosenDataPeriod;
 }
 int SimEventHandler::getChosenRunNumber() const{
   if (theChosenDataPeriod == ""){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::getChosenRunNumber: SimEventHandler::constructSimEvent() needs to be called first..." << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "SimEventHandler::getChosenRunNumber: SimEventHandler::constructSimEvent() needs to be called first..." << endl;
     assert(0);
   }
   return SampleHelpers::translateRandomNumberToRunNumber(theChosenDataPeriod, product_rndnums.find(kDataPeriod_local)->second);
@@ -461,7 +461,7 @@ int SimEventHandler::getChosenRunNumber() const{
 unsigned long long const& SimEventHandler::getRandomNumberSeed(SimEventHandler::EventRandomNumberType type) const{
   auto it = product_rnds.find(type);
   if (it == product_rnds.cend()){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::getRandomNumberSeed: SimEventHandler::constructSimEvent() needs to be called first..." << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "SimEventHandler::getRandomNumberSeed: SimEventHandler::constructSimEvent() needs to be called first..." << endl;
     assert(0);
   }
   return it->second;
@@ -470,7 +470,7 @@ unsigned long long const& SimEventHandler::getRandomNumberSeed(SimEventHandler::
 double const& SimEventHandler::getRandomNumber(SimEventHandler::EventRandomNumberType type) const{
   auto it = product_rndnums.find(type);
   if (it == product_rndnums.cend()){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::getRandomNumber: SimEventHandler::constructSimEvent() needs to be called first..." << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "SimEventHandler::getRandomNumber: SimEventHandler::constructSimEvent() needs to be called first..." << endl;
     assert(0);
   }
   return it->second;

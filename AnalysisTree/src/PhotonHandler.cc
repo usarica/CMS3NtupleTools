@@ -6,11 +6,11 @@
 #include "PhotonHandler.h"
 #include "PhotonSelectionHelpers.h"
 #include "ParticleSelectionHelpers.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 #define PHOTON_MOMENTUM_VARIABLES \
@@ -93,11 +93,11 @@ bool PhotonHandler::constructPhotonObjects(SystematicsHelpers::SystematicVariati
 #undef PHOTON_VARIABLE
 
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "PhotonHandler::constructPhotonObjects: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "PhotonHandler::constructPhotonObjects: Not all variables are consumed properly!" << endl;
     assert(0);
   }
 
-  if (this->verbosity>=TVar::DEBUG) MELAout << "PhotonHandler::constructPhotonObjects: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "PhotonHandler::constructPhotonObjects: All variables are set up!" << endl;
 
   if (itBegin_pt == itEnd_pt) return true; // Construction is successful, it is just that no photons exist.
 
@@ -110,7 +110,7 @@ bool PhotonHandler::constructPhotonObjects(SystematicsHelpers::SystematicVariati
   {
     size_t ip=0;
     while (it_pt != itEnd_pt){
-      if (this->verbosity>=TVar::DEBUG) MELAout << "PhotonHandler::constructPhotonObjects: Attempting photon " << ip << "..." << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "PhotonHandler::constructPhotonObjects: Attempting photon " << ip << "..." << endl;
 
       ParticleObject::LorentzVector_t momentum;
       momentum = ParticleObject::PolarLorentzVector_t(*it_pt, *it_eta, *it_phi, *it_mass); // Yes you have to do this on a separate line because CMSSW...
@@ -134,7 +134,7 @@ bool PhotonHandler::constructPhotonObjects(SystematicsHelpers::SystematicVariati
       // Set the selection bits
       PhotonSelectionHelpers::setSelectionBits(*obj);
 
-      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "\t- Success!" << endl;
 
       ip++;
 #define PHOTON_VARIABLE(TYPE, NAME, DEFVAL) it_##NAME++;

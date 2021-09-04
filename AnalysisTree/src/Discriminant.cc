@@ -1,11 +1,11 @@
 #include "Discriminant.h"
 #include "HostHelpersCore.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 #include "TDirectory.h"
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 Discriminant::Discriminant(
@@ -15,8 +15,8 @@ Discriminant::Discriminant(
 ) :
   WPCshift(1), gscale(gscale_), invertG(false), val(-999)
 {
-  if (!addAdditionalC(cfilename, splinename)) MELAout << "Discriminant::Discriminant: No c-constants file is specified, defaulting to c=1." << endl;
-  if (!addAdditionalG(gfilename, gsplinename)) MELAout << "Discriminant::Discriminant: No g-constants file is specified, defaulting to g=1." << endl;
+  if (!addAdditionalC(cfilename, splinename)) IVYout << "Discriminant::Discriminant: No c-constants file is specified, defaulting to c=1." << endl;
+  if (!addAdditionalG(gfilename, gsplinename)) IVYout << "Discriminant::Discriminant: No g-constants file is specified, defaulting to g=1." << endl;
 }
 Discriminant::~Discriminant(){
   for (std::pair<TFile*, TSpline3*>& fspair:theC) fspair.first->Close();
@@ -63,30 +63,30 @@ bool Discriminant::addAdditionalC(TString filename, TString splinename){
 
   HostHelpers::ExpandEnvironmentVariables(filename);
   if (filename!="" && splinename!=""){
-    MELAout << "Discriminant::addAdditionalC: Opening " << filename << endl;
+    IVYout << "Discriminant::addAdditionalC: Opening " << filename << endl;
     TFile* theFile = TFile::Open(filename);
     if (theFile){
       if (theFile->IsOpen() && !theFile->IsZombie()){
         TSpline3* theSpline = (TSpline3*) theFile->Get(splinename);
         if (!theSpline){
-          MELAerr << "Discriminant::addAdditionalC: Spline " << splinename << " does not exist!" << endl;
+          IVYerr << "Discriminant::addAdditionalC: Spline " << splinename << " does not exist!" << endl;
           theSpline=nullptr;
           theFile->Close();
           theFile=nullptr;
         }
         else{
-          MELAout << "Discriminant::addAdditionalC: Acquired " << splinename << endl;
+          IVYout << "Discriminant::addAdditionalC: Acquired " << splinename << endl;
           theC.push_back(std::pair<TFile*, TSpline3*>(theFile, theSpline));
           success=true;
         }
       }
       else if (theFile->IsOpen()){
-        MELAerr << "Discriminant::addAdditionalC: File " << filename << " is zombie!" << endl;
+        IVYerr << "Discriminant::addAdditionalC: File " << filename << " is zombie!" << endl;
         theFile->Close();
         theFile=nullptr;
       }
     }
-    else MELAerr << "Discriminant::addAdditionalC: File " << filename << " could not be opened!" << endl;
+    else IVYerr << "Discriminant::addAdditionalC: File " << filename << " could not be opened!" << endl;
   }
   return success;
 }
@@ -95,30 +95,30 @@ bool Discriminant::addAdditionalG(TString filename, TString splinename){
 
   HostHelpers::ExpandEnvironmentVariables(filename);
   if (filename!="" && splinename!=""){
-    MELAout << "Discriminant::addAdditionalG: Opening " << filename << endl;
+    IVYout << "Discriminant::addAdditionalG: Opening " << filename << endl;
     TFile* theFile = TFile::Open(filename);
     if (theFile){
       if (theFile->IsOpen() && !theFile->IsZombie()){
         TSpline3* theSpline = (TSpline3*) theFile->Get(splinename);
         if (!theSpline){
-          MELAerr << "Discriminant::addAdditionalG: Spline " << splinename << " does not exist!" << endl;
+          IVYerr << "Discriminant::addAdditionalG: Spline " << splinename << " does not exist!" << endl;
           theSpline=nullptr;
           theFile->Close();
           theFile=nullptr;
         }
         else{
-          MELAout << "Discriminant::addAdditionalG: Acquired " << splinename << endl;
+          IVYout << "Discriminant::addAdditionalG: Acquired " << splinename << endl;
           theG.push_back(std::pair<TFile*, TSpline3*>(theFile, theSpline));
           success=true;
         }
       }
       else if (theFile->IsOpen()){
-        MELAerr << "Discriminant::addAdditionalG: File " << filename << " is zombie!" << endl;
+        IVYerr << "Discriminant::addAdditionalG: File " << filename << " is zombie!" << endl;
         theFile->Close();
         theFile=nullptr;
       }
     }
-    else MELAerr << "Discriminant::addAdditionalG: File " << filename << " could not be opened!" << endl;
+    else IVYerr << "Discriminant::addAdditionalG: File " << filename << " could not be opened!" << endl;
   }
   return success;
 }

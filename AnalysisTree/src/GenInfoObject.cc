@@ -4,11 +4,11 @@
 #include <cmath>
 #include "GenInfoObject.h"
 #include "HelperFunctions.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 GenInfoVariables::GenInfoVariables(){
@@ -96,7 +96,7 @@ float GenInfoObject::getGenWeight(bool useDefaultPDFSet) const{
   }
 
   if (!HelperFunctions::checkVarNanInf(wgt)){
-    MELAout << "GenInfoObject::getGenWeight(" << useDefaultPDFSet << "): Weight is " << wgt << "." << endl;
+    IVYout << "GenInfoObject::getGenWeight(" << useDefaultPDFSet << "): Weight is " << wgt << "." << endl;
     assert(0);
   }
 

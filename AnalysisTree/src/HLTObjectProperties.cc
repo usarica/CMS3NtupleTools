@@ -1,11 +1,11 @@
 #include <cassert>
 #include <cmath>
 #include "HLTObjectProperties.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 HLTObjectProperties::HLTObjectProperties() :
@@ -42,7 +42,7 @@ HLTObjectProperties::HLTObjectProperties(HLTObjectProperties::TriggerObjectType 
       setMassCut(cut_val);
       break;
     default:
-      MELAerr << "HLTObjectProperties::HLTObjectProperties: Type " << type_val_pair.first << " is not defined." << endl;
+      IVYerr << "HLTObjectProperties::HLTObjectProperties: Type " << type_val_pair.first << " is not defined." << endl;
       assert(0);
       break;
     }

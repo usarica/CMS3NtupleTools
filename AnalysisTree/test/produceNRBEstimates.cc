@@ -9,7 +9,7 @@
 #include "TPaveText.h"
 #include "TLegend.h"
 #include "Math/Vector4Dfwd.h"
-#include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
+#include <IvyFramework/IvyAutoMELA/interface/IvyMELAHelpers.h>
 
 
 constexpr bool useJetOverlapStripping=false;
@@ -398,7 +398,7 @@ void getDistributions(
       if (!HostHelpers::FileReadable(strinput_prevstep.Data())) strinput_prevstep = Form("/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/%s", strinput_prevstep.Data());
       if (!HostHelpers::FileReadable(strinput_prevstep.Data())){
         foutput->Close();
-        MELAerr << "File " << strinput_prevstep << " is not present. Please run the corresponding step first." << endl;
+        IVYerr << "File " << strinput_prevstep << " is not present. Please run the corresponding step first." << endl;
         assert(0);
         return;
       }
@@ -414,10 +414,10 @@ void getDistributions(
           if (idx_sidebandEff==+1) strname += "_StatUp";
           else if (idx_sidebandEff==-1) strname += "_StatDn";
           else strname += "_Nominal";
-          MELAout << "Acquiring correction " << strname << endl;
+          IVYout << "Acquiring correction " << strname << endl;
           TH1F* htmp = (TH1F*) ftmp->Get(strname);
-          if (htmp) MELAout << "\t- Successful..." << endl;
-          else MELAout << "\t- Failed..." << endl;
+          if (htmp) IVYout << "\t- Successful..." << endl;
+          else IVYout << "\t- Failed..." << endl;
 
           h_incorr_list[ip][ic].push_back(htmp);
         }
@@ -444,14 +444,14 @@ void getDistributions(
       TString sid = SampleHelpers::getSampleIdentifier(sname);
       float xsec_scale = 1;
       SampleHelpers::hasXSecException(sid, SampleHelpers::getDataYear(), &xsec_scale);
-      if (xsec_scale!=1.f) MELAout << "\t- Sample " << sname << " has a cross section exception with scale " << xsec_scale << "." << endl;
+      if (xsec_scale!=1.f) IVYout << "\t- Sample " << sname << " has a cross section exception with scale " << xsec_scale << "." << endl;
 
       TString cinput = cinput_main + "/" + sfname;
       foutput->cd();
       TChain* tin = new TChain("SkimTree");
       int nfiles = tin->Add(cinput);
       xsec_scale_map[tin] = xsec_scale;
-      MELAout << "\t- Successfully added " << nfiles << " files for " << sname << " from " << cinput << "..." << endl;
+      IVYout << "\t- Successfully added " << nfiles << " files for " << sname << " from " << cinput << "..." << endl;
       samples_all.emplace_back(sgroup, tin);
       tins_collected.push_back(tin);
       norm_map[tin] = 1;
@@ -478,7 +478,7 @@ void getDistributions(
             ftmp->Close();
             foutput->cd();
           }
-          if (hasCounters) MELAout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
+          if (hasCounters) IVYout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
         }
         norm_map[tin] += sum_wgts;
       }
@@ -490,7 +490,7 @@ void getDistributions(
       for (auto const& tin:tins_collected) norm_map[tin] /= sum_wgts_MC;
     }
   }
-  for (auto const& sgroup_tin_pair:samples_all) MELAout
+  for (auto const& sgroup_tin_pair:samples_all) IVYout
     << "Relative normalization for sample in group " << sgroup_tin_pair.first << " = " << norm_map[sgroup_tin_pair.second]
     << endl;
 
@@ -502,7 +502,7 @@ void getDistributions(
     foutput->cd();
     TChain* tin = new TChain("SkimTree");
     int nfiles = tin->Add(cinput);
-    MELAout << "\t- Successfully added " << nfiles << " files for data from " << cinput << "..." << endl;
+    IVYout << "\t- Successfully added " << nfiles << " files for data from " << cinput << "..." << endl;
     samples_all.emplace_back("Data", tin);
     norm_map[tin] = 1;
     xsec_scale_map[tin] = 1;
@@ -693,7 +693,7 @@ void getDistributions(
     else if (sgroup == "TT_2l2nu") scolor = (int) (kOrange-3);
     else if (sgroup == "qqWW_2l2nu") scolor = (int) (kTeal-1);
     else if (sgroup == "WJets_lnu") scolor = (int) (kRed);
-    else MELAerr << "Sample type " << sgroup << " is not recognized!" << endl;
+    else IVYerr << "Sample type " << sgroup << " is not recognized!" << endl;
 
     for (unsigned int ic=0; ic<nchannels; ic++){
       auto const& strChannelName = strChannelNames.at(ic);
@@ -1760,7 +1760,7 @@ void makePlot(
       if (adjustYLow && !(bc==0.f && be==0.f)) ymin = std::min(ymin, bclow);
     }
     hHasErrors.push_back(hasErrors);
-    //MELAout << "ymin, ymax after " << hname << ": " << ymin << ", " << ymax << endl;
+    //IVYout << "ymin, ymax after " << hname << ": " << ymin << ", " << ymax << endl;
   }
   if (ymax>=0.) ymax *= (factorYHigh>0.f ? factorYHigh : 1.5)*(!is_mll ? 1. : 3.);
   else ymax /= (factorYHigh>0.f ? factorYHigh : 1.5);
@@ -2132,7 +2132,7 @@ void makePlots_fcorr(
 
   TString cinput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Histograms/" + period;
   if (!SampleHelpers::checkFileOnWorker(cinput_main)){
-    MELAerr << "Input folder " << cinput_main << " does not exist locally and on the worker directory." << endl;
+    IVYerr << "Input folder " << cinput_main << " does not exist locally and on the worker directory." << endl;
     exit(1);
   }
   TString const coutput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Plots/" + period + "/fcorr";
@@ -2214,8 +2214,8 @@ void makePlots_fcorr(
               finputs.front()->cd();
               for (auto const& hname:hnames){
                 TH1F* htmp = (TH1F*) finputs.front()->Get(hname);
-                if (!htmp){ MELAerr << "makePlots_fcorr: " << hname << " does not exist." << endl; continue; }
-                if (!HelperFunctions::checkHistogramIntegrity(htmp)) MELAerr << "makePlots_fcorr: " << hname << " failed the integrity check!" << endl;
+                if (!htmp){ IVYerr << "makePlots_fcorr: " << hname << " does not exist." << endl; continue; }
+                if (!HelperFunctions::checkHistogramIntegrity(htmp)) IVYerr << "makePlots_fcorr: " << hname << " failed the integrity check!" << endl;
                 htmp->SetTitle(strCutTitle);
                 htmp->GetYaxis()->SetTitle("f_{corr}^{miss}");
                 htmp->SetFillColor(0);
@@ -2309,7 +2309,7 @@ void makePlots(
 
   TString cinput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Histograms/" + period;
   if (!SampleHelpers::checkFileOnWorker(cinput_main)){
-    MELAerr << "Input folder " << cinput_main << " does not exist locally and on the worker directory." << endl;
+    IVYerr << "Input folder " << cinput_main << " does not exist locally and on the worker directory." << endl;
     exit(1);
   }
   TString strSRSB;
@@ -2324,7 +2324,7 @@ void makePlots(
     strSRSBlabel = "p_{T}^{miss}: [90, %i) GeV SB";
     break;
   default:
-    MELAerr << "index_SR_SB=" << index_SR_SB << " is not implemented." << endl;
+    IVYerr << "index_SR_SB=" << index_SR_SB << " is not implemented." << endl;
     return;
   }
   TString const coutput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Plots/" + period + "/Distributions/" + strSRSB;
@@ -2511,7 +2511,7 @@ void makePlots(
             if (varname=="mll"){
               for (unsigned int ip=0; ip<hplot.size(); ip++){
                 if (hlabels.at(ip).Contains("Observed") || hlabels.at(ip).Contains("All non-res.") || hlabels.at(ip).Contains("Other")){
-                  MELAout << hlabels.at(ip) << " integral: " << hplot.at(ip)->Integral() << endl;
+                  IVYout << hlabels.at(ip) << " integral: " << hplot.at(ip)->Integral() << endl;
                 }
               }
             }

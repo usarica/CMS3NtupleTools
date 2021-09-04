@@ -51,7 +51,7 @@ void getProcessCollection(TString const& strSampleSet, std::vector<TString>& sna
     }
   }
   else{
-    MELAerr << "getProcessCollection: Final state " << fstype << " is not defined." << endl;
+    IVYerr << "getProcessCollection: Final state " << fstype << " is not defined." << endl;
     exit(1);
   }
 }
@@ -74,7 +74,7 @@ std::vector<TString> getCompositeProcesses(TString const& strSampleSet){
     }
   }
   else{
-    MELAerr << "getCompositeProcesses: Final state " << fstype << " is not defined." << endl;
+    IVYerr << "getCompositeProcesses: Final state " << fstype << " is not defined." << endl;
     exit(1);
   }
 
@@ -158,7 +158,7 @@ std::vector<SystematicsHelpers::SystematicVariationTypes> getAllowedSysts(TStrin
       );
       break;
     default:
-      MELAerr << "getAllowedSysts: Dilepton id " << dilepton_id_ref << " is not defined." << endl;
+      IVYerr << "getAllowedSysts: Dilepton id " << dilepton_id_ref << " is not defined." << endl;
       break;
     }
   }
@@ -262,7 +262,7 @@ void getTemplate_ZZTo2L2Nu(
   BBProcessHandler* process_handler_bb = dynamic_cast<BBProcessHandler*>(process_handler);
   VVProcessHandler* process_handler_VV = dynamic_cast<VVProcessHandler*>(process_handler);
   if (!process_handler_gg && !process_handler_tt && !process_handler_bb && !process_handler_VV){
-    MELAerr << "Please revise the parts of the implementation related to process handler use. It looks like the process is not of a known type." << endl;
+    IVYerr << "Please revise the parts of the implementation related to process handler use. It looks like the process is not of a known type." << endl;
     exit(1);
   }
 
@@ -305,16 +305,16 @@ void getTemplate_ZZTo2L2Nu(
     PhysicsProcessHandler* childprocess_handler = getPhysicsProcessHandler(strproc, process_handler->getProcessDecayType());
     auto const strOutChildTreeNames_SM = childprocess_handler->getOutputTreeNames(kSM, true);
     auto const strOutChildTreeNames = childprocess_handler->getOutputTreeNames(AChypo, true);
-    MELAout << "Acquiring child process " << strproc << ", which has tree names " << strOutChildTreeNames << "..." << endl;
+    IVYout << "Acquiring child process " << strproc << ", which has tree names " << strOutChildTreeNames << "..." << endl;
 
     for (auto const& sname:proc_sname_pair.second){
       TString cinput = SampleHelpers::getDatasetDirectoryName(period) + "/finaltrees_" + sname + "_" + strSyst + ".root";
       if (!HostHelpers::FileReadable(cinput)){
-        MELAerr << "\t- Input file " << cinput << " is not found." << endl;
+        IVYerr << "\t- Input file " << cinput << " is not found." << endl;
         for (auto& finput:finputs) finput->Close();
         return;
       }
-      else MELAout << "\t- Acquiring input file " << cinput << "..." << endl;
+      else IVYout << "\t- Acquiring input file " << cinput << "..." << endl;
       TFile* finput = TFile::Open(cinput, "read"); finputs.push_back(finput);
       TTree* tin = (TTree*) finput->Get("FinalTree"); tinlist.push_back(tin);
 
@@ -335,7 +335,7 @@ void getTemplate_ZZTo2L2Nu(
       }
       if (weightvals.empty()) weightvals.assign(strweights.size(), 0.f);
       if (weightvals.size()!=strweights.size()){
-        MELAerr << "\t- Weight sizes are not the same!" << endl;
+        IVYerr << "\t- Weight sizes are not the same!" << endl;
       }
       for (unsigned int iwgt=0; iwgt<strweights.size(); iwgt++){
         TString const& strweight = strweights.at(iwgt);
@@ -351,7 +351,7 @@ void getTemplate_ZZTo2L2Nu(
   gSystem->mkdir(coutput_main, true);
 
   TString stroutput_txt = coutput_main + "/" + process_handler->getProcessName() + "_" + strChannel + "_" + strSystDC + ".txt";
-  MELAout.open(stroutput_txt.Data());
+  IVYout.open(stroutput_txt.Data());
   SampleHelpers::addToCondorTransferList(stroutput_txt);
 
   TString stroutput_commons = coutput_main + "/" + process_handler->getProcessName() + "_" + strChannel + "_" + strSystDC + "_commons.root";
@@ -391,14 +391,14 @@ void getTemplate_ZZTo2L2Nu(
         sum_wgts_cat.at(icat) += weightvals.front();
       }
     }
-    MELAout << "Sum of weight[0] values in all categories: " << sum_wgts_cat << endl;
+    IVYout << "Sum of weight[0] values in all categories: " << sum_wgts_cat << endl;
   }
 
   for (unsigned int icat=0; icat<nCats; icat++){
-    MELAout << "Producing templates for " << strCatNames.at(icat) << ":" << endl;
+    IVYout << "Producing templates for " << strCatNames.at(icat) << ":" << endl;
 
     TTree*& tin_cat = tin_split.at(icat);
-    MELAout << "\t- Category tree has " << tin_cat->GetEntries() << " entries." << endl;
+    IVYout << "\t- Category tree has " << tin_cat->GetEntries() << " entries." << endl;
 
     ACHypothesisHelpers::ProductionType prod_type;
     if (icat<2) prod_type = ACHypothesisHelpers::kGG;
@@ -437,8 +437,8 @@ void getTemplate_ZZTo2L2Nu(
     }
     unsigned short const nStatVars = foutputs.size();
 
-    if (hasStatUnc) MELAout << "\t- Will also acquire stat. unc. variations" << endl;
-    MELAout << "\t- Category expects " << foutputs.size() << " output files." << endl;
+    if (hasStatUnc) IVYout << "\t- Will also acquire stat. unc. variations" << endl;
+    IVYout << "\t- Category expects " << foutputs.size() << " output files." << endl;
 
     foutputs.front()->cd();
 
@@ -476,13 +476,13 @@ void getTemplate_ZZTo2L2Nu(
     if (strCatNames.at(icat) == "BoostedHadVH"){ for (auto& coef:smearingStrengthCoeffs) coef *= 2.; }
 
     unsigned int nVars = nVars_nonKD + nVars_KD;
-    if (hasKDs) MELAout << "\t- Category uses KDs." << endl;
-    MELAout << "\t- Number of non-KD variables: " << nVars_nonKD << endl;
-    MELAout << "\t- Number of KD variables: " << nVars_KD << endl;
-    for (auto const& bb:binning_KDvars) MELAout << "\t\t- Variables " << bb.getName() << " binning: " << bb.getBinningVector() << endl;
-    MELAout << "\t- Smoothing factors: " << smearingStrengthCoeffs << endl;
+    if (hasKDs) IVYout << "\t- Category uses KDs." << endl;
+    IVYout << "\t- Number of non-KD variables: " << nVars_nonKD << endl;
+    IVYout << "\t- Number of KD variables: " << nVars_KD << endl;
+    for (auto const& bb:binning_KDvars) IVYout << "\t\t- Variables " << bb.getName() << " binning: " << bb.getBinningVector() << endl;
+    IVYout << "\t- Smoothing factors: " << smearingStrengthCoeffs << endl;
     if (nVars>3){
-      MELAerr << "\t- Smoothing over more than 3 variables is currently not supported." << endl;
+      IVYerr << "\t- Smoothing over more than 3 variables is currently not supported." << endl;
       exit(1);
     }
 
@@ -495,9 +495,9 @@ void getTemplate_ZZTo2L2Nu(
     switch (nVars){
     case 1:
     {
-      MELAout << "\t- Producing 1D templates..." << endl;
+      IVYout << "\t- Producing 1D templates..." << endl;
 
-      MELAout << "\t\t- Constructing tree associations..." << endl;
+      IVYout << "\t\t- Constructing tree associations..." << endl;
       std::vector<TreeHistogramAssociation_1D> tree_hist_assoc; tree_hist_assoc.reserve(weightvals.size());
       for (unsigned int itpl=0; itpl<weightvals.size(); itpl++){
         auto const& tplname = strTemplateNames.at(itpl);
@@ -506,12 +506,12 @@ void getTemplate_ZZTo2L2Nu(
           tin_cat, *(varvals.at(0)), weightvals.at(itpl), selflag
         );
         if (!doOffshell && (tplname.Contains("Bkg") || tplname.Contains("Int"))){
-          MELAout << "Template " << tplname << " will be ignored in the smoothing Neff calculation." << endl;
+          IVYout << "Template " << tplname << " will be ignored in the smoothing Neff calculation." << endl;
           tree_hist_assoc.back().setIgnoreNeffRef(true);
         }
       }
 
-      MELAout << "\t\t- Running simultaneous smoothing..." << endl;
+      IVYout << "\t\t- Running simultaneous smoothing..." << endl;
       std::vector<TH1F*> hRaw;
       std::vector<std::vector<TH1F*>> hStat(2, std::vector<TH1F*>());
       std::vector<TH1F*> hSmooth = getSimultaneousSmoothHistograms(
@@ -527,15 +527,15 @@ void getTemplate_ZZTo2L2Nu(
         unsigned short itpl=0;
         for (auto& hh:hRaw){
           TString const hrawname = hh->GetName();
-          MELAout << "\t\t- Calculating Neff_raw and integral for histogram " << itpl << " (" << hrawname << "):" << endl;
+          IVYout << "\t\t- Calculating Neff_raw and integral for histogram " << itpl << " (" << hrawname << "):" << endl;
           bool const hasBkgContribution = (hrawname.Contains("Bkg") || hrawname.Contains("Int"));
           double integral_raw=0, integralerr_raw=0;
           integral_raw = HelperFunctions::getHistogramIntegralAndError(hh, 0, hh->GetNbinsX()+1, false, &integralerr_raw);
           double Neff_raw = (integralerr_raw>0. ? std::pow(integral_raw/integralerr_raw, 2) : 1.);
           double Neff_raw_dn=0, Neff_raw_up=0;
           StatisticsHelpers::getPoissonCountingConfidenceInterval_Frequentist(Neff_raw, VAL_CL_1SIGMA, Neff_raw_dn, Neff_raw_up);
-          MELAout << "\t\t\t- Overall Neff for this category: " << Neff_raw << " [ " << Neff_raw_dn << ", " << Neff_raw_up << " ]" << endl;
-          MELAout << "\t\t\t- Integral: " << integral_raw << " +- " << integralerr_raw << endl;
+          IVYout << "\t\t\t- Overall Neff for this category: " << Neff_raw << " [ " << Neff_raw_dn << ", " << Neff_raw_up << " ]" << endl;
+          IVYout << "\t\t\t- Integral: " << integral_raw << " +- " << integralerr_raw << endl;
           if ((doOffshell || !hasBkgContribution) && (Neff_raw_minNeff[0]<0. || Neff_raw_minNeff[0]>Neff_raw)){
             Neff_raw_minNeff[0] = Neff_raw;
             Neff_raw_minNeff[1] = Neff_raw_dn;
@@ -546,10 +546,10 @@ void getTemplate_ZZTo2L2Nu(
         }
         scale_norm_dn = Neff_raw_minNeff[1]/Neff_raw_minNeff[0];
         scale_norm_up = Neff_raw_minNeff[2]/Neff_raw_minNeff[0];
-        MELAout << "\t\t- Final overall norm. variation in this category: lnN " << scale_norm_dn << "/" << scale_norm_up << endl;
+        IVYout << "\t\t- Final overall norm. variation in this category: lnN " << scale_norm_dn << "/" << scale_norm_up << endl;
       }
 
-      MELAout << "\t\t- Collecting the histograms in the final collection vector..." << endl;
+      IVYout << "\t\t- Collecting the histograms in the final collection vector..." << endl;
       hSmooth_combined_1D.push_back(hSmooth);
       if (hasStatUnc){
         std::vector<TH1F*> hSmooth_normDn; hSmooth_normDn.reserve(hSmooth.size());
@@ -572,9 +572,9 @@ void getTemplate_ZZTo2L2Nu(
     }
     case 2:
     {
-      MELAout << "\t- Producing 2D templates..." << endl;
+      IVYout << "\t- Producing 2D templates..." << endl;
 
-      MELAout << "\t\t- Constructing tree associations..." << endl;
+      IVYout << "\t\t- Constructing tree associations..." << endl;
       std::vector<TreeHistogramAssociation_2D> tree_hist_assoc; tree_hist_assoc.reserve(weightvals.size());
       for (unsigned int itpl=0; itpl<weightvals.size(); itpl++){
         auto const& tplname = strTemplateNames.at(itpl);
@@ -583,12 +583,12 @@ void getTemplate_ZZTo2L2Nu(
           tin_cat, *(varvals.at(0)), *(varvals.at(1)), weightvals.at(itpl), selflag
         );
         if (!doOffshell && (tplname.Contains("Bkg") || tplname.Contains("Int"))){
-          MELAout << "Template " << tplname << " will be ignored in the smoothing Neff calculation." << endl;
+          IVYout << "Template " << tplname << " will be ignored in the smoothing Neff calculation." << endl;
           tree_hist_assoc.back().setIgnoreNeffRef(true);
         }
       }
 
-      MELAout << "\t\t- Running simultaneous smoothing..." << endl;
+      IVYout << "\t\t- Running simultaneous smoothing..." << endl;
       std::vector<TH2F*> hRaw;
       std::vector<std::vector<TH2F*>> hStat(2, std::vector<TH2F*>());
       std::vector<TH2F*> hSmooth = getSimultaneousSmoothHistograms(
@@ -604,15 +604,15 @@ void getTemplate_ZZTo2L2Nu(
         unsigned short itpl=0;
         for (auto& hh:hRaw){
           TString const hrawname = hh->GetName();
-          MELAout << "\t\t- Calculating Neff_raw and integral for histogram " << itpl << " (" << hrawname << "):" << endl;
+          IVYout << "\t\t- Calculating Neff_raw and integral for histogram " << itpl << " (" << hrawname << "):" << endl;
           bool const hasBkgContribution = (hrawname.Contains("Bkg") || hrawname.Contains("Int"));
           double integral_raw=0, integralerr_raw=0;
           integral_raw = HelperFunctions::getHistogramIntegralAndError(hh, 0, hh->GetNbinsX()+1, 0, hh->GetNbinsY()+1, false, &integralerr_raw);
           double Neff_raw = (integralerr_raw>0. ? std::pow(integral_raw/integralerr_raw, 2) : 1.);
           double Neff_raw_dn=0, Neff_raw_up=0;
           StatisticsHelpers::getPoissonCountingConfidenceInterval_Frequentist(Neff_raw, VAL_CL_1SIGMA, Neff_raw_dn, Neff_raw_up);
-          MELAout << "\t\t\t- Overall Neff for this category: " << Neff_raw << " [ " << Neff_raw_dn << ", " << Neff_raw_up << " ]" << endl;
-          MELAout << "\t\t\t- Integral: " << integral_raw << " +- " << integralerr_raw << endl;
+          IVYout << "\t\t\t- Overall Neff for this category: " << Neff_raw << " [ " << Neff_raw_dn << ", " << Neff_raw_up << " ]" << endl;
+          IVYout << "\t\t\t- Integral: " << integral_raw << " +- " << integralerr_raw << endl;
           if ((doOffshell || !hasBkgContribution) && (Neff_raw_minNeff[0]<0. || Neff_raw_minNeff[0]>Neff_raw)){
             Neff_raw_minNeff[0] = Neff_raw;
             Neff_raw_minNeff[1] = Neff_raw_dn;
@@ -623,10 +623,10 @@ void getTemplate_ZZTo2L2Nu(
         }
         scale_norm_dn = Neff_raw_minNeff[1]/Neff_raw_minNeff[0];
         scale_norm_up = Neff_raw_minNeff[2]/Neff_raw_minNeff[0];
-        MELAout << "\t\t- Final overall norm. variation in this category: lnN " << scale_norm_dn << "/" << scale_norm_up << endl;
+        IVYout << "\t\t- Final overall norm. variation in this category: lnN " << scale_norm_dn << "/" << scale_norm_up << endl;
       }
 
-      MELAout << "\t\t- Collecting the histograms in the final collection vector..." << endl;
+      IVYout << "\t\t- Collecting the histograms in the final collection vector..." << endl;
       hSmooth_combined_2D.push_back(hSmooth);
       if (hasStatUnc){
         std::vector<TH2F*> hSmooth_normDn; hSmooth_normDn.reserve(hSmooth.size());
@@ -649,9 +649,9 @@ void getTemplate_ZZTo2L2Nu(
     }
     case 3:
     {
-      MELAout << "\t- Producing 3D templates..." << endl;
+      IVYout << "\t- Producing 3D templates..." << endl;
 
-      MELAout << "\t\t- Constructing tree associations..." << endl;
+      IVYout << "\t\t- Constructing tree associations..." << endl;
       std::vector<TreeHistogramAssociation_3D> tree_hist_assoc; tree_hist_assoc.reserve(weightvals.size());
       for (unsigned int itpl=0; itpl<weightvals.size(); itpl++){
         auto const& tplname = strTemplateNames.at(itpl);
@@ -660,12 +660,12 @@ void getTemplate_ZZTo2L2Nu(
           tin_cat, *(varvals.at(0)), *(varvals.at(1)), *(varvals.at(2)), weightvals.at(itpl), selflag
         );
         if (!doOffshell && (tplname.Contains("Bkg") || tplname.Contains("Int"))){
-          MELAout << "Template " << tplname << " will be ignored in the smoothing Neff calculation." << endl;
+          IVYout << "Template " << tplname << " will be ignored in the smoothing Neff calculation." << endl;
           tree_hist_assoc.back().setIgnoreNeffRef(true);
         }
       }
 
-      MELAout << "\t\t- Running simultaneous smoothing..." << endl;
+      IVYout << "\t\t- Running simultaneous smoothing..." << endl;
       std::vector<TH3F*> hRaw;
       std::vector<std::vector<TH3F*>> hStat(2, std::vector<TH3F*>());
       std::vector<TH3F*> hSmooth = getSimultaneousSmoothHistograms(
@@ -681,15 +681,15 @@ void getTemplate_ZZTo2L2Nu(
         unsigned short itpl=0;
         for (auto& hh:hRaw){
           TString const hrawname = hh->GetName();
-          MELAout << "\t\t- Calculating Neff_raw and integral for histogram " << itpl << " (" << hrawname << "):" << endl;
+          IVYout << "\t\t- Calculating Neff_raw and integral for histogram " << itpl << " (" << hrawname << "):" << endl;
           bool const hasBkgContribution = (hrawname.Contains("Bkg") || hrawname.Contains("Int"));
           double integral_raw=0, integralerr_raw=0;
           integral_raw = HelperFunctions::getHistogramIntegralAndError(hh, 0, hh->GetNbinsX()+1, 0, hh->GetNbinsY()+1, 0, hh->GetNbinsZ()+1, false, &integralerr_raw);
           double Neff_raw = (integralerr_raw>0. ? std::pow(integral_raw/integralerr_raw, 2) : 1.);
           double Neff_raw_dn=0, Neff_raw_up=0;
           StatisticsHelpers::getPoissonCountingConfidenceInterval_Frequentist(Neff_raw, VAL_CL_1SIGMA, Neff_raw_dn, Neff_raw_up);
-          MELAout << "\t\t\t- Overall Neff for this category: " << Neff_raw << " [ " << Neff_raw_dn << ", " << Neff_raw_up << " ]" << endl;
-          MELAout << "\t\t\t- Integral: " << integral_raw << " +- " << integralerr_raw << endl;
+          IVYout << "\t\t\t- Overall Neff for this category: " << Neff_raw << " [ " << Neff_raw_dn << ", " << Neff_raw_up << " ]" << endl;
+          IVYout << "\t\t\t- Integral: " << integral_raw << " +- " << integralerr_raw << endl;
           if ((doOffshell || !hasBkgContribution) && (Neff_raw_minNeff[0]<0. || Neff_raw_minNeff[0]>Neff_raw)){
             Neff_raw_minNeff[0] = Neff_raw;
             Neff_raw_minNeff[1] = Neff_raw_dn;
@@ -700,10 +700,10 @@ void getTemplate_ZZTo2L2Nu(
         }
         scale_norm_dn = Neff_raw_minNeff[1]/Neff_raw_minNeff[0];
         scale_norm_up = Neff_raw_minNeff[2]/Neff_raw_minNeff[0];
-        MELAout << "\t\t- Final overall norm. variation in this category: lnN " << scale_norm_dn << "/" << scale_norm_up << endl;
+        IVYout << "\t\t- Final overall norm. variation in this category: lnN " << scale_norm_dn << "/" << scale_norm_up << endl;
       }
 
-      MELAout << "\t\t- Collecting the histograms in the final collection vector..." << endl;
+      IVYout << "\t\t- Collecting the histograms in the final collection vector..." << endl;
       hSmooth_combined_3D.push_back(hSmooth);
       if (hasStatUnc){
         std::vector<TH3F*> hSmooth_normDn; hSmooth_normDn.reserve(hSmooth.size());
@@ -726,14 +726,14 @@ void getTemplate_ZZTo2L2Nu(
     }
 
     default:
-      MELAerr << "\t- Smoothing over more than 3 variables is currently not supported." << endl;
+      IVYerr << "\t- Smoothing over more than 3 variables is currently not supported." << endl;
       exit(1);
       break;
     }
 
     for (unsigned short istat=0; istat<nStatVars; istat++){
       if (foutputs.size()<=istat) break;
-      MELAout << "\t- Recording stat. variation " << istat << ":" << endl;
+      IVYout << "\t- Recording stat. variation " << istat << ":" << endl;
       std::vector<TH1F*>* hSmooth_1D = (!hSmooth_combined_1D.empty() ? &(hSmooth_combined_1D.at(istat)) : nullptr);
       std::vector<TH2F*>* hSmooth_2D = (!hSmooth_combined_2D.empty() ? &(hSmooth_combined_2D.at(istat)) : nullptr);
       std::vector<TH3F*>* hSmooth_3D = (!hSmooth_combined_3D.empty() ? &(hSmooth_combined_3D.at(istat)) : nullptr);
@@ -745,7 +745,7 @@ void getTemplate_ZZTo2L2Nu(
           htmp->SetTitle(strTemplateNames.at(itpl));
           {
             double integral = HelperFunctions::getHistogramIntegralAndError(htmp, 0, htmp->GetNbinsX()+1, false);
-            MELAout << "\t\t- Histogram " << itpl << " integral: " << integral << endl;
+            IVYout << "\t\t- Histogram " << itpl << " integral: " << integral << endl;
           }
           TemplateHelpers::doTemplatePostprocessing(htmp);
         }
@@ -753,10 +753,10 @@ void getTemplate_ZZTo2L2Nu(
         else if (process_handler_tt) process_handler_tt->recombineHistogramsToTemplates(*hSmooth_1D, AChypo);
         else if (process_handler_bb) process_handler_bb->recombineHistogramsToTemplates(*hSmooth_1D, AChypo);
         else if (process_handler_VV) process_handler_VV->recombineHistogramsToTemplates(*hSmooth_1D, AChypo);
-        else MELAerr << "\t\t- Process type is not recognized to cast the histograms to templates!" << endl;
+        else IVYerr << "\t\t- Process type is not recognized to cast the histograms to templates!" << endl;
         for (auto& hh:(*hSmooth_1D)){
           double integral = HelperFunctions::getHistogramIntegralAndError(hh, 0, hh->GetNbinsX()+1, true);
-          MELAout << "\t\t- Final template integral for " << hh->GetName() << ": " << integral << endl;
+          IVYout << "\t\t- Final template integral for " << hh->GetName() << ": " << integral << endl;
           foutputs.at(istat)->WriteTObject(hh);
           delete hh;
         }
@@ -768,7 +768,7 @@ void getTemplate_ZZTo2L2Nu(
           htmp->SetTitle(strTemplateNames.at(itpl));
           {
             double integral = HelperFunctions::getHistogramIntegralAndError(htmp, 0, htmp->GetNbinsX()+1, 0, htmp->GetNbinsY()+1, false);
-            MELAout << "\t\t- Histogram " << strTemplateNames.at(itpl) << " integral: " << integral << endl;
+            IVYout << "\t\t- Histogram " << strTemplateNames.at(itpl) << " integral: " << integral << endl;
           }
           TemplateHelpers::doTemplatePostprocessing(htmp);
         }
@@ -776,10 +776,10 @@ void getTemplate_ZZTo2L2Nu(
         else if (process_handler_tt) process_handler_tt->recombineHistogramsToTemplates(*hSmooth_2D, AChypo);
         else if (process_handler_bb) process_handler_bb->recombineHistogramsToTemplates(*hSmooth_2D, AChypo);
         else if (process_handler_VV) process_handler_VV->recombineHistogramsToTemplates(*hSmooth_2D, AChypo);
-        else MELAerr << "\t\t- Process type is not recognized to cast the histograms to templates!" << endl;
+        else IVYerr << "\t\t- Process type is not recognized to cast the histograms to templates!" << endl;
         for (auto& hh:(*hSmooth_2D)){
           double integral = HelperFunctions::getHistogramIntegralAndError(hh, 0, hh->GetNbinsX()+1, 0, hh->GetNbinsY()+1, true);
-          MELAout << "\t\t- Final template integral for " << hh->GetName() << ": " << integral << endl;
+          IVYout << "\t\t- Final template integral for " << hh->GetName() << ": " << integral << endl;
           foutputs.at(istat)->WriteTObject(hh);
           delete hh;
         }
@@ -791,7 +791,7 @@ void getTemplate_ZZTo2L2Nu(
           htmp->SetTitle(strTemplateNames.at(itpl));
           {
             double integral = HelperFunctions::getHistogramIntegralAndError(htmp, 0, htmp->GetNbinsX()+1, 0, htmp->GetNbinsY()+1, 0, htmp->GetNbinsZ()+1, false);
-            MELAout << "\t\t- Histogram " << itpl << " integral: " << integral << endl;
+            IVYout << "\t\t- Histogram " << itpl << " integral: " << integral << endl;
           }
           TemplateHelpers::doTemplatePostprocessing(htmp);
         }
@@ -799,10 +799,10 @@ void getTemplate_ZZTo2L2Nu(
         else if (process_handler_tt) process_handler_tt->recombineHistogramsToTemplates(*hSmooth_3D, AChypo);
         else if (process_handler_bb) process_handler_bb->recombineHistogramsToTemplates(*hSmooth_3D, AChypo);
         else if (process_handler_VV) process_handler_VV->recombineHistogramsToTemplates(*hSmooth_3D, AChypo);
-        else MELAerr << "\t\t- Process type is not recognized to cast the histograms to templates!" << endl;
+        else IVYerr << "\t\t- Process type is not recognized to cast the histograms to templates!" << endl;
         for (auto& hh:(*hSmooth_3D)){
           double integral = HelperFunctions::getHistogramIntegralAndError(hh, 0, hh->GetNbinsX()+1, 0, hh->GetNbinsY()+1, 0, hh->GetNbinsZ()+1, true);
-          MELAout << "\t\t- Final template integral for " << hh->GetName() << ": " << integral << endl;
+          IVYout << "\t\t- Final template integral for " << hh->GetName() << ": " << integral << endl;
           foutputs.at(istat)->WriteTObject(hh);
           delete hh;
         }
@@ -815,7 +815,7 @@ void getTemplate_ZZTo2L2Nu(
   }
 
   foutput_common->Close();
-  MELAout.close();
+  IVYout.close();
   for (auto& finput:finputs) finput->Close();
 
   curdir->cd();
@@ -916,19 +916,19 @@ void getTemplate_ZWTo3L1Nu(
   BBProcessHandler* process_handler_bb = dynamic_cast<BBProcessHandler*>(process_handler);
   VVProcessHandler* process_handler_VV = dynamic_cast<VVProcessHandler*>(process_handler);
   if (!process_handler_gg && !process_handler_tt && !process_handler_bb && !process_handler_VV){
-    MELAerr << "Please revise the parts of the implementation related to process handler use. It looks like the process is not of a known type." << endl;
+    IVYerr << "Please revise the parts of the implementation related to process handler use. It looks like the process is not of a known type." << endl;
     exit(1);
   }
 
   if (syst==eTriggerEffDn || syst==eTriggerEffUp){
     if (!(dilepton_id_ref==-121 || dilepton_id_ref==-169)){
-      MELAerr << "dilepton_id_ref must be -121 or -169 for trigger eff. systs." << endl;
+      IVYerr << "dilepton_id_ref must be -121 or -169 for trigger eff. systs." << endl;
       exit(1);
     }
   }
   else{
     if (dilepton_id_ref!=0){
-      MELAerr << "dilepton_id_ref must be 0 for any systematic other than trigger eff." << endl;
+      IVYerr << "dilepton_id_ref must be 0 for any systematic other than trigger eff." << endl;
       exit(1);
     }
   }
@@ -960,24 +960,24 @@ void getTemplate_ZWTo3L1Nu(
     PhysicsProcessHandler* childprocess_handler = getPhysicsProcessHandler(strproc, process_handler->getProcessDecayType());
     auto const strOutChildTreeNames_SM = childprocess_handler->getOutputTreeNames(kSM, true);
     auto const strOutChildTreeNames = childprocess_handler->getOutputTreeNames(AChypo, true);
-    MELAout << "Acquiring child process " << strproc << ", which has tree names " << strOutChildTreeNames << "..." << endl;
+    IVYout << "Acquiring child process " << strproc << ", which has tree names " << strOutChildTreeNames << "..." << endl;
 
     for (auto const& sname:proc_sname_pair.second){
       TString cinput = SampleHelpers::getDatasetDirectoryName(period) + "/finaltrees_" + sname + "_" + strSyst + ".root";
       if (!HostHelpers::FileReadable(cinput)){
-        MELAerr << "\t- Input file " << cinput << " is not found." << endl;
+        IVYerr << "\t- Input file " << cinput << " is not found." << endl;
         for (auto& finput:finputs) finput->Close();
         return;
       }
-      else MELAout << "\t- Acquiring input file " << cinput << "..." << endl;
+      else IVYout << "\t- Acquiring input file " << cinput << "..." << endl;
 
       TString cinput_nominal = SampleHelpers::getDatasetDirectoryName(period) + "/finaltrees_" + sname + "_Nominal.root";
       if (!HostHelpers::FileReadable(cinput_nominal)){
-        MELAerr << "\t- Input file " << cinput_nominal << " is not found." << endl;
+        IVYerr << "\t- Input file " << cinput_nominal << " is not found." << endl;
         for (auto& finput:finputs) finput->Close();
         return;
       }
-      else MELAout << "\t- Acquiring input file " << cinput_nominal << "..." << endl;
+      else IVYout << "\t- Acquiring input file " << cinput_nominal << "..." << endl;
 
       TFile* finput_ee = TFile::Open(cinput, "read");
       finputs.push_back(finput_ee);
@@ -1005,7 +1005,7 @@ void getTemplate_ZWTo3L1Nu(
       }
       if (weightvals.empty()) weightvals.assign(strweights.size(), 0.f);
       if (weightvals.size()!=strweights.size()){
-        MELAerr << "\t- Weight sizes are not the same!" << endl;
+        IVYerr << "\t- Weight sizes are not the same!" << endl;
       }
 
       std::vector<TTree*> tmptinlist;
@@ -1033,7 +1033,7 @@ void getTemplate_ZWTo3L1Nu(
   gSystem->mkdir(coutput_main, true);
 
   TString stroutput_txt = coutput_main + "/" + process_handler->getProcessName() + "_" + strChannel + "_" + strSystDC + ".txt";
-  MELAout.open(stroutput_txt.Data());
+  IVYout.open(stroutput_txt.Data());
   SampleHelpers::addToCondorTransferList(stroutput_txt);
 
   TString stroutput_commons = coutput_main + "/" + process_handler->getProcessName() + "_" + strChannel + "_" + strSystDC + "_commons.root";
@@ -1077,14 +1077,14 @@ void getTemplate_ZWTo3L1Nu(
         }
       }
     }
-    MELAout << "Sum of weight[0] values in all categories: " << sum_wgts_cat << endl;
+    IVYout << "Sum of weight[0] values in all categories: " << sum_wgts_cat << endl;
   }
 
   for (unsigned int icat=0; icat<nCats; icat++){
-    MELAout << "Producing templates for " << strCatNames.at(icat) << ":" << endl;
+    IVYout << "Producing templates for " << strCatNames.at(icat) << ":" << endl;
 
     TTree*& tin_cat = tin_split.at(icat);
-    MELAout << "\t- Category tree has " << tin_cat->GetEntries() << " entries." << endl;
+    IVYout << "\t- Category tree has " << tin_cat->GetEntries() << " entries." << endl;
 
     ACHypothesisHelpers::ProductionType prod_type;
     if (icat<2) prod_type = ACHypothesisHelpers::kGG;
@@ -1122,8 +1122,8 @@ void getTemplate_ZWTo3L1Nu(
     }
     unsigned short const nStatVars = foutputs.size();
 
-    if (hasStatUnc) MELAout << "\t- Will also acquire stat. unc. variations" << endl;
-    MELAout << "\t- Category expects " << foutputs.size() << " output files." << endl;
+    if (hasStatUnc) IVYout << "\t- Will also acquire stat. unc. variations" << endl;
+    IVYout << "\t- Category expects " << foutputs.size() << " output files." << endl;
 
     foutputs.front()->cd();
 
@@ -1142,11 +1142,11 @@ void getTemplate_ZWTo3L1Nu(
     // For boosted category, increase smearing strength by a factor of 2
     if (strCatNames.at(icat) == "BoostedHadVH"){ for (auto& coef:smearingStrengthCoeffs) coef *= 2.; }
 
-    MELAout << "\t- Number of variables: " << nVars << endl;
-    for (auto const& bb:binning_KDvars) MELAout << "\t\t- Variables " << bb.getName() << " binning: " << bb.getBinningVector() << endl;
-    MELAout << "\t- Smoothing factors: " << smearingStrengthCoeffs << endl;
+    IVYout << "\t- Number of variables: " << nVars << endl;
+    for (auto const& bb:binning_KDvars) IVYout << "\t\t- Variables " << bb.getName() << " binning: " << bb.getBinningVector() << endl;
+    IVYout << "\t- Smoothing factors: " << smearingStrengthCoeffs << endl;
     if (nVars>1){
-      MELAerr << "\t- Smoothing over more than 1 variable is currently not supported." << endl;
+      IVYerr << "\t- Smoothing over more than 1 variable is currently not supported." << endl;
       exit(1);
     }
 
@@ -1157,9 +1157,9 @@ void getTemplate_ZWTo3L1Nu(
     switch (nVars){
     case 1:
     {
-      MELAout << "\t- Producing 1D templates..." << endl;
+      IVYout << "\t- Producing 1D templates..." << endl;
 
-      MELAout << "\t\t- Constructing tree associations..." << endl;
+      IVYout << "\t\t- Constructing tree associations..." << endl;
       std::vector<TreeHistogramAssociation_1D> tree_hist_assoc; tree_hist_assoc.reserve(weightvals.size());
       for (unsigned int itpl=0; itpl<weightvals.size(); itpl++){
         auto const& tplname = strTemplateNames.at(itpl);
@@ -1168,12 +1168,12 @@ void getTemplate_ZWTo3L1Nu(
           tin_cat, *(varvals.at(0)), weightvals.at(itpl), selflag
         );
         if (!doOffshell && (tplname.Contains("Bkg") || tplname.Contains("Int"))){
-          MELAout << "Template " << tplname << " will be ignored in the smoothing Neff calculation." << endl;
+          IVYout << "Template " << tplname << " will be ignored in the smoothing Neff calculation." << endl;
           tree_hist_assoc.back().setIgnoreNeffRef(true);
         }
       }
 
-      MELAout << "\t\t- Running simultaneous smoothing..." << endl;
+      IVYout << "\t\t- Running simultaneous smoothing..." << endl;
       std::vector<TH1F*> hRaw;
       std::vector<std::vector<TH1F*>> hStat(2, std::vector<TH1F*>());
       std::vector<TH1F*> hSmooth = getSimultaneousSmoothHistograms(
@@ -1189,15 +1189,15 @@ void getTemplate_ZWTo3L1Nu(
         unsigned short itpl=0;
         for (auto& hh:hRaw){
           TString const hrawname = hh->GetName();
-          MELAout << "\t\t- Calculating Neff_raw and integral for histogram " << itpl << " (" << hrawname << "):" << endl;
+          IVYout << "\t\t- Calculating Neff_raw and integral for histogram " << itpl << " (" << hrawname << "):" << endl;
           bool const hasBkgContribution = (hrawname.Contains("Bkg") || hrawname.Contains("Int"));
           double integral_raw=0, integralerr_raw=0;
           integral_raw = HelperFunctions::getHistogramIntegralAndError(hh, 0, hh->GetNbinsX()+1, false, &integralerr_raw);
           double Neff_raw = (integralerr_raw>0. ? std::pow(integral_raw/integralerr_raw, 2) : 1.);
           double Neff_raw_dn=0, Neff_raw_up=0;
           StatisticsHelpers::getPoissonCountingConfidenceInterval_Frequentist(Neff_raw, VAL_CL_1SIGMA, Neff_raw_dn, Neff_raw_up);
-          MELAout << "\t\t\t- Overall Neff for this category: " << Neff_raw << " [ " << Neff_raw_dn << ", " << Neff_raw_up << " ]" << endl;
-          MELAout << "\t\t\t- Integral: " << integral_raw << " +- " << integralerr_raw << endl;
+          IVYout << "\t\t\t- Overall Neff for this category: " << Neff_raw << " [ " << Neff_raw_dn << ", " << Neff_raw_up << " ]" << endl;
+          IVYout << "\t\t\t- Integral: " << integral_raw << " +- " << integralerr_raw << endl;
           if ((doOffshell || !hasBkgContribution) && (Neff_raw_minNeff[0]<0. || Neff_raw_minNeff[0]>Neff_raw)){
             Neff_raw_minNeff[0] = Neff_raw;
             Neff_raw_minNeff[1] = Neff_raw_dn;
@@ -1208,10 +1208,10 @@ void getTemplate_ZWTo3L1Nu(
         }
         scale_norm_dn = Neff_raw_minNeff[1]/Neff_raw_minNeff[0];
         scale_norm_up = Neff_raw_minNeff[2]/Neff_raw_minNeff[0];
-        MELAout << "\t\t- Final overall norm. variation in this category: lnN " << scale_norm_dn << "/" << scale_norm_up << endl;
+        IVYout << "\t\t- Final overall norm. variation in this category: lnN " << scale_norm_dn << "/" << scale_norm_up << endl;
       }
 
-      MELAout << "\t\t- Collecting the histograms in the final collection vector..." << endl;
+      IVYout << "\t\t- Collecting the histograms in the final collection vector..." << endl;
       hSmooth_combined_1D.push_back(hSmooth);
       if (hasStatUnc){
         std::vector<TH1F*> hSmooth_normDn; hSmooth_normDn.reserve(hSmooth.size());
@@ -1233,14 +1233,14 @@ void getTemplate_ZWTo3L1Nu(
       break;
     }
     default:
-      MELAerr << "\t- Smoothing over " << nVars << " variables is currently not supported." << endl;
+      IVYerr << "\t- Smoothing over " << nVars << " variables is currently not supported." << endl;
       exit(1);
       break;
     }
 
     for (unsigned short istat=0; istat<nStatVars; istat++){
       if (foutputs.size()<=istat) break;
-      MELAout << "\t- Recording stat. variation " << istat << ":" << endl;
+      IVYout << "\t- Recording stat. variation " << istat << ":" << endl;
       std::vector<TH1F*>* hSmooth_1D = (!hSmooth_combined_1D.empty() ? &(hSmooth_combined_1D.at(istat)) : nullptr);
       foutputs.at(istat)->cd();
       if (hSmooth_1D){
@@ -1250,7 +1250,7 @@ void getTemplate_ZWTo3L1Nu(
           htmp->SetTitle(strTemplateNames.at(itpl));
           {
             double integral = HelperFunctions::getHistogramIntegralAndError(htmp, 0, htmp->GetNbinsX()+1, false);
-            MELAout << "\t\t- Histogram " << itpl << " integral: " << integral << endl;
+            IVYout << "\t\t- Histogram " << itpl << " integral: " << integral << endl;
           }
           TemplateHelpers::doTemplatePostprocessing(htmp);
         }
@@ -1258,10 +1258,10 @@ void getTemplate_ZWTo3L1Nu(
         else if (process_handler_tt) process_handler_tt->recombineHistogramsToTemplates(*hSmooth_1D, AChypo);
         else if (process_handler_bb) process_handler_bb->recombineHistogramsToTemplates(*hSmooth_1D, AChypo);
         else if (process_handler_VV) process_handler_VV->recombineHistogramsToTemplates(*hSmooth_1D, AChypo);
-        else MELAerr << "\t\t- Process type is not recognized to cast the histograms to templates!" << endl;
+        else IVYerr << "\t\t- Process type is not recognized to cast the histograms to templates!" << endl;
         for (auto& hh:(*hSmooth_1D)){
           double integral = HelperFunctions::getHistogramIntegralAndError(hh, 0, hh->GetNbinsX()+1, true);
-          MELAout << "\t\t- Final template integral for " << hh->GetName() << ": " << integral << endl;
+          IVYout << "\t\t- Final template integral for " << hh->GetName() << ": " << integral << endl;
           foutputs.at(istat)->WriteTObject(hh);
           delete hh;
         }
@@ -1274,7 +1274,7 @@ void getTemplate_ZWTo3L1Nu(
   }
 
   foutput_common->Close();
-  MELAout.close();
+  IVYout.close();
   for (auto& finput:finputs) finput->Close();
 
   curdir->cd();

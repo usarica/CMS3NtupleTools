@@ -98,25 +98,25 @@ void getHiggsBRs(TString strSampleSet, TString period, TString prodVersion){
 
   // Cross-check
   {
-    MELAout << "Z->ff BRs:" << endl;
+    IVYout << "Z->ff BRs:" << endl;
     double BR_Z_ll = BR_Z_ll_single*3.;
     double BR_Z_nunu = BR_Z_nunu_single*3.;
     double BR_Z_qq = (BR_Z_uu_single*2.+ BR_Z_dd_single*3.) *3.;
     double BR_Z_tot = BR_Z_ll + BR_Z_nunu + BR_Z_qq;
-    MELAout << "\t- BR Z->ll: " << BR_Z_ll/BR_Z_tot << endl;
-    MELAout << "\t- BR Z->nunu: " << BR_Z_nunu/BR_Z_tot << endl;
-    MELAout << "\t- BR Z->qq: " << BR_Z_qq/BR_Z_tot << endl;
-    MELAout << "Individual Z->ff BR double-ratios:" << endl;
-    MELAout << "\t- BR Z->ll: " << BR_Z_ll_ratio << endl;
-    MELAout << "\t- BR Z->nunu: " << BR_Z_nunu_ratio << endl;
-    MELAout << "\t- BR Z->uu: " << BR_Z_uu_ratio << endl;
-    MELAout << "\t- BR Z->dd: " << BR_Z_dd_ratio << endl;
-    MELAout << "W->ff BRs:" << endl;
+    IVYout << "\t- BR Z->ll: " << BR_Z_ll/BR_Z_tot << endl;
+    IVYout << "\t- BR Z->nunu: " << BR_Z_nunu/BR_Z_tot << endl;
+    IVYout << "\t- BR Z->qq: " << BR_Z_qq/BR_Z_tot << endl;
+    IVYout << "Individual Z->ff BR double-ratios:" << endl;
+    IVYout << "\t- BR Z->ll: " << BR_Z_ll_ratio << endl;
+    IVYout << "\t- BR Z->nunu: " << BR_Z_nunu_ratio << endl;
+    IVYout << "\t- BR Z->uu: " << BR_Z_uu_ratio << endl;
+    IVYout << "\t- BR Z->dd: " << BR_Z_dd_ratio << endl;
+    IVYout << "W->ff BRs:" << endl;
     double BR_W_lnu = BR_W_lnu_ratio*3.;
     double BR_W_qq = BR_W_qq_ratio*Nflavs_CKM*3.;
     double BR_W_tot = BR_W_lnu + BR_W_qq;
-    MELAout << "\t- BR W->lnu: " << BR_W_lnu/BR_W_tot << endl;
-    MELAout << "\t- BR W->qq: " << BR_W_qq/BR_Z_tot << endl;
+    IVYout << "\t- BR W->lnu: " << BR_W_lnu/BR_W_tot << endl;
+    IVYout << "\t- BR W->qq: " << BR_W_qq/BR_Z_tot << endl;
   }
 
   DecayMode dkmode = getDecayMode(strSampleSet);
@@ -137,18 +137,18 @@ void getHiggsBRs(TString strSampleSet, TString period, TString prodVersion){
     if (isData) return;
 
     TString const cinput = SampleHelpers::getDatasetFileName(strSample);
-    MELAout << "Extracting input " << cinput << endl;
+    IVYout << "Extracting input " << cinput << endl;
 
     BaseTree sample_tree(cinput, EVENTS_TREE_NAME, "", "");
     sample_tree.sampleIdentifier = SampleHelpers::getSampleIdentifier(strSample);
     double sampleMH = SampleHelpers::findPoleMass(sample_tree.sampleIdentifier);
-    MELAout << "Pole mass of the sample: " << sampleMH << endl;
+    IVYout << "Pole mass of the sample: " << sampleMH << endl;
     bool has2LFilter = sample_tree.sampleIdentifier.Contains("2LFilter");
     bool has2LOSFilter = sample_tree.sampleIdentifier.Contains("2LOSFilter");
     bool has4LFilter = sample_tree.sampleIdentifier.Contains("ZZ_4LFilter");
-    MELAout << "Sample has 2l filter ? " << has2LFilter << endl;
-    MELAout << "Sample has 2l OS filter ? " << has2LOSFilter << endl;
-    MELAout << "Sample has 4l filter ? " << has4LFilter << endl;
+    IVYout << "Sample has 2l filter ? " << has2LFilter << endl;
+    IVYout << "Sample has 2l OS filter ? " << has2LOSFilter << endl;
+    IVYout << "Sample has 4l filter ? " << has4LFilter << endl;
 
     const int nEntries = sample_tree.getSelectedNEvents();
 
@@ -159,7 +159,7 @@ void getHiggsBRs(TString strSampleSet, TString period, TString prodVersion){
     genInfoHandler.wrapTree(&sample_tree);
 
     bool hasTaus=false;
-    MELAout << "Initial MC loop over " << nEntries << " events in " << sample_tree.sampleIdentifier << " to determine sample normalization:" << endl;
+    IVYout << "Initial MC loop over " << nEntries << " events in " << sample_tree.sampleIdentifier << " to determine sample normalization:" << endl;
     for (int ev=0; ev<nEntries; ev++){
       HelperFunctions::progressbar(ev, nEntries);
       sample_tree.getSelectedEvent(ev);
@@ -308,18 +308,18 @@ void getHiggsBRs(TString strSampleSet, TString period, TString prodVersion){
       double br_MH_corr_filtered = br_MH_corr * filter_corrs.at(ih);
       br_sum += br_MH_corr_filtered;
       br_sum_unfiltered += br_MH_corr;
-      MELAout << "BR[" << hypos.at(ih) << "] before / after correction / after filter: " << br_MH << " / " << br_MH_corr << " / " << br_MH_corr_filtered << endl;
+      IVYout << "BR[" << hypos.at(ih) << "] before / after correction / after filter: " << br_MH << " / " << br_MH_corr << " / " << br_MH_corr_filtered << endl;
     }
 
     double avg_br = sum_wgts[1]/sum_wgts[0];
     double avg_br_err = sum_wgts[2]/sum_wgts[0];
     avg_br_err = std::sqrt((avg_br_err - std::pow(avg_br, 2))/(count-1.));
 
-    MELAout << "Events have taus ? " << hasTaus << endl;
-    MELAout << "BR(MH) before filter: " << br_sum_unfiltered << endl;
-    MELAout << "BR(MH) after filter: " << br_sum << endl;
-    MELAout << "Filter eff.: " << br_sum/br_sum_unfiltered << endl;
-    MELAout << "Average BR(MH) adjustment: " << avg_br << " +- " << avg_br_err << endl;
-    MELAout << "Average BR: " << avg_br*br_sum << " +- " << avg_br_err*br_sum << endl;
+    IVYout << "Events have taus ? " << hasTaus << endl;
+    IVYout << "BR(MH) before filter: " << br_sum_unfiltered << endl;
+    IVYout << "BR(MH) after filter: " << br_sum << endl;
+    IVYout << "Filter eff.: " << br_sum/br_sum_unfiltered << endl;
+    IVYout << "Average BR(MH) adjustment: " << avg_br << " +- " << avg_br_err << endl;
+    IVYout << "Average BR: " << avg_br*br_sum << " +- " << avg_br_err*br_sum << endl;
   }
 }

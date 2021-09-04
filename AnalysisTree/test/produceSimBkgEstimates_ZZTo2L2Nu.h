@@ -188,7 +188,7 @@ void getMCSampleSet_ZZTo2L2Nu(std::vector< std::pair< TString, std::vector<TStri
     }
   }
   else{
-    MELAerr << "getMCSampleSet_ZZTo2L2Nu: Final state " << fstype << " is not of the correct type." << endl;
+    IVYerr << "getMCSampleSet_ZZTo2L2Nu: Final state " << fstype << " is not of the correct type." << endl;
     exit(1);
   }
 }
@@ -225,7 +225,7 @@ void produceSimBkgEstimates_ZZTo2L2Nu(
 
   TString cinput_main = "output/DileptonEvents/SkimTrees/" + ntupleVersion;
   if (!SampleHelpers::checkFileOnWorker(cinput_main)){
-    MELAerr << "Input folder " << cinput_main << " does not exist locally and on the worker directory." << endl;
+    IVYerr << "Input folder " << cinput_main << " does not exist locally and on the worker directory." << endl;
     exit(1);
   }
   TString const coutput_main = "output/SimBkgEstimates_ZZTo2L2Nu/" + strdate + "/FinalTrees/" + period;
@@ -358,7 +358,7 @@ void produceSimBkgEstimates_ZZTo2L2Nu(
       TString sid = SampleHelpers::getSampleIdentifier(sname);
       float xsec_scale = 1;
       SampleHelpers::hasXSecException(sid, SampleHelpers::getDataYear(), &xsec_scale);
-      if (xsec_scale!=1.f) MELAout << "\t- Sample " << sname << " has a cross section exception with scale " << xsec_scale << "." << endl;
+      if (xsec_scale!=1.f) IVYout << "\t- Sample " << sname << " has a cross section exception with scale " << xsec_scale << "." << endl;
 
       TString cinput = cinput_main + "/" + sfname;
       curdir->cd();
@@ -366,10 +366,10 @@ void produceSimBkgEstimates_ZZTo2L2Nu(
       int nfiles = tin->Add(cinput);
       xsec_scale_map[tin] = xsec_scale;
       if (nfiles==0){
-        MELAerr << "\t- Access error (most likely): No files were added." << endl;
+        IVYerr << "\t- Access error (most likely): No files were added." << endl;
         exit(1);
       }
-      MELAout << "\t- Successfully added " << nfiles << " files for " << sname << " from " << cinput << "..." << endl;
+      IVYout << "\t- Successfully added " << nfiles << " files for " << sname << " from " << cinput << "..." << endl;
       samples_all.emplace_back(sgroup, tin);
       tins_collected.push_back(tin);
       norm_map[tin] = 1;
@@ -396,7 +396,7 @@ void produceSimBkgEstimates_ZZTo2L2Nu(
             ftmp->Close();
             curdir->cd();
           }
-          if (hasCounters) MELAout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
+          if (hasCounters) IVYout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
         }
         norm_map[tin] += sum_wgts;
       }
@@ -408,8 +408,8 @@ void produceSimBkgEstimates_ZZTo2L2Nu(
         TFile* finput_corr = TFile::Open(strCorrFile, "read"); finput_corrections.push_back(finput_corr);
         TH3F* htmp = dynamic_cast<TH3F*>(finput_corr->Get("h_ratio"));
         tin_corr3D_map[tin] = htmp;
-        if (htmp) MELAout << "\t- Acquired external corrections from " << strCorrFile << endl;
-        else MELAerr << "\t- External corrections histogram from " << strCorrFile << " is null." << endl;
+        if (htmp) IVYout << "\t- Acquired external corrections from " << strCorrFile << endl;
+        else IVYerr << "\t- External corrections histogram from " << strCorrFile << " is null." << endl;
         curdir->cd();
       }
     }
@@ -419,7 +419,7 @@ void produceSimBkgEstimates_ZZTo2L2Nu(
       for (auto const& tin:tins_collected) norm_map[tin] /= sum_wgts_MC;
     }
   }
-  for (auto const& sgroup_tin_pair:samples_all) MELAout
+  for (auto const& sgroup_tin_pair:samples_all) IVYout
     << "Relative normalization for sample in group " << sgroup_tin_pair.first << " = " << norm_map[sgroup_tin_pair.second]
     << endl;
 
@@ -525,7 +525,7 @@ void produceSimBkgEstimates_ZZTo2L2Nu(
         vars_corr.push_back(&(ME_Kfactor_values.find("KFactor_EW_NLO_qqVV_Bkg_arg_that")->second));
       }
       else{
-        MELAerr << "Undefined external corrections for tree in group " << sgroup << "." << endl;
+        IVYerr << "Undefined external corrections for tree in group " << sgroup << "." << endl;
         exit(1);
       }
     }
@@ -874,14 +874,14 @@ void produceSimBkgEstimates_ZZTo2L2Nu(
   for (auto& KDspec:KDlist) KDspec.resetKD();
 
   for (auto const& sgroup:sgroups){
-    MELAout << "Finalizing " << sgroup << ":" << endl;
+    IVYout << "Finalizing " << sgroup << ":" << endl;
     TFile* foutput = sgroup_foutput_map[sgroup];
     BaseTree* tout = sgroup_tout_map[sgroup];
 
     auto const& sum_wgts_all = sgroup_sumwgts_all_map[sgroup];
     auto const& sum_wgts_mTZZ350 = sgroup_sumwgts_mTZZ350_map[sgroup];
-    MELAout << "\t- Number of events predicted after selection requirements: " << sum_wgts_all.front() << " +- " << std::sqrt(sum_wgts_all.back()) << endl;
-    MELAout << "\t- Number of events predicted after selection requirements and mTZZ>=350 GeV: " << sum_wgts_mTZZ350.front() << " +- " << std::sqrt(sum_wgts_mTZZ350.back()) << endl;
+    IVYout << "\t- Number of events predicted after selection requirements: " << sum_wgts_all.front() << " +- " << std::sqrt(sum_wgts_all.back()) << endl;
+    IVYout << "\t- Number of events predicted after selection requirements and mTZZ>=350 GeV: " << sum_wgts_mTZZ350.front() << " +- " << std::sqrt(sum_wgts_mTZZ350.back()) << endl;
 
     foutput->cd();
     tout->writeToFile(foutput);

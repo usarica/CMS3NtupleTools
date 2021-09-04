@@ -71,13 +71,13 @@ void DileptonObject::configure(){
 
 ParticleObject* DileptonObject::getDaughter_leadingPt() const{
   if (!extras.isValid) return nullptr;
-  ParticleObject* d0 = this->daughter(0);
-  ParticleObject* d1 = this->daughter(1);
-  return (d0->pt()>d1->pt() ? d0 : d1);
+  auto const& d0 = this->daughter(0);
+  auto const& d1 = this->daughter(1);
+  return dynamic_cast<ParticleObject*>((d0->pt()>d1->pt() ? d0 : d1));
 }
 ParticleObject* DileptonObject::getDaughter_subleadingPt() const{
   if (!extras.isValid) return nullptr;
-  ParticleObject* d0 = this->daughter(0);
-  ParticleObject* d1 = this->daughter(1);
-  return (d0->pt()>d1->pt() ? d1 : d0);
+  auto const& d0 = this->daughter(0);
+  auto const& d1 = this->daughter(1);
+  return dynamic_cast<ParticleObject*>((d0->pt()>d1->pt() ? d1 : d0));
 }

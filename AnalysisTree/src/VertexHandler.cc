@@ -3,11 +3,11 @@
 #include <CMS3/Dictionaries/interface/GlobalCollectionNames.h>
 
 #include "VertexHandler.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 #define VECTOR_ITERATOR_HANDLER_DIRECTIVES \
@@ -62,10 +62,10 @@ bool VertexHandler::constructVertices(){
   VECTOR_ITERATOR_HANDLER_DIRECTIVES;
 #undef VERTEX_VARIABLE
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "VertexHandler::constructVertices: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "VertexHandler::constructVertices: Not all variables are consumed properly!" << endl;
     assert(0);
   }
-  if (this->verbosity>=TVar::DEBUG) MELAout << "VertexHandler::constructVertices: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "VertexHandler::constructVertices: All variables are set up!" << endl;
 
   if (itBegin_is_good == itEnd_is_good) return true; // Construction is successful, it is just that no vertices exist.
 
@@ -77,7 +77,7 @@ bool VertexHandler::constructVertices(){
   {
     size_t ip=0;
     while (it_is_good != itEnd_is_good){
-      if (this->verbosity>=TVar::DEBUG) MELAout << "VertexHandler::constructVertices: Attempting vertex " << ip << "..." << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "VertexHandler::constructVertices: Attempting vertex " << ip << "..." << endl;
 
       productList.push_back(new VertexObject());
       VertexObject*& obj = productList.back();
@@ -88,10 +88,10 @@ bool VertexHandler::constructVertices(){
 #undef VERTEX_VARIABLE
 
       // Set the product_hasGoodPrimaryVertex flag for the first vertex
-      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- The vertex is " << (*it_is_good ? "good" : "bad") << "." << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "\t- The vertex is " << (*it_is_good ? "good" : "bad") << "." << endl;
       if (ip==0) product_hasGoodPrimaryVertex = (*it_is_good);
 
-      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "\t- Success!" << endl;
 
       ip++;
 #define VERTEX_VARIABLE(TYPE, NAME, DEFVAL) it_##NAME++;

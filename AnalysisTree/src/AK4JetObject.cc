@@ -8,11 +8,11 @@
 #include "BtagHelpers.h"
 #include "AK4JetSelectionHelpers.h"
 #include "HelperFunctions.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 AK4JetVariables::AK4JetVariables(){
@@ -99,7 +99,7 @@ float AK4JetObject::getBtagValue() const{
   case BtagHelpers::kDeepCSV_Tight:
     return extras.deepCSVprobb + extras.deepCSVprobbb;
   default:
-    MELAerr << "AK4JetObject::getBtagValue: b-tagging WP type " << BtagHelpers::btagWPType << " is not implemented." << endl;
+    IVYerr << "AK4JetObject::getBtagValue: b-tagging WP type " << BtagHelpers::btagWPType << " is not implemented." << endl;
     assert(0);
     return -1;
   }

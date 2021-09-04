@@ -3,11 +3,11 @@
 #include <CMS3/Dictionaries/interface/GlobalCollectionNames.h>
 
 #include "OverlapMapHandler.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 template<> const std::string OverlapMapHandler<MuonObject, AK4JetObject>::colName = GlobalCollectionNames::colName_overlapMap + "_" + GlobalCollectionNames::colName_muons + "_" + GlobalCollectionNames::colName_ak4jets;
@@ -38,11 +38,11 @@ template<> bool OverlapMapHandler<MuonObject, AK4JetObject>::constructOverlapMap
 #undef OVERLAPMAP_VARIABLE
 
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "OverlapMapHandler<MuonObject, AK4JetObject>::constructOverlapMaps: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "OverlapMapHandler<MuonObject, AK4JetObject>::constructOverlapMaps: Not all variables are consumed properly!" << endl;
     assert(0);
   }
 
-  if (this->verbosity>=TVar::DEBUG) MELAout << "OverlapMapHandler<MuonObject, AK4JetObject>::constructOverlapMaps: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "OverlapMapHandler<MuonObject, AK4JetObject>::constructOverlapMaps: All variables are set up!" << endl;
 
   size_t n_products = (itEnd_particle_match_index - itBegin_particle_match_index);
   productList.reserve(n_products);
@@ -53,7 +53,7 @@ template<> bool OverlapMapHandler<MuonObject, AK4JetObject>::constructOverlapMap
   {
     size_t ip=0;
     while (ip != n_products){
-      if (this->verbosity>=TVar::DEBUG) MELAout << "OverlapMapHandler<MuonObject, AK4JetObject>::constructOverlapMaps: Attempting overlap map " << ip << "..." << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "OverlapMapHandler<MuonObject, AK4JetObject>::constructOverlapMaps: Attempting overlap map " << ip << "..." << endl;
 
       productList.push_back(new ProductType_t);
       ProductType_t*& obj = productList.back();
@@ -66,7 +66,7 @@ template<> bool OverlapMapHandler<MuonObject, AK4JetObject>::constructOverlapMap
       OVERLAPMAP_MUONS_JETS_LINKED_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
 
-      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "\t- Success!" << endl;
 
       ip++;
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) it_##NAME++;
@@ -107,11 +107,11 @@ template<> bool OverlapMapHandler<MuonObject, AK8JetObject>::constructOverlapMap
 #undef OVERLAPMAP_VARIABLE
 
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "OverlapMapHandler<MuonObject, AK8JetObject>::constructOverlapMaps: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "OverlapMapHandler<MuonObject, AK8JetObject>::constructOverlapMaps: Not all variables are consumed properly!" << endl;
     assert(0);
   }
 
-  if (this->verbosity>=TVar::DEBUG) MELAout << "OverlapMapHandler<MuonObject, AK8JetObject>::constructOverlapMaps: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "OverlapMapHandler<MuonObject, AK8JetObject>::constructOverlapMaps: All variables are set up!" << endl;
 
   size_t n_products = (itEnd_particle_match_index - itBegin_particle_match_index);
   productList.reserve(n_products);
@@ -122,7 +122,7 @@ template<> bool OverlapMapHandler<MuonObject, AK8JetObject>::constructOverlapMap
   {
     size_t ip=0;
     while (ip != n_products){
-      if (this->verbosity>=TVar::DEBUG) MELAout << "OverlapMapHandler<MuonObject, AK8JetObject>::constructOverlapMaps: Attempting overlap map " << ip << "..." << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "OverlapMapHandler<MuonObject, AK8JetObject>::constructOverlapMaps: Attempting overlap map " << ip << "..." << endl;
 
       productList.push_back(new ProductType_t);
       ProductType_t*& obj = productList.back();
@@ -135,7 +135,7 @@ template<> bool OverlapMapHandler<MuonObject, AK8JetObject>::constructOverlapMap
       OVERLAPMAP_MUONS_JETS_LINKED_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
 
-      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "\t- Success!" << endl;
 
       ip++;
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) it_##NAME++;
@@ -176,11 +176,11 @@ template<> bool OverlapMapHandler<ElectronObject, AK4JetObject>::constructOverla
 #undef OVERLAPMAP_VARIABLE
 
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "OverlapMapHandler<ElectronObject, AK4JetObject>::constructOverlapMaps: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "OverlapMapHandler<ElectronObject, AK4JetObject>::constructOverlapMaps: Not all variables are consumed properly!" << endl;
     assert(0);
   }
 
-  if (this->verbosity>=TVar::DEBUG) MELAout << "OverlapMapHandler<ElectronObject, AK4JetObject>::constructOverlapMaps: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "OverlapMapHandler<ElectronObject, AK4JetObject>::constructOverlapMaps: All variables are set up!" << endl;
 
   size_t n_products = (itEnd_particle_match_index - itBegin_particle_match_index);
   productList.reserve(n_products);
@@ -191,7 +191,7 @@ template<> bool OverlapMapHandler<ElectronObject, AK4JetObject>::constructOverla
   {
     size_t ip=0;
     while (ip != n_products){
-      if (this->verbosity>=TVar::DEBUG) MELAout << "OverlapMapHandler<ElectronObject, AK4JetObject>::constructOverlapMaps: Attempting overlap map " << ip << "..." << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "OverlapMapHandler<ElectronObject, AK4JetObject>::constructOverlapMaps: Attempting overlap map " << ip << "..." << endl;
 
       productList.push_back(new ProductType_t);
       ProductType_t*& obj = productList.back();
@@ -204,7 +204,7 @@ template<> bool OverlapMapHandler<ElectronObject, AK4JetObject>::constructOverla
       OVERLAPMAP_ELECTRONS_AK4JETS_LINKED_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
 
-      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "\t- Success!" << endl;
 
       ip++;
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) it_##NAME++;
@@ -245,11 +245,11 @@ template<> bool OverlapMapHandler<ElectronObject, AK8JetObject>::constructOverla
 #undef OVERLAPMAP_VARIABLE
 
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "OverlapMapHandler<ElectronObject, AK8JetObject>::constructOverlapMaps: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "OverlapMapHandler<ElectronObject, AK8JetObject>::constructOverlapMaps: Not all variables are consumed properly!" << endl;
     assert(0);
   }
 
-  if (this->verbosity>=TVar::DEBUG) MELAout << "OverlapMapHandler<ElectronObject, AK8JetObject>::constructOverlapMaps: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "OverlapMapHandler<ElectronObject, AK8JetObject>::constructOverlapMaps: All variables are set up!" << endl;
 
   size_t n_products = (itEnd_particle_match_index - itBegin_particle_match_index);
   productList.reserve(n_products);
@@ -260,7 +260,7 @@ template<> bool OverlapMapHandler<ElectronObject, AK8JetObject>::constructOverla
   {
     size_t ip=0;
     while (ip != n_products){
-      if (this->verbosity>=TVar::DEBUG) MELAout << "OverlapMapHandler<ElectronObject, AK8JetObject>::constructOverlapMaps: Attempting overlap map " << ip << "..." << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "OverlapMapHandler<ElectronObject, AK8JetObject>::constructOverlapMaps: Attempting overlap map " << ip << "..." << endl;
 
       productList.push_back(new ProductType_t);
       ProductType_t*& obj = productList.back();
@@ -273,7 +273,7 @@ template<> bool OverlapMapHandler<ElectronObject, AK8JetObject>::constructOverla
       OVERLAPMAP_ELECTRONS_AK8JETS_LINKED_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
 
-      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "\t- Success!" << endl;
 
       ip++;
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) it_##NAME++;
@@ -314,11 +314,11 @@ template<> bool OverlapMapHandler<PhotonObject, AK4JetObject>::constructOverlapM
 #undef OVERLAPMAP_VARIABLE
 
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "OverlapMapHandler<PhotonObject, AK4JetObject>::constructOverlapMaps: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "OverlapMapHandler<PhotonObject, AK4JetObject>::constructOverlapMaps: Not all variables are consumed properly!" << endl;
     assert(0);
   }
 
-  if (this->verbosity>=TVar::DEBUG) MELAout << "OverlapMapHandler<PhotonObject, AK4JetObject>::constructOverlapMaps: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "OverlapMapHandler<PhotonObject, AK4JetObject>::constructOverlapMaps: All variables are set up!" << endl;
 
   size_t n_products = (itEnd_particle_match_index - itBegin_particle_match_index);
   productList.reserve(n_products);
@@ -329,7 +329,7 @@ template<> bool OverlapMapHandler<PhotonObject, AK4JetObject>::constructOverlapM
   {
     size_t ip=0;
     while (ip != n_products){
-      if (this->verbosity>=TVar::DEBUG) MELAout << "OverlapMapHandler<PhotonObject, AK4JetObject>::constructOverlapMaps: Attempting overlap map " << ip << "..." << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "OverlapMapHandler<PhotonObject, AK4JetObject>::constructOverlapMaps: Attempting overlap map " << ip << "..." << endl;
 
       productList.push_back(new ProductType_t);
       ProductType_t*& obj = productList.back();
@@ -342,7 +342,7 @@ template<> bool OverlapMapHandler<PhotonObject, AK4JetObject>::constructOverlapM
       OVERLAPMAP_PHOTONS_AK4JETS_LINKED_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
 
-      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "\t- Success!" << endl;
 
       ip++;
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) it_##NAME++;
@@ -383,11 +383,11 @@ template<> bool OverlapMapHandler<PhotonObject, AK8JetObject>::constructOverlapM
 #undef OVERLAPMAP_VARIABLE
 
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "OverlapMapHandler<PhotonObject, AK8JetObject>::constructOverlapMaps: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "OverlapMapHandler<PhotonObject, AK8JetObject>::constructOverlapMaps: Not all variables are consumed properly!" << endl;
     assert(0);
   }
 
-  if (this->verbosity>=TVar::DEBUG) MELAout << "OverlapMapHandler<PhotonObject, AK8JetObject>::constructOverlapMaps: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "OverlapMapHandler<PhotonObject, AK8JetObject>::constructOverlapMaps: All variables are set up!" << endl;
 
   size_t n_products = (itEnd_particle_match_index - itBegin_particle_match_index);
   productList.reserve(n_products);
@@ -398,7 +398,7 @@ template<> bool OverlapMapHandler<PhotonObject, AK8JetObject>::constructOverlapM
   {
     size_t ip=0;
     while (ip != n_products){
-      if (this->verbosity>=TVar::DEBUG) MELAout << "OverlapMapHandler<PhotonObject, AK8JetObject>::constructOverlapMaps: Attempting overlap map " << ip << "..." << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "OverlapMapHandler<PhotonObject, AK8JetObject>::constructOverlapMaps: Attempting overlap map " << ip << "..." << endl;
 
       productList.push_back(new ProductType_t);
       ProductType_t*& obj = productList.back();
@@ -411,7 +411,7 @@ template<> bool OverlapMapHandler<PhotonObject, AK8JetObject>::constructOverlapM
       OVERLAPMAP_PHOTONS_AK8JETS_LINKED_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
 
-      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "\t- Success!" << endl;
 
       ip++;
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) it_##NAME++;

@@ -4,7 +4,7 @@
 #include "SamplesCore.h"
 #include "AK4JetSelectionHelpers.h"
 #include "HelperFunctions.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 namespace AK4JetSelectionHelpers{
@@ -45,7 +45,7 @@ namespace AK4JetSelectionHelpers{
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 bool const& AK4JetSelectionHelpers::getApplyTightLeptonVetoIdToJetsFlag(){ return applyTightLeptonVetoIdToJets; }

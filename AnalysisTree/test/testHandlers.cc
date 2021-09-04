@@ -50,7 +50,7 @@ void testHandlers(
   PhotonHandler photonHandler;
   SuperclusterHandler superclusterHandler;
   FSRHandler fsrHandler;
-  JetMETHandler jetHandler; jetHandler.setVerbosity(TVar::DEBUG);
+  JetMETHandler jetHandler; jetHandler.setVerbosity(MiscUtils::DEBUG);
   IsotrackHandler isotrackHandler;
   VertexHandler vertexHandler;
   ParticleDisambiguator particleDisambiguator;
@@ -132,7 +132,7 @@ void testHandlers(
       for (unsigned int iperiod=0; iperiod<nValidDataPeriods; iperiod++){
         if (validDataPeriods.at(iperiod)==SampleHelpers::theDataPeriod){ bin_period += iperiod+1; break; }
       }
-      MELAout << "Checking counters histogram bin (" << bin_syst << ", " << bin_period << ") to obtain the sum of weights if the counters histogram exists..." << endl;
+      IVYout << "Checking counters histogram bin (" << bin_syst << ", " << bin_period << ") to obtain the sum of weights if the counters histogram exists..." << endl;
       for (auto const& fname:inputfilenames){
         TFile* ftmp = TFile::Open(fname, "read");
         TH2D* hCounters = (TH2D*) ftmp->Get("cms3ntuple/Counters");
@@ -141,24 +141,24 @@ void testHandlers(
           sum_wgts = 0;
           break;
         }
-        MELAout << "\t- Successfully found the counters histogram in " << fname << endl;
+        IVYout << "\t- Successfully found the counters histogram in " << fname << endl;
         sum_wgts += hCounters->GetBinContent(bin_syst, bin_period);
         sum_wgts_raw_withveto += hCounters->GetBinContent(0, 0);
         sum_wgts_raw_noveto += hCounters->GetBinContent(0, 0) / (1. - hCounters->GetBinContent(0, 1));
         ftmp->Close();
       }
-      if (hasCounters) MELAout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
+      if (hasCounters) IVYout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
     }
     if (!hasCounters){
-      MELAerr << "Please use skim ntuples!" << endl;
+      IVYerr << "Please use skim ntuples!" << endl;
       assert(0);
     }
     xsec_scale = sum_wgts_raw_withveto / sum_wgts_raw_noveto;
   }
   double globalWeight = xsec * xsec_scale * (isData ? 1.f : lumi) / sum_wgts;
-  MELAout << "Sample " << sample_tree.sampleIdentifier << " has a gen. weight sum of " << sum_wgts << "." << endl;
-  MELAout << "\t- xsec scale = " << xsec_scale << endl;
-  MELAout << "\t- Global weight = " << globalWeight << endl;
+  IVYout << "Sample " << sample_tree.sampleIdentifier << " has a gen. weight sum of " << sum_wgts << "." << endl;
+  IVYout << "\t- xsec scale = " << xsec_scale << endl;
+  IVYout << "\t- Global weight = " << globalWeight << endl;
 
   // Configure handlers
   pfcandidateHandler.bookBranches(&sample_tree); pfcandidateHandler.wrapTree(&sample_tree);
@@ -206,7 +206,7 @@ void testHandlers(
       if (ev==0){
         sample_tree.getVal("xsec", xsec);
         sample_tree.releaseBranch("xsec");
-        MELAout << "Sample cross section: " << xsec << " fb" << endl;
+        IVYout << "Sample cross section: " << xsec << " fb" << endl;
       }
 
       genInfoHandler.constructGenInfo(theGlobalSyst);
@@ -215,56 +215,56 @@ void testHandlers(
 
     eventFilter.constructFilters(&simEventHandler);
     if (ev==0){
-      MELAerr << "Available trigger paths are as follows:" << endl;
-      for (auto const& hltpath:eventFilter.getHLTPaths()) MELAout << "\t- " << hltpath->name << endl;
+      IVYerr << "Available trigger paths are as follows:" << endl;
+      for (auto const& hltpath:eventFilter.getHLTPaths()) IVYout << "\t- " << hltpath->name << endl;
     }
     /*
     if (!eventFilter.hasMatchingTriggerPath(triggerCheckList)){
-      MELAerr << "No matching trigger paths to " << triggerCheckList << endl;
+      IVYerr << "No matching trigger paths to " << triggerCheckList << endl;
       break;
     }
     if (eventFilter.getTriggerWeight(triggerCheckList) == 0.) continue;
     */
 
-    MELAout << "================" << endl;
-    MELAout << "Event " << ev << ":" << endl;
+    IVYout << "================" << endl;
+    IVYout << "Event " << ev << ":" << endl;
     if (isData){
-#define RUNLUMIEVENT_VARIABLE(TYPE, NAME, DEFVAL) MELAout << "\t- " << #NAME << " = " << *NAME << endl;
+#define RUNLUMIEVENT_VARIABLE(TYPE, NAME, DEFVAL) IVYout << "\t- " << #NAME << " = " << *NAME << endl;
       RUNLUMIEVENT_VARIABLES;
 #undef RUNLUMIEVENT_VARIABLE
     }
-    MELAout << "================" << endl;
+    IVYout << "================" << endl;
 
     if (!isData){
-      MELAout << "Sample chosen data period: "
+      IVYout << "Sample chosen data period: "
         << simEventHandler.getChosenDataPeriod() << " with global and local random numbers "
         << simEventHandler.getRandomNumber(SimEventHandler::kDataPeriod_global) << ", "
         << simEventHandler.getRandomNumber(SimEventHandler::kDataPeriod_local)
         << "." << endl;
-      MELAout << "\t- Gen. MET random number: " << simEventHandler.getRandomNumber(SimEventHandler::kGenMETSmear) << endl;
-      MELAout << "\t- PU weight: " << simEventHandler.getPileUpWeight(theGlobalSyst) << endl;
-      MELAout << "\t- L1 prefiring weight: " << simEventHandler.getL1PrefiringWeight(theGlobalSyst) << endl;
+      IVYout << "\t- Gen. MET random number: " << simEventHandler.getRandomNumber(SimEventHandler::kGenMETSmear) << endl;
+      IVYout << "\t- PU weight: " << simEventHandler.getPileUpWeight(theGlobalSyst) << endl;
+      IVYout << "\t- L1 prefiring weight: " << simEventHandler.getL1PrefiringWeight(theGlobalSyst) << endl;
 
       auto const& genInfo = genInfoHandler.getGenInfo();
       float wgt = genInfo->getGenWeight(true);
-      MELAout << "Sample gen. weight: " << wgt << endl;
+      IVYout << "Sample gen. weight: " << wgt << endl;
 
       auto const& lheparticles = genInfoHandler.getLHEParticles();
-      MELAout << "LHE particles:" << endl;
-      for (auto const& part:lheparticles) MELAout << "\t- [" << part->pdgId() << "]: " << part->p4() << ", status = " << part->status() << endl;
+      IVYout << "LHE particles:" << endl;
+      for (auto const& part:lheparticles) IVYout << "\t- [" << part->pdgId() << "]: " << part->p4() << ", status = " << part->status() << endl;
 
       auto const& genparticles = genInfoHandler.getGenParticles();
-      MELAout << "Gen. particles:" << endl;
+      IVYout << "Gen. particles:" << endl;
       for (auto const& part:genparticles){
-        MELAout << "\t- [" << part->pdgId() << "]: " << part->p4() << ", status = " << part->status() << endl;
-#define GENPARTICLE_VARIABLE(TYPE, NAME, DEFVAL) MELAout << "\t\t- " << #NAME << " = " << part->extras.NAME << endl;
+        IVYout << "\t- [" << part->pdgId() << "]: " << part->p4() << ", status = " << part->status() << endl;
+#define GENPARTICLE_VARIABLE(TYPE, NAME, DEFVAL) IVYout << "\t\t- " << #NAME << " = " << part->extras.NAME << endl;
         GENPARTICLE_EXTRA_VARIABLES;
 #undef GENPARTICLE_VARIABLE
       }
 
       float const& genmet_pTmiss = genInfo->extras.genmet_met;
       float const& genmet_phimiss = genInfo->extras.genmet_metPhi;
-      MELAout << "Gen. MET (pT, phi) = (" << genmet_pTmiss << ", " << genmet_phimiss << ")" << endl;
+      IVYout << "Gen. MET (pT, phi) = (" << genmet_pTmiss << ", " << genmet_phimiss << ")" << endl;
     }
 
     pfcandidateHandler.constructPFCandidates(theGlobalSyst);
@@ -280,31 +280,31 @@ void testHandlers(
 #define PARTP4PRINTCMD(PART) PART->pt() << ", " << PART->eta() << ", " << PART->phi() << ", " << PART->mass()
 
     auto const& muons = muonHandler.getProducts();
-    MELAout << "Muons:" << endl;
+    IVYout << "Muons:" << endl;
     for (auto const& part:muons){
       if (ParticleSelectionHelpers::isLooseParticle(part)) sump4_looseObjects += part->p4();
-      MELAout << "\t- [" << part->pdgId() << "]: " << PARTP4PRINTCMD(part) << ", (L, T) = (" << ParticleSelectionHelpers::isLooseParticle(part) << ", " << ParticleSelectionHelpers::isTightParticle(part) << ")" << endl;
-#define MUON_VARIABLE(TYPE, NAME, DEFVAL) MELAout << "\t\t- " << #NAME << ": " << part->extras.NAME << endl;
+      IVYout << "\t- [" << part->pdgId() << "]: " << PARTP4PRINTCMD(part) << ", (L, T) = (" << ParticleSelectionHelpers::isLooseParticle(part) << ", " << ParticleSelectionHelpers::isTightParticle(part) << ")" << endl;
+#define MUON_VARIABLE(TYPE, NAME, DEFVAL) IVYout << "\t\t- " << #NAME << ": " << part->extras.NAME << endl;
       //MUON_VARIABLES;
 #undef MUON_VARIABLE
     }
 
     auto const& electrons = electronHandler.getProducts();
-    MELAout << "Electrons:" << endl;
+    IVYout << "Electrons:" << endl;
     for (auto const& part:electrons){
       if (ParticleSelectionHelpers::isLooseParticle(part)) sump4_looseObjects += part->p4();
-      MELAout << "\t- [" << part->pdgId() << "]: " << PARTP4PRINTCMD(part) << ", (L, T) = (" << ParticleSelectionHelpers::isLooseParticle(part) << ", " << ParticleSelectionHelpers::isTightParticle(part) << ")" << endl;
-#define ELECTRON_VARIABLE(TYPE, NAME, DEFVAL) MELAout << "\t\t- " << #NAME << ": " << part->extras.NAME << endl;
+      IVYout << "\t- [" << part->pdgId() << "]: " << PARTP4PRINTCMD(part) << ", (L, T) = (" << ParticleSelectionHelpers::isLooseParticle(part) << ", " << ParticleSelectionHelpers::isTightParticle(part) << ")" << endl;
+#define ELECTRON_VARIABLE(TYPE, NAME, DEFVAL) IVYout << "\t\t- " << #NAME << ": " << part->extras.NAME << endl;
       //ELECTRON_VARIABLES;
 #undef ELECTRON_VARIABLE
     }
 
     auto const& photons = photonHandler.getProducts();
-    MELAout << "Photons:" << endl;
+    IVYout << "Photons:" << endl;
     for (auto const& part:photons){
       if (ParticleSelectionHelpers::isLooseParticle(part)) sump4_looseObjects += part->p4();
-      MELAout << "\t- [" << part->pdgId() << "]: " << PARTP4PRINTCMD(part) << ", (L, T) = (" << ParticleSelectionHelpers::isLooseParticle(part) << ", " << ParticleSelectionHelpers::isTightParticle(part) << ")" << endl;
-#define PHOTON_VARIABLE(TYPE, NAME, DEFVAL) MELAout << "\t\t- " << #NAME << ": " << part->extras.NAME << endl;
+      IVYout << "\t- [" << part->pdgId() << "]: " << PARTP4PRINTCMD(part) << ", (L, T) = (" << ParticleSelectionHelpers::isLooseParticle(part) << ", " << ParticleSelectionHelpers::isTightParticle(part) << ")" << endl;
+#define PHOTON_VARIABLE(TYPE, NAME, DEFVAL) IVYout << "\t\t- " << #NAME << ": " << part->extras.NAME << endl;
       //PHOTON_VARIABLES;
 #undef PHOTON_VARIABLE
     }
@@ -317,25 +317,25 @@ void testHandlers(
     auto const& puppimet = jetHandler.getPFPUPPIMET();
     auto p4_puppimet = puppimet->p4(use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr, use_MET_p4Preservation);
 
-    MELAout << "ak4 jets:" << endl;
+    IVYout << "ak4 jets:" << endl;
     for (auto const& part:ak4jets){
       if (ParticleSelectionHelpers::isTightJet(part)) sump4_looseObjects += part->p4();
-      MELAout << "\t- p4 = " << PARTP4PRINTCMD(part) << ", (L, T) = (" << ParticleSelectionHelpers::isLooseJet(part) << ", " << ParticleSelectionHelpers::isTightJet(part) << "), btag value = " << part->getBtagValue() << ", uncorrected pt = " << part->uncorrected_p4().Pt() << endl;
-#define AK4JET_VARIABLE(TYPE, NAME, DEFVAL) MELAout << "\t\t- " << #NAME << ": " << part->extras.NAME << endl;
+      IVYout << "\t- p4 = " << PARTP4PRINTCMD(part) << ", (L, T) = (" << ParticleSelectionHelpers::isLooseJet(part) << ", " << ParticleSelectionHelpers::isTightJet(part) << "), btag value = " << part->getBtagValue() << ", uncorrected pt = " << part->uncorrected_p4().Pt() << endl;
+#define AK4JET_VARIABLE(TYPE, NAME, DEFVAL) IVYout << "\t\t- " << #NAME << ": " << part->extras.NAME << endl;
       //AK4JET_CORE_VARIABLES;
 #undef AK4JET_VARIABLE
     }
-    MELAout << "ak8 jets:" << endl;
+    IVYout << "ak8 jets:" << endl;
     for (auto const& part:ak8jets){
-      MELAout << "\t- p4 = " << PARTP4PRINTCMD(part) << ", (L, T) = (" << ParticleSelectionHelpers::isLooseJet(part) << ", " << ParticleSelectionHelpers::isTightJet(part) << ")" << endl;
+      IVYout << "\t- p4 = " << PARTP4PRINTCMD(part) << ", (L, T) = (" << ParticleSelectionHelpers::isLooseJet(part) << ", " << ParticleSelectionHelpers::isTightJet(part) << ")" << endl;
     }
 
     sump4_looseObjects = -sump4_looseObjects;
 
-    MELAout << "PF MET pT, phi = " << p4_pfmet.pt() << ", " << p4_pfmet.phi() << endl;
-    MELAout << "\t- PF MET extra; met_Nominal, metPhi_Nominal = " << pfmet->extras.met_Nominal << ", " << pfmet->extras.metPhi_Nominal << endl;
-    MELAout << "PUPPI MET pT, phi = " << p4_puppimet.pt() << ", " << p4_puppimet.phi() << endl;
-    MELAout << "MET pT, phi calculated from loose objects: " << sump4_looseObjects.Pt() << ", " << sump4_looseObjects.phi() << endl;
+    IVYout << "PF MET pT, phi = " << p4_pfmet.pt() << ", " << p4_pfmet.phi() << endl;
+    IVYout << "\t- PF MET extra; met_Nominal, metPhi_Nominal = " << pfmet->extras.met_Nominal << ", " << pfmet->extras.metPhi_Nominal << endl;
+    IVYout << "PUPPI MET pT, phi = " << p4_puppimet.pt() << ", " << p4_puppimet.phi() << endl;
+    IVYout << "MET pT, phi calculated from loose objects: " << sump4_looseObjects.Pt() << ", " << sump4_looseObjects.phi() << endl;
 
 #undef PARTP4PRINTCMD
 
@@ -349,15 +349,15 @@ void testHandlers(
         break;
       }
     }
-    MELAout << "Dileptons:" << endl;
-    if (!theChosenDilepton) MELAout << "No valid OS TT dilepton pair is found." << endl;
-    else MELAout << "Found " << dileptons.size() << " dileptons. The chosen dilepton pair has p4 = " << theChosenDilepton->p4() << endl;
+    IVYout << "Dileptons:" << endl;
+    if (!theChosenDilepton) IVYout << "No valid OS TT dilepton pair is found." << endl;
+    else IVYout << "Found " << dileptons.size() << " dileptons. The chosen dilepton pair has p4 = " << theChosenDilepton->p4() << endl;
 
-    //MELAout << "Triggers:" << endl;
-    //for (auto const& strTrigger:triggerCheckList) MELAout << "\t- Trigger weight(" << strTrigger << ") = " << eventFilter.getTriggerWeight({ strTrigger }) << endl;
+    //IVYout << "Triggers:" << endl;
+    //for (auto const& strTrigger:triggerCheckList) IVYout << "\t- Trigger weight(" << strTrigger << ") = " << eventFilter.getTriggerWeight({ strTrigger }) << endl;
 
-    MELAout << "Event " << (eventFilter.passMETFilters(EventFilterHandler::kMETFilters_Standard) ? "passes" : "fails") << " MET filters. Available MET filters are as follows:" << endl;
-    for (auto it:eventFilter.getMETFilters()) MELAout << "\t- " << it.first << ": " << it.second << endl;
+    IVYout << "Event " << (eventFilter.passMETFilters(EventFilterHandler::kMETFilters_Standard) ? "passes" : "fails") << " MET filters. Available MET filters are as follows:" << endl;
+    for (auto it:eventFilter.getMETFilters()) IVYout << "\t- " << it.first << ": " << it.second << endl;
 
     ev_acc++;
     if (ev_acc==max_ev_acc) break;

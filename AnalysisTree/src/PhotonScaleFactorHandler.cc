@@ -1,16 +1,16 @@
-#include <CMSDataTools/AnalysisTree/interface/HostHelpersCore.h>
+#include "HostHelpersCore.h"
 #include "SampleHelpersCore.h"
 #include "SamplesCore.h"
 #include "PhotonScaleFactorHandler.h"
 #include "ParticleSelectionHelpers.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
 using namespace SampleHelpers;
 using namespace PhotonSelectionHelpers;
 using namespace ParticleSelectionHelpers;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 PhotonScaleFactorHandler::PhotonScaleFactorHandler() : ScaleFactorHandlerBase()
@@ -35,7 +35,7 @@ TString PhotonScaleFactorHandler::getScaleFactorFileName(PhotonSelectionHelpers:
       res += "Fall17V2_PhotonsTight";
       break;
     default:
-      MELAerr << "PhotonScaleFactorHandler::getScaleFactorFileName: Selection bit " << preselectionBit << " is not implemented for cut-based ids." << endl;
+      IVYerr << "PhotonScaleFactorHandler::getScaleFactorFileName: Selection bit " << preselectionBit << " is not implemented for cut-based ids." << endl;
       assert(0);
     }
   }
@@ -49,18 +49,18 @@ TString PhotonScaleFactorHandler::getScaleFactorFileName(PhotonSelectionHelpers:
       res += "Fall17V2_PhotonsMVAwp80";
       break;
     default:
-      MELAerr << "PhotonScaleFactorHandler::getScaleFactorFileName: Selection bit " << preselectionBit << " is not implemented for MVA ids." << endl;
+      IVYerr << "PhotonScaleFactorHandler::getScaleFactorFileName: Selection bit " << preselectionBit << " is not implemented for MVA ids." << endl;
       assert(0);
     }
   }
   else{
-    MELAerr << "PhotonScaleFactorHandler::getScaleFactorFileName: Id type " << idType_preselection << " is not implemented." << endl;
+    IVYerr << "PhotonScaleFactorHandler::getScaleFactorFileName: Id type " << idType_preselection << " is not implemented." << endl;
     assert(0);
   }
   res += ".root";
 
   if (!HostHelpers::FileReadable(res.Data())){
-    MELAerr << "PhotonScaleFactorHandler::getScaleFactorFileName: File " << res << " is not readable." << endl;
+    IVYerr << "PhotonScaleFactorHandler::getScaleFactorFileName: File " << res << " is not readable." << endl;
     assert(0);
   }
 
@@ -72,7 +72,7 @@ bool PhotonScaleFactorHandler::setup(){
   bool res = true;
   this->reset();
 
-  if (verbosity>=TVar::INFO) MELAout << "PhotonScaleFactorHandler::setup: Setting up efficiency and SF histograms for year " << SampleHelpers::getDataYear() << endl;
+  if (verbosity>=MiscUtils::INFO) IVYout << "PhotonScaleFactorHandler::setup: Setting up efficiency and SF histograms for year " << SampleHelpers::getDataYear() << endl;
 
   TDirectory* curdir = gDirectory;
   TDirectory* uppermostdir = SampleHelpers::rootTDirectory;
@@ -105,7 +105,7 @@ void PhotonScaleFactorHandler::reset(){
 void PhotonScaleFactorHandler::evalScaleFactorFromHistogram(float& theSF, float& theSFRelErr, float const& pt, float const& etaSC, ExtendedHistogram_2D_f const& hist, bool etaOnY, bool useAbsEta) const{
   TH2F const* hh = hist.getHistogram();
   if (!hh){
-    MELAerr << "PhotonScaleFactorHandler::evalScaleFactorFromHistogram: Histogram is null." << endl;
+    IVYerr << "PhotonScaleFactorHandler::evalScaleFactorFromHistogram: Histogram is null." << endl;
     return;
   }
 
@@ -179,7 +179,7 @@ void PhotonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVa
 
   /*
   if (eff_region == 0.f || eff_region_corr == 0.f){
-    if (this->verbosity >= TVar::ERROR) MELAerr
+    if (this->verbosity >= MiscUtils::ERROR) IVYerr
       << "PhotonScaleFactorHandler::getIdIsoSFAndEff: Photon (pT, etaSC) = (" << pt << ", " << etaSC
       << ") efficiency (uncorrected, corrected) = (" << eff_region << ", " << eff_region_corr
       << ") with id (tight, tampon) = (" << isTight << ", " << isTampon << ")"

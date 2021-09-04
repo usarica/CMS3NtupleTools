@@ -1,7 +1,7 @@
 // No includes, should be added at the end of common_includes.h
 void splitFileAndAddForTransfer(TString const& stroutput){
   using namespace std;
-  using namespace MELAStreamHelpers;
+  using namespace IvyStreamHelpers;
 
   // Trivial case: If not running on condor, there is no need to transfer. Just exit.
   if (!SampleHelpers::checkRunOnCondor()){
@@ -21,12 +21,12 @@ void splitFileAndAddForTransfer(TString const& stroutput){
   if (nchunks>1){
     std::vector<TFile*> foutputlist; foutputlist.reserve(nchunks);
 
-    MELAout << "splitFileAndAddForTransfer: Splitting " << stroutput << " into " << nchunks << " chunks:" << endl;
+    IVYout << "splitFileAndAddForTransfer: Splitting " << stroutput << " into " << nchunks << " chunks:" << endl;
     for (size_t ichunk=0; ichunk<nchunks; ichunk++){
       TString fname = stroutput;
       TString strchunk = Form("_chunk_%zu_of_%zu%s", ichunk, nchunks, ".root");
       HelperFunctions::replaceString<TString, TString const>(fname, ".root", strchunk);
-      MELAout << "\t- Making new file " << fname << "..." << endl;
+      IVYout << "\t- Making new file " << fname << "..." << endl;
       TFile* foutput = TFile::Open(fname, "recreate");
       foutputlist.push_back(foutput);
       fnames.push_back(fname);
@@ -34,13 +34,13 @@ void splitFileAndAddForTransfer(TString const& stroutput){
 
     std::vector<TDirectory*> outputdirs; outputdirs.reserve(nchunks);
     for (auto& ff:foutputlist) outputdirs.push_back(ff);
-    HelperFunctions::distributeObjects(finput, outputdirs, TVar::INFO);
+    HelperFunctions::distributeObjects(finput, outputdirs, MiscUtils::INFO);
 
     for (auto& ff:foutputlist) ff->Close();
-    MELAout << "\t- Splitting is completed." << endl;
+    IVYout << "\t- Splitting is completed." << endl;
   }
   else{
-    MELAout << "splitFileAndAddForTransfer: " << stroutput << " will not be split into chunks." << endl;
+    IVYout << "splitFileAndAddForTransfer: " << stroutput << " will not be split into chunks." << endl;
     fnames.push_back(stroutput);
   }
 

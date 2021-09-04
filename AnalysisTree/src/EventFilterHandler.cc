@@ -11,11 +11,11 @@
 #include "AK8JetSelectionHelpers.h"
 #include "ParticleSelectionHelpers.h"
 #include "ParticleObjectHelpers.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 const std::string EventFilterHandler::colName_HLTpaths = GlobalCollectionNames::colName_triggers;
@@ -233,53 +233,53 @@ float EventFilterHandler::getTriggerWeight(
           unsigned short n_TOmuons_req = (props_map.find(HLTObjectProperties::kMuon)!=props_map.end() ? props_map.find(HLTObjectProperties::kMuon)->second.size() : 0);
           unsigned short n_TOelectrons_req = (props_map.find(HLTObjectProperties::kElectron)!=props_map.end() ? props_map.find(HLTObjectProperties::kElectron)->second.size() : 0);
           unsigned short n_TOphotons_req = (props_map.find(HLTObjectProperties::kPhoton)!=props_map.end() ? props_map.find(HLTObjectProperties::kPhoton)->second.size() : 0);
-          if (this->verbosity>=TVar::ERROR){
+          if (this->verbosity>=MiscUtils::ERROR){
             bool hasError = false;
             if (n_TOmuons<n_TOmuons_req){
-              MELAerr << "EventFilterHandler::getTriggerWeight[" << prod->name << "]: Number of muons " << n_TOmuons << " < number of req. muons " << n_TOmuons_req << endl;
+              IVYerr << "EventFilterHandler::getTriggerWeight[" << prod->name << "]: Number of muons " << n_TOmuons << " < number of req. muons " << n_TOmuons_req << endl;
               hasError = true;
             }
             if (n_TOelectrons<n_TOelectrons_req){
-              MELAerr << "EventFilterHandler::getTriggerWeight[" << prod->name << "]: Number of electrons " << n_TOelectrons << " < number of req. electrons " << n_TOelectrons_req << endl;
+              IVYerr << "EventFilterHandler::getTriggerWeight[" << prod->name << "]: Number of electrons " << n_TOelectrons << " < number of req. electrons " << n_TOelectrons_req << endl;
               hasError = true;
             }
             if (n_TOphotons<n_TOphotons_req){
-              MELAerr << "EventFilterHandler::getTriggerWeight[" << prod->name << "]: Number of photons " << n_TOphotons << " < number of req. photons " << n_TOphotons_req << endl;
+              IVYerr << "EventFilterHandler::getTriggerWeight[" << prod->name << "]: Number of photons " << n_TOphotons << " < number of req. photons " << n_TOphotons_req << endl;
               hasError = true;
             }
             if (hasError){
-              MELAout << "\t\t- Passing trigger objects: ";
+              IVYout << "\t\t- Passing trigger objects: ";
               for (auto const& TOobj:passedTriggerObjects){
-                MELAout << "[" << TOobj->getTriggerObjectType() << "] ( " << TOobj->pt() << ", " << TOobj->eta() << ", " << TOobj->phi() << endl;
+                IVYout << "[" << TOobj->getTriggerObjectType() << "] ( " << TOobj->pt() << ", " << TOobj->eta() << ", " << TOobj->phi() << endl;
               }
-              MELAout << "\t\t- Failing trigger objects: ";
+              IVYout << "\t\t- Failing trigger objects: ";
               for (auto const& TOobj:prod->getFailedTriggerObjects()){
-                MELAout << "[" << TOobj->getTriggerObjectType() << "] ( " << TOobj->pt() << ", " << TOobj->eta() << ", " << TOobj->phi() << endl;
+                IVYout << "[" << TOobj->getTriggerObjectType() << "] ( " << TOobj->pt() << ", " << TOobj->eta() << ", " << TOobj->phi() << endl;
               }
-              MELAout << "\t\t- Leptons: ";
+              IVYout << "\t\t- Leptons: ";
               for (auto const& part:muons_trigcheck){
-                MELAout << "[" << part->pdgId() << "] ( " << part->pt() << ", " << part->eta() << ", " << part->phi() << endl;
+                IVYout << "[" << part->pdgId() << "] ( " << part->pt() << ", " << part->eta() << ", " << part->phi() << endl;
               }
               for (auto const& part:electrons_trigcheck){
-                MELAout << "[" << part->pdgId() << "] ( " << part->pt() << ", " << part->eta() << ", " << part->phi() << endl;
+                IVYout << "[" << part->pdgId() << "] ( " << part->pt() << ", " << part->eta() << ", " << part->phi() << endl;
               }
               for (auto const& part:photons_trigcheck){
-                MELAout << "[" << part->pdgId() << "] ( " << part->pt() << ", " << part->eta() << ", " << part->phi() << endl;
+                IVYout << "[" << part->pdgId() << "] ( " << part->pt() << ", " << part->eta() << ", " << part->phi() << endl;
               }
             }
           }
           */
 
-          if (this->verbosity>=TVar::DEBUG){
-            MELAout << "EventFilterHandler::getTriggerWeight: Checking " << prod->name << " trigger objects:" << endl;
-            MELAout << "\t- Number of passed trigger objects: " << passedTriggerObjects_final.size() << endl;
-            MELAout << "\t\t- Trigger object types: ";
+          if (this->verbosity>=MiscUtils::DEBUG){
+            IVYout << "EventFilterHandler::getTriggerWeight: Checking " << prod->name << " trigger objects:" << endl;
+            IVYout << "\t- Number of passed trigger objects: " << passedTriggerObjects_final.size() << endl;
+            IVYout << "\t\t- Trigger object types: ";
             std::vector<trigger::TriggerObjectType> TOtypes;
             for (auto const& TOobj:passedTriggerObjects_final) TOtypes.push_back(TOobj->getTriggerObjectType());
-            MELAout << TOtypes << endl;
-            MELAout << "\t- Number of muons: " << muons_trigcheck.size() << endl;
-            MELAout << "\t- Number of electrons: " << electrons_trigcheck.size() << endl;
-            MELAout << "\t- Number of photons: " << photons_trigcheck.size() << endl;
+            IVYout << TOtypes << endl;
+            IVYout << "\t- Number of muons: " << muons_trigcheck.size() << endl;
+            IVYout << "\t- Number of electrons: " << electrons_trigcheck.size() << endl;
+            IVYout << "\t- Number of photons: " << photons_trigcheck.size() << endl;
           }
 
           TriggerObject::getMatchedPhysicsObjects(
@@ -295,10 +295,10 @@ float EventFilterHandler::getTriggerWeight(
             photons_trigcheck, photons_trigcheck_TOmatched
           );
 
-          if (this->verbosity>=TVar::DEBUG){
-            MELAout << "\t- Number of matched muons: " << muons_trigcheck_TOmatched.size() << " / " << muons_trigcheck.size() << endl;
-            MELAout << "\t- Number of matched electrons: " << electrons_trigcheck_TOmatched.size() << " / " << electrons_trigcheck.size() << endl;
-            MELAout << "\t- Number of matched photons: " << photons_trigcheck_TOmatched.size() << " / " << photons_trigcheck.size() << endl;
+          if (this->verbosity>=MiscUtils::DEBUG){
+            IVYout << "\t- Number of matched muons: " << muons_trigcheck_TOmatched.size() << " / " << muons_trigcheck.size() << endl;
+            IVYout << "\t- Number of matched electrons: " << electrons_trigcheck_TOmatched.size() << " / " << electrons_trigcheck.size() << endl;
+            IVYout << "\t- Number of matched photons: " << photons_trigcheck_TOmatched.size() << " / " << photons_trigcheck.size() << endl;
           }
         }
 
@@ -353,17 +353,17 @@ bool EventFilterHandler::test2018HEMFilter(
   std::vector<AK8JetObject*> const* ak8jets
 ) const{
   if (SampleHelpers::getDataYear() != 2018) return true;
-  if (verbosity>=TVar::DEBUG) MELAerr << "Begin EventFilterHandler::test2018HEMFilter..." << endl;
+  if (verbosity>=MiscUtils::DEBUG) IVYerr << "Begin EventFilterHandler::test2018HEMFilter..." << endl;
 
   // Do not run clear because this is a special filter that does not modify the actual class
   if (!currentTree){
-    if (verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::test2018HEMFilter: Current tree is null!" << endl;
+    if (verbosity>=MiscUtils::ERROR) IVYerr << "EventFilterHandler::test2018HEMFilter: Current tree is null!" << endl;
     return false;
   }
 
   if (!SampleHelpers::checkSampleIsData(currentTree->sampleIdentifier)){
     if (!simEventHandler){
-      if (verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::test2018HEMFilter: MC checks require a SimEventHandler!" << endl;
+      if (verbosity>=MiscUtils::ERROR) IVYerr << "EventFilterHandler::test2018HEMFilter: MC checks require a SimEventHandler!" << endl;
       assert(0);
       return false;
     }
@@ -375,7 +375,7 @@ bool EventFilterHandler::test2018HEMFilter(
     RUNLUMIEVENT_VARIABLES;
 #undef RUNLUMIEVENT_VARIABLE
     if (!allVariablesPresent){
-      if (this->verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::test2018HEMFilter: Not all variables of the data case are consumed properly!" << endl;
+      if (this->verbosity>=MiscUtils::ERROR) IVYerr << "EventFilterHandler::test2018HEMFilter: Not all variables of the data case are consumed properly!" << endl;
       assert(0);
     }
     if (!SampleHelpers::isHEM2018Affected(*RunNumber)) return true; // All ok runs
@@ -393,7 +393,7 @@ bool EventFilterHandler::test2018HEMFilter(
       float const phi = part->phi();
       if (eta>=eta_region.first && eta<=eta_region.second && phi>=phi_region.first && phi<=phi_region.second){ doVeto=true; break; }
     }
-    if (verbosity>=TVar::DEBUG && doVeto) MELAout << "EventFilterHandler::test2018HEMFilter: Found at least one electron satisfying HEM15/16." << endl;
+    if (verbosity>=MiscUtils::DEBUG && doVeto) IVYout << "EventFilterHandler::test2018HEMFilter: Found at least one electron satisfying HEM15/16." << endl;
   }
   if (!doVeto && photons){
     for (auto const* part:(*photons)){
@@ -403,7 +403,7 @@ bool EventFilterHandler::test2018HEMFilter(
       float const phi = part->phi();
       if (eta>=eta_region.first && eta<=eta_region.second && phi>=phi_region.first && phi<=phi_region.second){ doVeto=true; break; }
     }
-    if (verbosity>=TVar::DEBUG && doVeto) MELAout << "EventFilterHandler::test2018HEMFilter: Found at least one photon satisfying HEM15/16." << endl;
+    if (verbosity>=MiscUtils::DEBUG && doVeto) IVYout << "EventFilterHandler::test2018HEMFilter: Found at least one photon satisfying HEM15/16." << endl;
   }
   // Require a pT>30 GeV cut on jets
   if (!doVeto && ak4jets){
@@ -414,7 +414,7 @@ bool EventFilterHandler::test2018HEMFilter(
       float const phi = part->phi();
       if (eta>=eta_region.first && eta<=eta_region.second && phi>=phi_region.first && phi<=phi_region.second){ doVeto=true; break; }
     }
-    if (verbosity>=TVar::DEBUG && doVeto) MELAout << "EventFilterHandler::test2018HEMFilter: Found at least one AK4 jet satisfying HEM15/16." << endl;
+    if (verbosity>=MiscUtils::DEBUG && doVeto) IVYout << "EventFilterHandler::test2018HEMFilter: Found at least one AK4 jet satisfying HEM15/16." << endl;
   }
   // Be careful! There is no equivalent of tight ID in ak8 jets, so testing is done on all jets
   if (!doVeto && ak8jets){
@@ -425,10 +425,10 @@ bool EventFilterHandler::test2018HEMFilter(
       float const phi = part->phi();
       if (eta>=eta_region.first && eta<=eta_region.second && phi>=phi_region.first && phi<=phi_region.second){ doVeto=true; break; }
     }
-    if (verbosity>=TVar::DEBUG && doVeto) MELAout << "EventFilterHandler::test2018HEMFilter: Found at least one AK8 jet satisfying HEM15/16." << endl;
+    if (verbosity>=MiscUtils::DEBUG && doVeto) IVYout << "EventFilterHandler::test2018HEMFilter: Found at least one AK8 jet satisfying HEM15/16." << endl;
   }
 
-  if (verbosity>=TVar::DEBUG) MELAerr << "End EventFilterHandler::test2018HEMFilter successfully." << endl;
+  if (verbosity>=MiscUtils::DEBUG) IVYerr << "End EventFilterHandler::test2018HEMFilter successfully." << endl;
   return !doVeto;
 }
 bool EventFilterHandler::testNoisyJetFilter(
@@ -437,11 +437,11 @@ bool EventFilterHandler::testNoisyJetFilter(
 ) const{
   int const& year = SampleHelpers::getDataYear();
   if (year != 2017 && year != 2018) return true;
-  if (verbosity>=TVar::DEBUG) MELAerr << "Begin EventFilterHandler::testNoisyJetFilter..." << endl;
+  if (verbosity>=MiscUtils::DEBUG) IVYerr << "Begin EventFilterHandler::testNoisyJetFilter..." << endl;
 
   // Do not run clear because this is a special filter that does not modify the actual class
   if (!currentTree){
-    if (verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::testNoisyJetFilter: Current tree is null!" << endl;
+    if (verbosity>=MiscUtils::ERROR) IVYerr << "EventFilterHandler::testNoisyJetFilter: Current tree is null!" << endl;
     return false;
   }
 
@@ -450,7 +450,7 @@ bool EventFilterHandler::testNoisyJetFilter(
     TString effDataPeriod;
     if (!SampleHelpers::checkSampleIsData(currentTree->sampleIdentifier)){
       if (!simEventHandler){
-        if (verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::testNoisyJetFilter: MC checks require a SimEventHandler!" << endl;
+        if (verbosity>=MiscUtils::ERROR) IVYerr << "EventFilterHandler::testNoisyJetFilter: MC checks require a SimEventHandler!" << endl;
         assert(0);
         return false;
       }
@@ -462,7 +462,7 @@ bool EventFilterHandler::testNoisyJetFilter(
       RUNLUMIEVENT_VARIABLES;
 #undef RUNLUMIEVENT_VARIABLE
       if (!allVariablesPresent){
-        if (this->verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::testNoisyJetFilter: Not all variables of the data case are consumed properly!" << endl;
+        if (this->verbosity>=MiscUtils::ERROR) IVYerr << "EventFilterHandler::testNoisyJetFilter: Not all variables of the data case are consumed properly!" << endl;
         assert(0);
       }
       effDataPeriod = SampleHelpers::getDataPeriodFromRunNumber(*RunNumber);
@@ -479,17 +479,17 @@ bool EventFilterHandler::testNoisyJetFilter(
     }
   }
 
-  if (verbosity>=TVar::DEBUG) MELAerr << "End EventFilterHandler::testNoisyJetFilter successfully." << endl;
+  if (verbosity>=MiscUtils::DEBUG) IVYerr << "End EventFilterHandler::testNoisyJetFilter successfully." << endl;
   return !doVeto;
 }
 
 
 bool EventFilterHandler::constructCommonSkim(){
   if (!this->getConsumedValue<bool>("passCommonSkim", product_passCommonSkim)){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::constructCommonSkim: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "EventFilterHandler::constructCommonSkim: Not all variables are consumed properly!" << endl;
     assert(0);
   }
-  if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::constructCommonSkim: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "EventFilterHandler::constructCommonSkim: All variables are set up!" << endl;
 
   return true;
 }
@@ -498,7 +498,7 @@ bool EventFilterHandler::constructHLTPaths(SimEventHandler const* simEventHandle
   bool isData = SampleHelpers::checkSampleIsData(currentTree->sampleIdentifier);
   if (!isData && simEventHandler){
     if (!simEventHandler->isAlreadyCached()){
-      if (this->verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::constructHLTPaths: Need to update the SimEventHandler object first!" << endl;
+      if (this->verbosity>=MiscUtils::ERROR) IVYerr << "EventFilterHandler::constructHLTPaths: Need to update the SimEventHandler object first!" << endl;
       assert(0);
     }
   }
@@ -521,11 +521,11 @@ bool EventFilterHandler::constructHLTPaths(SimEventHandler const* simEventHandle
   }
 #undef RUNLUMIEVENT_VARIABLE
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::constructHLTPaths: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "EventFilterHandler::constructHLTPaths: Not all variables are consumed properly!" << endl;
     assert(0);
   }
 
-  if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::constructHLTPaths: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "EventFilterHandler::constructHLTPaths: All variables are set up!" << endl;
 
   size_t n_HLTpaths = (itEnd_HLTpaths_name - itBegin_HLTpaths_name);
   product_HLTpaths.reserve(n_HLTpaths);
@@ -557,7 +557,7 @@ bool EventFilterHandler::constructHLTPaths(SimEventHandler const* simEventHandle
         assert(hltprop!=nullptr);
         if (!isData && !set_RunNumber_sim){
           if (!simEventHandler){
-            if (this->verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::constructHLTPaths: simEventHandler is needed to determine run range exclusions!" << endl;
+            if (this->verbosity>=MiscUtils::ERROR) IVYerr << "EventFilterHandler::constructHLTPaths: simEventHandler is needed to determine run range exclusions!" << endl;
             assert(0);
           }
           RunNumber_sim = simEventHandler->getChosenRunNumber();
@@ -588,11 +588,11 @@ bool EventFilterHandler::constructTriggerObjects(){
   TRIGGEROBJECT_VARIABLES;
 #undef TRIGGEROBJECT_VARIABLE
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::constructTriggerObjects: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "EventFilterHandler::constructTriggerObjects: Not all variables are consumed properly!" << endl;
     assert(0);
   }
 
-  if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::constructTriggerObjects: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "EventFilterHandler::constructTriggerObjects: All variables are set up!" << endl;
 
   size_t n_products = (itEnd_type - itBegin_type);
   product_triggerobjects.reserve(n_products);
@@ -602,7 +602,7 @@ bool EventFilterHandler::constructTriggerObjects(){
   {
     size_t ip=0;
     while (it_type != itEnd_type){
-      if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::constructTriggerObjects: Attempting trigger object " << ip << "..." << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "EventFilterHandler::constructTriggerObjects: Attempting trigger object " << ip << "..." << endl;
 
       ParticleObject::LorentzVector_t momentum;
       momentum = ParticleObject::PolarLorentzVector_t(*it_pt, *it_eta, *it_phi, *it_mass);
@@ -616,7 +616,7 @@ bool EventFilterHandler::constructTriggerObjects(){
       // Set particle index as its unique identifier
       obj->setUniqueIdentifier(ip);
 
-      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "\t- Success!" << endl;
 
       ip++;
 #define TRIGGEROBJECT_VARIABLE(TYPE, NAME, DEFVAL) it_##NAME++;
@@ -641,10 +641,10 @@ bool EventFilterHandler::constructMETFilters(){
     allVariablesPresent &= this->getConsumedValue<bool>(strmetfilter, product_metfilters.find(strmetfilter)->second);
   }
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::constructMETFilters: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "EventFilterHandler::constructMETFilters: Not all variables are consumed properly!" << endl;
     assert(0);
   }
-  if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::constructMETFilters: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "EventFilterHandler::constructMETFilters: All variables are set up!" << endl;
 
   return allVariablesPresent;
 }
@@ -661,42 +661,42 @@ bool EventFilterHandler::accumulateRunLumiEventBlock(){
   RUNLUMIEVENT_VARIABLES;
 #undef RUNLUMIEVENT_VARIABLE
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::accumulateRunLumiEventBlock: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "EventFilterHandler::accumulateRunLumiEventBlock: Not all variables are consumed properly!" << endl;
     assert(0);
   }
-  if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::accumulateRunLumiEventBlock: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "EventFilterHandler::accumulateRunLumiEventBlock: All variables are set up!" << endl;
 
   auto it_run = era_dataeventblock_map.find(*RunNumber);
   if (it_run == era_dataeventblock_map.end()){
-    if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::accumulateRunLumiEventBlock: Run " << *RunNumber << " is new." << endl;
+    if (this->verbosity>=MiscUtils::DEBUG) IVYout << "EventFilterHandler::accumulateRunLumiEventBlock: Run " << *RunNumber << " is new." << endl;
     era_dataeventblock_map[*RunNumber] = std::unordered_map<unsigned int, std::vector<unsigned long long>>();
     it_run = era_dataeventblock_map.find(*RunNumber);
   }
-  else if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::accumulateRunLumiEventBlock: Run " << *RunNumber << " is already in the tracked list." << endl;
+  else if (this->verbosity>=MiscUtils::DEBUG) IVYout << "EventFilterHandler::accumulateRunLumiEventBlock: Run " << *RunNumber << " is already in the tracked list." << endl;
 
   auto it_lumi = it_run->second.find(*LuminosityBlock);
   if (it_lumi == it_run->second.end()){
-    if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::accumulateRunLumiEventBlock: Lumi. section " << *LuminosityBlock << " is new." << endl;
+    if (this->verbosity>=MiscUtils::DEBUG) IVYout << "EventFilterHandler::accumulateRunLumiEventBlock: Lumi. section " << *LuminosityBlock << " is new." << endl;
     it_run->second[*LuminosityBlock] = std::vector<unsigned long long>();
     it_lumi = it_run->second.find(*LuminosityBlock);
   }
-  else if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::accumulateRunLumiEventBlock: Lumi. section " << *LuminosityBlock << " is already in the tracked list." << endl;
+  else if (this->verbosity>=MiscUtils::DEBUG) IVYout << "EventFilterHandler::accumulateRunLumiEventBlock: Lumi. section " << *LuminosityBlock << " is already in the tracked list." << endl;
 
   if (checkUniqueDataEvent){
-    if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::accumulateRunLumiEventBlock: Checking if the event is unique..." << endl;
+    if (this->verbosity>=MiscUtils::DEBUG) IVYout << "EventFilterHandler::accumulateRunLumiEventBlock: Checking if the event is unique..." << endl;
     auto it_event = std::find(it_lumi->second.begin(), it_lumi->second.end(), *EventNumber);
     if (it_event == it_lumi->second.end()){
-      if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::accumulateRunLumiEventBlock: Event " << *EventNumber << " is unique." << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "EventFilterHandler::accumulateRunLumiEventBlock: Event " << *EventNumber << " is unique." << endl;
       it_lumi->second.push_back(*EventNumber);
       product_uniqueEvent = true;
     }
     else{
-      if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::accumulateRunLumiEventBlock: Event " << *EventNumber << " is already covered." << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "EventFilterHandler::accumulateRunLumiEventBlock: Event " << *EventNumber << " is already covered." << endl;
       product_uniqueEvent = false;
     }
   }
   else{
-    if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::accumulateRunLumiEventBlock: No checking is performed for event uniquenes." << endl;
+    if (this->verbosity>=MiscUtils::DEBUG) IVYout << "EventFilterHandler::accumulateRunLumiEventBlock: No checking is performed for event uniquenes." << endl;
     it_lumi->second.push_back(*EventNumber);
   }
 
@@ -765,7 +765,7 @@ std::vector<std::string> EventFilterHandler::acquireMETFilterFlags(BaseTree* int
     break;
   }
   default:
-    MELAerr << "EventFilterHandler::acquireMETFilterFlags: Data year " << SampleHelpers::theDataYear << " is not implemented!" << endl;
+    IVYerr << "EventFilterHandler::acquireMETFilterFlags: Data year " << SampleHelpers::theDataYear << " is not implemented!" << endl;
     assert(0);
   }
 

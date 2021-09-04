@@ -8,11 +8,11 @@
 #include "ReweightingFunctions.h"
 #include "GenInfoHandler.h"
 #include "GenParticleSelectionHelpers.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 const std::string GenInfoHandler::colName_lheparticles = GlobalCollectionNames::colName_lheparticles;
@@ -88,7 +88,7 @@ bool GenInfoHandler::constructCoreGenInfo(SystematicsHelpers::SystematicVariatio
     kfactorlist[strkfactor] = nullptr;
     allVariablesPresent &= this->getConsumed(strkfactor, kfactorlist.find(strkfactor)->second);
     if (!(kfactorlist.find(strkfactor)->second)){
-      if (this->verbosity>=TVar::ERROR) MELAerr << "GenInfoHandler::constructCoreGenInfo: K factor handle for " << strkfactor << " is null!" << endl;
+      if (this->verbosity>=MiscUtils::ERROR) IVYerr << "GenInfoHandler::constructCoreGenInfo: K factor handle for " << strkfactor << " is null!" << endl;
       assert(0);
     }
   }
@@ -99,17 +99,17 @@ bool GenInfoHandler::constructCoreGenInfo(SystematicsHelpers::SystematicVariatio
       MElist[strme] = nullptr;
       allVariablesPresent &= this->getConsumed(strme, MElist.find(strme)->second);
       if (!(MElist.find(strme)->second)){
-        if (this->verbosity>=TVar::ERROR) MELAerr << "GenInfoHandler::constructCoreGenInfo: ME handle for " << strme << " is null!" << endl;
+        if (this->verbosity>=MiscUtils::ERROR) IVYerr << "GenInfoHandler::constructCoreGenInfo: ME handle for " << strme << " is null!" << endl;
         assert(0);
       }
     }
   }
 
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "GenInfoHandler::constructCoreGenInfo: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "GenInfoHandler::constructCoreGenInfo: Not all variables are consumed properly!" << endl;
     assert(0);
   }
-  if (this->verbosity>=TVar::DEBUG) MELAout << "GenInfoHandler::constructCoreGenInfo: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "GenInfoHandler::constructCoreGenInfo: All variables are set up!" << endl;
 
   genInfo = new GenInfoObject();
 #define GENINFO_VARIABLE(TYPE, NAME, DEFVAL) if (NAME) genInfo->extras.NAME = *NAME;
@@ -132,7 +132,7 @@ bool GenInfoHandler::constructCoreGenInfo(SystematicsHelpers::SystematicVariatio
       (LHEweight_scaledOriginalWeight_default/* && *LHEweight_scaledOriginalWeight_default != 0.f*/ && *LHEweight_scaledOriginalWeight_default != *genHEPMCweight_default)
       )
     ){
-    if (this->verbosity>=TVar::INFO) MELAout
+    if (this->verbosity>=MiscUtils::INFO) IVYout
       << "GenInfoHandler::constructCoreGenInfo: genHEPMCweight_default = " << genInfo->extras.genHEPMCweight_default
       << " (original genHEPMCweight_NNPDF30 = " << genInfo->extras.genHEPMCweight_NNPDF30 << ")"
       << " is invalid! A threshold of " << *abs_genWeight_default_thr << " may be applied." << endl;
@@ -161,10 +161,10 @@ bool GenInfoHandler::constructLHEParticles(){
 #undef LHEPARTICLE_VARIABLE
 
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "GenInfoHandler::constructLHEParticles: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "GenInfoHandler::constructLHEParticles: Not all variables are consumed properly!" << endl;
     assert(0);
   }
-  if (this->verbosity>=TVar::DEBUG) MELAout << "GenInfoHandler::constructLHEParticles: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "GenInfoHandler::constructLHEParticles: All variables are set up!" << endl;
 
   size_t nlheparticles = (itEnd_lheparticles_id - itBegin_lheparticles_id);
   lheparticles.reserve(nlheparticles);
@@ -175,13 +175,13 @@ bool GenInfoHandler::constructLHEParticles(){
   {
     size_t ip=0;
     while (it_lheparticles_id != itEnd_lheparticles_id){
-      if (this->verbosity>=TVar::DEBUG) MELAout << "GenInfoHandler::constructLHEParticles: Attempting LHE particle " << ip << "..." << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "GenInfoHandler::constructLHEParticles: Attempting LHE particle " << ip << "..." << endl;
 
       ParticleObject::LorentzVector_t momentum(*it_lheparticles_px, *it_lheparticles_py, *it_lheparticles_pz, *it_lheparticles_E);
       lheparticles.push_back(new LHEParticleObject(*it_lheparticles_id, *it_lheparticles_status, momentum));
       mother_index_pairs.emplace_back(*it_lheparticles_mother0_index, *it_lheparticles_mother1_index);
 
-      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "\t- Success!" << endl;
 
       ip++;
 #define LHEPARTICLE_VARIABLE(TYPE, NAME, DEFVAL) it_lheparticles_##NAME++;
@@ -235,10 +235,10 @@ bool GenInfoHandler::constructGenParticles(){
 #undef GENPARTICLE_VARIABLE
 
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "GenInfoHandler::constructGenParticles: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "GenInfoHandler::constructGenParticles: Not all variables are consumed properly!" << endl;
     assert(0);
   }
-  if (this->verbosity>=TVar::DEBUG) MELAout << "GenInfoHandler::constructGenParticles: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "GenInfoHandler::constructGenParticles: All variables are set up!" << endl;
 
   size_t ngenparticles = (itEnd_genparticles_id - itBegin_genparticles_id);
   genparticles.reserve(ngenparticles);
@@ -249,7 +249,7 @@ bool GenInfoHandler::constructGenParticles(){
   {
     size_t ip=0;
     while (it_genparticles_id != itEnd_genparticles_id){
-      if (this->verbosity>=TVar::DEBUG) MELAout << "GenInfoHandler::constructGenParticles: Attempting LHE particle " << ip << "..." << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "GenInfoHandler::constructGenParticles: Attempting LHE particle " << ip << "..." << endl;
 
       ParticleObject::LorentzVector_t momentum;
       momentum = ParticleObject::PolarLorentzVector_t(*it_genparticles_pt, *it_genparticles_eta, *it_genparticles_phi, *it_genparticles_mass); // Yes you have to do this on a separate line because CMSSW...
@@ -265,7 +265,7 @@ bool GenInfoHandler::constructGenParticles(){
       // Set selection bits
       GenParticleSelectionHelpers::setSelectionBits(*obj);
 
-      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "\t- Success!" << endl;
 
       ip++;
 #define GENPARTICLE_VARIABLE(TYPE, NAME, DEFVAL) it_genparticles_##NAME++;
@@ -320,10 +320,10 @@ bool GenInfoHandler::constructGenAK4Jets(){
 #undef GENJET_VARIABLE
 
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "GenInfoHandler::constructGenAK4Jets: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "GenInfoHandler::constructGenAK4Jets: Not all variables are consumed properly!" << endl;
     assert(0);
   }
-  if (this->verbosity>=TVar::DEBUG) MELAout << "GenInfoHandler::constructGenAK4Jets: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "GenInfoHandler::constructGenAK4Jets: All variables are set up!" << endl;
 
   size_t ngenak4jets = (itEnd_genak4jets_pt - itBegin_genak4jets_pt);
   genak4jets.reserve(ngenak4jets);
@@ -333,13 +333,13 @@ bool GenInfoHandler::constructGenAK4Jets(){
   {
     size_t ip=0;
     while (it_genak4jets_pt != itEnd_genak4jets_pt){
-      if (this->verbosity>=TVar::DEBUG) MELAout << "GenInfoHandler::constructGenAK4Jets: Attempting LHE particle " << ip << "..." << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "GenInfoHandler::constructGenAK4Jets: Attempting LHE particle " << ip << "..." << endl;
 
       ParticleObject::LorentzVector_t momentum;
       momentum = ParticleObject::PolarLorentzVector_t(*it_genak4jets_pt, *it_genak4jets_eta, *it_genak4jets_phi, *it_genak4jets_mass); // Yes you have to do this on a separate line because CMSSW...
       genak4jets.push_back(new GenJetObject(0, momentum));
 
-      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "\t- Success!" << endl;
 
       ip++;
 #define GENJET_VARIABLE(TYPE, NAME, DEFVAL) it_genak4jets_##NAME++;
@@ -366,10 +366,10 @@ bool GenInfoHandler::constructGenAK8Jets(){
 #undef GENJET_VARIABLE
 
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "GenInfoHandler::constructGenAK8Jets: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "GenInfoHandler::constructGenAK8Jets: Not all variables are consumed properly!" << endl;
     assert(0);
   }
-  if (this->verbosity>=TVar::DEBUG) MELAout << "GenInfoHandler::constructGenAK8Jets: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "GenInfoHandler::constructGenAK8Jets: All variables are set up!" << endl;
 
   size_t ngenak8jets = (itEnd_genak8jets_pt - itBegin_genak8jets_pt);
   genak8jets.reserve(ngenak8jets);
@@ -379,13 +379,13 @@ bool GenInfoHandler::constructGenAK8Jets(){
   {
     size_t ip=0;
     while (it_genak8jets_pt != itEnd_genak8jets_pt){
-      if (this->verbosity>=TVar::DEBUG) MELAout << "GenInfoHandler::constructGenAK8Jets: Attempting LHE particle " << ip << "..." << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "GenInfoHandler::constructGenAK8Jets: Attempting LHE particle " << ip << "..." << endl;
 
       ParticleObject::LorentzVector_t momentum;
       momentum = ParticleObject::PolarLorentzVector_t(*it_genak8jets_pt, *it_genak8jets_eta, *it_genak8jets_phi, *it_genak8jets_mass); // Yes you have to do this on a separate line because CMSSW...
       genak8jets.push_back(new GenJetObject(0, momentum));
 
-      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "\t- Success!" << endl;
 
       ip++;
 #define GENJET_VARIABLE(TYPE, NAME, DEFVAL) it_genak8jets_##NAME++;
@@ -465,7 +465,7 @@ bool GenInfoHandler::wrapTree(BaseTree* tree){
   if (!tree) return false;
 
   abs_genWeight_default_thr = nullptr;
-  if (SampleHelpers::hasGenWeightException(tree->sampleIdentifier, SampleHelpers::theDataYear, this->genWeightException)) MELAout
+  if (SampleHelpers::hasGenWeightException(tree->sampleIdentifier, SampleHelpers::theDataYear, this->genWeightException)) IVYout
     << "GenInfoHandler::wrapTree: Warning! Sample " << tree->sampleIdentifier << " has a gen. weight exception of type " << this->genWeightException << "."
     << endl;
 
@@ -562,7 +562,7 @@ bool GenInfoHandler::determineWeightThresholds(){
   if (!currentTree) return false;
   abs_genWeight_default_thr = nullptr;
   if (!acquireCoreGenInfo){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "GenInfoHandler::determineWeightThresholds: In order to determine weight thresholds, you need to set acquireCoreGenInfo=true." << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "GenInfoHandler::determineWeightThresholds: In order to determine weight thresholds, you need to set acquireCoreGenInfo=true." << endl;
     assert(0);
     return false;
   }
@@ -571,10 +571,10 @@ bool GenInfoHandler::determineWeightThresholds(){
 
   bool allVariablesPresent = this->getConsumed("genHEPMCweight_default", genHEPMCweight_default);
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "GenInfoHandler::determineWeightThresholds: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "GenInfoHandler::determineWeightThresholds: Not all variables are consumed properly!" << endl;
     assert(0);
   }
-  if (this->verbosity>=TVar::DEBUG) MELAout << "GenInfoHandler::determineWeightThresholds: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "GenInfoHandler::determineWeightThresholds: All variables are set up!" << endl;
 
   std::vector<float*> tmpvec_wgts{ genHEPMCweight_default };
   abs_genWeight_default_thr_map[currentTree] = ReweightingFunctions::getAbsWeightThresholdByNeff(currentTree, tmpvec_wgts, ReweightingFunctions::getSimpleWeight, 250000., this->verbosity);

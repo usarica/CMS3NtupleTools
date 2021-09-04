@@ -4,11 +4,11 @@
 
 #include "ParticleObjectHelpers.h"
 #include "PFCandidateHandler.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 #define PFCANDIDATE_MOMENTUM_VARIABLES \
@@ -50,11 +50,11 @@ bool PFCandidateHandler::constructPFCandidates(SystematicsHelpers::SystematicVar
 #undef PFCANDIDATE_VARIABLE
 
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "PFCandidateHandler::constructPFCandidates: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "PFCandidateHandler::constructPFCandidates: Not all variables are consumed properly!" << endl;
     assert(0);
   }
 
-  if (this->verbosity>=TVar::DEBUG) MELAout << "PFCandidateHandler::constructPFCandidates: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "PFCandidateHandler::constructPFCandidates: All variables are set up!" << endl;
 
   size_t n_products = (itEnd_id - itBegin_id);
   productList.reserve(n_products);
@@ -64,7 +64,7 @@ bool PFCandidateHandler::constructPFCandidates(SystematicsHelpers::SystematicVar
   {
     size_t ip = 0;
     while (ip != n_products){
-      if (this->verbosity>=TVar::DEBUG) MELAout << "PFCandidateHandler::constructPFCandidates: Attempting muon " << ip << "..." << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "PFCandidateHandler::constructPFCandidates: Attempting muon " << ip << "..." << endl;
 
       ParticleObject::LorentzVector_t momentum;
       momentum = ParticleObject::PolarLorentzVector_t(*it_pt, *it_eta, *it_phi, *it_mass); // Yes you have to do this on a separate line because CMSSW...
@@ -82,7 +82,7 @@ bool PFCandidateHandler::constructPFCandidates(SystematicsHelpers::SystematicVar
       // Replace momentum
       obj->makeFinalMomentum(syst);
 
-      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "\t- Success!" << endl;
 
       ip++;
 #define PFCANDIDATE_VARIABLE(TYPE, NAME, DEFVAL) it_##NAME++;

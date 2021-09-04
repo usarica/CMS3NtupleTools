@@ -8,7 +8,7 @@
 #include "TPaveText.h"
 #include "TLegend.h"
 #include "Math/Vector4Dfwd.h"
-#include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
+#include <IvyFramework/IvyAutoMELA/interface/IvyMELAHelpers.h>
 
 
 constexpr bool useJetOverlapStripping=false;
@@ -35,7 +35,7 @@ void produceSystematicsReweighting_Pythia(
 
   SampleHelpers::configure(period, Form("store:%s", prodVersion.Data()));
 
-  MELAout << "PS weights will be used for Pythia reweighting..." << endl;
+  IVYout << "PS weights will be used for Pythia reweighting..." << endl;
 
   // Acquire the nominal / syst tree pairs
   std::vector<TString> sampledirs;
@@ -88,7 +88,7 @@ void produceSystematicsReweighting_Pythia(
   for (auto const& sdir:sampledirs){
     TString sid = SampleHelpers::getSampleIdentifier(sdir);
     
-    MELAout << "Looping over " << sid << "..." << endl;
+    IVYout << "Looping over " << sid << "..." << endl;
 
     BaseTree* sample_tree = new BaseTree(SampleHelpers::getDatasetFileName(sdir), "cms3ntuple/Events", "", "");
     sample_tree->sampleIdentifier = sid;
@@ -104,7 +104,7 @@ void produceSystematicsReweighting_Pythia(
     double sum_wgts = 0, sum_wgts_syst = 0;
     nEntries = sample_tree->getNEvents();
     genInfoHandler.wrapTree(sample_tree);
-    MELAout << "\t- Looping over " << nEntries << " entries:" << endl;
+    IVYout << "\t- Looping over " << nEntries << " entries:" << endl;
     for (int ev=0; ev<nEntries; ev++){
       if (SampleHelpers::doSignalInterrupt==1) break;
 
@@ -289,7 +289,7 @@ void combineSystematicsReweightings(
       }
       if (!hasValidRatio){
         output_period_sname_pairs.push_back(period_sname_pair);
-        MELAout << period_sname_pair << " has invalid ratios." << endl;
+        IVYout << period_sname_pair << " has invalid ratios." << endl;
       }
       else{
         curdir->cd();
@@ -384,7 +384,7 @@ void getMCSampleSet(std::vector< std::pair< TString, std::vector<TString> > >& s
   if (fstype==OffshellCutflow::fs_ZZ_2l2nu) getMCSampleSet_ZZTo2L2Nu(sampleSpecs);
   else if (fstype==OffshellCutflow::fs_ZW_3l1nu) getMCSampleSet_ZWTo3L1Nu(sampleSpecs);
   else{
-    MELAerr << "getMCSampleSet: Final state " << fstype << " is not defined." << endl;
+    IVYerr << "getMCSampleSet: Final state " << fstype << " is not defined." << endl;
     exit(1);
   }
 }
@@ -463,18 +463,18 @@ void getMCSampleDirs(
       TString strinput_customSyst = ANALYSISTREEPKGDATAPATH + "ScaleFactors/SystematicsCustomReweighting/";
       HostHelpers::ExpandEnvironmentVariables(strinput_customSyst);
       strinput_customSyst = strinput_customSyst + Form("%i/%s_%s%s", SampleHelpers::getDataYear(), strSampleSet.Data(), strSyst_real.Data(), ".root");
-      MELAout << "getMCSampleDirs: Checking for a corrections file named " << strinput_customSyst << "...";
+      IVYout << "getMCSampleDirs: Checking for a corrections file named " << strinput_customSyst << "...";
       if (HostHelpers::FileExists(strinput_customSyst)){
         strExtCorr = strinput_customSyst;
-        MELAout << " FOUND...";
+        IVYout << " FOUND...";
       }
-      else MELAout << " DNE";
-      MELAout << endl;
+      else IVYout << " DNE";
+      IVYout << endl;
 
       if (strExtCorr!="") externalCorrections[sdirs.back()] = strExtCorr;
     }
     if (sdirs.size()!=s.second.size()){
-      MELAerr << "getMCSampleDirs: Size of sdirs " << sdirs.size() << " does not match the input sample set size = " << s.second.size() << " for group " << s.first << "." << endl;
+      IVYerr << "getMCSampleDirs: Size of sdirs " << sdirs.size() << " does not match the input sample set size = " << s.second.size() << " for group " << s.first << "." << endl;
       exit(1);
     }
     sname_dir_pairs.reserve(sdirs.size());

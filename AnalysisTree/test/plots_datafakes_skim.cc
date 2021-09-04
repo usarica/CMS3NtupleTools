@@ -5,7 +5,7 @@
 #include "TText.h"
 #include "TPaveText.h"
 #include "TLegend.h"
-#include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
+#include <IvyFramework/IvyAutoMELA/interface/IvyMELAHelpers.h>
 #include <DataFormats/MuonReco/interface/Muon.h>
 
 
@@ -518,7 +518,7 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate){
     eventFilter.bookBranches(&sample_tree);
     eventFilter.wrapTree(&sample_tree);
 
-    MELAout << "Completed getting the handles..." << endl;
+    IVYout << "Completed getting the handles..." << endl;
     sample_tree.silenceUnused();
 
     foutput->cd();
@@ -532,10 +532,10 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate){
       ev_start = ev_inc*ichunk;
       ev_end = std::min(nevents, (ichunk == nchunks-1 ? nevents : ev_start+ev_inc));
     }
-    MELAout << "Looping over " << nevents << " events, starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
+    IVYout << "Looping over " << nevents << " events, starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
     for (int ev=ev_start; ev<ev_end; ev++){
       HelperFunctions::progressbar(ev, nevents);
-      if (ev % 10000 == 0) MELAout << "Number of accumulated events: " << nacc << '/' << ev << '/' << nevents << endl;
+      if (ev % 10000 == 0) IVYout << "Number of accumulated events: " << nacc << '/' << ev << '/' << nevents << endl;
       //if (nacc>1000) break;
       sample_tree.getSelectedEvent(ev);
 
@@ -555,7 +555,7 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate){
       for (auto* muon:muons){
         if (ParticleSelectionHelpers::isLooseParticle(muon) || muon->testSelectionBit(MuonSelectionHelpers::kLooseId)) looseMuons.push_back(muon);
       }
-      //MELAout << "N loose muons: " << looseMuons.size() << endl;
+      //IVYout << "N loose muons: " << looseMuons.size() << endl;
 
       electronHandler.constructElectrons(theGlobalSyst);
       auto const& electrons = electronHandler.getProducts();
@@ -576,7 +576,7 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate){
         electron->setSelectionBit(ElectronSelectionHelpers::kLooseIso, passLooseIso);
         looseElectrons.push_back(electron);
       }
-      //MELAout << "N loose electrons: " << looseElectrons.size() << endl;
+      //IVYout << "N loose electrons: " << looseElectrons.size() << endl;
       // Disambiguate electrons and muons
       size_t nLooseElectrons_precleaning = looseElectrons.size();
       {
@@ -591,7 +591,7 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate){
         looseElectrons = looseElectrons_new;
       }
       size_t nLooseElectrons_postcleaning = looseElectrons.size();
-      //MELAout << "N loose electrons after disambiguation: " << looseElectrons.size() << endl;
+      //IVYout << "N loose electrons after disambiguation: " << looseElectrons.size() << endl;
 
       photonHandler.constructPhotons(theGlobalSyst);
       auto const& photons = photonHandler.getProducts();
@@ -617,7 +617,7 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate){
         }
       }
       if (hasLoosePhotons) continue;
-      //MELAout << "Pass photon veto" << endl;
+      //IVYout << "Pass photon veto" << endl;
 
       if (
           !(
@@ -626,7 +626,7 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate){
             (looseMuons.size()==0 && looseElectrons.size()==2)
           )
         ) continue;
-      //MELAout << "Pass lepton count veto" << endl;
+      //IVYout << "Pass lepton count veto" << endl;
 
       bool is_ee = looseElectrons.size()==2;
       bool is_mumu = looseMuons.size()==2;
@@ -639,12 +639,12 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate){
       ParticleObject* subleadingLepton = (is_ee ? dynamic_cast<ParticleObject*>(looseElectrons.back()) : dynamic_cast<ParticleObject*>(looseMuons.back()));
       isOS_ll = (leadingLepton->pdgId()*subleadingLepton->pdgId()<0);
       if (leadingLepton->pdgId()*subleadingLepton->pdgId()==0){
-        MELAerr << "Leading lepton id (" << leadingLepton->pdgId() << ") or subleading lepton id (" << subleadingLepton->pdgId() << ") are invalid." << endl;
+        IVYerr << "Leading lepton id (" << leadingLepton->pdgId() << ") or subleading lepton id (" << subleadingLepton->pdgId() << ") are invalid." << endl;
         assert(0);
       }
-      //MELAout << "Pass OSSF veto" << endl;
+      //IVYout << "Pass OSSF veto" << endl;
       //if (leadingLepton->pt()<25. || subleadingLepton->pt()<20.) continue;
-      //MELAout << "Pass lepton pT veto" << endl;
+      //IVYout << "Pass lepton pT veto" << endl;
 
       ParticleObject::LorentzVector_t p4_ll = leadingLepton->p4() + subleadingLepton->p4();
       float mll = p4_ll.M();
@@ -666,11 +666,11 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate){
       }
       if (!ak4jets_tight_btagged.empty()) continue;
       size_t n_ak4jets_tight = ak4jets_tight.size();
-      //MELAout << "Pass b veto" << endl;
+      //IVYout << "Pass b veto" << endl;
 
       if (!eventFilter.test2018HEMFilter(nullptr, &looseElectrons, nullptr, &ak4jets, &ak8jets)) continue; // Since events with loose photons are skipped, no longer need to pass photons here
       if (!eventFilter.testNoisyJetFilter(nullptr, ak4jets)) continue;
-      //MELAout << "Pass HEM filter" << endl;
+      //IVYout << "Pass HEM filter" << endl;
 
       bool pass_ee_cutbasedLoose = false;
       bool pass_ee_cutbasedMedium = false;
@@ -799,20 +799,20 @@ void makePlots(int do_ee_mumu, bool doOS=true, int doDR0p4=false, bool doRatio=f
     TString indexDir = "${CMSSW_BASE}/src/CMSDataTools/AnalysisTree/data/plotting/index.php";
     HostHelpers::ExpandEnvironmentVariables(indexDir);
     if (HostHelpers::FileReadable(indexDir)){
-      MELAout << "Attempting to copy index.php" << endl;
+      IVYout << "Attempting to copy index.php" << endl;
       TString tmpdir = tmplist.at(0) + '/';
       for (size_t idir=1; idir<tmplist.size(); idir++){
         tmpdir = tmpdir + tmplist.at(idir) + '/';
         TString tmpCmd = "cp ~/public_html/index.pages.php ";
         tmpCmd += tmpdir + "index.php";
-        MELAout << "Copying index.php into " << tmpdir << endl;
+        IVYout << "Copying index.php into " << tmpdir << endl;
         HostHelpers::ExecuteCommand(tmpCmd);
       }
     }
   }
 
   TString stroutput_txt = Form("%s/Integrals.txt", coutput_main.Data());
-  MELAout.open(stroutput_txt.Data());
+  IVYout.open(stroutput_txt.Data());
 
 #define BRANCH_COMMANDS \
   BRANCH_COMMAND(float, event_pTmiss) \
@@ -876,7 +876,7 @@ void makePlots(int do_ee_mumu, bool doOS=true, int doDR0p4=false, bool doRatio=f
 #undef BRANCH_COMMAND
     finputlist.push_back(finput);
     treelist.push_back(tin);
-    MELAout << "Extracted input file " << cinput << endl;
+    IVYout << "Extracted input file " << cinput << endl;
   }
 
   TString strChannel, strChannelLabel;
@@ -977,7 +977,7 @@ void makePlots(int do_ee_mumu, bool doOS=true, int doDR0p4=false, bool doRatio=f
       hnames.push_back(hspec.name);
       htitles.push_back(hspec.title);
     }
-    MELAout << "Histogram names: " << hnames << endl;
+    IVYout << "Histogram names: " << hnames << endl;
 
     bool firstHistogram = true;
     int ibin_sb1=1;
@@ -1094,7 +1094,7 @@ void makePlots(int do_ee_mumu, bool doOS=true, int doDR0p4=false, bool doRatio=f
           double int_sb1 = hist->Integral(ibin_sb1, jbin_sb1);
           double int_sb2 = hist->Integral(ibin_sb2, jbin_sb2);
           double int_sr = hist->Integral(ibin_sr, jbin_sr);
-          MELAout << "Integrals[" << it.first << "::" << hist->GetName() << "](sb1, sb2, sb1+sb2, sr, sr/sb1+sb2) = ( " << int_sb1 << ", " << int_sb2 << ", " << int_sb1+int_sb2 << ", " << int_sr << ", " << int_sr/(int_sb1+int_sb2) << " )" << endl;
+          IVYout << "Integrals[" << it.first << "::" << hist->GetName() << "](sb1, sb2, sb1+sb2, sr, sr/sb1+sb2) = ( " << int_sb1 << ", " << int_sb2 << ", " << int_sb1+int_sb2 << ", " << int_sr << ", " << int_sr/(int_sb1+int_sb2) << " )" << endl;
         }
       }
     }
@@ -1234,7 +1234,7 @@ void makePlots(int do_ee_mumu, bool doOS=true, int doDR0p4=false, bool doRatio=f
   }
 
   for (TFile*& finput:finputlist) finput->Close();
-  MELAout.close();
+  IVYout.close();
 }
 
 void makePlots_pTll(int do_ee_mumu, bool doOS=true, bool doSB=false, bool doRatio=false, TString strdate=""){
@@ -1256,20 +1256,20 @@ void makePlots_pTll(int do_ee_mumu, bool doOS=true, bool doSB=false, bool doRati
     TString indexDir = "${CMSSW_BASE}/src/CMSDataTools/AnalysisTree/data/plotting/index.php";
     HostHelpers::ExpandEnvironmentVariables(indexDir);
     if (HostHelpers::FileReadable(indexDir)){
-      MELAout << "Attempting to copy index.php" << endl;
+      IVYout << "Attempting to copy index.php" << endl;
       TString tmpdir = tmplist.at(0) + '/';
       for (size_t idir=1; idir<tmplist.size(); idir++){
         tmpdir = tmpdir + tmplist.at(idir) + '/';
         TString tmpCmd = "cp ~/public_html/index.pages.php ";
         tmpCmd += tmpdir + "index.php";
-        MELAout << "Copying index.php into " << tmpdir << endl;
+        IVYout << "Copying index.php into " << tmpdir << endl;
         HostHelpers::ExecuteCommand(tmpCmd);
       }
     }
   }
 
   TString stroutput_txt = Form("%s/Integrals.txt", coutput_main.Data());
-  MELAout.open(stroutput_txt.Data());
+  IVYout.open(stroutput_txt.Data());
 
 #define BRANCH_COMMANDS \
   BRANCH_COMMAND(float, event_pTmiss) \
@@ -1327,7 +1327,7 @@ void makePlots_pTll(int do_ee_mumu, bool doOS=true, bool doSB=false, bool doRati
 #undef BRANCH_COMMAND
     finputlist.push_back(finput);
     treelist.push_back(tin);
-    MELAout << "Extracted input file " << cinput << endl;
+    IVYout << "Extracted input file " << cinput << endl;
   }
 
   TString strChannel, strChannelLabel;
@@ -1437,7 +1437,7 @@ void makePlots_pTll(int do_ee_mumu, bool doOS=true, bool doSB=false, bool doRati
       hnames.push_back(hspec.name);
       htitles.push_back(hspec.title);
     }
-    MELAout << "Histogram names: " << hnames << endl;
+    IVYout << "Histogram names: " << hnames << endl;
 
     bool firstHistogram = true;
     int ibin_sb1=1;
@@ -1555,7 +1555,7 @@ void makePlots_pTll(int do_ee_mumu, bool doOS=true, bool doSB=false, bool doRati
           double int_sb1 = hist->Integral(ibin_sb1, jbin_sb1);
           double int_sb2 = hist->Integral(ibin_sb2, jbin_sb2);
           double int_sr = hist->Integral(ibin_sr, jbin_sr);
-          MELAout << "Integrals[" << it.first << "::" << hist->GetName() << "](sb1, sb2, sb1+sb2, sr, sr/sb1+sb2) = ( " << int_sb1 << ", " << int_sb2 << ", " << int_sb1+int_sb2 << ", " << int_sr << ", " << int_sr/(int_sb1+int_sb2) << " )" << endl;
+          IVYout << "Integrals[" << it.first << "::" << hist->GetName() << "](sb1, sb2, sb1+sb2, sr, sr/sb1+sb2) = ( " << int_sb1 << ", " << int_sb2 << ", " << int_sb1+int_sb2 << ", " << int_sr << ", " << int_sr/(int_sb1+int_sb2) << " )" << endl;
         }
       }
     }
@@ -1680,7 +1680,7 @@ void makePlots_pTll(int do_ee_mumu, bool doOS=true, bool doSB=false, bool doRati
   }
 
   for (TFile*& finput:finputlist) finput->Close();
-  MELAout.close();
+  IVYout.close();
 }
 
 void makePlots_pTl(int do_ee_mumu, bool doOS=true, bool doSB=false, bool doRatio=false, TString strdate=""){
@@ -1702,20 +1702,20 @@ void makePlots_pTl(int do_ee_mumu, bool doOS=true, bool doSB=false, bool doRatio
     TString indexDir = "${CMSSW_BASE}/src/CMSDataTools/AnalysisTree/data/plotting/index.php";
     HostHelpers::ExpandEnvironmentVariables(indexDir);
     if (HostHelpers::FileReadable(indexDir)){
-      MELAout << "Attempting to copy index.php" << endl;
+      IVYout << "Attempting to copy index.php" << endl;
       TString tmpdir = tmplist.at(0) + '/';
       for (size_t idir=1; idir<tmplist.size(); idir++){
         tmpdir = tmpdir + tmplist.at(idir) + '/';
         TString tmpCmd = "cp ~/public_html/index.pages.php ";
         tmpCmd += tmpdir + "index.php";
-        MELAout << "Copying index.php into " << tmpdir << endl;
+        IVYout << "Copying index.php into " << tmpdir << endl;
         HostHelpers::ExecuteCommand(tmpCmd);
       }
     }
   }
 
   TString stroutput_txt = Form("%s/Integrals.txt", coutput_main.Data());
-  MELAout.open(stroutput_txt.Data());
+  IVYout.open(stroutput_txt.Data());
 
 #define BRANCH_COMMANDS \
   BRANCH_COMMAND(float, event_pTmiss) \
@@ -1773,7 +1773,7 @@ void makePlots_pTl(int do_ee_mumu, bool doOS=true, bool doSB=false, bool doRatio
 #undef BRANCH_COMMAND
     finputlist.push_back(finput);
     treelist.push_back(tin);
-    MELAout << "Extracted input file " << cinput << endl;
+    IVYout << "Extracted input file " << cinput << endl;
   }
 
   TString strChannel, strChannelLabel;
@@ -1885,7 +1885,7 @@ void makePlots_pTl(int do_ee_mumu, bool doOS=true, bool doSB=false, bool doRatio
       hnames.push_back(hspec.name);
       htitles.push_back(hspec.title);
     }
-    MELAout << "Histogram names: " << hnames << endl;
+    IVYout << "Histogram names: " << hnames << endl;
 
     bool firstHistogram = true;
     int ibin_sb1=1;
@@ -2002,7 +2002,7 @@ void makePlots_pTl(int do_ee_mumu, bool doOS=true, bool doSB=false, bool doRatio
           double int_sb1 = hist->Integral(ibin_sb1, jbin_sb1);
           double int_sb2 = hist->Integral(ibin_sb2, jbin_sb2);
           double int_sr = hist->Integral(ibin_sr, jbin_sr);
-          MELAout << "Integrals[" << it.first << "::" << hist->GetName() << "](sb1, sb2, sb1+sb2, sr, sr/sb1+sb2) = ( " << int_sb1 << ", " << int_sb2 << ", " << int_sb1+int_sb2 << ", " << int_sr << ", " << int_sr/(int_sb1+int_sb2) << " )" << endl;
+          IVYout << "Integrals[" << it.first << "::" << hist->GetName() << "](sb1, sb2, sb1+sb2, sr, sr/sb1+sb2) = ( " << int_sb1 << ", " << int_sb2 << ", " << int_sb1+int_sb2 << ", " << int_sr << ", " << int_sr/(int_sb1+int_sb2) << " )" << endl;
         }
       }
     }
@@ -2127,5 +2127,5 @@ void makePlots_pTl(int do_ee_mumu, bool doOS=true, bool doSB=false, bool doRatio
   }
 
   for (TFile*& finput:finputlist) finput->Close();
-  MELAout.close();
+  IVYout.close();
 }

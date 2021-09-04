@@ -1,7 +1,7 @@
 #include <cassert>
 #include "common_includes.h"
 #include "OffshellCutflow.h"
-#include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
+#include <IvyFramework/IvyAutoMELA/interface/IvyMELAHelpers.h>
 #include <MelaAnalytics/CandidateLOCaster/interface/MELACandidateRecaster.h>
 #include <MelaAnalytics/EventContainer/interface/HiggsComparators.h>
 #include <MelaAnalytics/EventContainer/interface/TopComparators.h>
@@ -50,7 +50,7 @@
 
 namespace LooperFunctionHelpers{
   using namespace std;
-  using namespace MELAStreamHelpers;
+  using namespace IvyStreamHelpers;
   using namespace OffshellCutflow;
 
   bool recastLHETopology = false;
@@ -104,7 +104,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   auto it_extWgt = extWgt.find(theGlobalSyst);
   if (it_extWgt==extWgt.cend()) it_extWgt = extWgt.find(SystematicsHelpers::nSystematicVariations);
   if (it_extWgt==extWgt.cend()){
-    MELAerr << "LooperFunctionHelpers::looperRule: External normalization map does not have a proper weight assigned!" << endl;
+    IVYerr << "LooperFunctionHelpers::looperRule: External normalization map does not have a proper weight assigned!" << endl;
     assert(0);
   }
   double const& extWgt_central = it_extWgt->second;
@@ -271,7 +271,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
         MELAParticle* bestAV = MELACandidateRecaster::getBestAssociatedV(genCand, candScheme);
         if (bestAV) recaster->deduceLOVHTopology(candModified);
         else{
-          MELAerr << "ERROR: No associated V can be found in the VH recasting scheme." << endl;
+          IVYerr << "ERROR: No associated V can be found in the VH recasting scheme." << endl;
           exit(1);
         }
       }
@@ -339,7 +339,7 @@ PhysicsProcessHandler* getPhysicsProcessHandler(TString strSampleSet, ACHypothes
   else if (strSampleSet.Contains("ZH")) res = new VVProcessHandler(dktype, kProcess_ZH);
   else if (strSampleSet.Contains("WminusH") || strSampleSet.Contains("WplusH")) res = new VVProcessHandler(dktype, kProcess_WH);
   else{
-    MELAerr << "getPhysicsProcessHandler: Cannot identify process " << strSampleSet;
+    IVYerr << "getPhysicsProcessHandler: Cannot identify process " << strSampleSet;
     assert(0);
   }
   return res;
@@ -355,7 +355,7 @@ void produceReweightedGen(
   if (!SampleHelpers::checkRunOnCondor()) std::signal(SIGINT, SampleHelpers::setSignalInterrupt);
 
   if (strSampleSet.Contains("/MINIAOD")){
-    MELAerr << "Processing single samples is not the design goal of produceReweightingRecords." << endl;
+    IVYerr << "Processing single samples is not the design goal of produceReweightingRecords." << endl;
     return;
   }
 
@@ -416,7 +416,7 @@ void produceReweightedGen(
   TFile* foutput = TFile::Open(stroutput, "recreate");
   foutput->cd();
   BaseTree* tout = new BaseTree("SkimTree");
-  MELAout << "Created output file " << stroutput << "..." << endl;
+  IVYout << "Created output file " << stroutput << "..." << endl;
   curdir->cd();
 
   // Declare handlers
@@ -463,7 +463,7 @@ void produceReweightedGen(
       }
     }
   }
-  MELAout << "Reweighting bin boundaries: " << binning_rewgt.getBinningVector() << endl;
+  IVYout << "Reweighting bin boundaries: " << binning_rewgt.getBinningVector() << endl;
   BulkReweightingBuilder rewgtBuilder(
     binning_rewgt,
     { "LHECandMass" },
@@ -512,10 +512,10 @@ void produceReweightedGen(
   std::vector<BaseTree*> sample_trees; sample_trees.reserve(sampledirs.size());
   for (auto const& sname:sampledirs){
     TString strinput = SampleHelpers::getDatasetFileName(sname);
-    MELAout << "Acquiring " << sname << " from input file(s) " << strinput << "..." << endl;
+    IVYout << "Acquiring " << sname << " from input file(s) " << strinput << "..." << endl;
     BaseTree* sample_tree = new BaseTree(strinput, "cms3ntuple/Events", "", ""); sample_trees.push_back(sample_tree);
     if (!sample_tree->isValid()){
-      MELAerr << "\t- Tree is invalid. Aborting..." << endl;
+      IVYerr << "\t- Tree is invalid. Aborting..." << endl;
       delete sample_tree;
       for (auto& ss:sample_trees) delete ss;
       allTreesValid = false;
@@ -553,7 +553,7 @@ void produceReweightedGen(
 
       // Get sum of weights
       {
-        MELAout << "No counters histograms are found. Initiation loop over " << nEntries << " events to determine the sample normalization:" << endl;
+        IVYout << "No counters histograms are found. Initiation loop over " << nEntries << " events to determine the sample normalization:" << endl;
 
         genInfoHandler.wrapTree(sample_tree);
 
@@ -595,11 +595,11 @@ void produceReweightedGen(
     }
     std::unordered_map<SystematicsHelpers::SystematicVariationTypes, double> globalWeights;
     double globalWeight = xsec * xsec_scale * BR_scale / sum_wgts_raw_withveto; globalWeights[theGlobalSyst] = globalWeight;
-    MELAout << "Sample " << sample_tree->sampleIdentifier << " has a gen. weight sum of " << sum_wgts_raw_withveto << "." << endl;
-    MELAout << "\t- Raw xsec = " << xsec << endl;
-    MELAout << "\t- xsec scale * BR scale = " << xsec_scale * BR_scale << endl;
-    MELAout << "\t- xsec * BR = " << xsec * xsec_scale * BR_scale << endl;
-    MELAout << "\t- Global weight = " << globalWeight << endl;
+    IVYout << "Sample " << sample_tree->sampleIdentifier << " has a gen. weight sum of " << sum_wgts_raw_withveto << "." << endl;
+    IVYout << "\t- Raw xsec = " << xsec << endl;
+    IVYout << "\t- xsec scale * BR scale = " << xsec_scale * BR_scale << endl;
+    IVYout << "\t- xsec * BR = " << xsec * xsec_scale * BR_scale << endl;
+    IVYout << "\t- Global weight = " << globalWeight << endl;
 
     // Reset gen. and LHE particle settings, and book those branches as well
     {
@@ -615,12 +615,12 @@ void produceReweightedGen(
     }
 
     // Register tree
-    MELAout << "\t- Registering the sample for reweighting..." << endl;
+    IVYout << "\t- Registering the sample for reweighting..." << endl;
     rewgtBuilder.registerTree(sample_tree, xsec_scale * BR_scale / sum_wgts_raw_withveto);
 
     sample_tree->silenceUnused();
 
-    MELAout << "\t- Registering the sample to the looper..." << endl;
+    IVYout << "\t- Registering the sample to the looper..." << endl;
     // Add the input tree to the looper
     theLooper.addTree(sample_tree, globalWeights);
   }
@@ -632,7 +632,7 @@ void produceReweightedGen(
     float const sampleMH = SampleHelpers::findPoleMass(sample_tree->sampleIdentifier);
     if ((tree_MH125 && sampleMH>SampleHelpers::findPoleMass(tree_MH125->sampleIdentifier) && sampleMH<160.f) || (tree_MHLowestOffshell && sampleMH>SampleHelpers::findPoleMass(tree_MHLowestOffshell->sampleIdentifier))){
       tree_normTree_pairs.emplace_back(sample_trees.at(itree), sample_trees.at(itree-1));
-      MELAout << "Normalizing mass " << sampleMH << " to mass " << SampleHelpers::findPoleMass(sample_trees.at(itree-1)->sampleIdentifier) << endl;
+      IVYout << "Normalizing mass " << sampleMH << " to mass " << SampleHelpers::findPoleMass(sample_trees.at(itree-1)->sampleIdentifier) << endl;
     }
   }
 
@@ -672,7 +672,7 @@ void makePlots(TString strSampleSet, TString period, TString strdate){
 
   bool const isGG = strSampleSet.Contains("GluGluH") || strSampleSet.Contains("GGH");
   //bool isVVVV = strSampleSet.Contains("VBF") || strSampleSet.Contains("ZH") || strSampleSet.Contains("WminusH") || strSampleSet.Contains("WplusH");
-  MELAout << "Sample is " << (isGG ? "a gg" : "an EW") << " sample." << endl;
+  IVYout << "Sample is " << (isGG ? "a gg" : "an EW") << " sample." << endl;
 
   // Set output directory
   TString cinput_main = "output/ReweightedGenTrees/" + strdate + "/" + period;
@@ -691,14 +691,14 @@ void makePlots(TString strSampleSet, TString period, TString strdate){
   stroutput += Form("_%s", SystematicsHelpers::getSystName(theGlobalSyst).data());
   stroutput += ".root";
   TFile* foutput = TFile::Open(stroutput, "recreate");
-  MELAout << "Created output file " << stroutput << "..." << endl;
+  IVYout << "Created output file " << stroutput << "..." << endl;
   foutput->cd();
   
   TString strinput = cinput_main + "/" + coutput + "_" + SystematicsHelpers::getSystName(theGlobalSyst).data() + ".root";
-  MELAout << "Acquiring input " << strinput << "..." << endl;
+  IVYout << "Acquiring input " << strinput << "..." << endl;
   BaseTree* tin = new BaseTree(strinput, "SkimTree", "", "");
   if (!tin->isValid()){
-    MELAerr << "\t- Failed to acquire." << endl;
+    IVYerr << "\t- Failed to acquire." << endl;
     delete tin;
     foutput->Close();
     exit(1);
@@ -749,15 +749,15 @@ void makePlots(TString strSampleSet, TString period, TString strdate){
 
   bool hasError = false;
   if (!val_ME_SIG){
-    MELAerr << "val_ME_SIG is null!" << endl;
+    IVYerr << "val_ME_SIG is null!" << endl;
     hasError = true;
   }
   if (!val_ME_CPS){
-    MELAerr << "val_ME_CPS is null!" << endl;
+    IVYerr << "val_ME_CPS is null!" << endl;
     hasError = true;
   }
   if (isGG && !val_Kfactor_QCD){
-    MELAerr << "val_Kfactor_QCD is null!" << endl;
+    IVYerr << "val_Kfactor_QCD is null!" << endl;
     hasError = true;
   }
   if (hasError){
@@ -841,7 +841,7 @@ void makePlots(TString strSampleSet, TString period, TString strdate){
   float sum_wgts_hasHardPhotons = 0;
   int n_printouts = -1;
   int nEntries = tin->getNEvents();
-  MELAout << "Looping over " << nEntries << " events:" << endl;
+  IVYout << "Looping over " << nEntries << " events:" << endl;
   for (int ev=0; ev<nEntries; ev++){
     tin->getEvent(ev);
     HelperFunctions::progressbar(ev, nEntries);
@@ -873,7 +873,7 @@ void makePlots(TString strSampleSet, TString period, TString strdate){
 
     if (genleptons_selected.size()!=4){
       if (n_printouts>=0 && n_printouts<100){
-        MELAout << "Event " << ev << " is rejected because it has " << genleptons_selected.size() << " leptons." << endl;
+        IVYout << "Event " << ev << " is rejected because it has " << genleptons_selected.size() << " leptons." << endl;
         n_printouts++;
       }
       if (genleptons_selected.size()<4) sum_wgts_rejected_Nleptons_lt_4 += wgt;
@@ -882,7 +882,7 @@ void makePlots(TString strSampleSet, TString period, TString strdate){
     }
     if (sumid_genleptons_selected!=0){
       if (n_printouts>=0 && n_printouts<100){
-        MELAout << "Event " << ev << " is rejected because it doesn't have a proper ZZ candidate." << endl;
+        IVYout << "Event " << ev << " is rejected because it doesn't have a proper ZZ candidate." << endl;
         n_printouts++;
       }
       sum_wgts_rejected_noZZ += wgt;
@@ -945,12 +945,12 @@ void makePlots(TString strSampleSet, TString period, TString strdate){
     }
   }
 
-  MELAout << "Sum of weights: " << sum_wgts << endl;
-  MELAout << "\t- Fraction of events accepted: " << sum_wgts_accepted / sum_wgts << endl;
-  MELAout << "\t- Fraction of events rejected because selected number of leptons < 4: " << sum_wgts_rejected_Nleptons_lt_4 / sum_wgts << endl;
-  MELAout << "\t- Fraction of events rejected because selected number of leptons > 4: " << sum_wgts_rejected_Nleptons_gt_4 / sum_wgts << endl;
-  MELAout << "\t- Fraction of events rejected because no ZZ candidate can be constructed: " << sum_wgts_rejected_noZZ / sum_wgts << endl;
-  MELAout << "\t- Fraction of accepted events with at least one hard photon: " << sum_wgts_hasHardPhotons / sum_wgts_accepted << endl;
+  IVYout << "Sum of weights: " << sum_wgts << endl;
+  IVYout << "\t- Fraction of events accepted: " << sum_wgts_accepted / sum_wgts << endl;
+  IVYout << "\t- Fraction of events rejected because selected number of leptons < 4: " << sum_wgts_rejected_Nleptons_lt_4 / sum_wgts << endl;
+  IVYout << "\t- Fraction of events rejected because selected number of leptons > 4: " << sum_wgts_rejected_Nleptons_gt_4 / sum_wgts << endl;
+  IVYout << "\t- Fraction of events rejected because no ZZ candidate can be constructed: " << sum_wgts_rejected_noZZ / sum_wgts << endl;
+  IVYout << "\t- Fraction of accepted events with at least one hard photon: " << sum_wgts_hasHardPhotons / sum_wgts_accepted << endl;
 
   for (auto& hh:hlist_genmass){
     HelperFunctions::divideBinWidth(&hh);

@@ -4,13 +4,13 @@
 #include "BtagScaleFactorHandler.h"
 #include "AK4JetSelectionHelpers.h"
 #include "ParticleSelectionHelpers.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
 using namespace SampleHelpers;
 using namespace BtagHelpers;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 BtagScaleFactorHandler::BtagScaleFactorHandler() : ScaleFactorHandlerBase()
@@ -23,7 +23,7 @@ BtagScaleFactorHandler::~BtagScaleFactorHandler(){ this->reset(); }
 void BtagScaleFactorHandler::evalEfficiencyFromHistogram(float& theSF, float const& pt, float const& eta, ExtendedHistogram_2D_f const& hist, bool etaOnY, bool useAbsEta) const{
   TH2F const* hh = hist.getHistogram();
   if (!hh){
-    MELAerr << "BtagScaleFactorHandler::evalScaleFactorFromHistogram: Histogram is null." << endl;
+    IVYerr << "BtagScaleFactorHandler::evalScaleFactorFromHistogram: Histogram is null." << endl;
     return;
   }
 
@@ -56,7 +56,7 @@ bool BtagScaleFactorHandler::setup(){
   bool res = true;
   this->reset();
 
-  if (verbosity>=TVar::INFO) MELAout << "BtagScaleFactorHandler::setup: Setting up efficiency and SF histograms for year " << SampleHelpers::getDataYear() << endl;
+  if (verbosity>=MiscUtils::INFO) IVYout << "BtagScaleFactorHandler::setup: Setting up efficiency and SF histograms for year " << SampleHelpers::getDataYear() << endl;
 
   TDirectory* curdir = gDirectory;
   TDirectory* uppermostdir = SampleHelpers::rootTDirectory;
@@ -97,7 +97,7 @@ bool BtagScaleFactorHandler::setup(){
       calibration = WP_calib_map[kDeepFlav_Loose];
       break;
     default:
-      MELAerr << "BtagScaleFactorHandler::setup: No operating point implementation for b tag WP " << type << ". Aborting..." << endl;
+      IVYerr << "BtagScaleFactorHandler::setup: No operating point implementation for b tag WP " << type << ". Aborting..." << endl;
       assert(0);
       break;
     }
@@ -122,7 +122,7 @@ bool BtagScaleFactorHandler::setup(){
   std::vector< std::pair<BTagEntry::JetFlavor, TString> > const flavpairs{ { BTagEntry::FLAV_B, "b" }, { BTagEntry::FLAV_C, "c" }, { BTagEntry::FLAV_UDSG, "udsg" } };
   std::vector<TString> const strpujetidcats{ "T", "MnT", "LnM", "F" };
   TFile* finput_eff = TFile::Open(BtagHelpers::getBtagEffFileName(), "read"); uppermostdir->cd();
-  if (verbosity>=TVar::INFO) MELAout << "BtagScaleFactorHandler::setup: Reading " << finput_eff->GetName() << " to acquire efficiency histograms..." << endl;
+  if (verbosity>=MiscUtils::INFO) IVYout << "BtagScaleFactorHandler::setup: Reading " << finput_eff->GetName() << " to acquire efficiency histograms..." << endl;
   {
     ExtendedHistogram_2D_f empty_hist; empty_hist.reset();
     TString hname;
@@ -138,9 +138,9 @@ bool BtagScaleFactorHandler::setup(){
           for (int iwp=0; iwp<(int) nBtagWPTypes; iwp++){
             BtagWPType wptype = (BtagWPType) iwp;
             hname = BtagHelpers::getBtagEffHistName(wptype, strflav.Data()); hname = hname + "_PUJetId_" + strpujetidcat + "_" + systname;
-            if (verbosity>=TVar::DEBUG) MELAout << "\t- Extracting MC efficiency histogram " << hname << "..." << endl;
+            if (verbosity>=MiscUtils::DEBUG) IVYout << "\t- Extracting MC efficiency histogram " << hname << "..." << endl;
             bool tmpres = getHistogram<TH2F, ExtendedHistogram_2D_f>(syst_flav_pujetid_WP_mceffhist_map[syst][jflav].at(ipujetidwp).at(iwp), finput_eff, hname);
-            if (!tmpres && verbosity>=TVar::DEBUG) MELAerr << "\t\t- FAILED!" << endl;
+            if (!tmpres && verbosity>=MiscUtils::DEBUG) IVYerr << "\t\t- FAILED!" << endl;
             res &= tmpres;
           }
         }
@@ -204,7 +204,7 @@ void BtagScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariation
 
   val = 1;
 
-  if (this->verbosity>=TVar::DEBUG) MELAout
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout
     << "BtagScaleFactorHandler::getSFAndEff: Calling for jet (pt, eta, PU jet id cat, flav, btagval) = ("
     << pt << ", " << eta << ", " << pujetidcat << ", " << flav << ", " << btagval << "):"
     << endl;
@@ -268,7 +268,7 @@ void BtagScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariation
     break;
   }
   default:
-    MELAerr << "BtagScaleFactorHandler::getSFAndEff: b tag calibration readers are not implemented." << endl;
+    IVYerr << "BtagScaleFactorHandler::getSFAndEff: b tag calibration readers are not implemented." << endl;
     assert(0);
     break;
   }
@@ -295,15 +295,15 @@ void BtagScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariation
     if (btagval>=btagwps.at(iwp)){
       tmp_eff_unscaled *= effs_unscaled.at(iwp);
       tmp_eff_scaled *= effs_scaled.at(iwp);
-      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Passed";
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "\t- Passed";
     }
     else{
       tmp_eff_unscaled *= 1.f - effs_unscaled.at(iwp);
       tmp_eff_scaled *= 1.f - effs_scaled.at(iwp);
       doContinue = false;
-      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Failed";
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "\t- Failed";
     }
-    if (this->verbosity>=TVar::DEBUG) MELAout << " WP " << iwp << " with unscaled, scaled effs = " << tmp_eff_unscaled << ", " << tmp_eff_scaled << endl;
+    if (this->verbosity>=MiscUtils::DEBUG) IVYout << " WP " << iwp << " with unscaled, scaled effs = " << tmp_eff_unscaled << ", " << tmp_eff_scaled << endl;
     eff_unscaled *= tmp_eff_unscaled;
     eff_scaled *= tmp_eff_scaled;
     if (!doContinue) break;
@@ -312,13 +312,13 @@ void BtagScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariation
   val = (eff_unscaled>0.f ? eff_scaled / eff_unscaled : 0.f);
   if (effval) *effval = (val>0.f ? eff_scaled : 0.f);
 
-  if (this->verbosity>=TVar::DEBUG){
-    MELAout << "\t- WPs: " << btagwps << endl;
-    MELAout << "\t- Unscaled effs: " << effs_unscaled << endl;
-    MELAout << "\t- Scaled effs: " << effs_scaled << endl;
-    MELAout << "\t- SFs: " << SFs << endl;
-    MELAout << "\t- Final SF: " << val << endl;
-    MELAout << "\t- Final eff: " << eff_scaled << endl;
+  if (this->verbosity>=MiscUtils::DEBUG){
+    IVYout << "\t- WPs: " << btagwps << endl;
+    IVYout << "\t- Unscaled effs: " << effs_unscaled << endl;
+    IVYout << "\t- Scaled effs: " << effs_scaled << endl;
+    IVYout << "\t- SFs: " << SFs << endl;
+    IVYout << "\t- Final SF: " << val << endl;
+    IVYout << "\t- Final eff: " << eff_scaled << endl;
   }
 }
 void BtagScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, AK4JetObject const* obj, float& val, float* effval) const{

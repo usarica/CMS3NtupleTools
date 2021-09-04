@@ -51,7 +51,8 @@ template<> bool ParticleSelectionHelpers::is##TYPE##Particle(ParticleObject cons
   else if (electron) return is##TYPE##Particle(electron); \
   else if (photon) return is##TYPE##Particle(photon); \
   else return false; \
-}
+} \
+template<> bool ParticleSelectionHelpers::is##TYPE##Particle(IvyParticle const* part){ return is##TYPE##Particle(dynamic_cast<ParticleObject const*>(part)); }
 SELECTION_TYPES;
 #undef SELECTION_TYPE
 #undef SELECTION_TYPES
@@ -65,6 +66,7 @@ template<> bool ParticleSelectionHelpers::isFSRSuitable<ParticleObject>(Particle
   else if (electron) return isFSRSuitable(electron);
   else return false;
 }
+template<> bool ParticleSelectionHelpers::isFSRSuitable<IvyParticle>(IvyParticle const* part){ return isFSRSuitable(dynamic_cast<ParticleObject const*>(part)); }
 template<> bool ParticleSelectionHelpers::isFSRSuitable<MuonObject>(MuonObject const* part){ return part->testSelectionBit(MuonSelectionHelpers::kPreselectionLoose_NoIso); }
 template<> bool ParticleSelectionHelpers::isFSRSuitable<ElectronObject>(ElectronObject const* part){ return part->testSelectionBit(ElectronSelectionHelpers::kPreselectionLoose_NoIso); }
 

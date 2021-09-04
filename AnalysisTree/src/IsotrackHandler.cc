@@ -8,11 +8,11 @@
 #include "MuonSelectionHelpers.h"
 #include "ElectronSelectionHelpers.h"
 #include "ParticleSelectionHelpers.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 #define VECTOR_ITERATOR_HANDLER_DIRECTIVES \
@@ -50,11 +50,11 @@ bool IsotrackHandler::constructIsotracks(std::vector<MuonObject*> const* muons, 
 #undef ISOTRACK_VARIABLE
 
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "IsotrackHandler::constructIsotracks: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "IsotrackHandler::constructIsotracks: Not all variables are consumed properly!" << endl;
     assert(0);
   }
 
-  if (this->verbosity>=TVar::DEBUG) MELAout << "IsotrackHandler::constructIsotracks: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "IsotrackHandler::constructIsotracks: All variables are set up!" << endl;
 
   if (itBegin_id == itEnd_id) return true; // Construction is successful, it is just that no isotracks exist.
 
@@ -66,7 +66,7 @@ bool IsotrackHandler::constructIsotracks(std::vector<MuonObject*> const* muons, 
   {
     size_t ip=0;
     while (it_id != itEnd_id){
-      if (this->verbosity>=TVar::DEBUG) MELAout << "IsotrackHandler::constructIsotracks: Attempting isotrack " << ip << "..." << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "IsotrackHandler::constructIsotracks: Attempting isotrack " << ip << "..." << endl;
 
       ParticleObject::LorentzVector_t momentum;
       momentum = ParticleObject::PolarLorentzVector_t(*it_pt, *it_eta, *it_phi, *it_mass); // Yes you have to do this on a separate line because CMSSW...
@@ -81,7 +81,7 @@ bool IsotrackHandler::constructIsotracks(std::vector<MuonObject*> const* muons, 
       // Set the selection bits
       IsotrackSelectionHelpers::setSelectionBits(*obj);
 
-      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "\t- Success!" << endl;
 
       ip++;
 #define ISOTRACK_VARIABLE(TYPE, NAME, DEFVAL) it_##NAME++;

@@ -2,13 +2,13 @@
 #include <chrono>
 #include "common_includes.h"
 #include "OffshellCutflow.h"
-#include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
+#include <IvyFramework/IvyAutoMELA/interface/IvyMELAHelpers.h>
 #include "TStyle.h"
 
 
 namespace LooperFunctionHelpers{
   using namespace std;
-  using namespace MELAStreamHelpers;
+  using namespace IvyStreamHelpers;
   using namespace OffshellCutflow;
 
   bool looperRule(BaseTreeLooper*, std::unordered_map<SystematicsHelpers::SystematicVariationTypes, double> const&, SimpleEntry&);
@@ -89,7 +89,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   SystematicsHelpers::SystematicVariationTypes const& theGlobalSyst = theLooper->getSystematic();
   ParticleDisambiguator& particleDisambiguator = theLooper->getParticleDisambiguator();
   DileptonHandler& dileptonHandler = theLooper->getDileptonHandler();
-  CMS3MELAHelpers::GMECBlock& MEblock = theLooper->getMEblock();
+  IvyMELAHelpers::GMECBlock& MEblock = theLooper->getMEblock();
 
   // Acquire sample flags
   bool const& isData = theLooper->getCurrentTreeFlag_IsData();
@@ -105,7 +105,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   bool hasSimpleHLTMenus = theLooper->hasSimpleHLTMenus();
   bool hasHLTMenuProperties = theLooper->hasHLTMenuProperties();
   if (hasSimpleHLTMenus && hasHLTMenuProperties){
-    MELAerr << "LooperFunctionHelpers::looperRule: Defining both simple HLT menus and menus with properties is not allowed. Choose only one!" << endl;
+    IVYerr << "LooperFunctionHelpers::looperRule: Defining both simple HLT menus and menus with properties is not allowed. Choose only one!" << endl;
     assert(0);
   }
   auto it_HLTMenuSimple_SingleLepton = triggerCheckListMap.find("SingleLepton");
@@ -115,7 +115,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     ||
     (hasHLTMenuProperties && it_HLTMenuProps_SingleLepton == triggerPropsCheckListMap.cend())
     ){
-    MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'SingleLepton' has to be defined in this looper rule!" << endl;
+    IVYerr << "LooperFunctionHelpers::looperRule: The trigger type 'SingleLepton' has to be defined in this looper rule!" << endl;
     assert(0);
   }
   auto it_HLTMenuSimple_Dilepton_DF = triggerCheckListMap.find("Dilepton_DF");
@@ -125,7 +125,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     ||
     (hasHLTMenuProperties && it_HLTMenuProps_Dilepton_DF == triggerPropsCheckListMap.cend())
     ){
-    MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'Dilepton_DF' has to be defined in this looper rule!" << endl;
+    IVYerr << "LooperFunctionHelpers::looperRule: The trigger type 'Dilepton_DF' has to be defined in this looper rule!" << endl;
     assert(0);
   }
   auto it_HLTMenuSimple_Dilepton_DF_Extra = triggerCheckListMap.find("Dilepton_DF_Extra");
@@ -135,7 +135,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     ||
     (hasHLTMenuProperties && it_HLTMenuProps_Dilepton_DF_Extra == triggerPropsCheckListMap.cend())
     ){
-    MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'Dilepton_DF_Extra' has to be defined in this looper rule!" << endl;
+    IVYerr << "LooperFunctionHelpers::looperRule: The trigger type 'Dilepton_DF_Extra' has to be defined in this looper rule!" << endl;
     assert(0);
   }
   auto it_HLTMenuSimple_Dilepton_SF = triggerCheckListMap.find("Dilepton_SF");
@@ -145,7 +145,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     ||
     (hasHLTMenuProperties && it_HLTMenuProps_Dilepton_SF == triggerPropsCheckListMap.cend())
     ){
-    MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'Dilepton_SF' has to be defined in this looper rule!" << endl;
+    IVYerr << "LooperFunctionHelpers::looperRule: The trigger type 'Dilepton_SF' has to be defined in this looper rule!" << endl;
     assert(0);
   }
   auto it_HLTMenuSimple_PFHT_Control = triggerCheckListMap.find("PFHT_Control");
@@ -155,7 +155,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     ||
     (hasHLTMenuProperties && it_HLTMenuProps_PFHT_Control == triggerPropsCheckListMap.cend())
     ){
-    MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'PFHT_Control' has to be defined in this looper rule!" << endl;
+    IVYerr << "LooperFunctionHelpers::looperRule: The trigger type 'PFHT_Control' has to be defined in this looper rule!" << endl;
     assert(0);
   }
   auto it_HLTMenuSimple_PFMET_MHT_Control = triggerCheckListMap.find("PFMET_MHT_Control");
@@ -165,7 +165,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     ||
     (hasHLTMenuProperties && it_HLTMenuProps_PFMET_MHT_Control == triggerPropsCheckListMap.cend())
     ){
-    MELAerr << "LooperFunctionHelpers::looperRule: The trigger type 'PFMET_MHT_Control' has to be defined in this looper rule!" << endl;
+    IVYerr << "LooperFunctionHelpers::looperRule: The trigger type 'PFMET_MHT_Control' has to be defined in this looper rule!" << endl;
     assert(0);
   }
 
@@ -190,7 +190,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
 #undef HANDLER_DIRECTIVE
 #define HANDLER_DIRECTIVE(TYPE, NAME) \
   if (!NAME){ \
-    MELAerr << "LooperFunctionHelpers::looperRule: " << #TYPE << " " << #NAME << " is not registered. Please register and re-run." << endl; \
+    IVYerr << "LooperFunctionHelpers::looperRule: " << #TYPE << " " << #NAME << " is not registered. Please register and re-run." << endl; \
     assert(0); \
   }
   OBJECT_HANDLER_COMMON_DIRECTIVES;
@@ -338,7 +338,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   auto it_extWgt = extWgt.find(theGlobalSyst);
   if (it_extWgt==extWgt.cend()) it_extWgt = extWgt.find(SystematicsHelpers::nSystematicVariations);
   if (it_extWgt==extWgt.cend()){
-    MELAerr << "LooperFunctionHelpers::looperRule: External normalization map does not have a proper weight assigned!" << endl;
+    IVYerr << "LooperFunctionHelpers::looperRule: External normalization map does not have a proper weight assigned!" << endl;
     assert(0);
   }
   double const& extWgt_central = it_extWgt->second;
@@ -881,12 +881,12 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     SimpleParticleCollection_t associated;
     for (auto const& jet:ak4jets_tight) associated.push_back(SimpleParticle_t(0, ParticleObjectHelpers::convertCMSLorentzVectorToTLorentzVector(jet->p4())));
 
-    CMS3MELAHelpers::melaHandle->setCandidateDecayMode(TVar::CandidateDecay_Stable);
-    CMS3MELAHelpers::melaHandle->setInputEvent(&daughters, &associated, nullptr, false);
+    IvyMELAHelpers::melaHandle->setCandidateDecayMode(TVar::CandidateDecay_Stable);
+    IvyMELAHelpers::melaHandle->setInputEvent(&daughters, &associated, nullptr, false);
     MEblock.computeMELABranches();
     MEblock.pushMELABranches();
 
-    CMS3MELAHelpers::melaHandle->resetInputEvent();
+    IvyMELAHelpers::melaHandle->resetInputEvent();
   }
   else{
     MEblock.computeMELABranches();
@@ -1038,7 +1038,7 @@ void getTrees(
     eL1PrefiringDn, eL1PrefiringUp
   };
   if (HelperFunctions::checkListVariable(disallowedSysts, theGlobalSyst)){
-    MELAout << "Systematic type " << systName << " is not allowed because the set of weights already cover it." << endl;
+    IVYout << "Systematic type " << systName << " is not allowed because the set of weights already cover it." << endl;
     return;
   }
 
@@ -1145,7 +1145,7 @@ void getTrees(
   TFile* foutput = TFile::Open(stroutput, "recreate");
   foutput->cd();
   BaseTree* tout = new BaseTree("SkimTree");
-  MELAout << "Created output file " << stroutput << "..." << endl;
+  IVYout << "Created output file " << stroutput << "..." << endl;
   curdir->cd();
 
   // Declare handlers
@@ -1269,11 +1269,11 @@ void getTrees(
   std::vector<BaseTree*> sample_trees; sample_trees.reserve(sampledirs.size());
   for (auto const& sname:sampledirs){
     TString strdsetfname = SampleHelpers::getDatasetFileName(sname);
-    MELAout << "=> Accessing the input trees from " << strdsetfname << "..." << endl;
+    IVYout << "=> Accessing the input trees from " << strdsetfname << "..." << endl;
     BaseTree* sample_tree = new BaseTree(strdsetfname, (useSkims ? "cms3ntuple/Dilepton" : "cms3ntuple/Events"), "", ""); sample_trees.push_back(sample_tree);
     sample_tree->sampleIdentifier = SampleHelpers::getSampleIdentifier(sname);
     float const sampleMH = SampleHelpers::findPoleMass(sample_tree->sampleIdentifier);
-    MELAout << "\t- Sample identifier (is data ? " << isData << "): " << sample_tree->sampleIdentifier << endl;
+    IVYout << "\t- Sample identifier (is data ? " << isData << "): " << sample_tree->sampleIdentifier << endl;
 
     std::vector<TString> allbranchnames; sample_tree->getValidBranchNamesWithoutAlias(allbranchnames, false);
 
@@ -1327,7 +1327,7 @@ void getTrees(
         for (unsigned int iperiod=0; iperiod<nValidDataPeriods; iperiod++){
           if (validDataPeriods.at(iperiod)==SampleHelpers::theDataPeriod){ bin_period += iperiod+1; break; }
         }
-        MELAout << "Checking counters histogram bin (" << bin_syst << ", " << bin_period << ") to obtain the sum of weights if the counters histogram exists..." << endl;
+        IVYout << "Checking counters histogram bin (" << bin_syst << ", " << bin_period << ") to obtain the sum of weights if the counters histogram exists..." << endl;
         for (auto const& fname:inputfilenames){
           TFile* ftmp = TFile::Open(fname, "read");
           TH2D* hCounters = (TH2D*) ftmp->Get("cms3ntuple/Counters");
@@ -1336,7 +1336,7 @@ void getTrees(
             sum_wgts = sum_wgts_PUDn = sum_wgts_PUUp = 0;
             break;
           }
-          MELAout << "\t- Successfully found the counters histogram in " << fname << endl;
+          IVYout << "\t- Successfully found the counters histogram in " << fname << endl;
           sum_wgts += hCounters->GetBinContent(bin_syst, bin_period);
           sum_wgts_PUDn += hCounters->GetBinContent(2, bin_period);
           sum_wgts_PUUp += hCounters->GetBinContent(3, bin_period);
@@ -1344,14 +1344,14 @@ void getTrees(
           sum_wgts_raw_noveto += hCounters->GetBinContent(0, 0) / (1. - hCounters->GetBinContent(0, 1));
           ftmp->Close();
         }
-        if (hasCounters) MELAout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
+        if (hasCounters) IVYout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
       }
       if (!hasCounters && useSkims){
-        MELAerr << "Skims should have contained counters histograms!" << endl;
+        IVYerr << "Skims should have contained counters histograms!" << endl;
         assert(0);
       }
       if (!hasCounters){
-        MELAout << "No counters histograms are found. Initiation loop over " << nEntries << " events to determine the sample normalization:" << endl;
+        IVYout << "No counters histograms are found. Initiation loop over " << nEntries << " events to determine the sample normalization:" << endl;
 
         simEventHandler.wrapTree(sample_tree);
         genInfoHandler.wrapTree(sample_tree);
@@ -1414,13 +1414,13 @@ void getTrees(
     double globalWeight = xsec * xsec_scale * BR_scale * (isData ? 1.f : lumi) / sum_wgts; globalWeights[theGlobalSyst] = globalWeight;
     double globalWeight_PUDn = xsec * xsec_scale * BR_scale * (isData ? 1.f : lumi) / sum_wgts_PUDn; globalWeights[SystematicsHelpers::ePUDn] = globalWeight_PUDn;
     double globalWeight_PUUp = xsec * xsec_scale * BR_scale * (isData ? 1.f : lumi) / sum_wgts_PUUp; globalWeights[SystematicsHelpers::ePUUp] = globalWeight_PUUp;
-    MELAout << "Sample " << sample_tree->sampleIdentifier << " has a gen. weight sum of " << sum_wgts << " (PU dn: " << sum_wgts_PUDn << ", PU up: " << sum_wgts_PUUp << ")." << endl;
-    MELAout << "\t- Raw xsec = " << xsec << endl;
-    MELAout << "\t- xsec scale * BR scale = " << xsec_scale * BR_scale << endl;
-    MELAout << "\t- xsec * BR * lumi = " << xsec * xsec_scale * BR_scale * (isData ? 1.f : lumi) << endl;
-    MELAout << "\t- Global weight = " << globalWeight << endl;
-    MELAout << "\t- Global weight (PU dn) = " << globalWeight_PUDn << endl;
-    MELAout << "\t- Global weight (PU up) = " << globalWeight_PUUp << endl;
+    IVYout << "Sample " << sample_tree->sampleIdentifier << " has a gen. weight sum of " << sum_wgts << " (PU dn: " << sum_wgts_PUDn << ", PU up: " << sum_wgts_PUUp << ")." << endl;
+    IVYout << "\t- Raw xsec = " << xsec << endl;
+    IVYout << "\t- xsec scale * BR scale = " << xsec_scale * BR_scale << endl;
+    IVYout << "\t- xsec * BR * lumi = " << xsec * xsec_scale * BR_scale * (isData ? 1.f : lumi) << endl;
+    IVYout << "\t- Global weight = " << globalWeight << endl;
+    IVYout << "\t- Global weight (PU dn) = " << globalWeight_PUDn << endl;
+    IVYout << "\t- Global weight (PU up) = " << globalWeight_PUUp << endl;
 
     // Configure handlers
     pfcandidateHandler.bookBranches(sample_tree);
@@ -1462,7 +1462,7 @@ void getTrees(
   // Loop over all events
   theLooper.loop(true);
 
-  for (auto const& pp:LooperFunctionHelpers::type_accTime_pairs) MELAout << pp.first << " duration: " << pp.second.count() << endl;
+  for (auto const& pp:LooperFunctionHelpers::type_accTime_pairs) IVYout << pp.first << " duration: " << pp.second.count() << endl;
 
   // No need for the inputs
   for (auto& ss:sample_trees) delete ss;

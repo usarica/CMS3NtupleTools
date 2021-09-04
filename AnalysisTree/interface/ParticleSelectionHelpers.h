@@ -23,7 +23,8 @@ SELECTION_TYPE(Tight)
   template<> bool is##TYPE##Particle(ParticleObject const* part); \
   template<> bool is##TYPE##Particle(MuonObject const* part); \
   template<> bool is##TYPE##Particle(ElectronObject const* part); \
-  template<> bool is##TYPE##Particle(PhotonObject const* part);
+  template<> bool is##TYPE##Particle(PhotonObject const* part); \
+  template<> bool is##TYPE##Particle(IvyParticle const* part);
 
   SELECTION_TYPES;
 
@@ -39,6 +40,7 @@ SELECTION_TYPE(Tight)
   template<> bool isFSRSuitable<ParticleObject>(ParticleObject const* part);
   template<> bool isFSRSuitable<MuonObject>(MuonObject const* part);
   template<> bool isFSRSuitable<ElectronObject>(ElectronObject const* part);
+  template<> bool isFSRSuitable<IvyParticle>(IvyParticle const* part);
 
 
   // Functions to select "preselection" id types to jets

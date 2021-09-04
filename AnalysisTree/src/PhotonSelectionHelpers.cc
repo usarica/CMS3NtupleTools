@@ -6,7 +6,7 @@
 #include "SamplesCore.h"
 #include "PhotonSelectionHelpers.h"
 #include "HelperFunctions.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 namespace PhotonSelectionHelpers{
@@ -54,7 +54,7 @@ namespace PhotonSelectionHelpers{
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 void PhotonSelectionHelpers::setApplyConversionSafety(bool flag){ applyConversionSafety = flag; }
@@ -75,7 +75,7 @@ bool PhotonSelectionHelpers::getApplyPFMETSafety(){ return applyPFMETSafety; }
 float PhotonSelectionHelpers::getIsolationDRmax(PhotonObject const& /*part*/){
   if (isoType_preselection == kPFIsoDR0p3) return 0.3;
   else{
-    MELAerr << "PhotonSelectionHelpers::getIsolationDRmax: Isolation type " << isoType_preselection << " is not implemented." << endl;
+    IVYerr << "PhotonSelectionHelpers::getIsolationDRmax: Isolation type " << isoType_preselection << " is not implemented." << endl;
     assert(0);
     return -1;
   }
@@ -112,7 +112,7 @@ bool PhotonSelectionHelpers::testPFPhotonId(PhotonObject const& part){
 }
 bool PhotonSelectionHelpers::testPFMETSafe(PhotonObject const& part){
   if (applyPFMETSafety && !applyPFId){
-    MELAerr << "PhotonSelectionHelpers::testPFMETSafe: applyPFId must be set to 'true' as well." << endl;
+    IVYerr << "PhotonSelectionHelpers::testPFMETSafe: applyPFId must be set to 'true' as well." << endl;
     assert(0);
   }
   return HelperFunctions::test_bit(part.extras.id_egamma_pfPhoton_Bits, ISEGAMMAPFPHOTON_METSAFE);
@@ -137,7 +137,7 @@ bool PhotonSelectionHelpers::testVetoId(PhotonObject const& part){
   case kMVAId_Fall17V2:
     return part.extras.id_MVA_Fall17V2_pass_wp90;
   default:
-    MELAerr << "PhotonSelectionHelpers::testVetoId: Id " << idType_preselection << " is not implemented!" << endl;
+    IVYerr << "PhotonSelectionHelpers::testVetoId: Id " << idType_preselection << " is not implemented!" << endl;
     assert(0);
     return false;
   };
@@ -149,7 +149,7 @@ bool PhotonSelectionHelpers::testLooseId(PhotonObject const& part){
   case kMVAId_Fall17V2:
     return part.extras.id_MVA_Fall17V2_pass_wp90;
   default:
-    MELAerr << "PhotonSelectionHelpers::testLooseId: Id " << idType_preselection << " is not implemented!" << endl;
+    IVYerr << "PhotonSelectionHelpers::testLooseId: Id " << idType_preselection << " is not implemented!" << endl;
     assert(0);
     return false;
   };
@@ -161,7 +161,7 @@ bool PhotonSelectionHelpers::testMediumId(PhotonObject const& part){
   case kMVAId_Fall17V2:
     return part.extras.id_MVA_Fall17V2_pass_wp80;
   default:
-    MELAerr << "PhotonSelectionHelpers::testMediumId: Id " << idType_preselection << " is not implemented!" << endl;
+    IVYerr << "PhotonSelectionHelpers::testMediumId: Id " << idType_preselection << " is not implemented!" << endl;
     assert(0);
     return false;
   };
@@ -173,7 +173,7 @@ bool PhotonSelectionHelpers::testTightId(PhotonObject const& part){
   case kMVAId_Fall17V2:
     return part.extras.id_MVA_Fall17V2_pass_wp80;
   default:
-    MELAerr << "PhotonSelectionHelpers::testTightId: Id " << idType_preselection << " is not implemented!" << endl;
+    IVYerr << "PhotonSelectionHelpers::testTightId: Id " << idType_preselection << " is not implemented!" << endl;
     assert(0);
     return false;
   };
@@ -191,7 +191,7 @@ bool PhotonSelectionHelpers::testVetoIso(PhotonObject const& part){
   case kMVAId_Fall17V2:
     return true;
   default:
-    MELAerr << "PhotonSelectionHelpers::testVetoIso: Id " << idType_preselection << " is not implemented!" << endl;
+    IVYerr << "PhotonSelectionHelpers::testVetoIso: Id " << idType_preselection << " is not implemented!" << endl;
     assert(0);
     return false;
   };
@@ -203,7 +203,7 @@ bool PhotonSelectionHelpers::testLooseIso(PhotonObject const& part){
   case kMVAId_Fall17V2:
     return true;
   default:
-    MELAerr << "PhotonSelectionHelpers::testLooseIso: Id " << idType_preselection << " is not implemented!" << endl;
+    IVYerr << "PhotonSelectionHelpers::testLooseIso: Id " << idType_preselection << " is not implemented!" << endl;
     assert(0);
     return false;
   };
@@ -215,7 +215,7 @@ bool PhotonSelectionHelpers::testMediumIso(PhotonObject const& part){
   case kMVAId_Fall17V2:
     return true;
   default:
-    MELAerr << "PhotonSelectionHelpers::testMediumIso: Id " << idType_preselection << " is not implemented!" << endl;
+    IVYerr << "PhotonSelectionHelpers::testMediumIso: Id " << idType_preselection << " is not implemented!" << endl;
     assert(0);
     return false;
   };
@@ -227,7 +227,7 @@ bool PhotonSelectionHelpers::testTightIso(PhotonObject const& part){
   case kMVAId_Fall17V2:
     return true;
   default:
-    MELAerr << "PhotonSelectionHelpers::testTightIso: Id " << idType_preselection << " is not implemented!" << endl;
+    IVYerr << "PhotonSelectionHelpers::testTightIso: Id " << idType_preselection << " is not implemented!" << endl;
     assert(0);
     return false;
   };

@@ -8,12 +8,12 @@
 #include "HelperFunctions.h"
 #include "TDirectory.h"
 #include "TFile.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
 using namespace SampleHelpers;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 TriggerScaleFactorHandler::TriggerScaleFactorHandler() : ScaleFactorHandlerBase()
@@ -30,7 +30,7 @@ bool TriggerScaleFactorHandler::setup(){
   bool res = true;
   this->reset();
 
-  if (verbosity>=TVar::INFO) MELAout << "TriggerScaleFactorHandler::setup: Setting up efficiency and SF histograms for year " << SampleHelpers::getDataYear() << endl;
+  if (verbosity>=MiscUtils::INFO) IVYout << "TriggerScaleFactorHandler::setup: Setting up efficiency and SF histograms for year " << SampleHelpers::getDataYear() << endl;
 
   TDirectory* curdir = gDirectory;
   TDirectory* uppermostdir = SampleHelpers::rootTDirectory;
@@ -44,7 +44,7 @@ bool TriggerScaleFactorHandler::setup(){
   {
     TString cinput = cinput_main + "trigger_efficiencies_leptons.root";
     if (!HostHelpers::FileReadable(cinput.Data())){
-      MELAerr << "TriggerScaleFactorHandler::setup: File " << cinput << " is not readable." << endl;
+      IVYerr << "TriggerScaleFactorHandler::setup: File " << cinput << " is not readable." << endl;
       assert(0);
     }
 
@@ -182,7 +182,7 @@ void TriggerScaleFactorHandler::evalScaleFactorFromHistogram_PtEta(float& theSF,
 }
 void TriggerScaleFactorHandler::evalScaleFactorFromHistogram_PtPt(float& theSF, float const& pt1, float const& pt2, ExtendedHistogram_2D_f const& hist) const{
   TH2F const* hh = hist.getHistogram();
-  if (!hh) MELAerr << "Histogram is NULL!" << endl;
+  if (!hh) IVYerr << "Histogram is NULL!" << endl;
   if (!hh) return;
 
   int ix, iy;
@@ -209,7 +209,7 @@ void TriggerScaleFactorHandler::getCombinedDileptonSFAndEff(
 ) const{
   using namespace SystematicsHelpers;
 
-  if (verbosity>=TVar::DEBUG) MELAout
+  if (verbosity>=MiscUtils::DEBUG) IVYout
     << "TriggerScaleFactorHandler::getCombinedDileptonSFAndEff: Evaluating " << (effval ? "SFs and efficiencies" : "SFs")
     << " for pT1, pT2 = " << pt1 << ", " << pt2
     << "; eta1, eta2 = " << eta1 << ", " << eta2
@@ -228,7 +228,7 @@ void TriggerScaleFactorHandler::getCombinedDileptonSFAndEff(
 
   SystematicVariationTypes activeSyst = sNominal;
   if (HelperFunctions::checkListVariable(allowedSysts, syst)) activeSyst = syst;
-  if (verbosity>=TVar::DEBUG) MELAout << "\t- Active systematics: " << activeSyst << " / " << activeSyst_eff_nominal << endl;
+  if (verbosity>=MiscUtils::DEBUG) IVYout << "\t- Active systematics: " << activeSyst << " / " << activeSyst_eff_nominal << endl;
 
   // Order objects 1, 2
   cms3_id_t dilepton_id = id1*id2;
@@ -304,7 +304,7 @@ void TriggerScaleFactorHandler::getCombinedSingleLeptonSFAndEff(
 ) const{
   using namespace SystematicsHelpers;
 
-  if (verbosity>=TVar::DEBUG) MELAout
+  if (verbosity>=MiscUtils::DEBUG) IVYout
     << "TriggerScaleFactorHandler::getCombinedSingleLeptonSFAndEff: Evaluating " << (effval ? "SFs and efficiencies" : "SFs")
     << " for pT, eta, id = " << pt << ", " << eta << ", " << partId
     << ", passTrigger ?= " << passTrigger
@@ -321,7 +321,7 @@ void TriggerScaleFactorHandler::getCombinedSingleLeptonSFAndEff(
 
   SystematicVariationTypes activeSyst = sNominal;
   if (HelperFunctions::checkListVariable(allowedSysts, syst)) activeSyst = syst;
-  if (verbosity>=TVar::DEBUG) MELAout << "\t- Active systematics: " << activeSyst << " / " << activeSyst_eff_nominal << endl;
+  if (verbosity>=MiscUtils::DEBUG) IVYout << "\t- Active systematics: " << activeSyst << " / " << activeSyst_eff_nominal << endl;
 
   bool is_mu = std::abs(partId)==13;
 

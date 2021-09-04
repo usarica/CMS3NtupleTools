@@ -119,7 +119,7 @@ void produceSkims(
 
   TString const stroutputcore = Form("output/Skims/%s", strdate.Data());
 
-  MELAout << "List of samples to process: " << sampleList << endl;
+  IVYout << "List of samples to process: " << sampleList << endl;
   for (auto const& strSample:sampleList){
     if (SampleHelpers::doSignalInterrupt==1) break;
 
@@ -145,7 +145,7 @@ void produceSkims(
 
     TString const cinputcore = SampleHelpers::getDatasetDirectoryName(strSample);
     TString const cinput = SampleHelpers::getDatasetFileName(strSample);
-    MELAout << "Extracting input " << cinput << endl;
+    IVYout << "Extracting input " << cinput << endl;
 
     BaseTree sample_tree(cinput, EVENTS_TREE_NAME, "", "");
     sample_tree.sampleIdentifier = SampleHelpers::getSampleIdentifier(strSample);
@@ -161,7 +161,7 @@ void produceSkims(
       ev_start = ev_inc*ichunk;
       ev_end = std::min(nEntries, (ichunk == nchunks-1 ? nEntries : ev_start+ev_inc));
     }
-    MELAout << "Looping over " << nEntries << " events, starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
+    IVYout << "Looping over " << nEntries << " events, starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
 
     unsigned int n_zero_genwgts=0;
     double frac_zero_genwgts=0;
@@ -182,7 +182,7 @@ void produceSkims(
       genInfoHandler.bookBranches(&sample_tree);
       genInfoHandler.wrapTree(&sample_tree);
 
-      MELAout << "Initial MC loop over " << ev_end-ev_start << " / " << nEntries << " events in " << sample_tree.sampleIdentifier << " to determine sample normalization:" << endl;
+      IVYout << "Initial MC loop over " << ev_end-ev_start << " / " << nEntries << " events in " << sample_tree.sampleIdentifier << " to determine sample normalization:" << endl;
       for (int ev=ev_start; ev<ev_end; ev++){
         if (SampleHelpers::doSignalInterrupt==1) break;
 
@@ -282,7 +282,7 @@ void produceSkims(
     eventFilter.bookBranches(&sample_tree);
     eventFilter.wrapTree(&sample_tree);
 
-    MELAout << "Completed getting the rest of the handles..." << endl;
+    IVYout << "Completed getting the rest of the handles..." << endl;
     sample_tree.silenceUnused();
     sample_tree.getSelectedTree()->SetBranchStatus("triggerObjects*", 1); // Needed for trigger matching
 
@@ -293,18 +293,18 @@ void produceSkims(
     if (nchunks>0) stroutput = stroutput + Form("/allevents_%i_of_%i", ichunk, nchunks);
     else stroutput += "/allevents";
     stroutput += ".root";
-    MELAout << "Creating output file " << stroutput << "..." << endl;
+    IVYout << "Creating output file " << stroutput << "..." << endl;
     TFile* foutput = TFile::Open(stroutput, "recreate");
     TDirectory* outdir = foutput->mkdir("cms3ntuple");
     outdir->cd();
     if (!isData){
-      MELAout << "Writing the sum of gen. weights:" << endl;
-      MELAout << "\t- Fraction of discarded events with null weight: " << frac_zero_genwgts << endl;
-      MELAout << "\t- Before PU reweighting: " << setprecision(15) << sum_wgts_noPU << endl;
-      MELAout << "\t- Fraction of negative weights before PU reweighting: " << setprecision(15) << (sum_abs_wgts_noPU-sum_wgts_noPU)*0.5/sum_abs_wgts_noPU << endl;
-      MELAout << "\t- PU nominal: " << setprecision(15) << sum_wgts << endl;
-      MELAout << "\t- PU down: " << setprecision(15) << sum_wgts_PUDn << endl;
-      MELAout << "\t- PU up: " << setprecision(15) << sum_wgts_PUUp << endl;
+      IVYout << "Writing the sum of gen. weights:" << endl;
+      IVYout << "\t- Fraction of discarded events with null weight: " << frac_zero_genwgts << endl;
+      IVYout << "\t- Before PU reweighting: " << setprecision(15) << sum_wgts_noPU << endl;
+      IVYout << "\t- Fraction of negative weights before PU reweighting: " << setprecision(15) << (sum_abs_wgts_noPU-sum_wgts_noPU)*0.5/sum_abs_wgts_noPU << endl;
+      IVYout << "\t- PU nominal: " << setprecision(15) << sum_wgts << endl;
+      IVYout << "\t- PU down: " << setprecision(15) << sum_wgts_PUDn << endl;
+      IVYout << "\t- PU up: " << setprecision(15) << sum_wgts_PUUp << endl;
 
       TH2D hCounters("Counters", "", 3, 0, 3, nValidDataPeriods+1, 0, nValidDataPeriods+1);
       hCounters.SetBinContent(0, 0, sum_wgts_noPU); // Sum with no PU reweighting
@@ -348,7 +348,7 @@ void produceSkims(
 
       HelperFunctions::progressbar(ev, nEntries);
       sample_tree.getEvent(ev);
-      if (ev%10000==0) MELAout << sample_tree.sampleIdentifier << " events: " << n_acc << " / " << ev << " / " << nEntries << endl;
+      if (ev%10000==0) IVYout << sample_tree.sampleIdentifier << " events: " << n_acc << " / " << ev << " / " << nEntries << endl;
 
       if (!isData){
         genInfoHandler.constructGenInfo(SystematicsHelpers::sNominal); // Use sNominal here in order to get the weight that corresponds to xsec
@@ -515,7 +515,7 @@ void produceSkims(
         n_acc[kSinglePhoton]++;
       }
     }
-    MELAout << sample_tree.sampleIdentifier << " total number of accumulated events: "
+    IVYout << sample_tree.sampleIdentifier << " total number of accumulated events: "
       << "(Dilepton, dilepton control, single lepton, single photon) = ( " << n_acc << " )"
       << " / " << (ev_end - ev_start) << " / " << nEntries << endl;
 

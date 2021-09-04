@@ -7,12 +7,12 @@
 #include "HelperFunctions.h"
 #include "TDirectory.h"
 #include "TFile.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
 using namespace SampleHelpers;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 PUJetIdScaleFactorHandler::PUJetIdScaleFactorHandler() : ScaleFactorHandlerBase()
@@ -29,7 +29,7 @@ bool PUJetIdScaleFactorHandler::setup(){
   bool res = true;
   this->reset();
 
-  if (verbosity>=TVar::INFO) MELAout << "PUJetIdScaleFactorHandler::setup: Setting up efficiency and SF histograms for year " << SampleHelpers::getDataYear() << endl;
+  if (verbosity>=MiscUtils::INFO) IVYout << "PUJetIdScaleFactorHandler::setup: Setting up efficiency and SF histograms for year " << SampleHelpers::getDataYear() << endl;
 
   TDirectory* curdir = gDirectory;
   TDirectory* uppermostdir = SampleHelpers::rootTDirectory;
@@ -68,7 +68,7 @@ bool PUJetIdScaleFactorHandler::setup(){
   {
     TString cinput = cinput_main + "Final_PUJetId_Efficiencies_AllMC.root";
     if (!HostHelpers::FileReadable(cinput.Data())){
-      MELAerr << "PUJetIdScaleFactorHandler::setup: File " << cinput << " is not readable." << endl;
+      IVYerr << "PUJetIdScaleFactorHandler::setup: File " << cinput << " is not readable." << endl;
       assert(0);
     }
 
@@ -92,7 +92,7 @@ bool PUJetIdScaleFactorHandler::setup(){
   {
     TString cinput = cinput_main + "scalefactorsPUID_81Xtraining.root";
     if (!HostHelpers::FileReadable(cinput.Data())){
-      MELAerr << "PUJetIdScaleFactorHandler::setup: File " << cinput << " is not readable." << endl;
+      IVYerr << "PUJetIdScaleFactorHandler::setup: File " << cinput << " is not readable." << endl;
       assert(0);
     }
 
@@ -159,7 +159,7 @@ void PUJetIdScaleFactorHandler::evalScaleFactorFromHistogram(float& theSF, float
 void PUJetIdScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, float const& pt, float const& eta, bool const& isMatched, bool const& isLoose, bool const& isMedium, bool const& isTight, float& val, float* effval) const{
   using namespace SystematicsHelpers;
 
-  if (verbosity>=TVar::DEBUG) MELAout
+  if (verbosity>=MiscUtils::DEBUG) IVYout
     << "PUJetIdScaleFactorHandler::getSFAndEff: Evaluating " << (effval ? "SFs and efficiencies" : "SFs")
     << " for pT=" << pt
     << ", eta=" << eta
@@ -181,7 +181,7 @@ void PUJetIdScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariat
 
   SystematicVariationTypes activeSyst = sNominal;
   if (HelperFunctions::checkListVariable(allowedSysts, syst)) activeSyst = syst;
-  if (verbosity>=TVar::DEBUG) MELAout << "\t- Active systematic: " << activeSyst << endl;
+  if (verbosity>=MiscUtils::DEBUG) IVYout << "\t- Active systematic: " << activeSyst << endl;
 
   std::vector<ExtendedHistogram_2D_f> const& hlist_eff_MC = (isMatched ? syst_pujetidwp_effs_map_matched.find(activeSyst)->second : syst_pujetidwp_effs_map_mistagged.find(activeSyst)->second);
   std::vector<ExtendedHistogram_2D_f> const& hlist_SF = (isMatched ? pujetidwp_SFs_map_matched : pujetidwp_SFs_map_mistagged);
@@ -215,10 +215,10 @@ void PUJetIdScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariat
     eff_vals_corrected.at(iwp) *= SF_eff;
   }
 
-  if (verbosity>=TVar::DEBUG){
-    MELAout << "\t- Raw SFs: " << SF_vals << endl;
-    MELAout << "\t- Uncorrected efficiencies: " << eff_vals_uncorrected << endl;
-    MELAout << "\t- Corrected efficiencies: " << eff_vals_corrected << endl;
+  if (verbosity>=MiscUtils::DEBUG){
+    IVYout << "\t- Raw SFs: " << SF_vals << endl;
+    IVYout << "\t- Uncorrected efficiencies: " << eff_vals_uncorrected << endl;
+    IVYout << "\t- Corrected efficiencies: " << eff_vals_corrected << endl;
   }
 
   float eff_uncorrected = 1;
@@ -252,10 +252,10 @@ void PUJetIdScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariat
     if (effval) *effval = 0;
   }
 
-  if (verbosity>=TVar::DEBUG){
-    MELAout << "\t- Calculated final uncorrected efficiency: " << eff_uncorrected << endl;
-    MELAout << "\t- Calculated final corrected efficiency: " << eff_corrected << endl;
-    MELAout << "\t- Calculated final SF: " << val << endl;
+  if (verbosity>=MiscUtils::DEBUG){
+    IVYout << "\t- Calculated final uncorrected efficiency: " << eff_uncorrected << endl;
+    IVYout << "\t- Calculated final corrected efficiency: " << eff_corrected << endl;
+    IVYout << "\t- Calculated final SF: " << val << endl;
   }
 }
 void PUJetIdScaleFactorHandler::getSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, AK4JetObject const* obj, float& val, float* effval) const{

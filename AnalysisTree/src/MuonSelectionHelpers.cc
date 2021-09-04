@@ -7,7 +7,7 @@
 
 #include "MuonSelectionHelpers.h"
 #include "HelperFunctions.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 // These are functions hidden from the user
@@ -57,7 +57,7 @@ namespace MuonSelectionHelpers{
 using namespace std;
 using namespace reco;
 using namespace MuonEnums;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 void MuonSelectionHelpers::setAllowProbeIdInLooseSelection(bool flag){ allowProbeIdInLooseSelection = flag; }
@@ -92,7 +92,7 @@ float MuonSelectionHelpers::getIsolationDRmax(MuonObject const& part){
   else if (isoType_preselection == kPFIsoDR0p4 || isoType_preselection == kPFIsoDR0p4_EACorrected) return 0.4;
   else if (isoType_preselection == kMiniIso) return (10. / std::min(std::max(part.uncorrected_pt(), 50.), 200.));
   else{
-    MELAerr << "MuonSelectionHelpers::getIsolationDRmax: Isolation type " << isoType_preselection << " is not implemented." << endl;
+    IVYerr << "MuonSelectionHelpers::getIsolationDRmax: Isolation type " << isoType_preselection << " is not implemented." << endl;
     assert(0);
     return -1;
   }
@@ -104,7 +104,7 @@ float MuonSelectionHelpers::computeIso(MuonObject const& part){
   else if (isoType_preselection == kPFIsoDR0p4) return relPFIso_DR0p4(part);
   else if (isoType_preselection == kPFIsoDR0p4_EACorrected) return relPFIso_EACorr_DR0p4(part);
   else if (isoType_preselection == kMiniIso) return relMiniIso(part);
-  else MELAerr << "MuonSelectionHelpers::computeIso: Isolation " << isoType_preselection << " with id " << idType_preselection << " is not implemented." << endl;
+  else IVYerr << "MuonSelectionHelpers::computeIso: Isolation " << isoType_preselection << " with id " << idType_preselection << " is not implemented." << endl;
   return 999.f;
 }
 
@@ -127,7 +127,7 @@ bool MuonSelectionHelpers::testVetoId(MuonObject const& part){
       (HelperFunctions::test_bit(part.extras.id_cutBased_H4l_Bits, kH4lSelection_PFID) || (HelperFunctions::test_bit(part.extras.id_cutBased_H4l_Bits, kH4lSelection_HighPt) && part.pt()>200.f))
       );
   default:
-    MELAerr << "MuonSelectionHelpers::testVetoId: Id " << idType_preselection << " is not implemented!" << endl;
+    IVYerr << "MuonSelectionHelpers::testVetoId: Id " << idType_preselection << " is not implemented!" << endl;
     assert(0);
     return false;
   };
@@ -143,7 +143,7 @@ bool MuonSelectionHelpers::testLooseId(MuonObject const& part){
       (HelperFunctions::test_bit(part.extras.id_cutBased_H4l_Bits, kH4lSelection_PFID) || (HelperFunctions::test_bit(part.extras.id_cutBased_H4l_Bits, kH4lSelection_HighPt) && part.pt()>200.f))
       );
   default:
-    MELAerr << "MuonSelectionHelpers::testLooseId: Id " << idType_preselection << " is not implemented!" << endl;
+    IVYerr << "MuonSelectionHelpers::testLooseId: Id " << idType_preselection << " is not implemented!" << endl;
     assert(0);
     return false;
   };
@@ -159,7 +159,7 @@ bool MuonSelectionHelpers::testMediumId(MuonObject const& part){
       (HelperFunctions::test_bit(part.extras.id_cutBased_H4l_Bits, kH4lSelection_PFID) || (HelperFunctions::test_bit(part.extras.id_cutBased_H4l_Bits, kH4lSelection_HighPt) && part.pt()>200.f))
       );
   default:
-    MELAerr << "MuonSelectionHelpers::testMediumId: Id " << idType_preselection << " is not implemented!" << endl;
+    IVYerr << "MuonSelectionHelpers::testMediumId: Id " << idType_preselection << " is not implemented!" << endl;
     assert(0);
     return false;
   };
@@ -175,7 +175,7 @@ bool MuonSelectionHelpers::testTightId(MuonObject const& part){
       (HelperFunctions::test_bit(part.extras.id_cutBased_H4l_Bits, kH4lSelection_PFID) || (HelperFunctions::test_bit(part.extras.id_cutBased_H4l_Bits, kH4lSelection_HighPt) && part.pt()>200.f))
       );
   default:
-    MELAerr << "MuonSelectionHelpers::testTightId: Id " << idType_preselection << " is not implemented!" << endl;
+    IVYerr << "MuonSelectionHelpers::testTightId: Id " << idType_preselection << " is not implemented!" << endl;
     assert(0);
     return false;
   };

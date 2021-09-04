@@ -5,7 +5,7 @@
 #include "TText.h"
 #include "TPaveText.h"
 #include "TLegend.h"
-#include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
+#include <IvyFramework/IvyAutoMELA/interface/IvyMELAHelpers.h>
 
 
 using namespace SystematicsHelpers;
@@ -71,11 +71,11 @@ void getTrees(
   }
   haspTGRange = pTG_true_range[0]!=pTG_true_range[1];
   bool needGenParticleChecks = isQCD || isGJets_HT || haspTGRange;
-  if (isData) MELAout << "Sample " << strSampleSet << " is data." << endl;
+  if (isData) IVYout << "Sample " << strSampleSet << " is data." << endl;
   else{
-    if (isQCD) MELAout << "Sample " << strSampleSet << " has a QCD exception." << endl;
-    if (isGJets_HT) MELAout << "Sample " << strSampleSet << " has a GJets exception." << endl;
-    if (haspTGRange) MELAout << "Sample " << strSampleSet << " has a pTG exception with range [" << pTG_true_range[0] << ", " << pTG_true_range[1] << "]." << endl;
+    if (isQCD) IVYout << "Sample " << strSampleSet << " has a QCD exception." << endl;
+    if (isGJets_HT) IVYout << "Sample " << strSampleSet << " has a GJets exception." << endl;
+    if (haspTGRange) IVYout << "Sample " << strSampleSet << " has a pTG exception with range [" << pTG_true_range[0] << ", " << pTG_true_range[1] << "]." << endl;
   }
 
   gSystem->mkdir(coutput_main, true);
@@ -136,7 +136,7 @@ void getTrees(
         for (unsigned int iperiod=0; iperiod<nValidDataPeriods; iperiod++){
           if (validDataPeriods.at(iperiod)==SampleHelpers::theDataPeriod){ bin_period += iperiod+1; break; }
         }
-        MELAout << "Checking counters histogram bin (" << bin_syst << ", " << bin_period << ") to obtain the sum of weights if the counters histogram exists..." << endl;
+        IVYout << "Checking counters histogram bin (" << bin_syst << ", " << bin_period << ") to obtain the sum of weights if the counters histogram exists..." << endl;
         for (auto const& fname:inputfilenames){
           TFile* ftmp = TFile::Open(fname, "read");
           TH2D* hCounters = (TH2D*) ftmp->Get("cms3ntuple/Counters");
@@ -145,22 +145,22 @@ void getTrees(
             sum_wgts = 0;
             break;
           }
-          MELAout << "\t- Successfully found the counters histogram in " << fname << endl;
+          IVYout << "\t- Successfully found the counters histogram in " << fname << endl;
           sum_wgts += hCounters->GetBinContent(bin_syst, bin_period);
           sum_wgts_raw_withveto += hCounters->GetBinContent(0, 0);
           sum_wgts_raw_noveto += hCounters->GetBinContent(0, 0) / (1. - hCounters->GetBinContent(0, 1));
           ftmp->Close();
         }
-        if (hasCounters) MELAout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
+        if (hasCounters) IVYout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
       }
       if (!hasCounters){
-        MELAerr << "Please use skim ntuples!" << endl;
+        IVYerr << "Please use skim ntuples!" << endl;
         assert(0);
       }
       xsec_scale = sum_wgts_raw_withveto / sum_wgts_raw_noveto;
     }
-    MELAout << "Sample " << sample_tree.sampleIdentifier << " has a gen. weight sum of " << sum_wgts << "." << endl;
-    MELAout << "\t- xsec scale = " << xsec_scale << endl;
+    IVYout << "Sample " << sample_tree.sampleIdentifier << " has a gen. weight sum of " << sum_wgts << "." << endl;
+    IVYout << "\t- xsec scale = " << xsec_scale << endl;
 
     // Set data tracking options
     eventFilter.setTrackDataEvents(isData);
@@ -189,7 +189,7 @@ void getTrees(
     eventFilter.bookBranches(&sample_tree);
     eventFilter.wrapTree(&sample_tree);
 
-    MELAout << "Completed getting the handles..." << endl;
+    IVYout << "Completed getting the handles..." << endl;
     sample_tree.silenceUnused();
 
     TString stroutput = Form("%s/%s", coutput_main.Data(), coutput.Data());
@@ -198,7 +198,7 @@ void getTrees(
     stroutput += ".root";
     TFile* foutput = TFile::Open(stroutput, "recreate");
     TTree* tout = new TTree("SkimTree", "");
-    MELAout << "Created output file " << stroutput << "..." << endl;
+    IVYout << "Created output file " << stroutput << "..." << endl;
 
 #define BRANCH_COMMAND(type, name) type name = 0; tout->Branch(#name, &name);
     // Event variables
@@ -273,7 +273,7 @@ void getTrees(
       ev_start = ev_inc*ichunk;
       ev_end = std::min(nEntries, (ichunk == nchunks-1 ? nEntries : ev_start+ev_inc));
     }
-    MELAout << "Looping over " << nEntries << " events from " << sample_tree.sampleIdentifier << ", starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
+    IVYout << "Looping over " << nEntries << " events from " << sample_tree.sampleIdentifier << ", starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
 
     size_t n_evts_acc=0;
     size_t n_pass_genWeights=0;
@@ -543,8 +543,8 @@ void getTrees(
       n_evts_acc++;
     } // End loop over events
 
-    MELAout << "Number of events accepted from " << sample_tree.sampleIdentifier << ": " << n_evts_acc << " / " << (ev_end - ev_start) << endl;
-    MELAout << "\t- Number of events passing each cut:\n"
+    IVYout << "Number of events accepted from " << sample_tree.sampleIdentifier << ": " << n_evts_acc << " / " << (ev_end - ev_start) << endl;
+    IVYout << "\t- Number of events passing each cut:\n"
       << "\t\t- Gen. weights!=0: " << n_pass_genWeights << '\n'
       << "\t\t- Lepton veto: " <<  n_pass_leptonVeto << '\n'
       << "\t\t- Photon selection: " <<  n_pass_photons << '\n'

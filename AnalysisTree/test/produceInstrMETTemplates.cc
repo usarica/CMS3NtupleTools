@@ -42,7 +42,7 @@ void getProcessCollection(TString const& strSampleSet, std::vector<TString>& sna
     snames.push_back("TTJets");
   }
   else{
-    MELAerr << "getProcessCollection: Process " << strSampleSet << " is undefined." << endl;
+    IVYerr << "getProcessCollection: Process " << strSampleSet << " is undefined." << endl;
   }
 }
 
@@ -217,21 +217,21 @@ void getTemplateIntermediate_ZZTo2L2Nu(
   for (auto const& sname:snames){
     TString cinput = SampleHelpers::getDatasetDirectoryName(period) + "/finaltree_InstrMET_" + sname + "_" + strSyst + ".root";
     if (!HostHelpers::FileReadable(cinput)){
-      MELAerr << "Input file " << cinput << " is not found." << endl;
+      IVYerr << "Input file " << cinput << " is not found." << endl;
       return;
     }
-    else MELAout << "Acquiring input file " << cinput << "..." << endl;
+    else IVYout << "Acquiring input file " << cinput << "..." << endl;
     TFile* finput = TFile::Open(cinput, "read"); finputs.push_back(finput);
     TTree* tin = (TTree*) finput->Get("FinalTree"); tinlist.push_back(tin);
-    if (!tin) MELAerr << "\t- No trees are found!" << endl;
+    if (!tin) IVYerr << "\t- No trees are found!" << endl;
 
     // Check if an extension is present
     TFile* finput_ext = nullptr;
     TTree* tin_ext = nullptr;
     TString cinput_ext = SampleHelpers::getDatasetDirectoryName(period) + "/finaltree_InstrMET_" + sname + "_ext_" + strSyst + ".root";
-    if (!HostHelpers::FileReadable(cinput_ext)) MELAout << "No extension sample " << cinput_ext << " is found." << endl;
+    if (!HostHelpers::FileReadable(cinput_ext)) IVYout << "No extension sample " << cinput_ext << " is found." << endl;
     else{
-      MELAout << "Acquiring ext. input file " << cinput_ext << "..." << endl;
+      IVYout << "Acquiring ext. input file " << cinput_ext << "..." << endl;
       finput_ext = TFile::Open(cinput_ext, "read"); finputs.push_back(finput_ext);
       tin_ext = (TTree*) finput_ext->Get("FinalTree"); tinlist.push_back(tin_ext);
     }
@@ -270,7 +270,7 @@ void getTemplateIntermediate_ZZTo2L2Nu(
   gSystem->mkdir(coutput_main, true);
 
   TString stroutput_txt = coutput_main + "/" + strIntermediateProcName + "_" + strChannel + "_" + strSystDC + ".txt";
-  MELAout.open(stroutput_txt.Data());
+  IVYout.open(stroutput_txt.Data());
   //SampleHelpers::addToCondorTransferList(stroutput_txt);
 
   TString stroutput_commons = coutput_main + "/" + strIntermediateProcName + "_" + strChannel + "_" + strSystDC + "_commons.root";
@@ -297,7 +297,7 @@ void getTemplateIntermediate_ZZTo2L2Nu(
         bool const isMVJ = (n_ak8jets_pt200_mass60to130>0);
         bool const isMVjj = (dijet_mass>=60.f && dijet_mass<130.f && n_ak4jets_pt30>=2);
 
-        if (!HelperFunctions::checkVarNanInf(weight)) MELAerr << "Weight in event " << ev << " is not a normal number: " << weight << endl;
+        if (!HelperFunctions::checkVarNanInf(weight)) IVYerr << "Weight in event " << ev << " is not a normal number: " << weight << endl;
 
         // Renormalize the weights
         weight *= normval;
@@ -313,14 +313,14 @@ void getTemplateIntermediate_ZZTo2L2Nu(
         sum_wgts_cat.at(icat) += weight;
       }
     }
-    MELAout << "Sum of weights in category: " << sum_wgts_cat << endl;
+    IVYout << "Sum of weights in category: " << sum_wgts_cat << endl;
   }
 
   curdir->cd();
 
   for (unsigned int icat=0; icat<nCats; icat++){
     TString const& strCatName = strCatNames.at(icat);
-    MELAout << "Producing templates for " << strCatName << ":" << endl;
+    IVYout << "Producing templates for " << strCatName << ":" << endl;
 
     // The two options are purely due to statitics of the MC and how far the processes reach.
     bool applyConditionalKD=false, applyUniformKDAtHighMass=false;
@@ -349,7 +349,7 @@ void getTemplateIntermediate_ZZTo2L2Nu(
     }
 
     TTree*& tin_cat = tin_split.at(icat);
-    MELAout << "\t- Category tree has " << tin_cat->GetEntries() << " entries." << endl;
+    IVYout << "\t- Category tree has " << tin_cat->GetEntries() << " entries." << endl;
 
     ACHypothesisHelpers::ProductionType prod_type;
     if (icat<2) prod_type = ACHypothesisHelpers::kGG;
@@ -419,8 +419,8 @@ void getTemplateIntermediate_ZZTo2L2Nu(
     }
     unsigned short const nStatVars = foutputs.size();
 
-    if (hasStatUnc) MELAout << "\t- Will also acquire stat. unc. variations" << endl;
-    MELAout << "\t- Category expects " << foutputs.size() << " output files." << endl;
+    if (hasStatUnc) IVYout << "\t- Will also acquire stat. unc. variations" << endl;
+    IVYout << "\t- Category expects " << foutputs.size() << " output files." << endl;
 
     foutputs.front()->cd();
 
@@ -495,12 +495,12 @@ void getTemplateIntermediate_ZZTo2L2Nu(
     }
     if (binning_mTZZ_coarse.isValid()) binning_mTZZ_coarse.setAbsoluteBoundFlags(true, true);
 
-    if (hasKDs) MELAout << "\t- Category uses KDs." << endl;
-    MELAout << "\t- Number of non-KD variables: " << nVars_nonKD << endl;
-    MELAout << "\t- Number of KD variables: " << nVars_KD << endl;
-    for (auto const& bb:binning_KDvars) MELAout << "\t\t- Variables " << bb.getName() << " binning: " << bb.getBinningVector() << endl;
-    MELAout << "\t- Smoothing factors: " << smearingStrengthCoeffs << endl;
-    if (binning_mTZZ_coarse.isValid()) MELAout << "\t\t- Coarse mTZZ binning: " << binning_mTZZ_coarse.getBinningVector() << endl;
+    if (hasKDs) IVYout << "\t- Category uses KDs." << endl;
+    IVYout << "\t- Number of non-KD variables: " << nVars_nonKD << endl;
+    IVYout << "\t- Number of KD variables: " << nVars_KD << endl;
+    for (auto const& bb:binning_KDvars) IVYout << "\t\t- Variables " << bb.getName() << " binning: " << bb.getBinningVector() << endl;
+    IVYout << "\t- Smoothing factors: " << smearingStrengthCoeffs << endl;
+    if (binning_mTZZ_coarse.isValid()) IVYout << "\t\t- Coarse mTZZ binning: " << binning_mTZZ_coarse.getBinningVector() << endl;
 
     bool selflag = true;
 
@@ -557,8 +557,8 @@ void getTemplateIntermediate_ZZTo2L2Nu(
       StatisticsHelpers::getPoissonCountingConfidenceInterval_Frequentist(Neff_raw, VAL_CL_5SIGMA, integral_raw_dn, integral_raw_up);
       scale_norm_dn = integral_raw_dn/Neff_raw;
       scale_norm_up = integral_raw_up/Neff_raw;
-      MELAout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
-      MELAout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc., 5-sigma: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
+      IVYout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
+      IVYout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc., 5-sigma: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
 
       dir_raw->Close();
       foutputs.front()->cd();
@@ -571,7 +571,7 @@ void getTemplateIntermediate_ZZTo2L2Nu(
 
     if (nVars_KD==0 || (!hasUniformHighMassKD && !hasKDsplit)){
       if (nVars_nonKD + (!hasUniformHighMassKD && !hasKDsplit ? nVars_KD : 0)==1){
-        MELAout << "\t- Producing unsplit 1D templates..." << endl;
+        IVYout << "\t- Producing unsplit 1D templates..." << endl;
 
         std::vector<TH1F*> hStat(2, nullptr);
         TH1F* hSmooth = getSmoothHistogram(
@@ -593,7 +593,7 @@ void getTemplateIntermediate_ZZTo2L2Nu(
         if (hStat.back()) hSmooth_combined_1D.push_back(hStat.back());
       }
       else if (nVars_nonKD + (!hasUniformHighMassKD && !hasKDsplit ? nVars_KD : 0)==2){
-        MELAout << "\t- Producing unsplit 2D templates..." << endl;
+        IVYout << "\t- Producing unsplit 2D templates..." << endl;
 
         std::vector<TH2F*> hStat(2, nullptr);
         TH2F* hSmooth = getSmoothHistogram(
@@ -616,7 +616,7 @@ void getTemplateIntermediate_ZZTo2L2Nu(
         if (hStat.back()) hSmooth_combined_2D.push_back(hStat.back());
       }
       else if (nVars_nonKD + (!hasUniformHighMassKD && !hasKDsplit ? nVars_KD : 0)==3){
-        MELAout << "\t- Producing unsplit 3D templates..." << endl;
+        IVYout << "\t- Producing unsplit 3D templates..." << endl;
 
         std::vector<TH3F*> hStat(2, nullptr);
         TH3F* hSmooth = getSmoothHistogram(
@@ -641,7 +641,7 @@ void getTemplateIntermediate_ZZTo2L2Nu(
     }
     else{
       if (nVars_nonKD==1){
-        MELAout << "\t- Producing nVars_nonKD==1 KD-split templates..." << endl;
+        IVYout << "\t- Producing nVars_nonKD==1 KD-split templates..." << endl;
 
         std::vector<TH1F*> hStat_nonKD(2, nullptr);
         TH1F* hSmooth_nonKD = getSmoothHistogram(
@@ -771,7 +771,7 @@ void getTemplateIntermediate_ZZTo2L2Nu(
         delete hSmooth_nonKD;
       }
       else if (nVars_nonKD==2){
-        MELAout << "\t- Producing nVars_nonKD==2 KD-split templates..." << endl;
+        IVYout << "\t- Producing nVars_nonKD==2 KD-split templates..." << endl;
 
         std::vector<TH2F*> hStat_nonKD(2, nullptr);
         TH2F* hSmooth_nonKD = getSmoothHistogram(
@@ -849,7 +849,7 @@ void getTemplateIntermediate_ZZTo2L2Nu(
 
     for (unsigned short istat=0; istat<nStatVars; istat++){
       if (foutputs.size()<=istat) break;
-      MELAout << "\t- Recording stat. variation " << istat << ":" << endl;
+      IVYout << "\t- Recording stat. variation " << istat << ":" << endl;
       TH1F* hSmooth_1D = (!hSmooth_combined_1D.empty() ? hSmooth_combined_1D.at(istat) : nullptr);
       TH2F* hSmooth_2D = (!hSmooth_combined_2D.empty() ? hSmooth_combined_2D.at(istat) : nullptr);
       TH3F* hSmooth_3D = (!hSmooth_combined_3D.empty() ? hSmooth_combined_3D.at(istat) : nullptr);
@@ -859,7 +859,7 @@ void getTemplateIntermediate_ZZTo2L2Nu(
         hSmooth_1D->SetTitle(process_handler.getTemplateName());
         {
           double integral = HelperFunctions::getHistogramIntegralAndError(hSmooth_1D, 0, hSmooth_1D->GetNbinsX()+1, false);
-          MELAout << "\t- Integral: " << integral << endl;
+          IVYout << "\t- Integral: " << integral << endl;
         }
         TemplateHelpers::doTemplatePostprocessing(hSmooth_1D);
         foutputs.at(istat)->WriteTObject(hSmooth_1D);
@@ -883,7 +883,7 @@ void getTemplateIntermediate_ZZTo2L2Nu(
         hSmooth_2D->SetTitle(process_handler.getTemplateName());
         {
           double integral = HelperFunctions::getHistogramIntegralAndError(hSmooth_2D, 0, hSmooth_2D->GetNbinsX()+1, 0, hSmooth_2D->GetNbinsY()+1, false);
-          MELAout << "\t- Integral: " << integral << endl;
+          IVYout << "\t- Integral: " << integral << endl;
         }
         TemplateHelpers::doTemplatePostprocessing(hSmooth_2D);
         foutputs.at(istat)->WriteTObject(hSmooth_2D);
@@ -907,7 +907,7 @@ void getTemplateIntermediate_ZZTo2L2Nu(
         hSmooth_3D->SetTitle(process_handler.getTemplateName());
         {
           double integral = HelperFunctions::getHistogramIntegralAndError(hSmooth_3D, 0, hSmooth_3D->GetNbinsX()+1, 0, hSmooth_3D->GetNbinsY()+1, 0, hSmooth_3D->GetNbinsZ()+1, false);
-          MELAout << "\t- Integral: " << integral << endl;
+          IVYout << "\t- Integral: " << integral << endl;
         }
         TemplateHelpers::doTemplatePostprocessing(hSmooth_3D);
         foutputs.at(istat)->WriteTObject(hSmooth_3D);
@@ -935,7 +935,7 @@ void getTemplateIntermediate_ZZTo2L2Nu(
   }
 
   foutput_common->Close();
-  MELAout.close();
+  IVYout.close();
   for (auto& finput:finputs) finput->Close();
 
   curdir->cd();
@@ -949,12 +949,12 @@ void getTemplateIntermediate_ZZTo2L2Nu(
 #undef BRANCH_SCALAR_COMMANDS
 
 void regularizeCombinedHistogram(TH2F*& hist){
-  MELAout << "Regularizing " << hist->GetName() << "..." << endl;
+  IVYout << "Regularizing " << hist->GetName() << "..." << endl;
   int const nbinsx = hist->GetNbinsX();
   int const nbinsy = hist->GetNbinsY();
 
   double const integral_old = HelperFunctions::getHistogramIntegralAndError(hist, 1, nbinsx, 1, nbinsy, true, nullptr);
-  MELAout << "\t- Old integral: " << integral_old << endl;
+  IVYout << "\t- Old integral: " << integral_old << endl;
 
   HelperFunctions::multiplyBinWidth(hist);
 
@@ -991,22 +991,22 @@ void regularizeCombinedHistogram(TH2F*& hist){
   HelperFunctions::divideBinWidth(hist);
 
   if (!HelperFunctions::checkHistogramIntegrity(hist)){
-    MELAerr << "regularizeCombinedHistogram: New histogram failed integrity!" << endl;
+    IVYerr << "regularizeCombinedHistogram: New histogram failed integrity!" << endl;
     exit(1);
   }
 
   double const integral_new = HelperFunctions::getHistogramIntegralAndError(hist, 1, nbinsx, 1, nbinsy, true, nullptr);
-  MELAout << "\t- New integral: " << integral_new << endl;
-  MELAout << "\t- delta: " << sum_abs_delta_bc << endl;
+  IVYout << "\t- New integral: " << integral_new << endl;
+  IVYout << "\t- delta: " << sum_abs_delta_bc << endl;
 }
 void regularizeCombinedHistogram(TH3F*& hist){
-  MELAout << "Regularizing " << hist->GetName() << "..." << endl;
+  IVYout << "Regularizing " << hist->GetName() << "..." << endl;
   int const nbinsx = hist->GetNbinsX();
   int const nbinsy = hist->GetNbinsY();
   int const nbinsz = hist->GetNbinsZ();
 
   double const integral_old = HelperFunctions::getHistogramIntegralAndError(hist, 1, nbinsx, 1, nbinsy, 1, nbinsz, true, nullptr);
-  MELAout << "\t- Old integral: " << integral_old << endl;
+  IVYout << "\t- Old integral: " << integral_old << endl;
 
   HelperFunctions::multiplyBinWidth(hist);
 
@@ -1045,33 +1045,33 @@ void regularizeCombinedHistogram(TH3F*& hist){
   HelperFunctions::divideBinWidth(hist);
 
   if (!HelperFunctions::checkHistogramIntegrity(hist)){
-    MELAerr << "regularizeCombinedHistogram: New histogram failed integrity!" << endl;
+    IVYerr << "regularizeCombinedHistogram: New histogram failed integrity!" << endl;
     exit(1);
   }
 
   double const integral_new = HelperFunctions::getHistogramIntegralAndError(hist, 1, nbinsx, 1, nbinsy, 1, nbinsz, true, nullptr);
-  MELAout << "\t- New integral: " << integral_new << endl;
-  MELAout << "\t- delta: " << sum_abs_delta_bc << endl;
+  IVYout << "\t- New integral: " << integral_new << endl;
+  IVYout << "\t- delta: " << sum_abs_delta_bc << endl;
 }
 
 void adjustWideBinVariation(std::vector<ExtendedBinning> const& binning_vars, TString const& systname, TH1F* h_nominal, TH1F* h_var, bool useWidth){
-  if (binning_vars.size()!=1){ MELAerr << "adjustWideBinVariation ERROR: Using the wrong binning dimension!" << endl; return; }
+  if (binning_vars.size()!=1){ IVYerr << "adjustWideBinVariation ERROR: Using the wrong binning dimension!" << endl; return; }
   if (binning_vars.front().getName()!="mTZZ") return;
-  if (!h_nominal){ MELAerr << "adjustWideBinVariation ERROR: Nominal histogram is null!" << endl; return; }
-  if (!h_var){ MELAerr << "adjustWideBinVariation ERROR: Variation histogram is null!" << endl; return; }
+  if (!h_nominal){ IVYerr << "adjustWideBinVariation ERROR: Nominal histogram is null!" << endl; return; }
+  if (!h_var){ IVYerr << "adjustWideBinVariation ERROR: Variation histogram is null!" << endl; return; }
 
   double adj_factor = 1;
   // Norm. uncs. are defined at 5-sigma
   if (systname.Contains("CMS_stat_norm")) adj_factor = 5;
 
-  MELAout
+  IVYout
     << "adjustWideBinVariation: Integral of the variation before adjustment = "
     << HelperFunctions::getHistogramIntegralAndError(h_var, 1, binning_vars.front().getNbins(), useWidth)
     << endl;
-  MELAout << "\t- Adjustment factor: " << adj_factor << endl;
+  IVYout << "\t- Adjustment factor: " << adj_factor << endl;
 
   std::vector<int> const xbin_boundaries{ 1, binning_vars.front().getBin(450.)+1, static_cast<int>(binning_vars.front().getNbins()+1) };
-  MELAout << "\t- X wide bin boundaries: " << xbin_boundaries << endl;
+  IVYout << "\t- X wide bin boundaries: " << xbin_boundaries << endl;
 
   for (unsigned int ibb=0; ibb<xbin_boundaries.size()-1; ibb++){
     double const int_nominal = HelperFunctions::getHistogramIntegralAndError(h_nominal, xbin_boundaries.at(ibb), xbin_boundaries.at(ibb+1)-1, useWidth);
@@ -1086,26 +1086,26 @@ void adjustWideBinVariation(std::vector<ExtendedBinning> const& binning_vars, TS
     }
   }
 
-  MELAout
+  IVYout
     << "adjustWideBinVariation: Integral of the variation after adjustment = "
     << HelperFunctions::getHistogramIntegralAndError(h_var, 1, binning_vars.front().getNbins(), useWidth)
     << endl;
 }
 void adjustWideBinVariation(std::vector<ExtendedBinning> const& binning_vars, TString const& systname, TH2F* h_nominal, TH2F* h_var, bool useWidth){
   unsigned int const ndims = binning_vars.size();
-  if (ndims!=2){ MELAerr << "adjustWideBinVariation ERROR: Using the wrong binning dimension!" << endl; return; }
-  if (!h_nominal){ MELAerr << "adjustWideBinVariation ERROR: Nominal histogram is null!" << endl; return; }
-  if (!h_var){ MELAerr << "adjustWideBinVariation ERROR: Variation histogram is null!" << endl; return; }
+  if (ndims!=2){ IVYerr << "adjustWideBinVariation ERROR: Using the wrong binning dimension!" << endl; return; }
+  if (!h_nominal){ IVYerr << "adjustWideBinVariation ERROR: Nominal histogram is null!" << endl; return; }
+  if (!h_var){ IVYerr << "adjustWideBinVariation ERROR: Variation histogram is null!" << endl; return; }
 
   double adj_factor = 1;
   // Norm. uncs. are defined at 5-sigma
   if (systname.Contains("CMS_stat_norm")) adj_factor = 5;
 
-  MELAout
+  IVYout
     << "adjustWideBinVariation: Integral of the variation before adjustment = "
     << HelperFunctions::getHistogramIntegralAndError(h_var, 1, binning_vars.at(0).getNbins(), 1, binning_vars.at(1).getNbins(), useWidth)
     << endl;
-  MELAout << "\t- Adjustment factor: " << adj_factor << endl;
+  IVYout << "\t- Adjustment factor: " << adj_factor << endl;
 
   std::vector< std::vector<int> > bin_boundaries_list(ndims, std::vector<int>());
   for (unsigned int idim=0; idim<ndims; idim++){
@@ -1125,8 +1125,8 @@ void adjustWideBinVariation(std::vector<ExtendedBinning> const& binning_vars, TS
 
   std::vector<int> const& xbin_boundaries = bin_boundaries_list.at(0);
   std::vector<int> const& ybin_boundaries = bin_boundaries_list.at(1);
-  MELAout << "\t- X wide bin boundaries: " << xbin_boundaries << endl;
-  MELAout << "\t- Y wide bin boundaries: " << ybin_boundaries << endl;
+  IVYout << "\t- X wide bin boundaries: " << xbin_boundaries << endl;
+  IVYout << "\t- Y wide bin boundaries: " << ybin_boundaries << endl;
 
   for (unsigned int ibb=0; ibb<xbin_boundaries.size()-1; ibb++){
     for (unsigned int jbb=0; jbb<ybin_boundaries.size()-1; jbb++){
@@ -1155,26 +1155,26 @@ void adjustWideBinVariation(std::vector<ExtendedBinning> const& binning_vars, TS
     }
   }
 
-  MELAout
+  IVYout
     << "adjustWideBinVariation: Integral of the variation after adjustment = "
     << HelperFunctions::getHistogramIntegralAndError(h_var, 1, binning_vars.at(0).getNbins(), 1, binning_vars.at(1).getNbins(), useWidth)
     << endl;
 }
 void adjustWideBinVariation(std::vector<ExtendedBinning> const& binning_vars, TString const& systname, TH3F* h_nominal, TH3F* h_var, bool useWidth){
   unsigned int const ndims = binning_vars.size();
-  if (ndims!=3){ MELAerr << "adjustWideBinVariation ERROR: Using the wrong binning dimension!" << endl; return; }
-  if (!h_nominal){ MELAerr << "adjustWideBinVariation ERROR: Nominal histogram is null!" << endl; return; }
-  if (!h_var){ MELAerr << "adjustWideBinVariation ERROR: Variation histogram is null!" << endl; return; }
+  if (ndims!=3){ IVYerr << "adjustWideBinVariation ERROR: Using the wrong binning dimension!" << endl; return; }
+  if (!h_nominal){ IVYerr << "adjustWideBinVariation ERROR: Nominal histogram is null!" << endl; return; }
+  if (!h_var){ IVYerr << "adjustWideBinVariation ERROR: Variation histogram is null!" << endl; return; }
 
   double adj_factor = 1;
   // Norm. uncs. are defined at 5-sigma
   if (systname.Contains("CMS_stat_norm")) adj_factor = 5;
 
-  MELAout
+  IVYout
     << "adjustWideBinVariation: Integral of the variation before adjustment = "
     << HelperFunctions::getHistogramIntegralAndError(h_var, 1, binning_vars.at(0).getNbins(), 1, binning_vars.at(1).getNbins(), 1, binning_vars.at(2).getNbins(), useWidth)
     << endl;
-  MELAout << "\t- Adjustment factor: " << adj_factor << endl;
+  IVYout << "\t- Adjustment factor: " << adj_factor << endl;
 
   std::vector< std::vector<int> > bin_boundaries_list(ndims, std::vector<int>());
   for (unsigned int idim=0; idim<ndims; idim++){
@@ -1195,9 +1195,9 @@ void adjustWideBinVariation(std::vector<ExtendedBinning> const& binning_vars, TS
   std::vector<int> const& xbin_boundaries = bin_boundaries_list.at(0);
   std::vector<int> const& ybin_boundaries = bin_boundaries_list.at(1);
   std::vector<int> const& zbin_boundaries = bin_boundaries_list.at(2);
-  MELAout << "\t- X wide bin boundaries: " << xbin_boundaries << endl;
-  MELAout << "\t- Y wide bin boundaries: " << ybin_boundaries << endl;
-  MELAout << "\t- Z wide bin boundaries: " << zbin_boundaries << endl;
+  IVYout << "\t- X wide bin boundaries: " << xbin_boundaries << endl;
+  IVYout << "\t- Y wide bin boundaries: " << ybin_boundaries << endl;
+  IVYout << "\t- Z wide bin boundaries: " << zbin_boundaries << endl;
 
   for (unsigned int ibb=0; ibb<xbin_boundaries.size()-1; ibb++){
     for (unsigned int jbb=0; jbb<ybin_boundaries.size()-1; jbb++){
@@ -1232,7 +1232,7 @@ void adjustWideBinVariation(std::vector<ExtendedBinning> const& binning_vars, TS
     }
   }
 
-  MELAout
+  IVYout
     << "adjustWideBinVariation: Integral of the variation after adjustment = "
     << HelperFunctions::getHistogramIntegralAndError(h_var, 1, binning_vars.at(0).getNbins(), 1, binning_vars.at(1).getNbins(), 1, binning_vars.at(2).getNbins(), useWidth)
     << endl;
@@ -1263,12 +1263,12 @@ void getTemplate_ZZTo2L2Nu(
   TString cinput_main = "output/TemplateIntermediates/" + strdate + "/CatScheme_Nj" + (includeBoostedHadVHCategory ? (includeResolvedHadVHCategory ? "_BoostedHadVH_ResolvedHadVH" : "_BoostedHadVH") : (includeResolvedHadVHCategory ? "_ResolvedHadVH" : "")) + "/" + ACHypothesisHelpers::getACHypothesisName(AChypo) + "/" + period;
   if (SampleHelpers::checkRunOnCondor()) cinput_main += Form("/InstrMET_%s", strChannel.Data());
   if (!SampleHelpers::checkFileOnWorker(cinput_main)){
-    MELAerr << "Cannot find " << cinput_main << "..." << endl;
+    IVYerr << "Cannot find " << cinput_main << "..." << endl;
     exit(1);
   }
   auto inputfnames = SampleHelpers::lsdir(cinput_main.Data());
   if (inputfnames.empty()){
-    MELAerr << "Directory " << cinput_main << " is empty." << endl;
+    IVYerr << "Directory " << cinput_main << " is empty." << endl;
     exit(1);
   }
 
@@ -1289,7 +1289,7 @@ void getTemplate_ZZTo2L2Nu(
 
   for (unsigned int icat=0; icat<nCats; icat++){
     TString const& strCatName = strCatNames.at(icat);
-    MELAout << "Producing templates for " << strCatName << ":" << endl;
+    IVYout << "Producing templates for " << strCatName << ":" << endl;
 
     const double thr_mTZZ = (icat==2 ? 450 : -1);
 
@@ -1314,7 +1314,7 @@ void getTemplate_ZZTo2L2Nu(
 
     TString stroutput_txt = coutput_main + "/" + getTemplateFileName(strChannel, strCatName, "InstrMET", "Nominal");
     HelperFunctions::replaceString<TString, TString const>(stroutput_txt, "_Nominal.root", ".txt");
-    MELAout.open(stroutput_txt);
+    IVYout.open(stroutput_txt);
 
     int ndims=-1;
     std::vector<TFile*> finputs;
@@ -1365,18 +1365,18 @@ void getTemplate_ZZTo2L2Nu(
         }
       }
     }
-    MELAout << "\t- List of processes for the available systematics:" << endl;
+    IVYout << "\t- List of processes for the available systematics:" << endl;
 
     // Maps of template, below-floor histograms
     std::unordered_map<TString, std::pair<TH1F*, TH1F*>> syst_h1D_pair_map;
     std::unordered_map<TString, std::pair<TH2F*, TH2F*>> syst_h2D_pair_map;
     std::unordered_map<TString, std::pair<TH3F*, TH3F*>> syst_h3D_pair_map;
-    for (auto const& pp:syst_procname_map) MELAout << "\t\t- Systematic " << pp.first << ": " << pp.second << endl;
+    for (auto const& pp:syst_procname_map) IVYout << "\t\t- Systematic " << pp.first << ": " << pp.second << endl;
 
     std::unordered_map<TString, TFile*> syst_outfile_map;
     for (auto const& syst_procname_pair:syst_procname_map){
       TString const& systname = syst_procname_pair.first;
-      MELAout << "\t- Processing " << systname << "..." << endl;
+      IVYout << "\t- Processing " << systname << "..." << endl;
 
       TString stroutput = coutput_main + "/" + getTemplateFileName(strChannel, strCatName, "InstrMET", systname);
       TFile* foutput = TFile::Open(stroutput, "recreate");
@@ -1442,8 +1442,8 @@ void getTemplate_ZZTo2L2Nu(
         }
         hFloored->Scale(-1.);
         h1D_floored = hFloored;
-        MELAout << "\t\t- Final integral: " << HelperFunctions::getHistogramIntegralAndError(h1D, 1, h1D->GetNbinsX(), true) << endl;
-        MELAout << "\t\t- Floor bias in integral: " << -HelperFunctions::getHistogramIntegralAndError(hFloored, 1, hFloored->GetNbinsX(), true) << endl;
+        IVYout << "\t\t- Final integral: " << HelperFunctions::getHistogramIntegralAndError(h1D, 1, h1D->GetNbinsX(), true) << endl;
+        IVYout << "\t\t- Floor bias in integral: " << -HelperFunctions::getHistogramIntegralAndError(hFloored, 1, hFloored->GetNbinsX(), true) << endl;
       }
       if (h2D){
         TH2F* hFloored = (TH2F*) h2D->Clone(Form("%s_belowfloor", h2D->GetName()));
@@ -1473,20 +1473,20 @@ void getTemplate_ZZTo2L2Nu(
             for (int ix=(ilh==1 ? jx : 1); ix<=(ilh==1 ? nx : jx-1); ix++){
               double xwidth = h2D->GetXaxis()->GetBinWidth(ix);
               double int_x = HelperFunctions::getHistogramIntegralAndError(h2D, ix, ix, 1, h2D->GetNbinsY(), true);
-              //MELAout << "Integral before: " << int_x << endl;
+              //IVYout << "Integral before: " << int_x << endl;
               for (int iy=1; iy<=h2D->GetNbinsY(); iy++){
                 double ywidth = h2D->GetYaxis()->GetBinWidth(iy);
                 h2D->SetBinContent(ix, iy, int_x * int_KD.at(iy-1) / (xwidth * ywidth));
               }
-              //MELAout << "Integral after: " << HelperFunctions::getHistogramIntegralAndError(h2D, ix, ix, 1, h2D->GetNbinsY(), true) << endl;
+              //IVYout << "Integral after: " << HelperFunctions::getHistogramIntegralAndError(h2D, ix, ix, 1, h2D->GetNbinsY(), true) << endl;
             }
           }
         }
         regularizeCombinedHistogram(h2D);
         hFloored->Scale(-1.);
         h2D_floored = hFloored;
-        MELAout << "\t\t- Final integral: " << HelperFunctions::getHistogramIntegralAndError(h2D, 1, h2D->GetNbinsX(), 1, h2D->GetNbinsY(), true) << endl;
-        MELAout << "\t\t- Floor bias in integral: " << -HelperFunctions::getHistogramIntegralAndError(hFloored, 1, hFloored->GetNbinsX(), 1, hFloored->GetNbinsY(), true) << endl;
+        IVYout << "\t\t- Final integral: " << HelperFunctions::getHistogramIntegralAndError(h2D, 1, h2D->GetNbinsX(), 1, h2D->GetNbinsY(), true) << endl;
+        IVYout << "\t\t- Floor bias in integral: " << -HelperFunctions::getHistogramIntegralAndError(hFloored, 1, hFloored->GetNbinsX(), 1, hFloored->GetNbinsY(), true) << endl;
       }
       if (h3D){
         TH3F* hFloored = (TH3F*) h3D->Clone(Form("%s_belowfloor", h3D->GetName()));
@@ -1523,12 +1523,12 @@ void getTemplate_ZZTo2L2Nu(
                 for (int iy=1; iy<=ny; iy++){
                   double ywidth = h3D->GetYaxis()->GetBinWidth(iy);
                   double int_xy = HelperFunctions::getHistogramIntegralAndError(h3D, ix, ix, iy, iy, 1, nz, true);
-                  //MELAout << "Integral before: " << int_xy << endl;
+                  //IVYout << "Integral before: " << int_xy << endl;
                   for (int iz=1; iz<=nz; iz++){
                     double zwidth = h3D->GetZaxis()->GetBinWidth(iz);
                     h3D->SetBinContent(ix, iy, iz, int_xy * int_KD.at(iz-1) / (xwidth * ywidth * zwidth));
                   }
-                  //MELAout << "Integral after: " << HelperFunctions::getHistogramIntegralAndError(h3D, ix, ix, iy, iy, 1, nz, true) << endl;
+                  //IVYout << "Integral after: " << HelperFunctions::getHistogramIntegralAndError(h3D, ix, ix, iy, iy, 1, nz, true) << endl;
                 }
               }
             }
@@ -1544,7 +1544,7 @@ void getTemplate_ZZTo2L2Nu(
               for (int ix=(ilh==1 ? jx : 1); ix<=(ilh==1 ? nx : jx-1); ix++){
                 double xwidth = h3D->GetXaxis()->GetBinWidth(ix);
                 double int_x = HelperFunctions::getHistogramIntegralAndError(h3D, ix, ix, 1, ny, 1, nz, true);
-                //MELAout << "Integral before: " << int_x << endl;
+                //IVYout << "Integral before: " << int_x << endl;
                 for (int iy=1; iy<=ny; iy++){
                   double ywidth = h3D->GetYaxis()->GetBinWidth(iy);
                   for (int iz=1; iz<=nz; iz++){
@@ -1552,7 +1552,7 @@ void getTemplate_ZZTo2L2Nu(
                     h3D->SetBinContent(ix, iy, iz, int_x * int_KD.at(iy-1).at(iz-1) / (xwidth * ywidth * zwidth));
                   }
                 }
-                //MELAout << "Integral after: " << HelperFunctions::getHistogramIntegralAndError(h3D, ix, ix, 1, ny, 1, nz, true) << endl;
+                //IVYout << "Integral after: " << HelperFunctions::getHistogramIntegralAndError(h3D, ix, ix, 1, ny, 1, nz, true) << endl;
               }
             }
           }
@@ -1560,8 +1560,8 @@ void getTemplate_ZZTo2L2Nu(
         regularizeCombinedHistogram(h3D);
         hFloored->Scale(-1.);
         h3D_floored = hFloored;
-        MELAout << "\t\t- Final integral: " << HelperFunctions::getHistogramIntegralAndError(h3D, 1, h3D->GetNbinsX(), 1, h3D->GetNbinsY(), 1, h3D->GetNbinsZ(), true) << endl;
-        MELAout << "\t\t- Floor bias in integral: " << -HelperFunctions::getHistogramIntegralAndError(hFloored, 1, hFloored->GetNbinsX(), 1, hFloored->GetNbinsY(), 1, hFloored->GetNbinsZ(), true) << endl;
+        IVYout << "\t\t- Final integral: " << HelperFunctions::getHistogramIntegralAndError(h3D, 1, h3D->GetNbinsX(), 1, h3D->GetNbinsY(), 1, h3D->GetNbinsZ(), true) << endl;
+        IVYout << "\t\t- Floor bias in integral: " << -HelperFunctions::getHistogramIntegralAndError(hFloored, 1, hFloored->GetNbinsX(), 1, hFloored->GetNbinsY(), 1, hFloored->GetNbinsZ(), true) << endl;
       }
 
       switch (ndims){
@@ -1584,7 +1584,7 @@ void getTemplate_ZZTo2L2Nu(
     for (auto const& syst_procname_pair:syst_procname_map){
       TString const& systname = syst_procname_pair.first;
       if (systname=="Nominal" || systname.Contains("stat_shape_KD")) continue;
-      MELAout << "\t- Finalizing " << systname << "..." << endl;
+      IVYout << "\t- Finalizing " << systname << "..." << endl;
       switch (ndims){
       case 1:
       {
@@ -1613,7 +1613,7 @@ void getTemplate_ZZTo2L2Nu(
     }
     for (auto const& syst_procname_pair:syst_procname_map){
       TString const& systname = syst_procname_pair.first;
-      MELAout << "\t- Recording " << systname << "..." << endl;
+      IVYout << "\t- Recording " << systname << "..." << endl;
       TFile*& foutput = syst_outfile_map.find(systname)->second;
       switch (ndims){
       case 1:
@@ -1649,7 +1649,7 @@ void getTemplate_ZZTo2L2Nu(
 
     for (auto const& finput:finputs) finput->Close();
 
-    MELAout.close();
+    IVYout.close();
   }
 }
 

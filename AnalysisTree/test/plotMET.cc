@@ -63,7 +63,7 @@ HistogramObject::HistogramObject(
   hist.GetXaxis()->SetTitle(xlabel);
   hist.GetYaxis()->SetTitle(ylabel);
 
-  MELAout << "Created histogram " << hist.GetName() << " [" << hist.GetTitle() << "]" << endl;
+  IVYout << "Created histogram " << hist.GetName() << " [" << hist.GetTitle() << "]" << endl;
 }
 HistogramObject::HistogramObject(HistogramObject const& other) :
   name(other.name),
@@ -263,7 +263,7 @@ void getTrees(TString strdate=""){
 
     DileptonHandler dileptonHandler;
 
-    MELAout << "Completed getting the handles..." << endl;
+    IVYout << "Completed getting the handles..." << endl;
     sample_tree.silenceUnused();
 
     foutput->cd();
@@ -550,15 +550,15 @@ void getTrees(TString strdate=""){
       std::vector<AK4JetObject*> ak4jets_tight; ak4jets_tight.reserve(ak4jets.size());
       for (auto* jet:ak4jets){ if (ParticleSelectionHelpers::isTightJet(jet)) ak4jets_tight.push_back(jet); }
 
-      //MELAout << "MET values (PFPUPPI, PFCHS) = ( " << pfpuppimet->met() << ", " << pfchsmet->met() << " )" << endl;
+      //IVYout << "MET values (PFPUPPI, PFCHS) = ( " << pfpuppimet->met() << ", " << pfchsmet->met() << " )" << endl;
 
       eventFilter.constructFilters();
 
       dileptonHandler.constructDileptons(&muons, &electrons);
       auto const& dileptons = dileptonHandler.getProducts();
-      //MELAout << "Ndileptons: " << dileptons.size() << " | pTs = ";
-      //for (auto const& dilepton:dileptons) MELAout << dilepton->pt() << " ";
-      //MELAout << endl;
+      //IVYout << "Ndileptons: " << dileptons.size() << " | pTs = ";
+      //for (auto const& dilepton:dileptons) IVYout << dilepton->pt() << " ";
+      //IVYout << endl;
 
       DileptonObject* theChosenDilepton = nullptr;
       for (auto const& dilepton:dileptons){
@@ -748,13 +748,13 @@ void plotMET(TString strdate="", bool useLogY=false, bool isStacked=false, int n
     TString indexDir = "${CMSSW_BASE}/src/CMSDataTools/AnalysisTree/data/plotting/index.php";
     HostHelpers::ExpandEnvironmentVariables(indexDir);
     if (HostHelpers::FileReadable(indexDir)){
-      MELAout << "Attempting to copy index.php" << endl;
+      IVYout << "Attempting to copy index.php" << endl;
       TString tmpdir = tmplist.at(0) + '/';
       for (size_t idir=1; idir<tmplist.size(); idir++){
         tmpdir = tmpdir + tmplist.at(idir) + '/';
         TString tmpCmd = "cp ~/public_html/index.pages.php ";
         tmpCmd += tmpdir + "index.php";
-        MELAout << "Copying index.php into " << tmpdir << endl;
+        IVYout << "Copying index.php into " << tmpdir << endl;
         HostHelpers::ExecuteCommand(tmpCmd);
       }
     }
@@ -821,7 +821,7 @@ void plotMET(TString strdate="", bool useLogY=false, bool isStacked=false, int n
             bool isSignal_j = sample_j.find("ggH")!=std::string::npos;
             if (isSignal_j) continue;
             hist->Add(hist_j);
-            //MELAout << "Adding " << sample_j << " to " << sample << endl;
+            //IVYout << "Adding " << sample_j << " to " << sample << endl;
           }
         }
         else{

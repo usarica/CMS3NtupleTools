@@ -84,7 +84,7 @@ HistogramObject_2D::HistogramObject_2D(
   hist.GetYaxis()->SetTitle(ylabel);
   hist.GetZaxis()->SetTitle(zlabel);
 
-  MELAout << "Created histogram " << hist.GetName() << " [" << hist.GetTitle() << "]" << endl;
+  IVYout << "Created histogram " << hist.GetName() << " [" << hist.GetTitle() << "]" << endl;
 }
 HistogramObject_2D::HistogramObject_2D(HistogramObject_2D const& other) :
   name(other.name),
@@ -414,7 +414,7 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
     std::vector<TString> sampledirs;
     SampleHelpers::constructSamplesList(sample.path, theGlobalSyst, sampledirs);
     if (sampledirs.size()>1){
-      MELAout << "Size > 1 not implemented yet!" << endl;
+      IVYout << "Size > 1 not implemented yet!" << endl;
       continue;
     }
     BaseTree sample_tree(SampleHelpers::getDatasetFileName(sampledirs.front()), EVENTS_TREE_NAME, "", "");
@@ -423,7 +423,7 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
     TString stroutput = Form("%s/%s%s", coutput_main.Data(), sample.name.data(), ".root");
     TString stroutput_txt = Form("%s/%s%s", coutput_main.Data(), sample.name.data(), ".txt");
     TFile* foutput = TFile::Open(stroutput, "recreate");
-    MELAout.open(stroutput_txt.Data());
+    IVYout.open(stroutput_txt.Data());
 
     // Get cross section
     sample_tree.bookBranch<float>("xsec", 0.f);
@@ -450,7 +450,7 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
     eventFilter.bookBranches(&sample_tree);
     eventFilter.wrapTree(&sample_tree);
 
-    MELAout << "Completed getting the handles..." << endl;
+    IVYout << "Completed getting the handles..." << endl;
     sample_tree.silenceUnused();
 
     foutput->cd();
@@ -647,9 +647,9 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
 
       dileptonHandler.constructDileptons(&muons, &electrons);
       auto const& dileptons = dileptonHandler.getProducts();
-      //MELAout << "Ndileptons: " << dileptons.size() << " | pTs = ";
-      //for (auto const& dilepton:dileptons) MELAout << dilepton->pt() << " ";
-      //MELAout << endl;
+      //IVYout << "Ndileptons: " << dileptons.size() << " | pTs = ";
+      //for (auto const& dilepton:dileptons) IVYout << dilepton->pt() << " ";
+      //IVYout << endl;
 
       DileptonObject* theChosenDilepton = nullptr;
       size_t nTightDilep = 0;
@@ -859,7 +859,7 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
     }
     sample.writeHistograms();
 
-    MELAout.close();
+    IVYout.close();
     foutput->Close();
 
     SampleHelpers::addToCondorTransferList(stroutput);
@@ -886,13 +886,13 @@ void plot_MET_pTll(int doZZWW, int iproc, bool doCondX, TString strdate=""){
     TString indexDir = "${CMSSW_BASE}/src/CMSDataTools/AnalysisTree/data/plotting/index.php";
     HostHelpers::ExpandEnvironmentVariables(indexDir);
     if (HostHelpers::FileReadable(indexDir)){
-      MELAout << "Attempting to copy index.php" << endl;
+      IVYout << "Attempting to copy index.php" << endl;
       TString tmpdir = tmplist.at(0) + '/';
       for (size_t idir=1; idir<tmplist.size(); idir++){
         tmpdir = tmpdir + tmplist.at(idir) + '/';
         TString tmpCmd = "cp ~/public_html/index.pages.php ";
         tmpCmd += tmpdir + "index.php";
-        MELAout << "Copying index.php into " << tmpdir << endl;
+        IVYout << "Copying index.php into " << tmpdir << endl;
         HostHelpers::ExecuteCommand(tmpCmd);
       }
     }

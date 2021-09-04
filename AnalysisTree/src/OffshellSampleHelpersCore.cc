@@ -4,11 +4,11 @@
 #include "OffshellSampleHelpers.h"
 #include "OffshellTriggerHelpers.h"
 #include "HostHelpersCore.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 using namespace HelperFunctions;
 
 
@@ -49,7 +49,7 @@ TString SampleHelpers::getDatasetDirectoryName(std::string sname, bool ignoreDNE
   assert(theSamplesTag!="");
   assert(theInputDirectory!="");
   if (!HostHelpers::DirectoryExists(theInputDirectory.Data())){
-    MELAerr << "SampleHelpers::getDatasetDirectoryName: The input directory " << theInputDirectory << " does not exist." << endl;
+    IVYerr << "SampleHelpers::getDatasetDirectoryName: The input directory " << theInputDirectory << " does not exist." << endl;
     assert(0);
   }
 
@@ -57,10 +57,10 @@ TString SampleHelpers::getDatasetDirectoryName(std::string sname, bool ignoreDNE
   TString res = Form("%s/%s/%s", theInputDirectory.Data(), theSamplesTag.Data(), sname.data());
   bool dirExists = HostHelpers::DirectoryExists(res.Data());
   if (!dirExists){
-    MELAerr << "SampleHelpers::getDatasetDirectoryName: Cannot find directory " << res << ". Trying the 'partial' collection tag." << endl;
+    IVYerr << "SampleHelpers::getDatasetDirectoryName: Cannot find directory " << res << ". Trying the 'partial' collection tag." << endl;
     HelperFunctions::replaceString<TString, TString const>(res, theSamplesTag, (theSamplesTag+"_partial"));
     dirExists = HostHelpers::DirectoryExists(res.Data());
-    if (!dirExists) MELAerr << "SampleHelpers::getDatasetDirectoryName: Directory " << res << " does not exist either." << endl;
+    if (!dirExists) IVYerr << "SampleHelpers::getDatasetDirectoryName: Directory " << res << " does not exist either." << endl;
   }
   assert(ignoreDNE || dirExists);
   return res;
@@ -92,7 +92,7 @@ std::vector<TString> SampleHelpers::getDatasetFileNames(std::string sname, bool 
   }
   size_t const nfiles = res.size();
   if (nfiles==0){
-    MELAerr << "SampleHelpers::getDatasetFileNames: Directory " << dsetdir << " contains no ROOT files." << endl;
+    IVYerr << "SampleHelpers::getDatasetFileNames: Directory " << dsetdir << " contains no ROOT files." << endl;
     assert(ignoreDNE || nfiles>0);
   }
   return res;
@@ -102,7 +102,7 @@ std::vector<TString> SampleHelpers::getDatasetFileNames(TString sname, bool igno
 TString SampleHelpers::getDatasetFirstFileName(std::string sname, bool ignoreDNE){
   std::vector<TString> fileList = SampleHelpers::getDatasetFileNames(sname, ignoreDNE);
   if (fileList.empty()){
-    MELAerr << "SampleHelpers::getDatasetFirstFileName: Sample " << sname << " has no ROOT files." << endl;
+    IVYerr << "SampleHelpers::getDatasetFirstFileName: Sample " << sname << " has no ROOT files." << endl;
     assert(ignoreDNE);
   }
   return (!fileList.empty() ? fileList.front() : TString(""));
@@ -114,11 +114,11 @@ bool SampleHelpers::checkFileOnWorker(TString& fname, HostHelpers::Hosts input_h
 
   TString fname_worker = Form("/store/user/usarica/Offshell_2L2Nu/Worker/%s", fname.Data());
   fname_worker = HostHelpers::GetStandardHostPathToStore(fname_worker.Data(), input_host);
-  MELAout << "SampleHelpers::checkFileOnWorker: Could not find " << fname << ". Checking for the presence of " << fname_worker << "..." << endl;
+  IVYout << "SampleHelpers::checkFileOnWorker: Could not find " << fname << ". Checking for the presence of " << fname_worker << "..." << endl;
 
   if (HostHelpers::FileReadable(fname_worker) || HostHelpers::DirectoryExists(fname_worker)){
     fname = fname_worker;
-    MELAout << "\t- Will now use " << fname << " as a substitute." << endl;
+    IVYout << "\t- Will now use " << fname << " as a substitute." << endl;
     return true;
   }
 

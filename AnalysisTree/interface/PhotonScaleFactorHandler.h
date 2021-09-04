@@ -1,7 +1,7 @@
 #ifndef PHOTONSCALEFACTORHANDLER_H
 #define PHOTONSCALEFACTORHANDLER_H
 
-#include <CMSDataTools/AnalysisTree/interface/ExtendedHistogram_2D.h>
+#include "ExtendedHistogram_2D.h"
 #include "ScaleFactorHandlerBase.h"
 #include "PhotonObject.h"
 #include "PhotonSelectionHelpers.h"

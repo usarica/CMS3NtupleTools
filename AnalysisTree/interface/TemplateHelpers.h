@@ -7,7 +7,7 @@
 #include "HelperFunctions.h"
 #include "DiscriminantClasses.h"
 #include "ACHypothesisHelpers.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 #include "TH1.h"
 #include "TH2.h"
 #include "TH3.h"
@@ -49,7 +49,7 @@ template<typename T> void TemplateHelpers::setTemplateAxisLabels(T* const& hist)
 }
 template<typename T> void TemplateHelpers::doTemplatePostprocessing(T* const& hist){
   if (!HelperFunctions::checkHistogramIntegrity(hist)){
-    MELAStreamHelpers::MELAerr << "Histogram " << hist->GetName() << " failed integrity check." << std::endl;
+    IvyStreamHelpers::IVYerr << "Histogram " << hist->GetName() << " failed integrity check." << std::endl;
     assert(0);
   }
   HelperFunctions::wipeOverUnderFlows(hist, false, true);

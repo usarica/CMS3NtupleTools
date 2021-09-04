@@ -87,7 +87,7 @@ void pebbleRoutine(){
 
   const int nevents = sample_tree.getNEvents();
   size_t ev_acc=0, max_ev_acc=300000;
-  MELAout << "Number of events: " << nevents << endl;
+  IVYout << "Number of events: " << nevents << endl;
   for (int ev=0; ev<nevents; ev++){
     sample_tree.getEvent(ev);
     HelperFunctions::progressbar(ev, nevents);

@@ -2,7 +2,7 @@
 #include "SamplesCore.h"
 #include "DiscriminantClasses.h"
 #include "ACHypothesisHelpers.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 namespace DiscriminantClasses{
@@ -11,7 +11,7 @@ namespace DiscriminantClasses{
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 DiscriminantClasses::KDspecs::KDspecs() : KDtype(DiscriminantClasses::kNTypes), KD(nullptr) {}
@@ -1087,7 +1087,7 @@ void DiscriminantClasses::constructDiscriminants(std::vector<DiscriminantClasses
       KDspec.KD = constructKDFromType(KDspec.KDtype, "", "");
       break;
     default:
-      MELAerr << "DiscriminantClasses::constructDiscriminants: KD " << KDspec.KDname << " is not defined." << endl;
+      IVYerr << "DiscriminantClasses::constructDiscriminants: KD " << KDspec.KDname << " is not defined." << endl;
       assert(0);
       break;
     }

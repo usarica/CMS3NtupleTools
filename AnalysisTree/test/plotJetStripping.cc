@@ -5,7 +5,7 @@
 #include "TText.h"
 #include "TPaveText.h"
 #include "TLegend.h"
-#include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
+#include <IvyFramework/IvyAutoMELA/interface/IvyMELAHelpers.h>
 
 
 using namespace reco;
@@ -488,7 +488,7 @@ void plot(
         strinput += Form("*_%s", SystematicsHelpers::getSystName(theGlobalSyst).data());
         strinput += ".root";
 
-        MELAout << "Adding input " << strinput << " for tree " << it << endl;
+        IVYout << "Adding input " << strinput << " for tree " << it << endl;
         tinlist.back()->Add(strinput);
       }
     }
@@ -497,11 +497,11 @@ void plot(
       strinput += Form("*_%s", SystematicsHelpers::getSystName(theGlobalSyst).data());
       strinput += ".root";
 
-      MELAout << "Adding input " << strinput << " for tree " << it << endl;
+      IVYout << "Adding input " << strinput << " for tree " << it << endl;
       tinlist.back()->Add(strinput);
     }
 
-    MELAout << "Data tree has a total of " << tinlist.back()->GetEntries() << " entries..." << endl;
+    IVYout << "Data tree has a total of " << tinlist.back()->GetEntries() << " entries..." << endl;
     curdir->cd();
   }
 
@@ -688,11 +688,11 @@ void plot(
 #undef BRANCH_COMMAND
 
       tin->SetBranchStatus("*", 0);
-#define BRANCH_COMMAND(TYPE, NAME) if (exists_##NAME){ MELAout << "Booking " << #NAME << "..." << endl; tin->SetBranchStatus(#NAME, 1); tin->SetBranchAddress(#NAME, &NAME); }
+#define BRANCH_COMMAND(TYPE, NAME) if (exists_##NAME){ IVYout << "Booking " << #NAME << "..." << endl; tin->SetBranchStatus(#NAME, 1); tin->SetBranchAddress(#NAME, &NAME); }
       BRANCH_OPTIONAL_COMMANDS;
 #undef BRANCH_COMMAND
 
-#define BRANCH_COMMAND(TYPE, NAME) MELAout << "Booking " << #NAME << "..." << endl; tin->SetBranchStatus(#NAME, 1); tin->SetBranchAddress(#NAME, &NAME);
+#define BRANCH_COMMAND(TYPE, NAME) IVYout << "Booking " << #NAME << "..." << endl; tin->SetBranchStatus(#NAME, 1); tin->SetBranchAddress(#NAME, &NAME);
       if (useDilepton){
         BRANCH_DILEPTON_COMMANDS;
       }
@@ -876,7 +876,7 @@ void plot(
           h_ak4jets_pt_abseta_lt_2p5 = hlist_ak4jets_pt_abseta_lt_2p5_Njets_gt_2.at(it);
           break;
         default:
-          MELAerr << "index_Njets = " << index_Njets << " is undefined!" << endl;
+          IVYerr << "index_Njets = " << index_Njets << " is undefined!" << endl;
           assert(0);
           break;
         }
@@ -911,9 +911,9 @@ void plot(
         sum_wgts_cuts[6] += wgt;
         if (event_mTZZ>=350.f) sum_wgts_cuts_mTZZ_geq_350[6] += wgt;
       }
-      MELAout << "Accumulated sum of weights:" << sum_wgts_total << endl;
+      IVYout << "Accumulated sum of weights:" << sum_wgts_total << endl;
       for (unsigned int icut=0; icut<ncuts; icut++){
-        MELAout << "\t- " << cutlabels.at(icut) << ": " << sum_wgts_cuts[icut]
+        IVYout << "\t- " << cutlabels.at(icut) << ": " << sum_wgts_cuts[icut]
           << ", efficiency: " << sum_wgts_cuts[icut]/sum_wgts_cuts[0]
           << ",  recursive eff.: " << sum_wgts_cuts[icut]/sum_wgts_cuts[(icut==0 ? 0 : icut-1)]
           << ",  mTZZ>=350 GeV: " << sum_wgts_cuts_mTZZ_geq_350[icut]
@@ -1015,7 +1015,7 @@ void makePlot(
       if ((adjustYLow || useLogY) && (!useLogY || bclow>0.)) ymin = std::min(ymin, bclow);
     }
     hHasErrors.push_back(hasErrors);
-    //MELAout << "ymin, ymax after " << hname << ": " << ymin << ", " << ymax << endl;
+    //IVYout << "ymin, ymax after " << hname << ": " << ymin << ", " << ymax << endl;
   }
   if (ymax>=0.) ymax *= (factorYHigh>0.f ? factorYHigh : (!useLogY ? 1.5 : 15.));
   else ymax /= (factorYHigh>0.f ? factorYHigh : (!useLogY ? 1.5 : 15.));

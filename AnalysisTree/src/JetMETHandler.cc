@@ -14,11 +14,11 @@
 #include "AK4JetSelectionHelpers.h"
 #include "AK8JetSelectionHelpers.h"
 #include "ParticleSelectionHelpers.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 #define VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK4JETS \
@@ -106,7 +106,7 @@ JetMETHandler::METFixMode JetMETHandler::getMETFixMode(SimEventHandler const* si
   TString effDataPeriod;
   if (!SampleHelpers::checkSampleIsData(currentTree->sampleIdentifier)){
     if (!simEventHandler){
-      if (verbosity>=TVar::ERROR) MELAerr << "JetMETHandler::getMETFixMode: MC checks require a SimEventHandler!" << endl;
+      if (verbosity>=MiscUtils::ERROR) IVYerr << "JetMETHandler::getMETFixMode: MC checks require a SimEventHandler!" << endl;
       assert(0);
       return res;
     }
@@ -118,7 +118,7 @@ JetMETHandler::METFixMode JetMETHandler::getMETFixMode(SimEventHandler const* si
     RUNLUMIEVENT_VARIABLES;
 #undef RUNLUMIEVENT_VARIABLE
     if (!allVariablesPresent){
-      if (this->verbosity>=TVar::ERROR) MELAerr << "JetMETHandler::getMETFixMode: Not all variables of the data case are consumed properly!" << endl;
+      if (this->verbosity>=MiscUtils::ERROR) IVYerr << "JetMETHandler::getMETFixMode: Not all variables of the data case are consumed properly!" << endl;
       assert(0);
     }
     effDataPeriod = SampleHelpers::getDataPeriodFromRunNumber(*RunNumber);
@@ -142,7 +142,7 @@ bool JetMETHandler::constructJetMET(
   if (!currentTree) return false;
 
   METFixMode const mode_metfix = this->getMETFixMode(simEventHandler);
-  if (verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::constructJetMET: MET fix mode: " << mode_metfix << endl;
+  if (verbosity>=MiscUtils::DEBUG) IVYout << "JetMETHandler::constructJetMET: MET fix mode: " << mode_metfix << endl;
 
   bool res = (
     constructAK4Jets(syst, mode_metfix) && constructAK8Jets(syst) && constructMET(syst, mode_metfix)
@@ -180,11 +180,11 @@ bool JetMETHandler::constructAK4Jets(SystematicsHelpers::SystematicVariationType
   }
 #undef AK4JET_VARIABLE
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "JetMETHandler::constructAK4Jets: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "JetMETHandler::constructAK4Jets: Not all variables are consumed properly!" << endl;
     assert(0);
   }
 
-  if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::constructAK4Jets: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "JetMETHandler::constructAK4Jets: All variables are set up!" << endl;
 
   /************/
   /* ak4 jets */
@@ -199,7 +199,7 @@ bool JetMETHandler::constructAK4Jets(SystematicsHelpers::SystematicVariationType
   {
     size_t ip=0;
     while (it_pt != itEnd_pt){
-      if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::constructAK4Jets: Attempting ak4 jet " << ip << "..." << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "JetMETHandler::constructAK4Jets: Attempting ak4 jet " << ip << "..." << endl;
 
       ParticleObject::LorentzVector_t momentum;
       momentum = ParticleObject::PolarLorentzVector_t(*it_pt, *it_eta, *it_phi, *it_mass); // Yes you have to do this on a separate line because CMSSW...
@@ -216,13 +216,13 @@ bool JetMETHandler::constructAK4Jets(SystematicsHelpers::SystematicVariationType
 
       // Override MET flags applying an OR with RevertMETFix versions before setting selection bits
       if (doRevertMETFix){
-        if (verbosity>=TVar::DEBUG){
-          MELAout
+        if (verbosity>=MiscUtils::DEBUG){
+          IVYout
             << "\t- isMETJERCSafe_Bits = " << HelperFunctions::displayBitsAsString(obj->extras.isMETJERCSafe_Bits, JetMETEnums::nMETShiftTypes)
             << " |= " << HelperFunctions::displayBitsAsString(*it_isMETJERCSafe_RevertMETFix_Bits, JetMETEnums::nMETShiftTypes)
             << " = " << HelperFunctions::displayBitsAsString(obj->extras.isMETJERCSafe_Bits | *it_isMETJERCSafe_RevertMETFix_Bits, JetMETEnums::nMETShiftTypes)
             << endl;
-          MELAout
+          IVYout
             << "\t- isMETJERCSafe_p4Preserved_Bits = " << HelperFunctions::displayBitsAsString(obj->extras.isMETJERCSafe_p4Preserved_Bits, JetMETEnums::nMETShiftTypes)
             << " |= " << HelperFunctions::displayBitsAsString(*it_isMETJERCSafe_p4Preserved_RevertMETFix_Bits, JetMETEnums::nMETShiftTypes)
             << " = " << HelperFunctions::displayBitsAsString(obj->extras.isMETJERCSafe_p4Preserved_Bits | *it_isMETJERCSafe_p4Preserved_RevertMETFix_Bits, JetMETEnums::nMETShiftTypes)
@@ -238,7 +238,7 @@ bool JetMETHandler::constructAK4Jets(SystematicsHelpers::SystematicVariationType
       // Set the selection bits
       AK4JetSelectionHelpers::setSelectionBits(*obj);
 
-      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "\t- Success!" << endl;
 
       ip++;
 #define AK4JET_VARIABLE(TYPE, NAME, DEFVAL) it_##NAME++;
@@ -275,11 +275,11 @@ bool JetMETHandler::constructAK8Jets(SystematicsHelpers::SystematicVariationType
 #undef AK8JET_VARIABLE
 
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "JetMETHandler::constructAK8Jets: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "JetMETHandler::constructAK8Jets: Not all variables are consumed properly!" << endl;
     assert(0);
   }
 
-  if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::constructAK8Jets: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "JetMETHandler::constructAK8Jets: All variables are set up!" << endl;
 
   /************/
   /* ak8 jets */
@@ -293,7 +293,7 @@ bool JetMETHandler::constructAK8Jets(SystematicsHelpers::SystematicVariationType
   {
     size_t ip=0;
     while (it_pt != itEnd_pt){
-      if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::constructAK8Jets: Attempting ak8 jet " << ip << "..." << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "JetMETHandler::constructAK8Jets: Attempting ak8 jet " << ip << "..." << endl;
 
       ParticleObject::LorentzVector_t momentum;
       momentum = ParticleObject::PolarLorentzVector_t(*it_pt, *it_eta, *it_phi, *it_mass); // Yes you have to do this on a separate line because CMSSW...
@@ -314,7 +314,7 @@ bool JetMETHandler::constructAK8Jets(SystematicsHelpers::SystematicVariationType
       // Set the selection bits
       AK8JetSelectionHelpers::setSelectionBits(*obj);
 
-      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "\t- Success!" << endl;
 
       ip++;
 #define AK8JET_VARIABLE(TYPE, NAME, DEFVAL) it_##NAME++;
@@ -380,14 +380,14 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, JetMETHandler::METFix
   ParticleObject::LorentzVector_t pfmet_METCorrection_baseline[4];
   // Only compute recovery when there is a MET fix applied but we need to add back good jets.
   if (mode_metfix == kMETFix_RecoverGoodJets){
-    if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::applyJetCleaning: Recovering good jets from the MET fix:" << endl;
+    if (this->verbosity>=MiscUtils::DEBUG) IVYout << "JetMETHandler::applyJetCleaning: Recovering good jets from the MET fix:" << endl;
 
     for (auto const& jet:ak4jets){
       if (!jet->testSelectionBit(AK4JetSelectionHelpers::kMETFixRecoverySuitable)) continue;
       // The uncorrected p4 is to be subtracted straightaway.
       ParticleObject::LorentzVector_t const p4_uncorrected = jet->uncorrected_p4();
       bool const isMETJERCSafe_Base = jet->testSelectionBit(AK4JetSelectionHelpers::kMETJERCSafe_Base);
-      if (this->verbosity>=TVar::DEBUG) MELAout
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout
         << "=> Jet with corrected, uncorrected pT = " << jet->pt() << ", " << p4_uncorrected.Pt()
         << " is suitable. JERC safety = " << isMETJERCSafe_Base
         << ", JEC_L1L2L3 = " << jet->extras.JECNominal
@@ -412,11 +412,11 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, JetMETHandler::METFix
         }
       }
     }
-    if (this->verbosity>=TVar::DEBUG){
-      MELAout << "=> Adding the following baseline vectors to PF MET:" << endl;
+    if (this->verbosity>=MiscUtils::DEBUG){
+      IVYout << "=> Adding the following baseline vectors to PF MET:" << endl;
       for (unsigned char ijer=0; ijer<2; ijer++){
         for (unsigned char ip4=0; ip4<2; ip4++){
-          MELAout
+          IVYout
             << "\t- " << (ijer==0 ? "[No JER]" : "[JER]") << (ip4==0 ? "[p4 default]" : "[p4-preserved]")
             << " (pT, phi) = (" << pfmet_METCorrection_baseline[2*ip4 + ijer].Pt() << ", " << pfmet_METCorrection_baseline[2*ip4 + ijer].Phi() << ")"
             << endl;
@@ -498,7 +498,7 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, JetMETHandler::METFix
       for (unsigned char ijer=0; ijer<2; ijer++){
         for (unsigned char ip4=0; ip4<2; ip4++){
           ParticleObject::LorentzVector_t p4_corr = -sump4_METContribution[2*ip4 + ijer] + pfmet_METCorrection_baseline[2*ip4 + ijer];
-          if (this->verbosity>=TVar::DEBUG) MELAout
+          if (this->verbosity>=MiscUtils::DEBUG) IVYout
             << "JetMETHandler::applyJetCleaning: Total MET overlap correction "
             << (ijer==0 ? "without" : "with") << " JER, "
             << (ip4==0 ? "without" : "with") << " p4 preservation = " << p4_corr
@@ -574,7 +574,7 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, JetMETHandler::METFix
             oldjet->addDaughter(thePart);
             ParticleObject::LorentzVector_t p4_overlap = overlapElement->p4_common();
             ParticleObject::LorentzVector_t p4_overlap_mucands = overlapElement->p4_commonMuCands_goodMET();
-            std::vector<ParticleObject*> daughters_part;
+            std::vector<IvyParticle*> daughters_part;
             thePart->getDeepDaughters(daughters_part, false);
             auto const& daughters_jet = jet->getDaughters();
             for (auto const& daughter_part:daughters_part){
@@ -589,7 +589,7 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, JetMETHandler::METFix
             }
             sump4_overlaps += p4_overlap;
             sump4_overlaps_mucands += p4_overlap_mucands;
-            if (this->verbosity>=TVar::DEBUG) MELAout
+            if (this->verbosity>=MiscUtils::DEBUG) IVYout
               << "JetMETHandler::applyJetCleaning: ak4 jet " << jet->getUniqueIdentifier() << " has overlap with muon " << thePart->getUniqueIdentifier() << ":"
               << "\n\t- Jet p4 = " << jet->p4()
               << "\n\t- Particle p4 = " << thePart->p4()
@@ -603,7 +603,7 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, JetMETHandler::METFix
               if (!oldjet) oldjet = new AK4JetObject(*jet);
               oldjet->addDaughter(theFSR);
               sump4_overlaps += theFSR->p4();
-              if (this->verbosity>=TVar::DEBUG) MELAout
+              if (this->verbosity>=MiscUtils::DEBUG) IVYout
                 << "JetMETHandler::applyJetCleaning: ak4 jet " << jet->getUniqueIdentifier() << " has overlap with muon FSR " << theFSR->getUniqueIdentifier() << ":"
                 << "\n\t- Jet p4 = " << jet->p4()
                 << "\n\t- FSR p4 = " << theFSR->p4()
@@ -635,7 +635,7 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, JetMETHandler::METFix
             oldjet->addDaughter(thePart);
             ParticleObject::LorentzVector_t p4_overlap = overlapElement->p4_common();
             ParticleObject::LorentzVector_t p4_overlap_mucands = overlapElement->p4_commonMuCands_goodMET();
-            std::vector<ParticleObject*> daughters_part;
+            std::vector<IvyParticle*> daughters_part;
             thePart->getDeepDaughters(daughters_part, false);
             auto const& daughters_jet = jet->getDaughters();
             for (auto const& daughter_part:daughters_part){
@@ -650,7 +650,7 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, JetMETHandler::METFix
             }
             sump4_overlaps += p4_overlap;
             sump4_overlaps_mucands += p4_overlap_mucands;
-            if (this->verbosity>=TVar::DEBUG) MELAout
+            if (this->verbosity>=MiscUtils::DEBUG) IVYout
               << "JetMETHandler::applyJetCleaning: ak4 jet " << jet->getUniqueIdentifier() << " has overlap with electron " << thePart->getUniqueIdentifier() << ":"
               << "\n\t- Jet p4 = " << jet->p4()
               << "\n\t- Particle p4 = " << thePart->p4()
@@ -664,7 +664,7 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, JetMETHandler::METFix
               if (!oldjet) oldjet = new AK4JetObject(*jet);
               oldjet->addDaughter(theFSR);
               sump4_overlaps += theFSR->p4();
-              if (this->verbosity>=TVar::DEBUG) MELAout
+              if (this->verbosity>=MiscUtils::DEBUG) IVYout
                 << "JetMETHandler::applyJetCleaning: ak4 jet " << jet->getUniqueIdentifier() << " has overlap with electron FSR " << theFSR->getUniqueIdentifier() << ":"
                 << "\n\t- Jet p4 = " << jet->p4()
                 << "\n\t- FSR p4 = " << theFSR->p4()
@@ -685,7 +685,7 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, JetMETHandler::METFix
             oldjet->addDaughter(part);
             ParticleObject::LorentzVector_t p4_overlap = overlapElement->p4_common();
             ParticleObject::LorentzVector_t p4_overlap_mucands = overlapElement->p4_commonMuCands_goodMET();
-            std::vector<ParticleObject*> daughters_part;
+            std::vector<IvyParticle*> daughters_part;
             part->getDeepDaughters(daughters_part, false);
             auto const& daughters_jet = jet->getDaughters();
             for (auto const& daughter_part:daughters_part){
@@ -700,7 +700,7 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, JetMETHandler::METFix
             }
             sump4_overlaps += p4_overlap;
             sump4_overlaps_mucands += p4_overlap_mucands;
-            if (this->verbosity>=TVar::DEBUG) MELAout
+            if (this->verbosity>=MiscUtils::DEBUG) IVYout
               << "JetMETHandler::applyJetCleaning: ak4 jet " << jet->getUniqueIdentifier() << " has overlap with photon " << part->getUniqueIdentifier() << ":"
               << "\n\t- Jet p4 = " << jet->p4()
               << "\n\t- Particle p4 = " << part->p4()
@@ -731,11 +731,11 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, JetMETHandler::METFix
           p4_jet_uncorrected_new -= pfcand->uncorrected_p4();
           if (MuonSelectionHelpers::testGoodMETPFMuon(*pfcand)) p4_jet_uncorrected_mucands_new -= pfcand->uncorrected_p4();
         }
-        if (this->verbosity>=TVar::DEBUG){
-          MELAout << "\t- Old uncorrected p4 = " << p4_jet_uncorrected_old << endl;
-          MELAout << "\t- Old uncorrected mu candidates p4 = " << p4_jet_uncorrected_mucands_old << endl;
-          MELAout << "\t- New uncorrected p4 = " << p4_jet_uncorrected_new << endl;
-          MELAout << "\t- New uncorrected mu candidates p4 = " << p4_jet_uncorrected_mucands_new << endl;
+        if (this->verbosity>=MiscUtils::DEBUG){
+          IVYout << "\t- Old uncorrected p4 = " << p4_jet_uncorrected_old << endl;
+          IVYout << "\t- Old uncorrected mu candidates p4 = " << p4_jet_uncorrected_mucands_old << endl;
+          IVYout << "\t- New uncorrected p4 = " << p4_jet_uncorrected_new << endl;
+          IVYout << "\t- New uncorrected mu candidates p4 = " << p4_jet_uncorrected_mucands_new << endl;
         }
 
         assert(oldjet!=nullptr);
@@ -758,9 +758,9 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, JetMETHandler::METFix
             sump4_METContribution_old[2*ip4 + ijer] += p4_METContribution_old[2*ip4 + ijer];
             sump4_METContribution_new[2*ip4 + ijer] += p4_METContribution_new[2*ip4 + ijer];
 
-            if (this->verbosity>=TVar::DEBUG){
-              MELAout << "\t- Old MET contribution " << (ijer==0 ? "without" : "with") << " JER, " << (ip4==0 ? "without" : "with") << " p4 preservation = " << p4_METContribution_old[2*ip4 + ijer] << endl;
-              MELAout << "\t- New MET contribution " << (ijer==0 ? "without" : "with") << " JER, " << (ip4==0 ? "without" : "with") << " p4 preservation = " << p4_METContribution_new[2*ip4 + ijer] << endl;
+            if (this->verbosity>=MiscUtils::DEBUG){
+              IVYout << "\t- Old MET contribution " << (ijer==0 ? "without" : "with") << " JER, " << (ip4==0 ? "without" : "with") << " p4 preservation = " << p4_METContribution_old[2*ip4 + ijer] << endl;
+              IVYout << "\t- New MET contribution " << (ijer==0 ? "without" : "with") << " JER, " << (ip4==0 ? "without" : "with") << " p4 preservation = " << p4_METContribution_new[2*ip4 + ijer] << endl;
             }
           }
         }
@@ -777,7 +777,7 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, JetMETHandler::METFix
     for (unsigned char ijer=0; ijer<2; ijer++){
       for (unsigned char ip4=0; ip4<2; ip4++){
         ParticleObject::LorentzVector_t p4_corr = sump4_METContribution_new[2*ip4 + ijer] - sump4_METContribution_old[2*ip4 + ijer] + pfmet_METCorrection_baseline[2*ip4 + ijer];
-        if (this->verbosity>=TVar::DEBUG) MELAout
+        if (this->verbosity>=MiscUtils::DEBUG) IVYout
           << "Total MET overlap correction "
           << (ijer==0 ? "without" : "with") << " JER, "
           << (ip4==0 ? "without" : "with") << " p4 preservation = " << p4_corr
@@ -817,7 +817,7 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, JetMETHandler::METFix
             if (!oldjet) oldjet = new AK8JetObject(*jet);
             oldjet->addDaughter(thePart);
             ParticleObject::LorentzVector_t p4_overlap = overlapElement->p4_common();
-            std::vector<ParticleObject*> daughters_part;
+            std::vector<IvyParticle*> daughters_part;
             thePart->getDeepDaughters(daughters_part, false);
             auto const& daughters_jet = jet->getDaughters();
             for (auto const& daughter_part:daughters_part){
@@ -863,7 +863,7 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, JetMETHandler::METFix
             if (!oldjet) oldjet = new AK8JetObject(*jet);
             oldjet->addDaughter(thePart);
             ParticleObject::LorentzVector_t p4_overlap = overlapElement->p4_common();
-            std::vector<ParticleObject*> daughters_part;
+            std::vector<IvyParticle*> daughters_part;
             thePart->getDeepDaughters(daughters_part, false);
             auto const& daughters_jet = jet->getDaughters();
             for (auto const& daughter_part:daughters_part){
@@ -898,7 +898,7 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, JetMETHandler::METFix
             if (!oldjet) oldjet = new AK8JetObject(*jet);
             oldjet->addDaughter(part);
             ParticleObject::LorentzVector_t p4_overlap = overlapElement->p4_common();
-            std::vector<ParticleObject*> daughters_part;
+            std::vector<IvyParticle*> daughters_part;
             part->getDeepDaughters(daughters_part, false);
             auto const& daughters_jet = jet->getDaughters();
             for (auto const& daughter_part:daughters_part){
@@ -976,11 +976,11 @@ bool JetMETHandler::constructMET(SystematicsHelpers::SystematicVariationTypes co
 #undef MET_VARIABLE
 
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "JetMETHandler::constructMET: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "JetMETHandler::constructMET: Not all variables are consumed properly!" << endl;
     assert(0);
   }
 
-  if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::constructMET: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "JetMETHandler::constructMET: All variables are set up!" << endl;
 
   /**********/
   /* PF MET */
@@ -1004,16 +1004,16 @@ bool JetMETHandler::constructMET(SystematicsHelpers::SystematicVariationTypes co
     // New nominal should have the difference in raw MET and the additional shift due to accepted jets added.
     ParticleObject::LorentzVector_t p4_Nominal_Reverted = p4_Nominal + p4_Raw_Default - p4_Raw + p4_extrashift_Nominal;
 
-    if (verbosity>=TVar::DEBUG){
-      MELAout << "JetMETHandler::constructMET: Applying a reversion to MET fix:" << endl;
-      MELAout
+    if (verbosity>=MiscUtils::DEBUG){
+      IVYout << "JetMETHandler::constructMET: Applying a reversion to MET fix:" << endl;
+      IVYout
         << "\t- PF MET raw MET-fixed -> MET default (pT, phi) = (" << *pfmet_met_Raw << ", " << *pfmet_metPhi_Raw
         << ") -> (" << *pfmet_met_Raw_Default << ", " << *pfmet_metPhi_Raw_Default << ")"
         << endl;
-      MELAout
+      IVYout
         << "\t- PF MET extra Nominal JERC shift to revert MET fix (pT, phi) = (" << p4_extrashift_Nominal.Pt() << ", " << p4_extrashift_Nominal.Phi() << ")"
         << endl;
-      MELAout
+      IVYout
         << "\t- PF MET nominal MET-fixed -> MET default (pT, phi) = (" << *pfmet_met_Nominal << ", " << *pfmet_metPhi_Nominal
         << ") -> (" << p4_Nominal_Reverted.Pt() << ", " << p4_Nominal_Reverted.Phi() << ")"
         << endl;
@@ -1035,9 +1035,9 @@ REVERTMETFIX_COMMAND(JECDn_JERNominal) \
 REVERTMETFIX_COMMAND(JECUp_JERNominal)
 
 #define REVERTMETFIX_COMMAND(SYST) \
-MELAout << "\t- metShift p4 default before correction [" << #SYST << "] = (" << pfmet->extras.metShift_px_##SYST << ", " << pfmet->extras.metShift_py_##SYST << ")" << endl; \
-MELAout << "\t- metShift p4-preserved before correction [" << #SYST << "] = (" << pfmet->extras.metShift_p4Preserved_px_##SYST << ", " << pfmet->extras.metShift_p4Preserved_py_##SYST << ")" << endl;
-    if (verbosity>=TVar::DEBUG){
+IVYout << "\t- metShift p4 default before correction [" << #SYST << "] = (" << pfmet->extras.metShift_px_##SYST << ", " << pfmet->extras.metShift_py_##SYST << ")" << endl; \
+IVYout << "\t- metShift p4-preserved before correction [" << #SYST << "] = (" << pfmet->extras.metShift_p4Preserved_px_##SYST << ", " << pfmet->extras.metShift_p4Preserved_py_##SYST << ")" << endl;
+    if (verbosity>=MiscUtils::DEBUG){
       REVERTMETFIX_COMMON_COMMANDS;
       if (!isData){
         REVERTMETFIX_GENINFO_COMMANDS;
@@ -1064,9 +1064,9 @@ pfmet->extras.metShift_p4Preserved_py_##SYST += *pfmet_metShift_p4Preserved_Reve
 #undef REVERTMETFIX_COMMAND
 
 #define REVERTMETFIX_COMMAND(SYST) \
-MELAout << "\t- metShift p4 default after correction [" << #SYST << "] = (" << pfmet->extras.metShift_px_##SYST << ", " << pfmet->extras.metShift_py_##SYST << ")" << endl; \
-MELAout << "\t- metShift p4-preserved after correction [" << #SYST << "] = (" << pfmet->extras.metShift_p4Preserved_px_##SYST << ", " << pfmet->extras.metShift_p4Preserved_py_##SYST << ")" << endl;
-    if (verbosity>=TVar::DEBUG){
+IVYout << "\t- metShift p4 default after correction [" << #SYST << "] = (" << pfmet->extras.metShift_px_##SYST << ", " << pfmet->extras.metShift_py_##SYST << ")" << endl; \
+IVYout << "\t- metShift p4-preserved after correction [" << #SYST << "] = (" << pfmet->extras.metShift_p4Preserved_px_##SYST << ", " << pfmet->extras.metShift_p4Preserved_py_##SYST << ")" << endl;
+    if (verbosity>=MiscUtils::DEBUG){
       REVERTMETFIX_COMMON_COMMANDS;
       if (!isData){
         REVERTMETFIX_GENINFO_COMMANDS;
@@ -1112,7 +1112,7 @@ bool JetMETHandler::assignMETXYShifts(SystematicsHelpers::SystematicVariationTyp
   JETMET_METXY_VERTEX_VARIABLES;
 #undef JETMET_METXY_VERTEX_VARIABLE
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "JetMETHandler::assignMETXYShifts: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "JetMETHandler::assignMETXYShifts: Not all variables are consumed properly!" << endl;
     assert(0);
     return false;
   }
@@ -1121,7 +1121,7 @@ bool JetMETHandler::assignMETXYShifts(SystematicsHelpers::SystematicVariationTyp
   float METxcorr = -(pfmet_XYcorr_xCoeffA*npv + pfmet_XYcorr_xCoeffB);
   float METycorr = -(pfmet_XYcorr_yCoeffA*npv + pfmet_XYcorr_yCoeffB);
   pfmet->setXYShift(METxcorr, METycorr);
-  if (this->verbosity>=TVar::DEBUG) MELAerr << "JetMETHandler::assignMETXYShifts: Applying an additional XY shift of ( " << METxcorr << ", " << METycorr << " )" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYerr << "JetMETHandler::assignMETXYShifts: Applying an additional XY shift of ( " << METxcorr << ", " << METycorr << " )" << endl;
 
   return true;
 }
@@ -1132,7 +1132,7 @@ bool JetMETHandler::applyMETParticleShifts(bool usePFCandidates, std::vector<Muo
       if (!ParticleSelectionHelpers::isGoodMETParticle(part)) continue;
       ParticleObject::LorentzVector_t p4_uncorrected = part->uncorrected_p4();
       pfmet_particleShift += -(part->p4() - p4_uncorrected);
-      if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::applyMETParticleShifts: MET shift due to muon " << part->getUniqueIdentifier() << " p4 = " << -(part->p4() - p4_uncorrected) << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "JetMETHandler::applyMETParticleShifts: MET shift due to muon " << part->getUniqueIdentifier() << " p4 = " << -(part->p4() - p4_uncorrected) << endl;
     }
   }
   if (electrons){
@@ -1147,7 +1147,7 @@ bool JetMETHandler::applyMETParticleShifts(bool usePFCandidates, std::vector<Muo
       */
       ParticleObject::LorentzVector_t p4_uncorrected = ParticleObject::LorentzVector_t(part->extras.associated_pfcands_sum_px, part->extras.associated_pfcands_sum_py, 0, 0);
       pfmet_particleShift += -(part->p4() - p4_uncorrected);
-      if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::applyMETParticleShifts: MET shift due to electron " << part->getUniqueIdentifier() << " p4 = " << -(part->p4() - p4_uncorrected) << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "JetMETHandler::applyMETParticleShifts: MET shift due to electron " << part->getUniqueIdentifier() << " p4 = " << -(part->p4() - p4_uncorrected) << endl;
     }
   }
   if (photons){
@@ -1162,7 +1162,7 @@ bool JetMETHandler::applyMETParticleShifts(bool usePFCandidates, std::vector<Muo
       */
       ParticleObject::LorentzVector_t p4_uncorrected = ParticleObject::LorentzVector_t(part->extras.associated_pfcands_sum_px, part->extras.associated_pfcands_sum_py, 0, 0);
       pfmet_particleShift += -(part->p4() - p4_uncorrected);
-      if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::applyMETParticleShifts: MET shift due to photon " << part->getUniqueIdentifier() << " p4 = " << -(part->p4() - p4_uncorrected) << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "JetMETHandler::applyMETParticleShifts: MET shift due to photon " << part->getUniqueIdentifier() << " p4 = " << -(part->p4() - p4_uncorrected) << endl;
     }
   }
 
@@ -1287,7 +1287,7 @@ bool JetMETHandler::wrapTree(BaseTree* tree){
       pfmet_XYcorr_yCoeffA = 0.0884639; pfmet_XYcorr_yCoeffB = -1.57089;
     }
     else{
-      MELAerr << "JetMETHandler::wrapTree: Data period " << theDP << " is undefined for the data MET corrections." << endl;
+      IVYerr << "JetMETHandler::wrapTree: Data period " << theDP << " is undefined for the data MET corrections." << endl;
       return false;
     }
   }
@@ -1306,7 +1306,7 @@ bool JetMETHandler::wrapTree(BaseTree* tree){
       pfmet_XYcorr_yCoeffA = 0.115685; pfmet_XYcorr_yCoeffB = 0.0128193;
       break;
     default:
-      MELAerr << "JetMETHandler::wrapTree: Year " << SampleHelpers::getDataYear() << " is undefined for the MC MET corrections." << endl;
+      IVYerr << "JetMETHandler::wrapTree: Year " << SampleHelpers::getDataYear() << " is undefined for the MC MET corrections." << endl;
       return false;
       break;
     }
@@ -1373,7 +1373,7 @@ tree->bookBranch<TYPE>(JetMETHandler::colName_pfpuppimet + "_" + #NAME, DEFVAL);
   // Only samples which may need MET fix reversion have these variables
   flag_hasRevertMETFixVariables = checkRevertMETFixVariables(tree);
   if (flag_hasRevertMETFixVariables){
-    MELAout << "JetMETHandler::bookBranch: Booking MET fix reversion variables..." << endl;
+    IVYout << "JetMETHandler::bookBranch: Booking MET fix reversion variables..." << endl;
 #define AK4JET_VARIABLE(TYPE, NAME, DEFVAL) \
 this->addConsumed<std::vector<TYPE>*>(JetMETHandler::colName_ak4jets + "_" + #NAME); \
 this->defineConsumedSloppy(JetMETHandler::colName_ak4jets + "_" + #NAME); \

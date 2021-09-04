@@ -7,17 +7,17 @@
 #include "TH2F.h"
 #include "TH2D.h"
 #include "TString.h"
-#include "TVar.hh"
-#include <CMSDataTools/AnalysisTree/interface/ExtendedHistogram_1D.h>
-#include <CMSDataTools/AnalysisTree/interface/ExtendedHistogram_2D.h>
+#include "VerbosityLevel.h"
+#include "ExtendedHistogram_1D.h"
+#include "ExtendedHistogram_2D.h"
 
 
 class ScaleFactorHandlerBase{
 protected:
-  TVar::VerbosityLevel verbosity;
+  MiscUtils::VerbosityLevel verbosity;
 
 public:
-  ScaleFactorHandlerBase() : verbosity(TVar::ERROR){}
+  ScaleFactorHandlerBase() : verbosity(MiscUtils::ERROR){}
   virtual ~ScaleFactorHandlerBase(){}
 
   static void closeFile(TFile*& f);
@@ -29,8 +29,8 @@ public:
   virtual void reset() = 0;
 
   // Verbosity
-  void setVerbosity(TVar::VerbosityLevel flag){ verbosity=flag; }
-  TVar::VerbosityLevel getVerbosity() const{ return verbosity; }
+  void setVerbosity(MiscUtils::VerbosityLevel flag){ verbosity=flag; }
+  MiscUtils::VerbosityLevel getVerbosity() const{ return verbosity; }
 
 };
 

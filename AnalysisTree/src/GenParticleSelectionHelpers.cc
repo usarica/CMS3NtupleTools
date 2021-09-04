@@ -3,7 +3,7 @@
 
 #include "GenParticleSelectionHelpers.h"
 #include "PDGHelpers.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 namespace GenParticleSelectionHelpers{
@@ -12,7 +12,7 @@ namespace GenParticleSelectionHelpers{
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 bool GenParticleSelectionHelpers::testHardPromptFinalVisibleParticle(GenParticleObject const& part){

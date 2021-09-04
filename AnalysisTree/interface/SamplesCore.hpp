@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include "HelperFunctions.h"
 #include "SamplesCore.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 namespace SampleHelpers{
@@ -57,7 +57,7 @@ std::vector< std::pair< std::pair<unsigned int, unsigned int>, TString > > Sampl
 // 2018: Using brilcalc lumi --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json -u /fb -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/ReReco/Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt
 std::unordered_map< TString, std::vector< std::pair<unsigned int, double> > > SampleHelpers::define_dataPeriod_runNumber_lumi_pairs_map(){
   using namespace std;
-  using namespace MELAStreamHelpers;
+  using namespace IvyStreamHelpers;
 
   std::vector< std::pair<unsigned int, double> > runNumber_lumi_pair_list{
     // 2016
@@ -1811,7 +1811,7 @@ std::unordered_map< TString, std::vector< std::pair<unsigned int, double> > > Sa
   for (auto const& rn_lumi_pair:runNumber_lumi_pair_list){
     TString period = getDataPeriodFromRunNumber(rn_lumi_pair.first);
     if (period==""){
-      MELAerr << "SampleHelpers::define_dataPeriod_runNumber_lumi_pairs_map: Run number " << rn_lumi_pair.first << " is not in a known data period. Please revise the implementation!" << endl;
+      IVYerr << "SampleHelpers::define_dataPeriod_runNumber_lumi_pairs_map: Run number " << rn_lumi_pair.first << " is not in a known data period. Please revise the implementation!" << endl;
       assert(0);
     }
     std::unordered_map< TString, std::vector< std::pair<unsigned int, double> > >::iterator it;

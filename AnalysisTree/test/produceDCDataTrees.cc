@@ -8,7 +8,7 @@
 #include "TPaveText.h"
 #include "TLegend.h"
 #include "Math/Vector4Dfwd.h"
-#include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
+#include <IvyFramework/IvyAutoMELA/interface/IvyMELAHelpers.h>
 
 
 constexpr bool useJetOverlapStripping=false;
@@ -159,7 +159,7 @@ void getTrees_ZZTo2L2Nu(
   for (auto const& sfname:sfnames_data){
     TString cinput = cinput_main + "/" + sfname;
     int nfiles = tin->Add(cinput);
-    MELAout << "\t- Successfully added " << nfiles << " files for data from " << cinput << "..." << endl;
+    IVYout << "\t- Successfully added " << nfiles << " files for data from " << cinput << "..." << endl;
   }
 
 #define BRANCH_COMMAND(TYPE, NAME) TYPE NAME = 0;
@@ -239,7 +239,7 @@ void getTrees_ZZTo2L2Nu(
     for (auto& it:ME_Kfactor_values) it.second = -1;
 
     int const nEntries = tin->GetEntries();
-    MELAout << "Looping over " << nEntries << " events..." << endl;
+    IVYout << "Looping over " << nEntries << " events..." << endl;
     for (int ev=0; ev<nEntries; ev++){
       if (SampleHelpers::doSignalInterrupt==1) break;
 
@@ -340,11 +340,11 @@ void getTrees_ZZTo2L2Nu(
   for (auto& KDspec:KDlist) KDspec.resetKD();
 
   for (unsigned short icat=0; icat<nCats;icat++){
-    MELAout << "Finalizing category " << icat << ":" << endl;
+    IVYout << "Finalizing category " << icat << ":" << endl;
     TFile* foutput = foutputs.at(icat);
     BaseTree* tout = toutlist.at(icat);
 
-    MELAout << "\t- Number of events: " << tout->getNEvents() << endl;
+    IVYout << "\t- Number of events: " << tout->getNEvents() << endl;
 
     foutput->cd();
     tout->writeToFile(foutput);
@@ -477,7 +477,7 @@ void getTrees_ZWTo3L1Nu(
     strChannel = "3mu";
     break;
   default:
-    MELAerr << "lep_id_ref " << lep_id_ref << " is undefined." << endl;
+    IVYerr << "lep_id_ref " << lep_id_ref << " is undefined." << endl;
     exit(1);
     break;
   };
@@ -504,7 +504,7 @@ void getTrees_ZWTo3L1Nu(
   for (auto const& sfname:sfnames_data){
     TString cinput = cinput_main + "/" + sfname;
     int nfiles = tin->Add(cinput);
-    MELAout << "\t- Successfully added " << nfiles << " files for data from " << cinput << "..." << endl;
+    IVYout << "\t- Successfully added " << nfiles << " files for data from " << cinput << "..." << endl;
   }
 
 #define BRANCH_COMMAND(TYPE, NAME) TYPE NAME = 0;
@@ -539,7 +539,7 @@ void getTrees_ZWTo3L1Nu(
   // Loop over the samples
   {
     int const nEntries = tin->GetEntries();
-    MELAout << "Looping over " << nEntries << " events..." << endl;
+    IVYout << "Looping over " << nEntries << " events..." << endl;
     for (int ev=0; ev<nEntries; ev++){
       if (SampleHelpers::doSignalInterrupt==1) break;
 
@@ -582,7 +582,7 @@ void getTrees_ZWTo3L1Nu(
       float const& pTlW = leptons_pt->at(idx_lW);
       // dilepton_daughter_indices is already sorted in pT, so there is no need to check for pT ordering. Just put a failure to the code for sanity.
       if (pTZ1<pTZ2){
-        MELAerr << "pTZ1=" << pTZ1 << ", pTZ2=" << pTZ2 << endl;
+        IVYerr << "pTZ1=" << pTZ1 << ", pTZ2=" << pTZ2 << endl;
         exit(1);
       }
       if (!check_pTZ1(pTZ1)) continue;
@@ -678,11 +678,11 @@ void getTrees_ZWTo3L1Nu(
   }
 
   for (unsigned short icat=0; icat<nCats; icat++){
-    MELAout << "Finalizing category " << icat << ":" << endl;
+    IVYout << "Finalizing category " << icat << ":" << endl;
     TFile* foutput = foutputs.at(icat);
     BaseTree* tout = toutlist.at(icat);
 
-    MELAout << "\t- Number of events: " << tout->getNEvents() << endl;
+    IVYout << "\t- Number of events: " << tout->getNEvents() << endl;
 
     foutput->cd();
     tout->writeToFile(foutput);

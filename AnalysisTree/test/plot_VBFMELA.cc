@@ -6,7 +6,7 @@
 #include "TLegend.h"
 #include "TF2.h"
 #include "ParticleObjectHelpers.h"
-#include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
+#include <IvyFramework/IvyAutoMELA/interface/IvyMELAHelpers.h>
 
 
 struct HistogramObject_2D{
@@ -86,7 +86,7 @@ HistogramObject_2D::HistogramObject_2D(
   hist.GetYaxis()->SetTitle(ylabel);
   hist.GetZaxis()->SetTitle(zlabel);
 
-  MELAout << "Created histogram " << hist.GetName() << " [" << hist.GetTitle() << "]" << endl;
+  IVYout << "Created histogram " << hist.GetName() << " [" << hist.GetTitle() << "]" << endl;
 }
 HistogramObject_2D::HistogramObject_2D(HistogramObject_2D const& other) :
   name(other.name),
@@ -387,19 +387,19 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
   genInfoHandler.setAcquireGenParticles(false);
 
   // ME block
-  CMS3MELAHelpers::GMECBlock MEblock;
+  IvyMELAHelpers::GMECBlock MEblock;
   std::vector<std::string> MElist{
     "Name:JJVBF_SIG_ghv1_1_JHUGen_JECNominal Alias:<Name> Process:HSMHiggs Production:JJVBF MatrixElement:JHUGen Cluster:J2JECNominal DefaultME:-1 Options:AddPConst=1",
     "Name:JJQCD_SIG_ghg2_1_JHUGen_JECNominal Alias:<Name> Process:HSMHiggs Production:JJQCD MatrixElement:JHUGen Cluster:J2JECNominal DefaultME:-1 Options:AddPConst=1"
   };
-  CMS3MELAHelpers::setupMela(SampleHelpers::theDataYear, 125., TVar::ERROR); // Sets up MELA only once
+  IvyMELAHelpers::setupMela(SampleHelpers::theDataYear, 125., TVar::ERROR); // Sets up MELA only once
   MEblock.buildMELABranches(MElist, false);
   Discriminant* DjjVBF = DiscriminantClasses::constructKDFromType(
     DiscriminantClasses::kDjjVBF,
     ANALYSISTREEPKGDATAPATH+"RecoMEConstants/SmoothKDConstant_m4l_DjjVBF_13TeV.root", "sp_gr_varReco_Constant_Smooth"
   );
 
-  MELAout << "getHistograms: DjjVBF is built!" << endl;
+  IVYout << "getHistograms: DjjVBF is built!" << endl;
 
   std::vector< std::vector<CutSpecs> > cutsets;
   // Nj==2, Nb==0
@@ -414,31 +414,31 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
     true, true, 0, 0
   );
 
-  MELAout << "\t- Cut sets are built." << endl;
+  IVYout << "\t- Cut sets are built." << endl;
 
   for (size_t isample=0; isample<sampleList.size(); isample++){
     if (procsel>=0 && isample!=static_cast<size_t>(procsel)) continue;
 
     auto& sample = sampleList.at(isample);
 
-    MELAout << "\t- Constructing sample list for flag " << sample.path << endl;
+    IVYout << "\t- Constructing sample list for flag " << sample.path << endl;
 
     std::vector<TString> sampledirs;
     SampleHelpers::constructSamplesList(sample.path, theGlobalSyst, sampledirs);
     if (sampledirs.size()>1){
-      MELAout << "Size > 1 not implemented yet!" << endl;
+      IVYout << "Size > 1 not implemented yet!" << endl;
       continue;
     }
     BaseTree sample_tree(SampleHelpers::getDatasetFileName(sampledirs.front()), EVENTS_TREE_NAME, "", "");
     sample_tree.sampleIdentifier = SampleHelpers::getSampleIdentifier(sampledirs.front());
 
-    MELAout << "\t- Opening output files" << endl;
+    IVYout << "\t- Opening output files" << endl;
     TString stroutput = Form("%s/%s%s", coutput_main.Data(), sample.name.data(), ".root");
     TString stroutput_txt = Form("%s/%s%s", coutput_main.Data(), sample.name.data(), ".txt");
     TFile* foutput = TFile::Open(stroutput, "recreate");
-    MELAout.open(stroutput_txt.Data());
+    IVYout.open(stroutput_txt.Data());
 
-    MELAout << "\t- Configuring branches" << endl;
+    IVYout << "\t- Configuring branches" << endl;
 
     // Get cross section
     sample_tree.bookBranch<float>("xsec", 0.f);
@@ -465,7 +465,7 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
     eventFilter.bookBranches(&sample_tree);
     eventFilter.wrapTree(&sample_tree);
 
-    MELAout << "\t- Completed getting the handles..." << endl;
+    IVYout << "\t- Completed getting the handles..." << endl;
     sample_tree.silenceUnused();
 
     foutput->cd();
@@ -567,9 +567,9 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
 
       dileptonHandler.constructDileptons(&muons, &electrons);
       auto const& dileptons = dileptonHandler.getProducts();
-      //MELAout << "Ndileptons: " << dileptons.size() << " | pTs = ";
-      //for (auto const& dilepton:dileptons) MELAout << dilepton->pt() << " ";
-      //MELAout << endl;
+      //IVYout << "Ndileptons: " << dileptons.size() << " | pTs = ";
+      //for (auto const& dilepton:dileptons) IVYout << dilepton->pt() << " ";
+      //IVYout << endl;
 
       DileptonObject* theChosenDilepton = nullptr;
       size_t nTightDilep = 0;
@@ -727,17 +727,17 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
         associated.push_back(SimpleParticle_t(0, ParticleObjectHelpers::convertCMSLorentzVectorToTLorentzVector(ak4jets_tight.at(0)->p4())));
         associated.push_back(SimpleParticle_t(0, ParticleObjectHelpers::convertCMSLorentzVectorToTLorentzVector(ak4jets_tight.at(1)->p4())));
 
-        //if (firstValidEvent) CMS3MELAHelpers::melaHandle->setVerbosity(TVar::DEBUG);
-        CMS3MELAHelpers::melaHandle->setCandidateDecayMode(TVar::CandidateDecay_Stable);
-        CMS3MELAHelpers::melaHandle->setInputEvent(&daughters, &associated, nullptr, false);
+        //if (firstValidEvent) IvyMELAHelpers::melaHandle->setVerbosity(TVar::DEBUG);
+        IvyMELAHelpers::melaHandle->setCandidateDecayMode(TVar::CandidateDecay_Stable);
+        IvyMELAHelpers::melaHandle->setInputEvent(&daughters, &associated, nullptr, false);
         MEblock.computeMELABranches();
         MEblock.pushMELABranches();
         MEblock.getBranchValues(ME_values); // Record the MEs into the EDProducer product
-        CMS3MELAHelpers::melaHandle->resetInputEvent();
+        IvyMELAHelpers::melaHandle->resetInputEvent();
 
         DjjVBF->update({ ME_values["p_JJVBF_SIG_ghv1_1_JHUGen_JECNominal"], ME_values["p_JJQCD_SIG_ghg2_1_JHUGen_JECNominal"] }, mZZ_puppimet);
 
-        //if (firstValidEvent) CMS3MELAHelpers::melaHandle->setVerbosity(TVar::ERROR);
+        //if (firstValidEvent) IvyMELAHelpers::melaHandle->setVerbosity(TVar::ERROR);
         firstValidEvent = false;
 
         // Fill histograms
@@ -779,7 +779,7 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
     }
     sample.writeHistograms();
 
-    MELAout.close();
+    IVYout.close();
     foutput->Close();
 
     SampleHelpers::addToCondorTransferList(stroutput);
@@ -808,13 +808,13 @@ void plot_VBFMELA(int doZZWW, int iproc, bool doCondX, TString strdate=""){
     TString indexDir = "${CMSSW_BASE}/src/CMSDataTools/AnalysisTree/data/plotting/index.php";
     HostHelpers::ExpandEnvironmentVariables(indexDir);
     if (HostHelpers::FileReadable(indexDir)){
-      MELAout << "Attempting to copy index.php" << endl;
+      IVYout << "Attempting to copy index.php" << endl;
       TString tmpdir = tmplist.at(0) + '/';
       for (size_t idir=1; idir<tmplist.size(); idir++){
         tmpdir = tmpdir + tmplist.at(idir) + '/';
         TString tmpCmd = "cp ~/public_html/index.pages.php ";
         tmpCmd += tmpdir + "index.php";
-        MELAout << "Copying index.php into " << tmpdir << endl;
+        IVYout << "Copying index.php into " << tmpdir << endl;
         HostHelpers::ExecuteCommand(tmpCmd);
       }
     }

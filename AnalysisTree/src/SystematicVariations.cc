@@ -1,11 +1,11 @@
 #include <cassert>
 #include "SystematicVariations.h"
 #include "SamplesCore.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 std::string SystematicsHelpers::getSystCoreName(SystematicsHelpers::SystematicVariationTypes const& type){
@@ -117,7 +117,7 @@ std::string SystematicsHelpers::getSystCoreName(SystematicsHelpers::SystematicVa
     return "Uncorrected";
 
   default:
-    MELAerr << "SystematicsHelpers::getSystCoreName: Systematic " << type << " is not defined!" << endl;
+    IVYerr << "SystematicsHelpers::getSystCoreName: Systematic " << type << " is not defined!" << endl;
     assert(0);
     return "";
   }
@@ -252,7 +252,7 @@ std::string SystematicsHelpers::getSystDatacardCoreName(SystematicsHelpers::Syst
     return Form("CMS_eff_trigger_%s_%s", proc_syst_indicator.Data(), strSystPerYear.Data()); // proc_syst_indicator=ee, mumu, emu etc.
 
   default:
-    MELAerr << "SystematicsHelpers::getSystDatacardCoreName: Systematic " << type << " is not defined!" << endl;
+    IVYerr << "SystematicsHelpers::getSystDatacardCoreName: Systematic " << type << " is not defined!" << endl;
     assert(0);
     return "";
   }
@@ -289,7 +289,7 @@ double SystematicsHelpers::getLumiUncertainty_Uncorrelated(){
     res = 1.5;
     break;
   default:
-    MELAerr << "SystematicsHelpers::getLumiUncertainty_Uncorrelated: Year " << year << " is unspecified." << endl;
+    IVYerr << "SystematicsHelpers::getLumiUncertainty_Uncorrelated: Year " << year << " is unspecified." << endl;
     assert(0);
     break;
   }
@@ -313,7 +313,7 @@ double SystematicsHelpers::getLumiUncertainty_Correlated(){
     res = 2.022;
     break;
   default:
-    MELAerr << "SystematicsHelpers::getLumiUncertainty_Correlated: Year " << year << " is unspecified." << endl;
+    IVYerr << "SystematicsHelpers::getLumiUncertainty_Correlated: Year " << year << " is unspecified." << endl;
     assert(0);
     break;
   }

@@ -3,7 +3,7 @@
 
 #include <unordered_map>
 #include <vector>
-#include <CMSDataTools/AnalysisTree/interface/ExtendedHistogram_2D.h>
+#include "ExtendedHistogram_2D.h"
 #include "AK4JetObject.h"
 #include "ScaleFactorHandlerBase.h"
 #include "SystematicVariations.h"

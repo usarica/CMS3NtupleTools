@@ -80,13 +80,13 @@ void producePUJetIdEfficiencies(
     + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId");
   gSystem->mkdir(coutput_main, true);
 
-  MELAout << "List of samples to process: " << sampleList << endl;
+  IVYout << "List of samples to process: " << sampleList << endl;
   for (auto const& strSample:sampleList){
     bool const isData = SampleHelpers::checkSampleIsData(strSample);
     if (isData) continue;
 
     TString cinput = SampleHelpers::getDatasetFileName(strSample);
-    MELAout << "Extracting input " << cinput << endl;
+    IVYout << "Extracting input " << cinput << endl;
 
     TString coutput = SampleHelpers::getSampleIdentifier(strSample);
     HelperFunctions::replaceString(coutput, "_MINIAODSIM", "");
@@ -104,7 +104,7 @@ void producePUJetIdEfficiencies(
       for (unsigned int iperiod=0; iperiod<nValidDataPeriods; iperiod++){
         if (validDataPeriods.at(iperiod)==SampleHelpers::theDataPeriod){ bin_period += iperiod+1; break; }
       }
-      MELAout << "Checking counters histogram bin (" << bin_syst << ", " << bin_period << ") to obtain the sum of weights if the counters histogram exists..." << endl;
+      IVYout << "Checking counters histogram bin (" << bin_syst << ", " << bin_period << ") to obtain the sum of weights if the counters histogram exists..." << endl;
       bool firstFile = true;
       for (auto const& fname:inputfilenames){
         TFile* ftmp = TFile::Open(fname, "read");
@@ -114,7 +114,7 @@ void producePUJetIdEfficiencies(
           sum_wgts = 0;
           break;
         }
-        MELAout << "\t- Successfully found the counters histogram in " << fname << endl;
+        IVYout << "\t- Successfully found the counters histogram in " << fname << endl;
         sum_wgts += hCounters->GetBinContent(bin_syst, bin_period);
         if (firstFile){
           if (ftmp->Get("cms3ntuple/Dilepton")) selectedTreeName = "cms3ntuple/Dilepton";
@@ -123,15 +123,15 @@ void producePUJetIdEfficiencies(
         }
         ftmp->Close();
       }
-      if (hasCounters) MELAout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
+      if (hasCounters) IVYout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
     }
 
     if (selectedTreeName == "" && failedTreeName == ""){
-      MELAerr << "Both trees from " << cinput << " have an empty name!" << endl;
+      IVYerr << "Both trees from " << cinput << " have an empty name!" << endl;
       continue;
     }
 
-    MELAout << "Acquiring trees \"" << selectedTreeName << "\", \"" << failedTreeName << "\" from " << cinput << endl;
+    IVYout << "Acquiring trees \"" << selectedTreeName << "\", \"" << failedTreeName << "\" from " << cinput << endl;
     BaseTree sample_tree(cinput, selectedTreeName, failedTreeName, "");
     sample_tree.sampleIdentifier = SampleHelpers::getSampleIdentifier(strSample);
 
@@ -153,7 +153,7 @@ void producePUJetIdEfficiencies(
       genInfoHandler.wrapTree(&sample_tree);
 
       if (!hasCounters){
-        MELAout << "Initial MC loop over " << nEntries << " events in " << sample_tree.sampleIdentifier << " to determine sample normalization:" << endl;
+        IVYout << "Initial MC loop over " << nEntries << " events in " << sample_tree.sampleIdentifier << " to determine sample normalization:" << endl;
         for (int ev=0; ev<nEntries; ev++){
           HelperFunctions::progressbar(ev, nEntries);
           sample_tree.getSelectedEvent(ev);
@@ -169,7 +169,7 @@ void producePUJetIdEfficiencies(
       }
     }
 
-    MELAout << "Sample " << sample_tree.sampleIdentifier << " has a gen. weight sum of " << sum_wgts << "." << endl;
+    IVYout << "Sample " << sample_tree.sampleIdentifier << " has a gen. weight sum of " << sum_wgts << "." << endl;
 
     muonHandler.bookBranches(&sample_tree);
     muonHandler.wrapTree(&sample_tree);
@@ -194,7 +194,7 @@ void producePUJetIdEfficiencies(
 
     sample_tree.silenceUnused();
 
-    MELAout << "Completed getting the rest of the handles..." << endl;
+    IVYout << "Completed getting the rest of the handles..." << endl;
 
     // Create output tree
     TString stroutput = Form("%s/%s", coutput_main.Data(), coutput.Data());
@@ -235,7 +235,7 @@ void producePUJetIdEfficiencies(
       ev_start = ev_inc*ichunk;
       ev_end = std::min(nEntries, (ichunk == nchunks-1 ? nEntries : ev_start+ev_inc));
     }
-    MELAout << "Looping over " << nEntries << " events from " << sample_tree.sampleIdentifier << ", starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
+    IVYout << "Looping over " << nEntries << " events from " << sample_tree.sampleIdentifier << ", starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
     size_t n_acc=0;
     double sum_acc_wgts=0;
     for (int ev=ev_start; ev<ev_end; ev++){
@@ -414,7 +414,7 @@ bool checkGoodHistogram(TH2F const* hist){
       double err=hist->GetBinError(ix, iy);
       double Neff=(err<=0. ? 0. : std::pow(val/err, 2));
       if (err>0. && Neff<1.){
-        MELAerr << "checkGoodHistogram: " << hist->GetName() << " integrity check was good, but bin (" << ix << ", " << iy << ") has too little Neff = (" << val << "/" << err << ")^2 = " << Neff << endl;
+        IVYerr << "checkGoodHistogram: " << hist->GetName() << " integrity check was good, but bin (" << ix << ", " << iy << ") has too little Neff = (" << val << "/" << err << ")^2 = " << Neff << endl;
         return false;
       }
     }
@@ -466,7 +466,7 @@ void getFinalEfficiencies(
     for (auto const& fname:infiles){
       if (!fname.Contains(file_suffix)) continue;
       TString cinput = cinput_main + "/" + fname;
-      MELAout << "Reading " << cinput << "..." << endl;
+      IVYout << "Reading " << cinput << "..." << endl;
       TFile* finput = TFile::Open(cinput, "read");
 
       std::vector<std::vector<TH2F*>> htmplist(strmatches.size(), std::vector<TH2F*>(hnames.size(), nullptr));
@@ -484,7 +484,7 @@ void getFinalEfficiencies(
         for (unsigned short iwp=0; iwp<hnames.size(); iwp++){
           TH2F const* htmp = htmplist.at(im).at(iwp);
           if (!checkGoodHistogram(htmp)){
-            MELAerr << "\t- Histogram " << htmp->GetName() << " from " << cinput << " failed integrity checks..." << endl;
+            IVYerr << "\t- Histogram " << htmp->GetName() << " from " << cinput << " failed integrity checks..." << endl;
             omitFile = true;
           }
         }
@@ -497,8 +497,8 @@ void getFinalEfficiencies(
         continue;
       }
 
-      if (firstFile) MELAout << "\t- First file, so copying histograms..." << endl;
-      else MELAout << "\t- Adding to existing histograms..." << endl;
+      if (firstFile) IVYout << "\t- First file, so copying histograms..." << endl;
+      else IVYout << "\t- Adding to existing histograms..." << endl;
       for (unsigned short im=0; im<strmatches.size(); im++){
         for (unsigned short iwp=0; iwp<hnames.size(); iwp++){
           TH2F* const& htmp = htmplist.at(im).at(iwp);

@@ -10,8 +10,8 @@ void producePUExceptions(TString strSampleSet, TString period, TString prodVersi
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
   SampleHelpers::configure(period, "store:"+prodVersion);
-  MELAout << "Input directory: " << SampleHelpers::theInputDirectory << endl;
-  MELAout << "Input tag: " << SampleHelpers::theSamplesTag << endl;
+  IVYout << "Input directory: " << SampleHelpers::theInputDirectory << endl;
+  IVYout << "Input tag: " << SampleHelpers::theSamplesTag << endl;
 
   BtagHelpers::setBtagWPType(BtagHelpers::kDeepFlav_Loose);
   const float btagvalue_thr = BtagHelpers::getBtagWP(false);
@@ -21,14 +21,14 @@ void producePUExceptions(TString strSampleSet, TString period, TString prodVersi
 
   TString const stroutputcore = Form("output/PUExceptions/%s", strdate.Data());
 
-  MELAout << "List of samples to process: " << sampleList << endl;
+  IVYout << "List of samples to process: " << sampleList << endl;
   for (auto const& strSample:sampleList){
     bool const isData = SampleHelpers::checkSampleIsData(strSample);
     if (isData) return;
 
     TString const cinputcore = SampleHelpers::getDatasetDirectoryName(strSample);
     TString const cinput = SampleHelpers::getDatasetFileName(strSample);
-    MELAout << "Extracting input " << cinput << endl;
+    IVYout << "Extracting input " << cinput << endl;
 
     BaseTree sample_tree(cinput, EVENTS_TREE_NAME, "", "");
     sample_tree.sampleIdentifier = SampleHelpers::getSampleIdentifier(strSample);
@@ -41,14 +41,14 @@ void producePUExceptions(TString strSampleSet, TString period, TString prodVersi
     TString stroutput = stroutputcore;
     gSystem->Exec(Form("mkdir -p %s", stroutput.Data()));
     stroutput += "/" + sample_tree.sampleIdentifier + ".root";
-    MELAout << "Creating output file " << stroutput << "..." << endl;
+    IVYout << "Creating output file " << stroutput << "..." << endl;
     TFile* foutput = TFile::Open(stroutput, "recreate");
     TH1F hpu("pileup", sample_tree.sampleIdentifier, 100, 0, 100);
 
     const int nEntries = sample_tree.getSelectedNEvents();
     int ev_start = 0;
     int ev_end = nEntries;
-    MELAout << "Looping over " << nEntries << " events, starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
+    IVYout << "Looping over " << nEntries << " events, starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
 
     for (int ev=ev_start; ev<ev_end; ev++){
       HelperFunctions::progressbar(ev, nEntries);

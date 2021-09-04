@@ -101,7 +101,7 @@ std::vector<SystematicsHelpers::SystematicVariationTypes> getAllowedSysts(TStrin
       );
       break;
     default:
-      MELAerr << "getAllowedSysts: Dilepton id " << dilepton_id_ref << " is not defined." << endl;
+      IVYerr << "getAllowedSysts: Dilepton id " << dilepton_id_ref << " is not defined." << endl;
       break;
     }
   }
@@ -142,14 +142,14 @@ void adjustWideBinVariation(TString const& strSampleSet, std::vector<ExtendedBin
     if (strSampleSet!="tWX" && strSampleSet!="DY_2l" && strSampleSet!="qqZG" && strSampleSet!="ttbar_2l2nu") return;
   }
 
-  if (binning_vars.size()!=1){ MELAerr << "adjustWideBinVariation ERROR: Using the wrong binning dimension!" << endl; return; }
+  if (binning_vars.size()!=1){ IVYerr << "adjustWideBinVariation ERROR: Using the wrong binning dimension!" << endl; return; }
   if (
     (OffshellCutflow::activeFinalState == OffshellCutflow::fs_ZZ_2l2nu && binning_vars.front().getName()!="mTZZ")
     ||
     (OffshellCutflow::activeFinalState == OffshellCutflow::fs_ZW_3l1nu && binning_vars.front().getName()!="mTWZ")
     ) return;
 
-  MELAout
+  IVYout
     << "adjustWideBinVariation: Integral of the variation before adjustment = "
     << HelperFunctions::getHistogramIntegralAndError(h_var, 1, binning_vars.front().getNbins(), useWidth)
     << endl;
@@ -157,7 +157,7 @@ void adjustWideBinVariation(TString const& strSampleSet, std::vector<ExtendedBin
   std::vector<int> xbin_boundaries;
   if (binning_vars.front().getName()!="mTZZ") xbin_boundaries = std::vector<int>{ 1, binning_vars.front().getBin(400.)+1, static_cast<int>(binning_vars.front().getNbins()+1) };
   else if (binning_vars.front().getName()!="mTWZ") xbin_boundaries = std::vector<int>{ 1, binning_vars.front().getBin(300.)+1, static_cast<int>(binning_vars.front().getNbins()+1) };
-  MELAout << "\t- X wide bin boundaries: " << xbin_boundaries << endl;
+  IVYout << "\t- X wide bin boundaries: " << xbin_boundaries << endl;
 
   for (unsigned int ibb=0; ibb<xbin_boundaries.size()-1; ibb++){
     double const int_nominal = HelperFunctions::getHistogramIntegralAndError(h_nominal, xbin_boundaries.at(ibb), xbin_boundaries.at(ibb+1)-1, useWidth);
@@ -172,7 +172,7 @@ void adjustWideBinVariation(TString const& strSampleSet, std::vector<ExtendedBin
     }
   }
 
-  MELAout
+  IVYout
     << "adjustWideBinVariation: Integral of the variation after adjustment = "
     << HelperFunctions::getHistogramIntegralAndError(h_var, 1, binning_vars.front().getNbins(), useWidth)
     << endl;
@@ -186,9 +186,9 @@ void adjustWideBinVariation(TString const& strSampleSet, std::vector<ExtendedBin
   }
 
   unsigned int const ndims = binning_vars.size();
-  if (ndims!=2){ MELAerr << "adjustWideBinVariation ERROR: Using the wrong binning dimension!" << endl; return; }
+  if (ndims!=2){ IVYerr << "adjustWideBinVariation ERROR: Using the wrong binning dimension!" << endl; return; }
 
-  MELAout
+  IVYout
     << "adjustWideBinVariation: Integral of the variation before adjustment = "
     << HelperFunctions::getHistogramIntegralAndError(h_var, 1, binning_vars.at(0).getNbins(), 1, binning_vars.at(1).getNbins(), useWidth)
     << endl;
@@ -205,8 +205,8 @@ void adjustWideBinVariation(TString const& strSampleSet, std::vector<ExtendedBin
 
   std::vector<int> const& xbin_boundaries = bin_boundaries_list.at(0);
   std::vector<int> const& ybin_boundaries = bin_boundaries_list.at(1);
-  MELAout << "\t- X wide bin boundaries: " << xbin_boundaries << endl;
-  MELAout << "\t- Y wide bin boundaries: " << ybin_boundaries << endl;
+  IVYout << "\t- X wide bin boundaries: " << xbin_boundaries << endl;
+  IVYout << "\t- Y wide bin boundaries: " << ybin_boundaries << endl;
 
   for (unsigned int ibb=0; ibb<xbin_boundaries.size()-1; ibb++){
     for (unsigned int jbb=0; jbb<ybin_boundaries.size()-1; jbb++){
@@ -235,7 +235,7 @@ void adjustWideBinVariation(TString const& strSampleSet, std::vector<ExtendedBin
     }
   }
 
-  MELAout
+  IVYout
     << "adjustWideBinVariation: Integral of the variation after adjustment = "
     << HelperFunctions::getHistogramIntegralAndError(h_var, 1, binning_vars.at(0).getNbins(), 1, binning_vars.at(1).getNbins(), useWidth)
     << endl;
@@ -249,9 +249,9 @@ void adjustWideBinVariation(TString const& strSampleSet, std::vector<ExtendedBin
   }
 
   unsigned int const ndims = binning_vars.size();
-  if (ndims!=3){ MELAerr << "adjustWideBinVariation ERROR: Using the wrong binning dimension!" << endl; return; }
+  if (ndims!=3){ IVYerr << "adjustWideBinVariation ERROR: Using the wrong binning dimension!" << endl; return; }
 
-  MELAout
+  IVYout
     << "adjustWideBinVariation: Integral of the variation before adjustment = "
     << HelperFunctions::getHistogramIntegralAndError(h_var, 1, binning_vars.at(0).getNbins(), 1, binning_vars.at(1).getNbins(), 1, binning_vars.at(2).getNbins(), useWidth)
     << endl;
@@ -269,9 +269,9 @@ void adjustWideBinVariation(TString const& strSampleSet, std::vector<ExtendedBin
   std::vector<int> const& xbin_boundaries = bin_boundaries_list.at(0);
   std::vector<int> const& ybin_boundaries = bin_boundaries_list.at(1);
   std::vector<int> const& zbin_boundaries = bin_boundaries_list.at(2);
-  MELAout << "\t- X wide bin boundaries: " << xbin_boundaries << endl;
-  MELAout << "\t- Y wide bin boundaries: " << ybin_boundaries << endl;
-  MELAout << "\t- Z wide bin boundaries: " << zbin_boundaries << endl;
+  IVYout << "\t- X wide bin boundaries: " << xbin_boundaries << endl;
+  IVYout << "\t- Y wide bin boundaries: " << ybin_boundaries << endl;
+  IVYout << "\t- Z wide bin boundaries: " << zbin_boundaries << endl;
 
   for (unsigned int ibb=0; ibb<xbin_boundaries.size()-1; ibb++){
     for (unsigned int jbb=0; jbb<ybin_boundaries.size()-1; jbb++){
@@ -306,7 +306,7 @@ void adjustWideBinVariation(TString const& strSampleSet, std::vector<ExtendedBin
     }
   }
 
-  MELAout
+  IVYout
     << "adjustWideBinVariation: Integral of the variation after adjustment = "
     << HelperFunctions::getHistogramIntegralAndError(h_var, 1, binning_vars.at(0).getNbins(), 1, binning_vars.at(1).getNbins(), 1, binning_vars.at(2).getNbins(), useWidth)
     << endl;
@@ -391,10 +391,10 @@ void getTemplate_ZZTo2L2Nu(
   for (auto const& sname:snames){
     TString cinput = SampleHelpers::getDatasetDirectoryName(period) + "/finaltree_" + sname + "_" + strSyst + ".root";
     if (!HostHelpers::FileReadable(cinput)){
-      MELAerr << "Input file " << cinput << " is not found." << endl;
+      IVYerr << "Input file " << cinput << " is not found." << endl;
       return;
     }
-    else MELAout << "Acquiring input file " << cinput << "..." << endl;
+    else IVYout << "Acquiring input file " << cinput << "..." << endl;
     TFile* finput = TFile::Open(cinput, "read"); finputs.push_back(finput);
     TTree* tin = (TTree*) finput->Get("FinalTree"); tinlist.push_back(tin);
 
@@ -402,9 +402,9 @@ void getTemplate_ZZTo2L2Nu(
     TFile* finput_ext = nullptr;
     TTree* tin_ext = nullptr;
     TString cinput_ext = SampleHelpers::getDatasetDirectoryName(period) + "/finaltree_" + sname + "_ext_" + strSyst + ".root";
-    if (!HostHelpers::FileReadable(cinput_ext)) MELAout << "No extension sample " << cinput_ext << " is found." << endl;
+    if (!HostHelpers::FileReadable(cinput_ext)) IVYout << "No extension sample " << cinput_ext << " is found." << endl;
     else{
-      MELAout << "Acquiring ext. input file " << cinput_ext << "..." << endl;
+      IVYout << "Acquiring ext. input file " << cinput_ext << "..." << endl;
       finput_ext = TFile::Open(cinput_ext, "read"); finputs.push_back(finput_ext);
       tin_ext = (TTree*) finput_ext->Get("FinalTree"); tinlist.push_back(tin_ext);
     }
@@ -442,7 +442,7 @@ void getTemplate_ZZTo2L2Nu(
   gSystem->mkdir(coutput_main, true);
 
   TString stroutput_txt = coutput_main + "/" + process_handler.getProcessName() + "_" + strChannel + "_" + strSystDC + ".txt";
-  MELAout.open(stroutput_txt.Data());
+  IVYout.open(stroutput_txt.Data());
   SampleHelpers::addToCondorTransferList(stroutput_txt);
 
   TString stroutput_commons = coutput_main + "/" + process_handler.getProcessName() + "_" + strChannel + "_" + strSystDC + "_commons.root";
@@ -481,14 +481,14 @@ void getTemplate_ZZTo2L2Nu(
         sum_wgts_cat.at(icat) += weight;
       }
     }
-    MELAout << "Sum of weights in category: " << sum_wgts_cat << endl;
+    IVYout << "Sum of weights in category: " << sum_wgts_cat << endl;
   }
 
   for (unsigned int icat=0; icat<nCats; icat++){
-    MELAout << "Producing templates for " << strCatNames.at(icat) << ":" << endl;
+    IVYout << "Producing templates for " << strCatNames.at(icat) << ":" << endl;
 
     TTree*& tin_cat = tin_split.at(icat);
-    MELAout << "\t- Category tree has " << tin_cat->GetEntries() << " entries." << endl;
+    IVYout << "\t- Category tree has " << tin_cat->GetEntries() << " entries." << endl;
 
     ACHypothesisHelpers::ProductionType prod_type;
     if (icat<2) prod_type = ACHypothesisHelpers::kGG;
@@ -545,8 +545,8 @@ void getTemplate_ZZTo2L2Nu(
     }
     unsigned short const nStatVars = foutputs.size();
 
-    if (hasStatUnc) MELAout << "\t- Will also acquire stat. unc. variations" << endl;
-    MELAout << "\t- Category expects " << foutputs.size() << " output files." << endl;
+    if (hasStatUnc) IVYout << "\t- Will also acquire stat. unc. variations" << endl;
+    IVYout << "\t- Category expects " << foutputs.size() << " output files." << endl;
 
     foutputs.front()->cd();
 
@@ -603,12 +603,12 @@ void getTemplate_ZZTo2L2Nu(
     }
     if (binning_mTZZ_coarse.isValid()) binning_mTZZ_coarse.setAbsoluteBoundFlags(true, true);
 
-    if (hasKDs) MELAout << "\t- Category uses KDs." << endl;
-    MELAout << "\t- Number of non-KD variables: " << nVars_nonKD << endl;
-    MELAout << "\t- Number of KD variables: " << nVars_KD << endl;
-    for (auto const& bb:binning_KDvars) MELAout << "\t\t- Variables " << bb.getName() << " binning: " << bb.getBinningVector() << endl;
-    MELAout << "\t- Smoothing factors: " << smearingStrengthCoeffs << endl;
-    if (binning_mTZZ_coarse.isValid()) MELAout << "\t\t- Coarse mTZZ binning: " << binning_mTZZ_coarse.getBinningVector() << endl;
+    if (hasKDs) IVYout << "\t- Category uses KDs." << endl;
+    IVYout << "\t- Number of non-KD variables: " << nVars_nonKD << endl;
+    IVYout << "\t- Number of KD variables: " << nVars_KD << endl;
+    for (auto const& bb:binning_KDvars) IVYout << "\t\t- Variables " << bb.getName() << " binning: " << bb.getBinningVector() << endl;
+    IVYout << "\t- Smoothing factors: " << smearingStrengthCoeffs << endl;
+    if (binning_mTZZ_coarse.isValid()) IVYout << "\t\t- Coarse mTZZ binning: " << binning_mTZZ_coarse.getBinningVector() << endl;
 
     bool selflag = true;
 
@@ -619,7 +619,7 @@ void getTemplate_ZZTo2L2Nu(
 
     if (nVars_KD==0 || (!hasUniformHighMassKD && !hasKDsplit)){
       if (nVars_nonKD + (!hasUniformHighMassKD && !hasKDsplit ? nVars_KD : 0)==1){
-        MELAout << "\t- Producing unsplit 1D templates..." << endl;
+        IVYout << "\t- Producing unsplit 1D templates..." << endl;
 
         TH1F* hRaw=nullptr;
         std::vector<TH1F*> hStat(2, nullptr);
@@ -640,8 +640,8 @@ void getTemplate_ZZTo2L2Nu(
           StatisticsHelpers::getPoissonCountingConfidenceInterval_Frequentist(Neff_raw, VAL_CL_1SIGMA, integral_raw_dn, integral_raw_up);
           scale_norm_dn = integral_raw_dn/Neff_raw;
           scale_norm_up = integral_raw_up/Neff_raw;
-          MELAout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
-          MELAout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc.: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
+          IVYout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
+          IVYout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc.: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
         }
         delete hRaw;
 
@@ -656,7 +656,7 @@ void getTemplate_ZZTo2L2Nu(
         if (hStat.back()) hSmooth_combined_1D.push_back(hStat.back());
       }
       else if (nVars_nonKD + (!hasUniformHighMassKD && !hasKDsplit ? nVars_KD : 0)==2){
-        MELAout << "\t- Producing unsplit 2D templates..." << endl;
+        IVYout << "\t- Producing unsplit 2D templates..." << endl;
 
         TH2F* hRaw=nullptr;
         std::vector<TH2F*> hStat(2, nullptr);
@@ -678,8 +678,8 @@ void getTemplate_ZZTo2L2Nu(
           StatisticsHelpers::getPoissonCountingConfidenceInterval_Frequentist(Neff_raw, VAL_CL_1SIGMA, integral_raw_dn, integral_raw_up);
           scale_norm_dn = integral_raw_dn/Neff_raw;
           scale_norm_up = integral_raw_up/Neff_raw;
-          MELAout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
-          MELAout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc.: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
+          IVYout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
+          IVYout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc.: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
         }
         delete hRaw;
 
@@ -694,7 +694,7 @@ void getTemplate_ZZTo2L2Nu(
         if (hStat.back()) hSmooth_combined_2D.push_back(hStat.back());
       }
       else if (nVars_nonKD + (!hasUniformHighMassKD && !hasKDsplit ? nVars_KD : 0)==3){
-        MELAout << "\t- Producing unsplit 3D templates..." << endl;
+        IVYout << "\t- Producing unsplit 3D templates..." << endl;
 
         TH3F* hRaw=nullptr;
         std::vector<TH3F*> hStat(2, nullptr);
@@ -716,8 +716,8 @@ void getTemplate_ZZTo2L2Nu(
           StatisticsHelpers::getPoissonCountingConfidenceInterval_Frequentist(Neff_raw, VAL_CL_1SIGMA, integral_raw_dn, integral_raw_up);
           scale_norm_dn = integral_raw_dn/Neff_raw;
           scale_norm_up = integral_raw_up/Neff_raw;
-          MELAout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
-          MELAout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc.: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
+          IVYout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
+          IVYout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc.: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
         }
         delete hRaw;
 
@@ -734,7 +734,7 @@ void getTemplate_ZZTo2L2Nu(
     }
     else{
       if (nVars_nonKD==1){
-        MELAout << "\t- Producing nVars_nonKD==1 KD-split templates..." << endl;
+        IVYout << "\t- Producing nVars_nonKD==1 KD-split templates..." << endl;
 
         TH1F* hRaw_nonKD=nullptr;
         std::vector<TH1F*> hStat_nonKD(2, nullptr);
@@ -755,8 +755,8 @@ void getTemplate_ZZTo2L2Nu(
           StatisticsHelpers::getPoissonCountingConfidenceInterval_Frequentist(Neff_raw, VAL_CL_1SIGMA, integral_raw_dn, integral_raw_up);
           scale_norm_dn = integral_raw_dn/Neff_raw;
           scale_norm_up = integral_raw_up/Neff_raw;
-          MELAout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
-          MELAout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc.: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
+          IVYout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
+          IVYout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc.: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
         }
         delete hRaw_nonKD;
 
@@ -879,7 +879,7 @@ void getTemplate_ZZTo2L2Nu(
         delete hSmooth_nonKD;
       }
       else if (nVars_nonKD==2){
-        MELAout << "\t- Producing nVars_nonKD==2 KD-split templates..." << endl;
+        IVYout << "\t- Producing nVars_nonKD==2 KD-split templates..." << endl;
 
         TH2F* hRaw_nonKD=nullptr;
         std::vector<TH2F*> hStat_nonKD(2, nullptr);
@@ -900,8 +900,8 @@ void getTemplate_ZZTo2L2Nu(
           StatisticsHelpers::getPoissonCountingConfidenceInterval_Frequentist(Neff_raw, VAL_CL_1SIGMA, integral_raw_dn, integral_raw_up);
           scale_norm_dn = integral_raw_dn/Neff_raw;
           scale_norm_up = integral_raw_up/Neff_raw;
-          MELAout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
-          MELAout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc.: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
+          IVYout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
+          IVYout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc.: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
         }
         delete hRaw_nonKD;
 
@@ -971,7 +971,7 @@ void getTemplate_ZZTo2L2Nu(
     }
 
     if (hasStatUnc){
-      MELAout << "\t- Adjusting shape variations..." << endl;
+      IVYout << "\t- Adjusting shape variations..." << endl;
       if (!hSmooth_combined_1D.empty()){
         adjustWideBinVariation(strSampleSet, binning_KDvars, hSmooth_combined_1D.front(), hSmooth_combined_1D.at(3), false);
         adjustWideBinVariation(strSampleSet, binning_KDvars, hSmooth_combined_1D.front(), hSmooth_combined_1D.at(4), false);
@@ -988,7 +988,7 @@ void getTemplate_ZZTo2L2Nu(
 
     for (unsigned short istat=0; istat<nStatVars; istat++){
       if (foutputs.size()<=istat) break;
-      MELAout << "\t- Recording stat. variation " << istat << ":" << endl;
+      IVYout << "\t- Recording stat. variation " << istat << ":" << endl;
       TH1F* hSmooth_1D = (!hSmooth_combined_1D.empty() ? hSmooth_combined_1D.at(istat) : nullptr);
       TH2F* hSmooth_2D = (!hSmooth_combined_2D.empty() ? hSmooth_combined_2D.at(istat) : nullptr);
       TH3F* hSmooth_3D = (!hSmooth_combined_3D.empty() ? hSmooth_combined_3D.at(istat) : nullptr);
@@ -998,7 +998,7 @@ void getTemplate_ZZTo2L2Nu(
         hSmooth_1D->SetTitle(process_handler.getTemplateName());
         {
           double integral = HelperFunctions::getHistogramIntegralAndError(hSmooth_1D, 0, hSmooth_1D->GetNbinsX()+1, false);
-          MELAout << "\t- Integral: " << integral << endl;
+          IVYout << "\t- Integral: " << integral << endl;
         }
         TemplateHelpers::doTemplatePostprocessing(hSmooth_1D);
         foutputs.at(istat)->WriteTObject(hSmooth_1D);
@@ -1009,7 +1009,7 @@ void getTemplate_ZZTo2L2Nu(
         hSmooth_2D->SetTitle(process_handler.getTemplateName());
         {
           double integral = HelperFunctions::getHistogramIntegralAndError(hSmooth_2D, 0, hSmooth_2D->GetNbinsX()+1, 0, hSmooth_2D->GetNbinsY()+1, false);
-          MELAout << "\t- Integral: " << integral << endl;
+          IVYout << "\t- Integral: " << integral << endl;
         }
         TemplateHelpers::doTemplatePostprocessing(hSmooth_2D);
         foutputs.at(istat)->WriteTObject(hSmooth_2D);
@@ -1020,7 +1020,7 @@ void getTemplate_ZZTo2L2Nu(
         hSmooth_3D->SetTitle(process_handler.getTemplateName());
         {
           double integral = HelperFunctions::getHistogramIntegralAndError(hSmooth_3D, 0, hSmooth_3D->GetNbinsX()+1, 0, hSmooth_3D->GetNbinsY()+1, 0, hSmooth_3D->GetNbinsZ()+1, false);
-          MELAout << "\t- Integral: " << integral << endl;
+          IVYout << "\t- Integral: " << integral << endl;
         }
         TemplateHelpers::doTemplatePostprocessing(hSmooth_3D);
         foutputs.at(istat)->WriteTObject(hSmooth_3D);
@@ -1034,7 +1034,7 @@ void getTemplate_ZZTo2L2Nu(
   }
 
   foutput_common->Close();
-  MELAout.close();
+  IVYout.close();
   for (auto& finput:finputs) finput->Close();
 
   curdir->cd();
@@ -1151,18 +1151,18 @@ std::vector<TString> getTemplate_ZWTo3L1Nu(
   for (auto const& sname:snames){
     TString cinput = SampleHelpers::getDatasetDirectoryName(period) + "/finaltree_" + sname + "_" + strSyst + ".root";
     if (!HostHelpers::FileReadable(cinput)){
-      MELAerr << "Input file " << cinput << " is not found." << endl;
+      IVYerr << "Input file " << cinput << " is not found." << endl;
       return res;
     }
-    else MELAout << "Acquiring input file " << cinput << "..." << endl;
+    else IVYout << "Acquiring input file " << cinput << "..." << endl;
 
     TString cinput_nominal = SampleHelpers::getDatasetDirectoryName(period) + "/finaltree_" + sname + "_Nominal.root";
     if (!HostHelpers::FileReadable(cinput_nominal)){
-      MELAerr << "\t- Input file " << cinput_nominal << " is not found." << endl;
+      IVYerr << "\t- Input file " << cinput_nominal << " is not found." << endl;
       for (auto& finput:finputs) finput->Close();
       return res;
     }
-    else MELAout << "\t- Acquiring input file " << cinput_nominal << "..." << endl;
+    else IVYout << "\t- Acquiring input file " << cinput_nominal << "..." << endl;
 
     TFile* finput_ee = TFile::Open(cinput, "read"); finputs.push_back(finput_ee);
     TTree* tin_ee = (TTree*) finput_ee->Get("FinalTree");
@@ -1183,9 +1183,9 @@ std::vector<TString> getTemplate_ZWTo3L1Nu(
     TTree* tin_mumu_ext = nullptr;
     TString cinput_ext = SampleHelpers::getDatasetDirectoryName(period) + "/finaltree_" + sname + "_ext_" + strSyst + ".root";
     TString cinput_ext_nominal = SampleHelpers::getDatasetDirectoryName(period) + "/finaltree_" + sname + "_ext_Nominal.root";
-    if (!HostHelpers::FileReadable(cinput_ext) || !HostHelpers::FileReadable(cinput_ext_nominal)) MELAout << "No extension samples " << cinput_ext << " or " << cinput_ext_nominal << " are found." << endl;
+    if (!HostHelpers::FileReadable(cinput_ext) || !HostHelpers::FileReadable(cinput_ext_nominal)) IVYout << "No extension samples " << cinput_ext << " or " << cinput_ext_nominal << " are found." << endl;
     else{
-      MELAout << "Acquiring ext. input file " << cinput_ext << "..." << endl;
+      IVYout << "Acquiring ext. input file " << cinput_ext << "..." << endl;
       finput_ee_ext = TFile::Open(cinput_ext, "read"); finputs.push_back(finput_ee_ext);
       tin_mumu_ext = tin_ee_ext = (TTree*) finput_ee_ext->Get("FinalTree");
       if (syst==eTriggerEffDn || syst==eTriggerEffUp){
@@ -1246,7 +1246,7 @@ std::vector<TString> getTemplate_ZWTo3L1Nu(
   gSystem->mkdir(coutput_main, true);
 
   TString stroutput_txt = coutput_main + "/" + process_handler.getProcessName() + "_" + strChannel + "_" + strSystDC + ".txt";
-  MELAout.open(stroutput_txt.Data());
+  IVYout.open(stroutput_txt.Data());
   SampleHelpers::addToCondorTransferList(stroutput_txt);
   res.push_back(stroutput_txt);
 
@@ -1290,14 +1290,14 @@ std::vector<TString> getTemplate_ZWTo3L1Nu(
         }
       }
     }
-    MELAout << "Sum of weights in category: " << sum_wgts_cat << endl;
+    IVYout << "Sum of weights in category: " << sum_wgts_cat << endl;
   }
 
   for (unsigned int icat=0; icat<nCats; icat++){
-    MELAout << "Producing templates for " << strCatNames.at(icat) << ":" << endl;
+    IVYout << "Producing templates for " << strCatNames.at(icat) << ":" << endl;
 
     TTree*& tin_cat = tin_split.at(icat);
-    MELAout << "\t- Category tree has " << tin_cat->GetEntries() << " entries." << endl;
+    IVYout << "\t- Category tree has " << tin_cat->GetEntries() << " entries." << endl;
 
     ACHypothesisHelpers::ProductionType prod_type;
     if (icat<2) prod_type = ACHypothesisHelpers::kGG;
@@ -1341,8 +1341,8 @@ std::vector<TString> getTemplate_ZWTo3L1Nu(
     }
     unsigned short const nStatVars = foutputs.size();
 
-    if (hasStatUnc) MELAout << "\t- Will also acquire stat. unc. variations" << endl;
-    MELAout << "\t- Category expects " << foutputs.size() << " output files." << endl;
+    if (hasStatUnc) IVYout << "\t- Will also acquire stat. unc. variations" << endl;
+    IVYout << "\t- Category expects " << foutputs.size() << " output files." << endl;
 
     foutputs.front()->cd();
 
@@ -1377,16 +1377,16 @@ std::vector<TString> getTemplate_ZWTo3L1Nu(
       for (auto& coef:smearingStrengthCoeffs) coef *= 2.;
     }
 
-    MELAout << "\t- Number of variables: " << nVars << endl;
-    for (auto const& bb:binning_KDvars) MELAout << "\t\t- Variables " << bb.getName() << " binning: " << bb.getBinningVector() << endl;
-    MELAout << "\t- Smoothing factors: " << smearingStrengthCoeffs << endl;
+    IVYout << "\t- Number of variables: " << nVars << endl;
+    for (auto const& bb:binning_KDvars) IVYout << "\t\t- Variables " << bb.getName() << " binning: " << bb.getBinningVector() << endl;
+    IVYout << "\t- Smoothing factors: " << smearingStrengthCoeffs << endl;
 
     bool selflag = true;
 
     double scale_norm_dn=1, scale_norm_up=1;
     std::vector<TH1F*> hSmooth_combined_1D; hSmooth_combined_1D.reserve(nStatVars);
 
-    MELAout << "\t- Producing unsplit 1D templates..." << endl;
+    IVYout << "\t- Producing unsplit 1D templates..." << endl;
 
     TH1F* hRaw=nullptr;
     std::vector<TH1F*> hStat(2, nullptr);
@@ -1407,8 +1407,8 @@ std::vector<TString> getTemplate_ZWTo3L1Nu(
       StatisticsHelpers::getPoissonCountingConfidenceInterval_Frequentist(Neff_raw, VAL_CL_1SIGMA, integral_raw_dn, integral_raw_up);
       scale_norm_dn = integral_raw_dn/Neff_raw;
       scale_norm_up = integral_raw_up/Neff_raw;
-      MELAout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
-      MELAout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc.: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
+      IVYout << "\t- Overall Neff for this category: " << Neff_raw << " [ " << integral_raw_dn << ", " << integral_raw_up << " ]" << endl;
+      IVYout << "\t- Integral: " << integral_raw << " +- " << integralerr_raw << " (lnN unc.: " << scale_norm_dn << "/" << scale_norm_up << ")" << endl;
     }
     delete hRaw;
 
@@ -1423,7 +1423,7 @@ std::vector<TString> getTemplate_ZWTo3L1Nu(
     if (hStat.back()) hSmooth_combined_1D.push_back(hStat.back());
 
     if (hasStatUnc){
-      MELAout << "\t- Adjusting shape variations..." << endl;
+      IVYout << "\t- Adjusting shape variations..." << endl;
       if (!hSmooth_combined_1D.empty()){
         adjustWideBinVariation(strSampleSet, binning_KDvars, hSmooth_combined_1D.front(), hSmooth_combined_1D.at(3), false);
         adjustWideBinVariation(strSampleSet, binning_KDvars, hSmooth_combined_1D.front(), hSmooth_combined_1D.at(4), false);
@@ -1432,7 +1432,7 @@ std::vector<TString> getTemplate_ZWTo3L1Nu(
 
     for (unsigned short istat=0; istat<nStatVars; istat++){
       if (foutputs.size()<=istat) break;
-      MELAout << "\t- Recording stat. variation " << istat << ":" << endl;
+      IVYout << "\t- Recording stat. variation " << istat << ":" << endl;
       TH1F* hSmooth_1D = (!hSmooth_combined_1D.empty() ? hSmooth_combined_1D.at(istat) : nullptr);
       foutputs.at(istat)->cd();
       if (hSmooth_1D){
@@ -1440,7 +1440,7 @@ std::vector<TString> getTemplate_ZWTo3L1Nu(
         hSmooth_1D->SetTitle(process_handler.getTemplateName());
         {
           double integral = HelperFunctions::getHistogramIntegralAndError(hSmooth_1D, 0, hSmooth_1D->GetNbinsX()+1, false);
-          MELAout << "\t- Integral: " << integral << endl;
+          IVYout << "\t- Integral: " << integral << endl;
         }
         TemplateHelpers::doTemplatePostprocessing(hSmooth_1D);
 
@@ -1456,7 +1456,7 @@ std::vector<TString> getTemplate_ZWTo3L1Nu(
         hFloored->Scale(-1.);
         {
           double integral = HelperFunctions::getHistogramIntegralAndError(hFloored, 0, hFloored->GetNbinsX()+1, true);
-          MELAout << "\t- Neg. integral: " << integral << endl;
+          IVYout << "\t- Neg. integral: " << integral << endl;
         }
 
         foutputs.at(istat)->WriteTObject(hSmooth_1D);
@@ -1472,7 +1472,7 @@ std::vector<TString> getTemplate_ZWTo3L1Nu(
   }
 
   foutput_common->Close();
-  MELAout.close();
+  IVYout.close();
   for (auto& finput:finputs) finput->Close();
 
   curdir->cd();

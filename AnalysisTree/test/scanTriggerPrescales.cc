@@ -67,14 +67,14 @@ void scanTriggerPrescales(TString period, TString prodVersion){
   std::unordered_map<unsigned int, std::vector<unsigned int>> run_lumilist_map;
   std::vector<std::vector<TriggerPropInfo>> triggerpropinfolists(triggerCheckList.size());
 
-  MELAout << "List of samples to process: " << sampleList << endl;
+  IVYout << "List of samples to process: " << sampleList << endl;
   for (auto const& strSample:sampleList){
     bool const isData = SampleHelpers::checkSampleIsData(strSample);
 
     TString const cinputcore = SampleHelpers::getDatasetDirectoryName(strSample, true);
     TString const cinput = SampleHelpers::getDatasetFileName(strSample, true);
     if (cinput=="") continue;
-    MELAout << "Extracting input " << cinput << endl;
+    IVYout << "Extracting input " << cinput << endl;
 
     BaseTree sample_tree(cinput, EVENTS_TREE_NAME, "", "");
     sample_tree.sampleIdentifier = SampleHelpers::getSampleIdentifier(strSample);
@@ -82,7 +82,7 @@ void scanTriggerPrescales(TString period, TString prodVersion){
     const int nEntries = sample_tree.getSelectedNEvents();
     int ev_start = 0;
     int ev_end = nEntries;
-    MELAout << "Looping over " << nEntries << " events, starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
+    IVYout << "Looping over " << nEntries << " events, starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
 
     eventFilter.bookBranches(&sample_tree);
     eventFilter.wrapTree(&sample_tree);
@@ -92,13 +92,13 @@ void scanTriggerPrescales(TString period, TString prodVersion){
     sample_tree.getValRef("RunNumber", RunNumber);
     sample_tree.getValRef("LuminosityBlock", LuminosityBlock);
 
-    MELAout << "Completed getting the rest of the handles..." << endl;
+    IVYout << "Completed getting the rest of the handles..." << endl;
     sample_tree.silenceUnused();
 
     for (int ev=ev_start; ev<ev_end; ev++){
       HelperFunctions::progressbar(ev, nEntries);
       sample_tree.getEvent(ev);
-      if (ev%10000==0) MELAout << sample_tree.sampleIdentifier << " events: " << ev << " / " << nEntries << endl;
+      if (ev%10000==0) IVYout << sample_tree.sampleIdentifier << " events: " << ev << " / " << nEntries << endl;
 
       auto it_run = run_lumilist_map.find(*RunNumber);
       if (it_run == run_lumilist_map.end()){
@@ -137,17 +137,17 @@ void scanTriggerPrescales(TString period, TString prodVersion){
     for (auto const& strig:triggerCheckList){
       std::sort(it_triggerpropinfolists->begin(), it_triggerpropinfolists->end(), TriggerPropInfo::isEarlier);
 
-      MELAout << "*****" << endl;
-      MELAout << strig << endl;
-      MELAout << "*****" << endl;
+      IVYout << "*****" << endl;
+      IVYout << strig << endl;
+      IVYout << "*****" << endl;
 
       TString stroutput = Form("%s/%s_%s.txt", coutput_main.Data(), strig.data(), SampleHelpers::getDataPeriod().Data());
-      MELAout.open(stroutput.Data());
+      IVYout.open(stroutput.Data());
 
-      MELAout << "Run,lumi,prescale" << endl;
+      IVYout << "Run,lumi,prescale" << endl;
       for (auto const& triggerpropinfo:(*it_triggerpropinfolists)){
         if (triggerpropinfo.prescale == 1.f) continue;
-        MELAout << triggerpropinfo.run << ',' << triggerpropinfo.lumi << ',' << triggerpropinfo.prescale << endl;
+        IVYout << triggerpropinfo.run << ',' << triggerpropinfo.lumi << ',' << triggerpropinfo.prescale << endl;
       }
       for (auto const& run_lumi_pair:valid_run_lumi_pairs){
         auto const& run = run_lumi_pair.first;
@@ -158,11 +158,11 @@ void scanTriggerPrescales(TString period, TString prodVersion){
             break;
           }
         }
-        if (!found) MELAout << run << ',' << -1 << ',' << 0 << endl;
+        if (!found) IVYout << run << ',' << -1 << ',' << 0 << endl;
       }
 
-      MELAout.close();
-      MELAout << "*****" << endl;
+      IVYout.close();
+      IVYout << "*****" << endl;
 
       it_triggerpropinfolists++;
 

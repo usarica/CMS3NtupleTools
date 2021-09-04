@@ -1,12 +1,12 @@
 #include "ReweightingBuilder.h"
 #include "SimpleEntry.h"
 #include "MELAAccumulators.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
 using namespace TNumericUtil;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 using namespace HelperFunctions;
 
 
@@ -30,19 +30,19 @@ ReweightingBuilder::ReweightingBuilder(
 float ReweightingBuilder::eval_nominalweights(BaseTree* theTree) const{
   std::unordered_map<BaseTree*, std::vector<float*>>::const_iterator it = componentRefs_nominalweights.find(theTree);
   if (it==componentRefs_nominalweights.cend()){
-    MELAerr << "ReweightingBuilder::eval_nominalweights: Could not find the weights " << strNominalWeights << ". Call ReweightingBuilder::setupWeightVariables first!" << endl;
+    IVYerr << "ReweightingBuilder::eval_nominalweights: Could not find the weights " << strNominalWeights << ". Call ReweightingBuilder::setupWeightVariables first!" << endl;
     return 0;
   }
 
   float weight=0;
   if (rule_nominalweights) weight=rule_nominalweights(theTree, it->second);
   if (!checkVarNanInf(weight)){
-    MELAerr << "ReweightingBuilder::eval_nominalweights: Weight " << weight << " is nan/inf!" << endl;
+    IVYerr << "ReweightingBuilder::eval_nominalweights: Weight " << weight << " is nan/inf!" << endl;
     weight=0;
   }
   if (!allowNegativeWeights && weight<0.){
     weight=0;
-    MELAerr << "ReweightingBuilder::eval_nominalweights: Negative weight encountered: "; for (auto& v:it->second) MELAerr << *v << ", "; MELAerr << endl;
+    IVYerr << "ReweightingBuilder::eval_nominalweights: Negative weight encountered: "; for (auto& v:it->second) IVYerr << *v << ", "; IVYerr << endl;
     assert(0);
   }
   return weight;
@@ -50,19 +50,19 @@ float ReweightingBuilder::eval_nominalweights(BaseTree* theTree) const{
 float ReweightingBuilder::eval_reweightingweights(BaseTree* theTree) const{
   std::unordered_map<BaseTree*, std::vector<float*>>::const_iterator it = componentRefs_reweightingweights.find(theTree);
   if (it==componentRefs_reweightingweights.cend()){
-    MELAerr << "ReweightingBuilder::eval_reweightingweights: Could not find the weights " << strReweightingWeights << ". Call ReweightingBuilder::setupWeightVariables first!" << endl;
+    IVYerr << "ReweightingBuilder::eval_reweightingweights: Could not find the weights " << strReweightingWeights << ". Call ReweightingBuilder::setupWeightVariables first!" << endl;
     return 0;
   }
 
   float weight=0;
   if (rule_reweightingweights) weight=rule_reweightingweights(theTree, it->second);
   if (!checkVarNanInf(weight)){
-    MELAerr << "ReweightingBuilder::eval_reweightingweights: Weight " << weight << " is nan/inf!" << endl;
+    IVYerr << "ReweightingBuilder::eval_reweightingweights: Weight " << weight << " is nan/inf!" << endl;
     weight=0;
   }
   if (!allowNegativeWeights && weight<0.){
     weight=0;
-    MELAerr << "ReweightingBuilder::eval_reweightingweights: Negative weight encountered: "; for (auto& v:it->second) MELAerr << *v << ", "; MELAerr << endl;
+    IVYerr << "ReweightingBuilder::eval_reweightingweights: Negative weight encountered: "; for (auto& v:it->second) IVYerr << *v << ", "; IVYerr << endl;
     assert(0);
   }
   return weight;
@@ -70,19 +70,19 @@ float ReweightingBuilder::eval_reweightingweights(BaseTree* theTree) const{
 float ReweightingBuilder::eval_xsecweights(BaseTree* theTree) const{
   std::unordered_map<BaseTree*, std::vector<float*>>::const_iterator it = componentRefs_xsecweights.find(theTree);
   if (it==componentRefs_xsecweights.cend()){
-    MELAerr << "ReweightingBuilder::eval_xsecweights: Could not find the weights " << strCrossSectionWeights << ". Call ReweightingBuilder::setupWeightVariables first!" << endl;
+    IVYerr << "ReweightingBuilder::eval_xsecweights: Could not find the weights " << strCrossSectionWeights << ". Call ReweightingBuilder::setupWeightVariables first!" << endl;
     return 0;
   }
 
   float weight=0;
   if (rule_xsecweights) weight=rule_xsecweights(theTree, it->second);
   if (!checkVarNanInf(weight)){
-    MELAerr << "ReweightingBuilder::eval_xsecweights: Weight " << weight << " is nan/inf!" << endl;
+    IVYerr << "ReweightingBuilder::eval_xsecweights: Weight " << weight << " is nan/inf!" << endl;
     weight=0;
   }
   if (!allowNegativeWeights && weight<0.){
     weight=0;
-    MELAerr << "ReweightingBuilder::eval_xsecweights: Negative weight encountered: "; for (auto& v:it->second) MELAerr << *v << ", "; MELAerr << endl;
+    IVYerr << "ReweightingBuilder::eval_xsecweights: Negative weight encountered: "; for (auto& v:it->second) IVYerr << *v << ", "; IVYerr << endl;
     assert(0);
   }
   return weight;
@@ -106,7 +106,7 @@ void ReweightingBuilder::setWeightBinning(const ExtendedBinning& binning){ weigh
 void ReweightingBuilder::setWeightThresholdReference(const float& weightThresholdReference_){ weightThresholdReference = weightThresholdReference_; }
 
 void ReweightingBuilder::setupWeightVariables(BaseTree* theTree, float fractionRequirement, unsigned int minimumNevents){
-  MELAout << "ReweightingBuilder[" << "Nominal weights: " << strNominalWeights << ", reweighting weights: " << strReweightingWeights << ", xsec weights: " << strCrossSectionWeights << "]::setupWeightVariables is called for tree " << theTree << "." << endl;
+  IVYout << "ReweightingBuilder[" << "Nominal weights: " << strNominalWeights << ", reweighting weights: " << strReweightingWeights << ", xsec weights: " << strCrossSectionWeights << "]::setupWeightVariables is called for tree " << theTree << "." << endl;
 
   if (!theTree) return;
   const int nevents = theTree->getNEvents();
@@ -153,9 +153,9 @@ void ReweightingBuilder::setupWeightVariables(BaseTree* theTree, float fractionR
   indexList.assign(ns, vector<SimpleEntry>());
   for (auto& index:indexList) index.reserve(theTree->getNEvents()/ns+1);
 
-  MELAout << "\t- Ordering the " << nevents << " events";
-  if (!noBoundaries) MELAout << " over the " << ns << " bins: [ " << binning.getBinningVector() << " ]";
-  MELAout << " and computing sum of nominal weights without xsec." << endl;
+  IVYout << "\t- Ordering the " << nevents << " events";
+  if (!noBoundaries) IVYout << " over the " << ns << " bins: [ " << binning.getBinningVector() << " ]";
+  IVYout << " and computing sum of nominal weights without xsec." << endl;
   {
     bool firstTreeEvent=true;
     auto it_sumNominalWeights = sumNominalWeights.find(theTree);
@@ -190,7 +190,7 @@ void ReweightingBuilder::setupWeightVariables(BaseTree* theTree, float fractionR
 
       if (firstTreeEvent) firstTreeEvent=false;
     }
-    MELAout << "\t- Sum of nominal weights is computed as " << it_sumNominalWeights->second << "." << endl;
+    IVYout << "\t- Sum of nominal weights is computed as " << it_sumNominalWeights->second << "." << endl;
   }
 
   if (!doReweighting) return;
@@ -198,14 +198,14 @@ void ReweightingBuilder::setupWeightVariables(BaseTree* theTree, float fractionR
   for (unsigned int ibin=0; ibin<ns; ibin++){
     vector<SimpleEntry>& index = indexList.at(ibin);
     if (minimumNevents>sumNonZeroWgtEvents[theTree].at(ibin)){
-      MELAout << "\t- Bin " << ibin << " has less number of events with non-zero weight than the requested number " << minimumNevents << ". Resetting the bin..." << endl;
+      IVYout << "\t- Bin " << ibin << " has less number of events with non-zero weight than the requested number " << minimumNevents << ". Resetting the bin..." << endl;
       index.clear();
 
       sumNonZeroWgtEvents[theTree].at(ibin)=0;
       sumNonZeroWgtNominalWeights[theTree].at(ibin)=0;
     }
     const unsigned int nTotalPerBin = index.size();
-    //MELAout << "\t- Looping over the " << nTotalPerBin << " events to find the threshold in bin " << ibin << endl;
+    //IVYout << "\t- Looping over the " << nTotalPerBin << " events to find the threshold in bin " << ibin << endl;
     float threshold=0;
     if (nTotalPerBin>2){
       const unsigned int maxPrunedSize = std::max((unsigned int) (fractionRequirement>=0. ? std::ceil(float(nTotalPerBin)*(1.-fractionRequirement)) : nTotalPerBin), (unsigned int) 3);
@@ -226,14 +226,14 @@ void ReweightingBuilder::setupWeightVariables(BaseTree* theTree, float fractionR
       unsigned int index_entry = maxPrunedSize-2;
       unsigned int index_entry_prev=index_entry+1;
       threshold = (indexPruned.at(index_entry_prev).trackingval + indexPruned.at(index_entry).trackingval)*0.5;
-      MELAout << "Threshold raw: " << threshold << endl;
+      IVYout << "Threshold raw: " << threshold << endl;
       if ((threshold>0. && indexPruned.front().trackingval<threshold*5.) || fractionRequirement>=1.) threshold = indexPruned.front().trackingval; // Prevent false-positives
     }
     else if (nTotalPerBin==2) threshold = std::max(index.at(0).trackingval, index.at(1).trackingval);
     else if (nTotalPerBin==1) threshold = index.at(0).trackingval;
     weightThresholds[theTree].at(ibin)=threshold;
 
-    //MELAout << "\t- Looping over the " << nTotalPerBin << " events to find the sum of weights after threshold " << threshold << " in bin " << ibin << endl;
+    //IVYout << "\t- Looping over the " << nTotalPerBin << " events to find the sum of weights after threshold " << threshold << " in bin " << ibin << endl;
     // Do a precise summation with the Kahan method
     KahanAccumulator<float> sum;
     KahanAccumulator<float> sumsq;
@@ -250,7 +250,7 @@ void ReweightingBuilder::setupWeightVariables(BaseTree* theTree, float fractionR
     // Assign the sum
     sumPostThrWeights[theTree].at(ibin)=sum;
     sumPostThrSqWeights[theTree].at(ibin)=sumsq;
-    if (sumNonZeroWgtEvents[theTree].at(ibin)>0) MELAout << "\t- Threshold at bin " << ibin << ": " << weightThresholdReference << " +- " << threshold
+    if (sumNonZeroWgtEvents[theTree].at(ibin)>0) IVYout << "\t- Threshold at bin " << ibin << ": " << weightThresholdReference << " +- " << threshold
       << ", sum of post-threshold weights: " << sumPostThrWeights[theTree].at(ibin) << " +- " << sqrt(sumPostThrSqWeights[theTree].at(ibin))
       << ", number of events with non-zero weight: " << sumNonZeroWgtEvents[theTree].at(ibin)
       << ", sum of nominal weights for non-zero - weight events: " << sumNonZeroWgtNominalWeights[theTree].at(ibin)
@@ -369,7 +369,7 @@ float ReweightingBuilder::getFinalEventWeight(BaseTree* theTree) const{
   // Get cached sample normalization factor
   auto itCachedSampleNormalizationsPerBin = this->cachedSampleNormalizationsPerBin.find(theTree);
   if (itCachedSampleNormalizationsPerBin==this->cachedSampleNormalizationsPerBin.cend()){
-    MELAerr << "ReweightingBuilder::getFinalEventWeight: You must set up the caches first!" << endl;
+    IVYerr << "ReweightingBuilder::getFinalEventWeight: You must set up the caches first!" << endl;
     assert(0);
   }
   weight *= itCachedSampleNormalizationsPerBin->second.at(bin);
@@ -384,7 +384,7 @@ float ReweightingBuilder::getNormComponent(BaseTree* theTree) const{
 float ReweightingBuilder::getNormComponent(int bin) const{
   if (bin<0) return 0;
   if (cachedNormComponentsPerBin.empty()){
-    MELAerr << "ReweightingBuilder::getNormComponent: You must set up the caches first!" << endl;
+    IVYerr << "ReweightingBuilder::getNormComponent: You must set up the caches first!" << endl;
     assert(0);
     return 0;
   }

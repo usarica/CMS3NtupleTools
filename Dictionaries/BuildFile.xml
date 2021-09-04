@@ -2,6 +2,14 @@
 <use   name="boost"/>
 <use   name="DataFormats/Common"/>
 <use   name="DataFormats/Math"/>
+<use   name="IvyFramework/IvyDataTools"/>
+<use   name="IvyFramework/IvyAutoMELA"/>
+<use   name="root"/>
+
+
+<flags CPPFLAGS="-I$(CMSSW_BASE)/src/JHUGenMELA/MELA/interface/ -I$(CMSSW_BASE)/src/IvyFramework/IvyDataTools/interface/ -I$(CMSSW_BASE)/src/IvyFramework/IvyAutoMELA/interface/" />
+
+
 <export>
   <lib   name="1"/>
 </export>

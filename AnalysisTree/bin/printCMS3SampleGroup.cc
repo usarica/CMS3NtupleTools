@@ -2,11 +2,11 @@
 #include <sstream>
 #include "OffshellSampleHelpers.h"
 #include "HelperFunctions.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 void printCMS3SampleGroup(TString strSampleSet, TString period, TString prodVersion, TString outfile){
@@ -34,11 +34,11 @@ void printCMS3SampleGroup(TString strSampleSet, TString period, TString prodVers
 
   // Restore stdout stream buffer either now or after writing the output file
   bool const useStdout = (outfile=="stdout");
-  if (!useStdout) MELAout.open(outfile.Data());
+  if (!useStdout) IVYout.open(outfile.Data());
   else cout.rdbuf(stdoutbuf_bkp);
-  for (auto const& sname:samples) MELAout << sname << endl;
+  for (auto const& sname:samples) IVYout << sname << endl;
   if (!useStdout){
-    MELAout.close();
+    IVYout.close();
     cout.rdbuf(stdoutbuf_bkp);
   }
 }

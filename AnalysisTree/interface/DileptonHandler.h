@@ -2,6 +2,7 @@
 #define DILEPTONHANDLER_H
 
 #include <vector>
+#include "VerbosityLevel.h"
 #include "MuonObject.h"
 #include "ElectronObject.h"
 #include "DileptonObject.h"
@@ -9,7 +10,7 @@
 
 class DileptonHandler{
 protected:
-  TVar::VerbosityLevel verbosity;
+  MiscUtils::VerbosityLevel verbosity;
 
   std::vector<DileptonObject*> productList;
 
@@ -29,7 +30,7 @@ public:
   DileptonHandler();
   ~DileptonHandler(){ clear(); }
 
-  void setVerbosity(TVar::VerbosityLevel verbosity_){ verbosity=verbosity_; }
+  void setVerbosity(MiscUtils::VerbosityLevel verbosity_){ verbosity=verbosity_; }
 
   bool constructDileptons(
     std::vector<MuonObject*> const* muons,

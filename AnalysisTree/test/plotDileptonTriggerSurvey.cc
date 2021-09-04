@@ -5,7 +5,7 @@
 #include "TText.h"
 #include "TPaveText.h"
 #include "TLegend.h"
-#include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
+#include <IvyFramework/IvyAutoMELA/interface/IvyMELAHelpers.h>
 
 
 using namespace reco;
@@ -500,8 +500,8 @@ void plot(
   for (auto& strig:triggerCheckList_baseline) HelperFunctions::replaceString(strig, "_v*", "_v");
   std::vector<std::string> triggerCheckList_extras;
   for (auto const& strig:triggerCheckList_all){ if (!HelperFunctions::checkListVariable(triggerCheckList_baseline, strig)) triggerCheckList_extras.push_back(strig); }
-  MELAout << "Baseline triggers: " << triggerCheckList_baseline << endl;
-  MELAout << "Triggers to check: " << triggerCheckList_extras << endl;
+  IVYout << "Baseline triggers: " << triggerCheckList_baseline << endl;
+  IVYout << "Triggers to check: " << triggerCheckList_extras << endl;
 
   TDirectory* curdir = gDirectory;
 
@@ -579,7 +579,7 @@ void plot(
         strinput += Form("*_%s", SystematicsHelpers::getSystName(theGlobalSyst).data());
         strinput += ".root";
 
-        MELAout << "Adding input " << strinput << endl;
+        IVYout << "Adding input " << strinput << endl;
         tin->Add(strinput);
       }
     }
@@ -588,11 +588,11 @@ void plot(
       strinput += Form("*_%s", SystematicsHelpers::getSystName(theGlobalSyst).data());
       strinput += ".root";
 
-      MELAout << "Adding input " << strinput << endl;
+      IVYout << "Adding input " << strinput << endl;
       tin->Add(strinput);
     }
 
-    MELAout << "Tree has a total of " << tin->GetEntries() << " entries..." << endl;
+    IVYout << "Tree has a total of " << tin->GetEntries() << " entries..." << endl;
     curdir->cd();
   }
 
@@ -668,15 +668,15 @@ void plot(
     BRANCH_OPTIONAL_COMMANDS;
 #undef BRANCH_COMMAND
     tin->SetBranchStatus("*", 0);
-#define BRANCH_COMMAND(TYPE, NAME) if (exists_##NAME){ MELAout << "Booking " << #NAME << "..." << endl; tin->SetBranchStatus(#NAME, 1); tin->SetBranchAddress(#NAME, &NAME); }
+#define BRANCH_COMMAND(TYPE, NAME) if (exists_##NAME){ IVYout << "Booking " << #NAME << "..." << endl; tin->SetBranchStatus(#NAME, 1); tin->SetBranchAddress(#NAME, &NAME); }
     BRANCH_OPTIONAL_COMMANDS;
 #undef BRANCH_COMMAND
-#define BRANCH_COMMAND(TYPE, NAME) MELAout << "Booking " << #NAME << "..." << endl; tin->SetBranchStatus(#NAME, 1); tin->SetBranchAddress(#NAME, &NAME);
+#define BRANCH_COMMAND(TYPE, NAME) IVYout << "Booking " << #NAME << "..." << endl; tin->SetBranchStatus(#NAME, 1); tin->SetBranchAddress(#NAME, &NAME);
     BRANCH_COMMANDS;
 #undef BRANCH_COMMAND
     for (auto& it:strig_val_map){
       auto const& strig = it.first;
-      MELAout << "Booking " << strig << "..." << endl;
+      IVYout << "Booking " << strig << "..." << endl;
       tin->SetBranchStatus(Form("event_wgt_%s", strig.data()), 1);
       tin->SetBranchAddress(Form("event_wgt_%s", strig.data()), &(it.second));
     }
@@ -802,9 +802,9 @@ void plot(
       }
       if (pass_extras) hist_trig_map["all_extras"]->Fill(pTx, pTy, wgt);
     }
-    MELAout << "Accumulated sum of weights:" << sum_wgts_total << endl;
+    IVYout << "Accumulated sum of weights:" << sum_wgts_total << endl;
     for (unsigned int icut=0; icut<ncuts; icut++){
-      MELAout << "\t- " << cutlabels.at(icut) << ": " << sum_wgts_cuts[icut]
+      IVYout << "\t- " << cutlabels.at(icut) << ": " << sum_wgts_cuts[icut]
         << ", efficiency: " << sum_wgts_cuts[icut]/sum_wgts_cuts[0]
         << ",  recursive eff.: " << sum_wgts_cuts[icut]/sum_wgts_cuts[(icut==0 ? 0 : icut-1)]
         << endl;

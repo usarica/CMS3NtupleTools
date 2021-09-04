@@ -1,9 +1,9 @@
 #include "TemplateHelpers.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 ExtendedBinning TemplateHelpers::getDiscriminantFineBinning(TString const& strvar, ACHypothesisHelpers::ACHypothesis hypo, ACHypothesisHelpers::ProductionType prod_type, ACHypothesisHelpers::DecayType dktype){
@@ -145,7 +145,7 @@ ExtendedBinning TemplateHelpers::getDiscriminantFineBinning(TString const& strva
   }
 
   if (!res.isValid()){
-    MELAerr << "TemplateHelpers::getDiscriminantFineBinning: Binning is undefined for " << strvar << " in production type " << prod_type << " and decay type " << dktype << "." << endl;
+    IVYerr << "TemplateHelpers::getDiscriminantFineBinning: Binning is undefined for " << strvar << " in production type " << prod_type << " and decay type " << dktype << "." << endl;
     assert(0);
   }
   res.setAbsoluteBoundFlags(true, true);

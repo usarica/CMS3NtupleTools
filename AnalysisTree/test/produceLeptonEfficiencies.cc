@@ -5,7 +5,7 @@
 #include "TPaveText.h"
 #include "TLegend.h"
 #include <DataFormats/MuonReco/interface/Muon.h>
-#include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
+#include <IvyFramework/IvyAutoMELA/interface/IvyMELAHelpers.h>
 
 
 using namespace reco;
@@ -307,7 +307,7 @@ void getTrees(
         ) lumi_acc += runnumber_lumi_pair.second;
     }
 
-    MELAout << "A real data loop will proceed. The requested run range is [" << run_start << ", " << run_end << "]. Total luminosity covered will be " << lumi_acc << " / " << lumi_total << "." << endl;
+    IVYout << "A real data loop will proceed. The requested run range is [" << run_start << ", " << run_end << "]. Total luminosity covered will be " << lumi_acc << " / " << lumi_total << "." << endl;
   }
 
   TString coutput_main =
@@ -359,7 +359,7 @@ void getTrees(
   bool isFirstInputFile=true;
   for (auto const& sname:sampledirs){
     TString sid = SampleHelpers::getSampleIdentifier(sname);
-    MELAout << "Processing input sample " << sid << "..." << endl;
+    IVYout << "Processing input sample " << sid << "..." << endl;
 
     TString coutput = sid;
     HelperFunctions::replaceString(coutput, "_MINIAODSIM", "");
@@ -367,7 +367,7 @@ void getTrees(
 
     BaseTree sample_tree(SampleHelpers::getDatasetFileName(sname), "cms3ntuple/Dilepton", "cms3ntuple/Dilepton_Control", "");
     sample_tree.sampleIdentifier = sid;
-    MELAout << "\t- Acquired inputs..." << endl;
+    IVYout << "\t- Acquired inputs..." << endl;
 
 #define RUNLUMIEVENT_VARIABLE(TYPE, NAME, DEFVAL) TYPE* NAME = nullptr;
     RUNLUMIEVENT_VARIABLES;
@@ -403,7 +403,7 @@ void getTrees(
         for (unsigned int iperiod=0; iperiod<nValidDataPeriods; iperiod++){
           if (validDataPeriods.at(iperiod)==SampleHelpers::theDataPeriod){ bin_period += iperiod+1; break; }
         }
-        MELAout << "Checking counters histogram bin (" << bin_syst << ", " << bin_period << ") to obtain the sum of weights if the counters histogram exists..." << endl;
+        IVYout << "Checking counters histogram bin (" << bin_syst << ", " << bin_period << ") to obtain the sum of weights if the counters histogram exists..." << endl;
         for (auto const& fname:inputfilenames){
           TFile* ftmp = TFile::Open(fname, "read");
           TH2D* hCounters = (TH2D*) ftmp->Get("cms3ntuple/Counters");
@@ -412,22 +412,22 @@ void getTrees(
             sum_wgts = 0;
             break;
           }
-          MELAout << "\t- Successfully found the counters histogram in " << fname << endl;
+          IVYout << "\t- Successfully found the counters histogram in " << fname << endl;
           sum_wgts += hCounters->GetBinContent(bin_syst, bin_period);
           sum_wgts_raw_withveto += hCounters->GetBinContent(0, 0);
           sum_wgts_raw_noveto += hCounters->GetBinContent(0, 0) / (1. - hCounters->GetBinContent(0, 1));
           ftmp->Close();
         }
-        if (hasCounters) MELAout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
+        if (hasCounters) IVYout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
       }
       if (!hasCounters){
-        MELAerr << "This script is designed to use skim ntuples. Aborting..." << endl;
+        IVYerr << "This script is designed to use skim ntuples. Aborting..." << endl;
         return;
       }
       xsec_scale = sum_wgts_raw_withveto / sum_wgts_raw_noveto;
     }
-    MELAout << "Sample " << sample_tree.sampleIdentifier << " has a gen. weight sum of " << sum_wgts << "." << endl;
-    MELAout << "\t- xsec scale = " << xsec_scale << endl;
+    IVYout << "Sample " << sample_tree.sampleIdentifier << " has a gen. weight sum of " << sum_wgts << "." << endl;
+    IVYout << "\t- xsec scale = " << xsec_scale << endl;
 
     // Set data tracking options
     eventFilter.setTrackDataEvents(isData);
@@ -455,7 +455,7 @@ void getTrees(
     eventFilter.bookBranches(&sample_tree);
     eventFilter.wrapTree(&sample_tree);
 
-    MELAout << "Completed getting the handles..." << endl;
+    IVYout << "Completed getting the handles..." << endl;
     sample_tree.silenceUnused();
 
     TString stroutput = Form("%s/%s", coutput_main.Data(), coutput.Data());
@@ -465,7 +465,7 @@ void getTrees(
     TFile* foutput = TFile::Open(stroutput, "recreate");
     TTree* tout_ele = new TTree("Dielectrons", "");
     TTree* tout_mu = new TTree("Dimuons", "");
-    MELAout << "Created output file " << stroutput << "..." << endl;
+    IVYout << "Created output file " << stroutput << "..." << endl;
 
 #define BRANCHES_COMMON \
 BRANCH_COMMAND(float, event_wgt) \
@@ -576,7 +576,7 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
     foutput->cd();
 
     const int nEntries = sample_tree.getNEvents();
-    MELAout << "\t- Number of events: " << nEntries << endl;
+    IVYout << "\t- Number of events: " << nEntries << endl;
 
     int ev_start = 0;
     int ev_end = nEntries;
@@ -585,7 +585,7 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
       ev_start = ev_inc*ichunk;
       ev_end = std::min(nEntries, (ichunk == nchunks-1 ? nEntries : ev_start+ev_inc));
     }
-    MELAout << "Looping over " << nEntries << " events from " << sample_tree.sampleIdentifier << ", starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
+    IVYout << "Looping over " << nEntries << " events from " << sample_tree.sampleIdentifier << ", starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
 
     size_t n_pass_genWeights=0;
     size_t n_pass_goodPVFilter=0;
@@ -677,7 +677,7 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
         static bool printOnce=true;
         if (printOnce && genpromptleptons.empty()){
           for (auto const& part:genparticles){
-            MELAout
+            IVYout
               << "Gen particle id = " << part->pdgId() << ", st = " << part->status()
               << ", isPromptFinalState=" << part->extras.isPromptFinalState
               << ", isDirectPromptTauDecayProductFinalState = " << part->extras.isDirectPromptTauDecayProductFinalState
@@ -1136,8 +1136,8 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
       }
     } // End loop over events
 
-    MELAout << "Number of events accepted from " << sample_tree.sampleIdentifier << ": " << n_evts_acc[0]+n_evts_acc[1] << " (" << n_evts_acc << ") / " << (ev_end - ev_start) << endl;
-    MELAout << "\t- Number of events passing each cut:\n"
+    IVYout << "Number of events accepted from " << sample_tree.sampleIdentifier << ": " << n_evts_acc[0]+n_evts_acc[1] << " (" << n_evts_acc << ") / " << (ev_end - ev_start) << endl;
+    IVYout << "\t- Number of events passing each cut:\n"
       << "\t\t- Gen. weights!=0: " << n_pass_genWeights << '\n'
       << "\t\t- Good PV filter: " << n_pass_goodPVFilter << '\n'
       << "\t\t- Unique event: " << n_pass_uniqueEvent << '\n'

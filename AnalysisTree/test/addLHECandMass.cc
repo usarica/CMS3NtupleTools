@@ -3,12 +3,12 @@
 #include "PDGHelpers.h"
 #include "HiggsComparators.h"
 #include "TopComparators.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 #include "TDirectory.h"
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 using namespace PDGHelpers;
 
 

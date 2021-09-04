@@ -2,10 +2,10 @@
 #include <utility>
 #include <cmath>
 #include "METObject.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 METVariables::METVariables(){

@@ -1,4 +1,4 @@
-#include <CMSDataTools/AnalysisTree/interface/HelperFunctions.h>
+#include "HelperFunctions.h"
 #include "SamplesCore.h"
 #include "SampleExceptions.h"
 

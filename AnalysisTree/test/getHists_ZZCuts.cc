@@ -63,7 +63,7 @@ HistogramObject::HistogramObject(
   hist.GetXaxis()->SetTitle(xlabel);
   hist.GetYaxis()->SetTitle(ylabel);
 
-  MELAout << "Created histogram " << hist.GetName() << " [" << hist.GetTitle() << "]" << endl;
+  IVYout << "Created histogram " << hist.GetName() << " [" << hist.GetTitle() << "]" << endl;
 }
 HistogramObject::HistogramObject(HistogramObject const& other) :
   name(other.name),
@@ -265,7 +265,7 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
     BaseTree sample_tree(cinput_main + "/" + sample.path, EVENTS_TREE_NAME, "", "");
 
     TFile* foutput = TFile::Open(Form("%s/%s%s", coutput_main.Data(), sample.name.data(), ".root"), "recreate");
-    MELAout.open(Form("%s/%s%s", coutput_main.Data(), sample.name.data(), ".txt"));
+    IVYout.open(Form("%s/%s%s", coutput_main.Data(), sample.name.data(), ".txt"));
 
     // Get cross section
     sample_tree.bookBranch<float>("xsec", 0.f);
@@ -303,7 +303,7 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
 
     DileptonHandler dileptonHandler;
 
-    MELAout << "Completed getting the handles..." << endl;
+    IVYout << "Completed getting the handles..." << endl;
     sample_tree.silenceUnused();
 
     foutput->cd();
@@ -577,15 +577,15 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
         }
       }
 
-      //MELAout << "MET values (PFPUPPI, PFCHS) = ( " << pfpuppimet->met() << ", " << pfchsmet->met() << " )" << endl;
+      //IVYout << "MET values (PFPUPPI, PFCHS) = ( " << pfpuppimet->met() << ", " << pfchsmet->met() << " )" << endl;
 
       eventFilter.constructFilters();
 
       dileptonHandler.constructDileptons(&muons, &electrons);
       auto const& dileptons = dileptonHandler.getProducts();
-      //MELAout << "Ndileptons: " << dileptons.size() << " | pTs = ";
-      //for (auto const& dilepton:dileptons) MELAout << dilepton->pt() << " ";
-      //MELAout << endl;
+      //IVYout << "Ndileptons: " << dileptons.size() << " | pTs = ";
+      //for (auto const& dilepton:dileptons) IVYout << dilepton->pt() << " ";
+      //IVYout << endl;
 
       DileptonObject* theChosenDilepton = nullptr;
       size_t nTightDilep = 0;
@@ -848,7 +848,7 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
     }
     sample.writeHistograms();
 
-    MELAout
+    IVYout
       << "xsec: " << xsec << '\n'
       << "sum_wgts: " << sum_wgts << '\n'
       << "xsec_ee: " << sum_ee * xsec / sum_wgts << '\n'
@@ -865,7 +865,7 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
       << "frac_emu_selected: " << sum_emu_selected / sum_wgts << '\n'
       << endl;
 
-    MELAout.close();
+    IVYout.close();
     foutput->Close();
   } // End loop over samples
 }

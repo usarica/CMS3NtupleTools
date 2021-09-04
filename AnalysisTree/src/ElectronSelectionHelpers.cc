@@ -5,7 +5,7 @@
 
 #include "ElectronSelectionHelpers.h"
 #include "HelperFunctions.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 // These are functions hidden from the user
@@ -63,7 +63,7 @@ namespace ElectronSelectionHelpers{
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 void ElectronSelectionHelpers::clearTriggerEmulationBits(){ electron_triggeremulationV1_bits.clear(); electron_triggeremulationV2_bits.clear(); }
@@ -92,7 +92,7 @@ float ElectronSelectionHelpers::getIsolationDRmax(ElectronObject const& part){
   else if (isoType_preselection == kPFIsoDR0p4) return 0.4;
   else if (isoType_preselection == kMiniIso) return (10. / std::min(std::max(part.uncorrected_pt(), 50.), 200.));
   else{
-    MELAerr << "ElectronSelectionHelpers::getIsolationDRmax: Isolation type " << isoType_preselection << " is not implemented." << endl;
+    IVYerr << "ElectronSelectionHelpers::getIsolationDRmax: Isolation type " << isoType_preselection << " is not implemented." << endl;
     assert(0);
     return -1;
   }
@@ -118,7 +118,7 @@ float ElectronSelectionHelpers::computeIso(ElectronObject const& part){
   else if (isoType_preselection == kPFIsoDR0p3) return relPFIso_DR0p3(part);
   else if (isoType_preselection == kPFIsoDR0p4) return relPFIso_DR0p4(part);
   else if (isoType_preselection == kMiniIso) return relMiniIso(part);
-  else MELAerr << "ElectronSelectionHelpers::computeIso: Isolation " << isoType_preselection << " with id " << idType_preselection << " is not implemented." << endl;
+  else IVYerr << "ElectronSelectionHelpers::computeIso: Isolation " << isoType_preselection << " with id " << idType_preselection << " is not implemented." << endl;
   return 999.f;
 }
 
@@ -145,7 +145,7 @@ bool ElectronSelectionHelpers::testPFElectronId(ElectronObject const& part){
 bool ElectronSelectionHelpers::testPFElectronPreference(ElectronObject const& part){ return HelperFunctions::test_bit(part.extras.id_egamma_pfElectron_Bits, ISEGAMMAPFELECTRON_PRIMARY); }
 bool ElectronSelectionHelpers::testPFMETSafe(ElectronObject const& part){
   if (applyPFMETSafety && !applyPFId){
-    MELAerr << "ElectronSelectionHelpers::testPFMETSafe: applyPFId must be set to 'true' as well." << endl;
+    IVYerr << "ElectronSelectionHelpers::testPFMETSafe: applyPFId must be set to 'true' as well." << endl;
     assert(0);
   }
   return HelperFunctions::test_bit(part.extras.id_egamma_pfElectron_Bits, ISEGAMMAPFELECTRON_METSAFE);
@@ -181,7 +181,7 @@ bool ElectronSelectionHelpers::testVetoId(ElectronObject const& part){
   case kMVAId_HZZRun2Legacy_Iso:
     return part.extras.id_MVA_HZZRun2Legacy_Iso_pass_wpHZZ;
   default:
-    MELAerr << "ElectronSelectionHelpers::testVetoId: Id " << idType_preselection << " is not implemented!" << endl;
+    IVYerr << "ElectronSelectionHelpers::testVetoId: Id " << idType_preselection << " is not implemented!" << endl;
     assert(0);
     return false;
   };
@@ -201,7 +201,7 @@ bool ElectronSelectionHelpers::testLooseId(ElectronObject const& part){
   case kMVAId_HZZRun2Legacy_Iso:
     return part.extras.id_MVA_HZZRun2Legacy_Iso_pass_wpHZZ;
   default:
-    MELAerr << "ElectronSelectionHelpers::testLooseId: Id " << idType_preselection << " is not implemented!" << endl;
+    IVYerr << "ElectronSelectionHelpers::testLooseId: Id " << idType_preselection << " is not implemented!" << endl;
     assert(0);
     return false;
   };
@@ -221,7 +221,7 @@ bool ElectronSelectionHelpers::testMediumId(ElectronObject const& part){
   case kMVAId_HZZRun2Legacy_Iso:
     return part.extras.id_MVA_HZZRun2Legacy_Iso_pass_wpHZZ;
   default:
-    MELAerr << "ElectronSelectionHelpers::testMediumId: Id " << idType_preselection << " is not implemented!" << endl;
+    IVYerr << "ElectronSelectionHelpers::testMediumId: Id " << idType_preselection << " is not implemented!" << endl;
     assert(0);
     return false;
   };
@@ -241,7 +241,7 @@ bool ElectronSelectionHelpers::testTightId(ElectronObject const& part){
   case kMVAId_HZZRun2Legacy_Iso:
     return part.extras.id_MVA_HZZRun2Legacy_Iso_pass_wpHZZ;
   default:
-    MELAerr << "ElectronSelectionHelpers::testTightId: Id " << idType_preselection << " is not implemented!" << endl;
+    IVYerr << "ElectronSelectionHelpers::testTightId: Id " << idType_preselection << " is not implemented!" << endl;
     assert(0);
     return false;
   };

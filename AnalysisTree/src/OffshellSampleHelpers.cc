@@ -4,11 +4,11 @@
 #include "HelperFunctions.h"
 #include "HostHelpersCore.h"
 #include "HiggsXSBRReader.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 using namespace HelperFunctions;
 
 
@@ -18,7 +18,7 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
   if (sname.Contains("MINIAOD")){
     TString stasample=sname;
     if (!sname.BeginsWith("/")) stasample = Form("/%s", stasample.Data());
-    MELAerr << "SampleHelpers::constructSamplesList: Warning! Sample " << stasample << " is already a standalone sample. Use at your own risk!" << endl;
+    IVYerr << "SampleHelpers::constructSamplesList: Warning! Sample " << stasample << " is already a standalone sample. Use at your own risk!" << endl;
     samples.push_back(stasample);
     return;
   }
@@ -1015,7 +1015,7 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
         if (isample>0){
           float const mh_sample_prev = SampleHelpers::findPoleMass(samplelist.at(isample-1));
           if (mh_sample<=mh_sample_prev){
-            MELAerr << "SampleHelpers::constructSamplesList: Mass = " << mh_sample << " <= previous mass = " << mh_sample_prev << " during the request for " << sname << endl;
+            IVYerr << "SampleHelpers::constructSamplesList: Mass = " << mh_sample << " <= previous mass = " << mh_sample_prev << " during the request for " << sname << endl;
             assert(0);
           }
         }
@@ -1957,7 +1957,7 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
         if (isample>0){
           float const mh_sample_prev = SampleHelpers::findPoleMass(samplelist.at(isample-1));
           if (mh_sample<=mh_sample_prev){
-            MELAerr << "SampleHelpers::constructSamplesList: Mass = " << mh_sample << " <= previous mass = " << mh_sample_prev << " during the request for " << sname << endl;
+            IVYerr << "SampleHelpers::constructSamplesList: Mass = " << mh_sample << " <= previous mass = " << mh_sample_prev << " during the request for " << sname << endl;
             assert(0);
           }
         }
@@ -3107,7 +3107,7 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
         if (isample>0){
           float const mh_sample_prev = SampleHelpers::findPoleMass(samplelist.at(isample-1));
           if (mh_sample<=mh_sample_prev){
-            MELAerr << "SampleHelpers::constructSamplesList: Mass = " << mh_sample << " <= previous mass = " << mh_sample_prev << " during the request for " << sname << endl;
+            IVYerr << "SampleHelpers::constructSamplesList: Mass = " << mh_sample << " <= previous mass = " << mh_sample_prev << " during the request for " << sname << endl;
             assert(0);
           }
         }
@@ -3213,7 +3213,7 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
     bool hasInvalidString = false;
     for (auto const& ss:samples){
       if (ss.Contains("MINIAODSIM/") || ss.Contains("MINIAOD/")){
-        MELAerr << "SampleHelpers::constructSamplesList: Sample name " << ss << " is invalid." << endl;
+        IVYerr << "SampleHelpers::constructSamplesList: Sample name " << ss << " is invalid." << endl;
         hasInvalidString = true;
       }
     }
@@ -3242,7 +3242,7 @@ SampleHelpers::HiggsSampleDecayMode SampleHelpers::getHiggsSampleDecayMode(TStri
   else if (sname.Contains("WW_2LOSFilter")) return kWWToLNuXX;
 
   else{
-    MELAerr << "SampleHelpers::getHiggsSampleDecayMode: Cannot identify decay mode for " << sname << "." << endl;
+    IVYerr << "SampleHelpers::getHiggsSampleDecayMode: Cannot identify decay mode for " << sname << "." << endl;
     assert(0);
     return nHiggsSampleDecayModes;
   }
@@ -3315,9 +3315,9 @@ double SampleHelpers::calculateAdjustedHiggsBREff(TString const& sname, double c
   bool has2LFilter = sname.Contains("2LFilter");
   bool has2LOSFilter = sname.Contains("2LOSFilter");
   bool has4LFilter = sname.Contains("ZZ_4LFilter");
-  if (has2LFilter) MELAout << "SampleHelpers::calculateAdjustedHiggsBREff: A 2L filter is detected in " << sname << "." << endl;
-  if (has2LOSFilter) MELAout << "SampleHelpers::calculateAdjustedHiggsBREff: A 2L OS filter is detected in " << sname << "." << endl;
-  if (has4LFilter) MELAout << "SampleHelpers::calculateAdjustedHiggsBREff: A 4L filter is detected in " << sname << "." << endl;
+  if (has2LFilter) IVYout << "SampleHelpers::calculateAdjustedHiggsBREff: A 2L filter is detected in " << sname << "." << endl;
+  if (has2LOSFilter) IVYout << "SampleHelpers::calculateAdjustedHiggsBREff: A 2L OS filter is detected in " << sname << "." << endl;
+  if (has4LFilter) IVYout << "SampleHelpers::calculateAdjustedHiggsBREff: A 4L filter is detected in " << sname << "." << endl;
 
   std::vector<TString> hypos;
   std::vector<double> BRcorrs;
@@ -3432,7 +3432,7 @@ double SampleHelpers::calculateAdjustedHiggsBREff(TString const& sname, double c
     break;
 
   default:
-    MELAerr << "SampleHelpers::calculateAdjustedHiggsBREff: Decay mode " << dkmode << " is not implemented." << endl;
+    IVYerr << "SampleHelpers::calculateAdjustedHiggsBREff: Decay mode " << dkmode << " is not implemented." << endl;
     assert(0);
     return 1;
   }
@@ -3441,17 +3441,17 @@ double SampleHelpers::calculateAdjustedHiggsBREff(TString const& sname, double c
   double br_sum_filtered = 0;
   for (unsigned int ih=0; ih<hypos.size(); ih++){
     HiggsXSBRReader hxsbrReader("${CMSSW_BASE}/src/CMSDataTools/AnalysisTree/data/HiggsXSBR/YR3.csv", hypos.at(ih));
-    MELAout << "Evaluating " << hypos.at(ih) << " at " << sampleMH << endl;
+    IVYout << "Evaluating " << hypos.at(ih) << " at " << sampleMH << endl;
     double br_MH = hxsbrReader.eval_br(sampleMH);
-    MELAout << "\t- BR raw, BR corr, filter =  " << br_MH << ", " << BRcorrs.at(ih) << ", " << filter_corrs.at(ih) << endl;
+    IVYout << "\t- BR raw, BR corr, filter =  " << br_MH << ", " << BRcorrs.at(ih) << ", " << filter_corrs.at(ih) << endl;
     double br_MH_corr = br_MH * BRcorrs.at(ih);
     double br_MH_corr_filtered = br_MH_corr * filter_corrs.at(ih);
     br_sum += br_MH_corr;
     br_sum_filtered += br_MH_corr_filtered;
   }
 
-  MELAout << "SampleHelpers::calculateAdjustedHiggsBREff: Final BR before / after filter for decay mode " << dkmode << ": " << adj_br*br_sum << " / " << adj_br*br_sum_filtered << endl;
-  MELAout << "\t- Filter efficiency: " << br_sum_filtered/br_sum << endl;
+  IVYout << "SampleHelpers::calculateAdjustedHiggsBREff: Final BR before / after filter for decay mode " << dkmode << ": " << adj_br*br_sum << " / " << adj_br*br_sum_filtered << endl;
+  IVYout << "\t- Filter efficiency: " << br_sum_filtered/br_sum << endl;
 
   return adj_br*br_sum_filtered;
 }

@@ -1,10 +1,10 @@
 #include <cassert>
 #include "ACHypothesisHelpers.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 bool ACHypothesisHelpers::isOnshellDecay(DecayType dktype){
@@ -326,7 +326,7 @@ TString ACHypothesisHelpers::getDecayFinalStateLabel(ACHypothesisHelpers::DecayT
   case kZW3l1nu:
     return "3l1#nu";
   default:
-    MELAerr << "ACHypothesisHelpers::getDecayFinalStateLabel: Decay type " << dktype << " is not recognized. Please fix the implementation." << endl;
+    IVYerr << "ACHypothesisHelpers::getDecayFinalStateLabel: Decay type " << dktype << " is not recognized. Please fix the implementation." << endl;
     assert(0);
     return "";
   }

@@ -4,11 +4,11 @@
 
 #include "ParticleObjectHelpers.h"
 #include "SuperclusterHandler.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 #define VECTOR_ITERATOR_HANDLER_DIRECTIVES \
@@ -45,11 +45,11 @@ bool SuperclusterHandler::constructSuperclusters(SystematicsHelpers::SystematicV
 #undef SUPERCLUSTER_VARIABLE
 
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "SuperclusterHandler::constructSuperclusters: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=MiscUtils::ERROR) IVYerr << "SuperclusterHandler::constructSuperclusters: Not all variables are consumed properly!" << endl;
     assert(0);
   }
 
-  if (this->verbosity>=TVar::DEBUG) MELAout << "SuperclusterHandler::constructSuperclusters: All variables are set up!" << endl;
+  if (this->verbosity>=MiscUtils::DEBUG) IVYout << "SuperclusterHandler::constructSuperclusters: All variables are set up!" << endl;
 
   if (itBegin_correctedEnergy == itEnd_correctedEnergy) return true; // Construction is successful, it is just that no photons exist.
 
@@ -61,7 +61,7 @@ bool SuperclusterHandler::constructSuperclusters(SystematicsHelpers::SystematicV
   {
     size_t ip=0;
     while (it_correctedEnergy != itEnd_correctedEnergy){
-      if (this->verbosity>=TVar::DEBUG) MELAout << "SuperclusterHandler::constructSuperclusters: Attempting supercluster " << ip << "..." << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "SuperclusterHandler::constructSuperclusters: Attempting supercluster " << ip << "..." << endl;
 
       ParticleObject::LorentzVector_t momentum;
       momentum = ParticleObject::PolarLorentzVector_t(*it_correctedEnergy/std::cosh(*it_eta), *it_eta, *it_phi, 0.); // Yes you have to do this on a separate line because CMSSW...
@@ -79,7 +79,7 @@ bool SuperclusterHandler::constructSuperclusters(SystematicsHelpers::SystematicV
       // Replace momentum
       obj->makeFinalMomentum(syst);
 
-      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+      if (this->verbosity>=MiscUtils::DEBUG) IVYout << "\t- Success!" << endl;
 
       ip++;
 #define SUPERCLUSTER_VARIABLE(TYPE, NAME, DEFVAL) it_##NAME++;

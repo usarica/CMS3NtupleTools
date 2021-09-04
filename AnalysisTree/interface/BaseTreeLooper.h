@@ -12,7 +12,7 @@
 #include "TriggerHelpersCore.h"
 #include "ParticleDisambiguator.h"
 #include "DileptonHandler.h"
-#include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
+#include <IvyFramework/IvyAutoMELA/interface/IvyMELAHelpers.h>
 
 
 class BaseTreeLooper : public IvyBase{
@@ -54,7 +54,7 @@ protected:
   // ME lists
   std::vector<std::string> lheMElist;
   std::vector<std::string> recoMElist;
-  CMS3MELAHelpers::GMECBlock MEblock;
+  IvyMELAHelpers::GMECBlock MEblock;
 
   // Selection counts
   std::vector<std::pair<TString, unsigned int>> selection_string_count_pairs;
@@ -157,8 +157,8 @@ public:
   ParticleDisambiguator const& getParticleDisambiguator() const{ return particleDisambiguator; }
   DileptonHandler& getDileptonHandler(){ return dileptonHandler; }
   DileptonHandler const& getDileptonHandler() const{ return dileptonHandler; }
-  CMS3MELAHelpers::GMECBlock& getMEblock(){ return MEblock; }
-  CMS3MELAHelpers::GMECBlock const& getMEblock() const{ return MEblock; }
+  IvyMELAHelpers::GMECBlock& getMEblock(){ return MEblock; }
+  IvyMELAHelpers::GMECBlock const& getMEblock() const{ return MEblock; }
 
   bool hasSimpleHLTMenus() const{ return registeredHLTMenus.size()>0; }
   bool hasHLTMenuProperties() const{ return registeredHLTMenuProperties.size()>0; }

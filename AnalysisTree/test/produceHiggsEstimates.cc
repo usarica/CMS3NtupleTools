@@ -8,7 +8,7 @@
 #include "TPaveText.h"
 #include "TLegend.h"
 #include "Math/Vector4Dfwd.h"
-#include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
+#include <IvyFramework/IvyAutoMELA/interface/IvyMELAHelpers.h>
 
 
 constexpr bool useJetOverlapStripping=false;
@@ -111,7 +111,7 @@ PhysicsProcessHandler* getPhysicsProcessHandler(TString strSampleSet, ACHypothes
   else if (strSampleSet.Contains("ZH")) res = new VVProcessHandler(dktype, kProcess_ZH);
   else if (strSampleSet.Contains("WminusH") || strSampleSet.Contains("WplusH")) res = new VVProcessHandler(dktype, kProcess_WH);
   else{
-    MELAerr << "getPhysicsProcessHandler: Cannot identify process " << strSampleSet;
+    IVYerr << "getPhysicsProcessHandler: Cannot identify process " << strSampleSet;
     assert(0);
   }
   return res;
@@ -124,7 +124,7 @@ void produceReweightingRecords(
   if (!SampleHelpers::checkRunOnCondor()) std::signal(SIGINT, SampleHelpers::setSignalInterrupt);
 
   if (strSampleSet.Contains("/MINIAOD")){
-    MELAerr << "Processing single samples is not the design goal of produceReweightingRecords." << endl;
+    IVYerr << "Processing single samples is not the design goal of produceReweightingRecords." << endl;
     return;
   }
 
@@ -151,7 +151,7 @@ void produceReweightingRecords(
   std::vector<TString> sampledirs;
   SampleHelpers::constructSamplesList(strSampleSet, SystematicsHelpers::sNominal, sampledirs);
   if (sampledirs.empty()){
-    MELAerr << "No samples are found for the set " << strSampleSet << "." << endl;
+    IVYerr << "No samples are found for the set " << strSampleSet << "." << endl;
     return;
   }
 
@@ -192,7 +192,7 @@ void produceReweightingRecords(
       }
     }
   }
-  MELAout << "Reweighting bin boundaries: " << binning_rewgt.getBinningVector() << endl;
+  IVYout << "Reweighting bin boundaries: " << binning_rewgt.getBinningVector() << endl;
 
   // Acquire the MEs
   std::vector<TString> strMEs;
@@ -246,10 +246,10 @@ void produceReweightingRecords(
   std::vector<BaseTree*> sample_trees; sample_trees.reserve(sampledirs.size());
   for (auto const& sname:sampledirs){
     TString strinput = SampleHelpers::getDatasetFileName(sname);
-    MELAout << "Acquiring " << sname << " from input file(s) " << strinput << "..." << endl;
+    IVYout << "Acquiring " << sname << " from input file(s) " << strinput << "..." << endl;
     BaseTree* sample_tree = new BaseTree(strinput, "cms3ntuple/Events", "", ""); sample_trees.push_back(sample_tree);
     if (!sample_tree->isValid()){
-      MELAerr << "\t- Tree is invalid. Aborting..." << endl;
+      IVYerr << "\t- Tree is invalid. Aborting..." << endl;
       delete sample_tree;
       for (auto& ss:sample_trees) delete ss;
       allTreesValid = false;
@@ -296,7 +296,7 @@ void produceReweightingRecords(
 
     // Get sums of weights in the sample
     {
-      MELAout << "Initiating loop over " << nEntries << " events to determine the sample normalization:" << endl;
+      IVYout << "Initiating loop over " << nEntries << " events to determine the sample normalization:" << endl;
 
       unsigned int n_zero_genwgts=0;
       for (int ev=0; ev<nEntries; ev++){
@@ -339,7 +339,7 @@ void produceReweightingRecords(
     genInfoHandler.bookBranches(sample_tree);
 
     // Register tree
-    MELAout << "\t- Registering the sample for reweighting..." << endl;
+    IVYout << "\t- Registering the sample for reweighting..." << endl;
     rewgtBuilder.registerTree(sample_tree, xsec_scale * BR_scale / sum_wgts_raw_withveto);
 
     sample_tree->silenceUnused();
@@ -354,7 +354,7 @@ void produceReweightingRecords(
     float const sampleMH = SampleHelpers::findPoleMass(sample_tree->sampleIdentifier);
     if ((tree_MH125 && sampleMH>SampleHelpers::findPoleMass(tree_MH125->sampleIdentifier) && sampleMH<160.f) || (tree_MHLowestOffshell && sampleMH>SampleHelpers::findPoleMass(tree_MHLowestOffshell->sampleIdentifier))){
       tree_normTree_pairs.emplace_back(sample_trees.at(itree), sample_trees.at(itree-1));
-      MELAout << "Normalizing mass " << sampleMH << " to mass " << SampleHelpers::findPoleMass(sample_trees.at(itree-1)->sampleIdentifier) << endl;
+      IVYout << "Normalizing mass " << sampleMH << " to mass " << SampleHelpers::findPoleMass(sample_trees.at(itree-1)->sampleIdentifier) << endl;
     }
   }
 
@@ -364,11 +364,11 @@ void produceReweightingRecords(
   TString stroutput_txt = stroutput; HelperFunctions::replaceString<TString, TString const>(stroutput_txt, ".root", ".txt");
 
   // Allow the reweighting record output to be directed to a file so that cross-checks can be made outside this run
-  MELAout.open(stroutput_txt.Data());
+  IVYout.open(stroutput_txt.Data());
   // Determine the weight thresholds
   rewgtBuilder.setup(0, &tree_normTree_pairs, thr_frac_Neff);
   rewgtBuilder.print();
-  MELAout.close();
+  IVYout.close();
 
   // Record the reweighting information to the output file
   TFile* foutput = TFile::Open(stroutput, "recreate");
@@ -422,7 +422,7 @@ void produceSystematicsReweighting_MINLO_Pythia(
 
   SampleHelpers::configure(period, Form("store:%s", prodVersion.Data()));
 
-  if (usePSWeightsforPythiaScale) MELAout << "PS weights will be used for Pythia reweighting..." << endl;
+  if (usePSWeightsforPythiaScale) IVYout << "PS weights will be used for Pythia reweighting..." << endl;
 
   // Acquire the nominal / syst tree pairs
   std::vector<TString> sampledirs_nominal;
@@ -506,7 +506,7 @@ void produceSystematicsReweighting_MINLO_Pythia(
     TString sid_syst = SampleHelpers::getSampleIdentifier(sname_syst);
     float const sampleMH = SampleHelpers::findPoleMass(sid_nominal);
 
-    MELAout << "Looping over the pair ( " << sname_nominal << ", " << sname_syst << " )..." << endl;
+    IVYout << "Looping over the pair ( " << sname_nominal << ", " << sname_syst << " )..." << endl;
 
     BaseTree* sample_tree_nominal = new BaseTree(SampleHelpers::getDatasetFileName(sname_nominal), "cms3ntuple/Events", "", "");
     sample_tree_nominal->sampleIdentifier = sid_nominal;
@@ -524,7 +524,7 @@ void produceSystematicsReweighting_MINLO_Pythia(
     sum_wgts = 0;
     nEntries = sample_tree_nominal->getNEvents();
     genInfoHandler.wrapTree(sample_tree_nominal);
-    MELAout << "\t- Looping over " << nEntries << " entries:" << endl;
+    IVYout << "\t- Looping over " << nEntries << " entries:" << endl;
     for (int ev=0; ev<nEntries; ev++){
       HelperFunctions::progressbar(ev, nEntries);
       sample_tree_nominal->getEvent(ev);
@@ -576,7 +576,7 @@ void produceSystematicsReweighting_MINLO_Pythia(
     sum_wgts = 0;
     nEntries = sample_tree_syst->getNEvents();
     genInfoHandler.wrapTree(sample_tree_syst);
-    MELAout << "\t- Looping over " << nEntries << " entries:" << endl;
+    IVYout << "\t- Looping over " << nEntries << " entries:" << endl;
     for (int ev=0; ev<nEntries; ev++){
       HelperFunctions::progressbar(ev, nEntries);
       sample_tree_syst->getEvent(ev);
@@ -747,7 +747,7 @@ void produceSystematicsReweighting_LHEWeights(
     TString sid = SampleHelpers::getSampleIdentifier(sname);
     float const sampleMH = SampleHelpers::findPoleMass(sid);
 
-    MELAout << "Looping over " << sname << "..." << endl;
+    IVYout << "Looping over " << sname << "..." << endl;
 
     BaseTree* sample_tree = new BaseTree(SampleHelpers::getDatasetFileName(sname), "cms3ntuple/Events", "", "");
     sample_tree->sampleIdentifier = sid;
@@ -760,7 +760,7 @@ void produceSystematicsReweighting_LHEWeights(
     double sum_wgts = 0;
     int nEntries = sample_tree->getNEvents();
     genInfoHandler.wrapTree(sample_tree);
-    MELAout << "\t- Looping over " << nEntries << " entries:" << endl;
+    IVYout << "\t- Looping over " << nEntries << " entries:" << endl;
     for (int ev=0; ev<nEntries; ev++){
       HelperFunctions::progressbar(ev, nEntries);
       sample_tree->getEvent(ev);

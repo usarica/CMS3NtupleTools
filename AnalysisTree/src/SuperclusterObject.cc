@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <utility>
-#include <CMSDataTools/AnalysisTree/interface/HelperFunctions.h>
+#include "HelperFunctions.h"
 #include <CMS3/Dictionaries/interface/EgammaFiduciality.h>
 #include "SuperclusterObject.h"
 

@@ -52,7 +52,7 @@ void getHistograms(TString strSampleSet="EGamma", TString period="2018"){
     if (!isData) continue;
 
     TString cinput = SampleHelpers::getDatasetFileName(strSample);
-    MELAout << "Extracting input " << cinput << endl;
+    IVYout << "Extracting input " << cinput << endl;
 
     BaseTree sample_tree(cinput, EVENTS_TREE_NAME, "", "");
     sample_tree.sampleIdentifier = SampleHelpers::getSampleIdentifier(strSample);
@@ -66,7 +66,7 @@ void getHistograms(TString strSampleSet="EGamma", TString period="2018"){
     eventFilter.bookBranches(&sample_tree);
     eventFilter.wrapTree(&sample_tree);
 
-    MELAout << "Completed getting the rest of the handles..." << endl;
+    IVYout << "Completed getting the rest of the handles..." << endl;
     sample_tree.silenceUnused();
 
     // Create output
@@ -90,12 +90,12 @@ void getHistograms(TString strSampleSet="EGamma", TString period="2018"){
       trigger_nFilledPhotons_map[strtrig] = 0;
     }
     // Loop over the tree
-    MELAout << "Starting to loop over " << nEntries << " events" << endl;
+    IVYout << "Starting to loop over " << nEntries << " events" << endl;
     unsigned int n_acc=0;
     for (int ev=0; ev<nEntries; ev++){
       HelperFunctions::progressbar(ev, nEntries);
       sample_tree.getSelectedEvent(ev);
-      if (ev%10000==0) MELAout << "Event " << n_acc << " / " << ev << "..." << endl;
+      if (ev%10000==0) IVYout << "Event " << n_acc << " / " << ev << "..." << endl;
       //if (ev==10000) break;
 
       eventFilter.constructFilters();
@@ -112,7 +112,7 @@ void getHistograms(TString strSampleSet="EGamma", TString period="2018"){
 
       for (auto const& hltpath:eventFilter.getHLTPaths()){
         if (std::find(triggerCheckList.cbegin(), triggerCheckList.cend(), hltpath->name) == triggerCheckList.cend()) continue;
-        if (hltpath->L1prescale>1) MELAout << hltpath->name << " has L1 and HLT prescales of " << hltpath->L1prescale << ", " << hltpath->HLTprescale << endl;
+        if (hltpath->L1prescale>1) IVYout << hltpath->name << " has L1 and HLT prescales of " << hltpath->L1prescale << ", " << hltpath->HLTprescale << endl;
       }
 
       for (auto const& part:photons){
@@ -135,7 +135,7 @@ void getHistograms(TString strSampleSet="EGamma", TString period="2018"){
     }
 
     for (auto it:trigger_photonPtDistribution_map){
-      MELAout << it.first << " 1D integral: " << it.second.Integral() << endl;
+      IVYout << it.first << " 1D integral: " << it.second.Integral() << endl;
       foutput->WriteTObject(&(it.second));
     }
     for (auto it:trigger_photonDistribution_map) foutput->WriteTObject(&(it.second));

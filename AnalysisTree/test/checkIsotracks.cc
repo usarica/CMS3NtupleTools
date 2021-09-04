@@ -5,7 +5,7 @@
 #include "TText.h"
 #include "TPaveText.h"
 #include "TLegend.h"
-#include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
+#include <IvyFramework/IvyAutoMELA/interface/IvyMELAHelpers.h>
 #include <DataFormats/MuonReco/interface/Muon.h>
 
 
@@ -482,7 +482,7 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate){
       TH2D* hCounters = (TH2D*) fFirstFile->Get("cms3ntuple/Counters");
       if (hCounters) sum_wgts = hCounters->GetBinContent(1, 1);
       else{
-        MELAout << "Initial MC loop over " << nEntries << " events in " << sample_tree.sampleIdentifier << " to determine sample normalization:" << endl;
+        IVYout << "Initial MC loop over " << nEntries << " events in " << sample_tree.sampleIdentifier << " to determine sample normalization:" << endl;
         for (int ev=0; ev<nEntries; ev++){
           HelperFunctions::progressbar(ev, nEntries);
           sample_tree.getSelectedEvent(ev);
@@ -591,7 +591,7 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate){
     eventFilter.bookBranches(&sample_tree);
     eventFilter.wrapTree(&sample_tree);
 
-    MELAout << "Completed getting the handles..." << endl;
+    IVYout << "Completed getting the handles..." << endl;
     sample_tree.silenceUnused();
 
     foutput->cd();
@@ -603,7 +603,7 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate){
       ev_start = ev_inc*ichunk;
       ev_end = std::min(nEntries, (ichunk == nchunks-1 ? nEntries : ev_start+ev_inc));
     }
-    MELAout << "Looping over " << nEntries << " events, starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
+    IVYout << "Looping over " << nEntries << " events, starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
     bool firstEvent=true;
     for (int ev=ev_start; ev<ev_end; ev++){
       HelperFunctions::progressbar(ev, nEntries);
@@ -659,7 +659,7 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate){
       eventFilter.constructFilters();
       //if (isData && !eventFilter.isUniqueDataEvent()) continue;
       if (!eventFilter.passMETFilters() || !eventFilter.passCommonSkim() || !eventFilter.hasGoodVertex()) continue;
-      //MELAout << "Pass line " << __LINE__ << endl;
+      //IVYout << "Pass line " << __LINE__ << endl;
 
       float triggerWeight = eventFilter.getTriggerWeight(triggerCheckList);
       event_wgt *= triggerWeight;
@@ -670,7 +670,7 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate){
 
       event_wgt *= genInfo->getGenWeight(true);
       if (event_wgt==0.f) continue;
-      //MELAout << "Pass line " << __LINE__ << endl;
+      //IVYout << "Pass line " << __LINE__ << endl;
 
       if (sample.name == "ggZZ_2l2nu_BSI"){ event_wgt *= genInfo->extras.LHE_ME_weights["p_Gen_GG_BSI_kappaTopBot_1_ghz1_1_MCFM"]*genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"]*genInfo->extras.Kfactors["KFactor_QCD_NNLO_ggZZ_Sig_Nominal"]; }
       else if (sample.name == "ggZZ_2l2nu_Sig"){ event_wgt *= genInfo->extras.LHE_ME_weights["p_Gen_GG_SIG_kappaTopBot_1_ghz1_1_MCFM"]*genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"]*genInfo->extras.Kfactors["KFactor_QCD_NNLO_ggZZ_Sig_Nominal"]; }
@@ -679,32 +679,32 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate){
       if (event_wgt==0.f){
         /*
         if (sample.name == "ggZZ_2l2nu_BSI"){
-          MELAout << "p_Gen_GG_BSI_kappaTopBot_1_ghz1_1_MCFM = " << genInfo->extras.LHE_ME_weights["p_Gen_GG_BSI_kappaTopBot_1_ghz1_1_MCFM"] << endl;
-          MELAout << "p_Gen_CPStoBWPropRewgt = " << genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"] << endl;
-          MELAout << "KFactor_QCD_NNLO_ggZZ_Sig_Nominal = " << genInfo->extras.Kfactors["KFactor_QCD_NNLO_ggZZ_Sig_Nominal"] << endl;
+          IVYout << "p_Gen_GG_BSI_kappaTopBot_1_ghz1_1_MCFM = " << genInfo->extras.LHE_ME_weights["p_Gen_GG_BSI_kappaTopBot_1_ghz1_1_MCFM"] << endl;
+          IVYout << "p_Gen_CPStoBWPropRewgt = " << genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"] << endl;
+          IVYout << "KFactor_QCD_NNLO_ggZZ_Sig_Nominal = " << genInfo->extras.Kfactors["KFactor_QCD_NNLO_ggZZ_Sig_Nominal"] << endl;
         }
         else if (sample.name == "ggZZ_2l2nu_Sig"){
-          MELAout << "p_Gen_GG_SIG_kappaTopBot_1_ghz1_1_MCFM = " << genInfo->extras.LHE_ME_weights["p_Gen_GG_SIG_kappaTopBot_1_ghz1_1_MCFM"] << endl;
-          MELAout << "p_Gen_CPStoBWPropRewgt = " << genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"] << endl;
-          MELAout << "KFactor_QCD_NNLO_ggZZ_Sig_Nominal = " << genInfo->extras.Kfactors["KFactor_QCD_NNLO_ggZZ_Sig_Nominal"] << endl;
+          IVYout << "p_Gen_GG_SIG_kappaTopBot_1_ghz1_1_MCFM = " << genInfo->extras.LHE_ME_weights["p_Gen_GG_SIG_kappaTopBot_1_ghz1_1_MCFM"] << endl;
+          IVYout << "p_Gen_CPStoBWPropRewgt = " << genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"] << endl;
+          IVYout << "KFactor_QCD_NNLO_ggZZ_Sig_Nominal = " << genInfo->extras.Kfactors["KFactor_QCD_NNLO_ggZZ_Sig_Nominal"] << endl;
         }
         else if (sample.name == "VBFZZ_2l2nu_BSI"){
-          MELAout << "p_Gen_JJEW_BSI_ghv1_1_MCFM = " << genInfo->extras.LHE_ME_weights["p_Gen_JJEW_BSI_ghv1_1_MCFM"] << endl;
-          MELAout << "p_Gen_CPStoBWPropRewgt = " << genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"] << endl;
+          IVYout << "p_Gen_JJEW_BSI_ghv1_1_MCFM = " << genInfo->extras.LHE_ME_weights["p_Gen_JJEW_BSI_ghv1_1_MCFM"] << endl;
+          IVYout << "p_Gen_CPStoBWPropRewgt = " << genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"] << endl;
         }
         else if (sample.name == "VBFZZ_2l2nu_Sig"){
-          MELAout << "p_Gen_JJEW_SIG_ghv1_1_MCFM = " << genInfo->extras.LHE_ME_weights["p_Gen_JJEW_SIG_ghv1_1_MCFM"] << endl;
-          MELAout << "p_Gen_CPStoBWPropRewgt = " << genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"] << endl;
+          IVYout << "p_Gen_JJEW_SIG_ghv1_1_MCFM = " << genInfo->extras.LHE_ME_weights["p_Gen_JJEW_SIG_ghv1_1_MCFM"] << endl;
+          IVYout << "p_Gen_CPStoBWPropRewgt = " << genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"] << endl;
         }
         */
         continue;
       }
-      //MELAout << "Pass line " << __LINE__ << endl;
+      //IVYout << "Pass line " << __LINE__ << endl;
 
       simEventHandler.constructSimEvent(SystematicsHelpers::sNominal);
       event_wgt *= simEventHandler.getPileUpWeight()*simEventHandler.getL1PrefiringWeight();
       if (event_wgt==0.f) continue;
-      //MELAout << "Pass line " << __LINE__ << endl;
+      //IVYout << "Pass line " << __LINE__ << endl;
 
       muonHandler.constructMuons(SystematicsHelpers::sNominal);
       electronHandler.constructElectrons(SystematicsHelpers::sNominal);
@@ -738,15 +738,15 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate){
         }
       }
       if (!theChosenDilepton) continue;
-      //MELAout << "Pass Z presence" << endl;
+      //IVYout << "Pass Z presence" << endl;
 
       std::vector<ParticleObject*> dileptonDaughters = theChosenDilepton->getDaughters();
       ParticleObjectHelpers::sortByGreaterPt(dileptonDaughters);
       ParticleObject* leadingLepton = dileptonDaughters.front();
       ParticleObject* subleadingLepton = dileptonDaughters.back();
       if (ev%10000 == 0){
-        MELAout << "leadingLepton p4 = " << leadingLepton->p4() << endl;
-        MELAout << "subleadingLepton p4 = " << subleadingLepton->p4() << endl;
+        IVYout << "leadingLepton p4 = " << leadingLepton->p4() << endl;
+        IVYout << "subleadingLepton p4 = " << subleadingLepton->p4() << endl;
       }
 
       std::vector<MuonObject*> muons_jetclean;
@@ -754,13 +754,13 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate){
       for (auto& muon:muons_tight){
         if (theChosenDilepton->hasDaughter(muon)){
           muons_jetclean.push_back(muon);
-          if (ev%10000 == 0) MELAout << "Muon with p4 = " << muon->p4() << " can be used for cleaning." << endl;
+          if (ev%10000 == 0) IVYout << "Muon with p4 = " << muon->p4() << " can be used for cleaning." << endl;
         }
       }
       for (auto& electron:electrons_tight){
         if (theChosenDilepton->hasDaughter(electron)){
           electrons_jetclean.push_back(electron);
-          if (ev%10000 == 0) MELAout << "Electron with p4 = " << electron->p4() << " can be used for cleaning." << endl;
+          if (ev%10000 == 0) IVYout << "Electron with p4 = " << electron->p4() << " can be used for cleaning." << endl;
         }
       }
 
@@ -781,17 +781,17 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate){
       }
       if (!ak4jets_tight_btagged.empty()) continue;
       event_Njets = ak4jets_tight.size();
-      //MELAout << "Pass line " << __LINE__ << endl;
+      //IVYout << "Pass line " << __LINE__ << endl;
 
       if (!eventFilter.test2018HEMFilter(&simEventHandler, &electrons_tight, &photons, &ak4jets, &ak8jets)) continue;
       if (!eventFilter.testNoisyJetFilter(&simEventHandler, ak4jets)) continue;
-      //MELAout << "Pass line " << __LINE__ << endl;
+      //IVYout << "Pass line " << __LINE__ << endl;
 
       isotrackHandler.constructIsotracks(nullptr, nullptr);
       auto const& isotracks = isotrackHandler.getProducts();
       event_Nisotracks = isotracks.size();
       if (event_Nisotracks==0) continue;
-      //MELAout << "Pass line " << __LINE__ << endl;
+      //IVYout << "Pass line " << __LINE__ << endl;
 
       mass_ll = theChosenDilepton->m();
       pt_ll = theChosenDilepton->pt();
@@ -1026,7 +1026,7 @@ void makePlots(TString strdate=""){
   gSystem->mkdir(coutput_main, true);
 
   TString stroutput_txt = Form("%s/Integrals.txt", coutput_main.Data());
-  MELAout.open(stroutput_txt.Data());
+  IVYout.open(stroutput_txt.Data());
 
   {
     // Special case to copy index.php if you have one
@@ -1035,13 +1035,13 @@ void makePlots(TString strdate=""){
     TString indexDir = "${CMSSW_BASE}/src/CMSDataTools/AnalysisTree/data/plotting/index.php";
     HostHelpers::ExpandEnvironmentVariables(indexDir);
     if (HostHelpers::FileReadable(indexDir)){
-      MELAout << "Attempting to copy index.php" << endl;
+      IVYout << "Attempting to copy index.php" << endl;
       TString tmpdir = tmplist.at(0) + '/';
       for (size_t idir=1; idir<tmplist.size(); idir++){
         tmpdir = tmpdir + tmplist.at(idir) + '/';
         TString tmpCmd = "cp ~/public_html/index.pages.php ";
         tmpCmd += tmpdir + "index.php";
-        MELAout << "Copying index.php into " << tmpdir << endl;
+        IVYout << "Copying index.php into " << tmpdir << endl;
         HostHelpers::ExecuteCommand(tmpCmd);
       }
     }
@@ -1139,7 +1139,7 @@ void makePlots(TString strdate=""){
 #undef BRANCH_COMMAND
     finputlist.push_back(finput);
     treelist.push_back(tin);
-    MELAout << "Extracted input file " << cinput << endl;
+    IVYout << "Extracted input file " << cinput << endl;
   }
   curdir->cd();
 
@@ -1151,7 +1151,7 @@ void makePlots(TString strdate=""){
   std::unordered_map<TString, std::vector<TH1F*>> sample_hist_map;
   std::vector<TString> hnames;
   for (size_t isample=0; isample<nsamples; isample++){
-    MELAout << "Processing sample " << sampleList.at(isample).name << endl;
+    IVYout << "Processing sample " << sampleList.at(isample).name << endl;
     std::vector<HistogramObject>& hspecs = sampleList.at(isample).hlist_1D;
     TFile*& finput = finputlist.at(isample);
     finput->cd();
@@ -1169,7 +1169,7 @@ void makePlots(TString strdate=""){
           cuttitle = cuttitle + '_' + it_cut->getTitle();
         }
       }
-      MELAout << "\t- Creating histograms for cut set " << cuttitle << endl;
+      IVYout << "\t- Creating histograms for cut set " << cuttitle << endl;
 
       hspecs.emplace_back(
         Form("h1D_%s_%s_%s", strChannel.Data(), "pfmet_pTmiss", cuttitle.Data()),
@@ -1214,7 +1214,7 @@ void makePlots(TString strdate=""){
           else if (cutvar == "Nj") cutval = event_Njets;
           doFill &= cut.testCut(cutval);
 
-          //if (ev<10) MELAout << "\t\t-Tested cut " << cutvar << " | " << cut.cutlow << " | " << cut.cuthigh << ": " << doFill << endl;
+          //if (ev<10) IVYout << "\t\t-Tested cut " << cutvar << " | " << cut.cutlow << " | " << cut.cuthigh << ": " << doFill << endl;
         }
 
         {
@@ -1225,7 +1225,7 @@ void makePlots(TString strdate=""){
         icutset++;
       }
       if (it_hist!=hlist.end()){
-        MELAerr << "ERROR: Not all histograms are filled!" << endl;
+        IVYerr << "ERROR: Not all histograms are filled!" << endl;
       }
     }
 
@@ -1233,11 +1233,11 @@ void makePlots(TString strdate=""){
     for (TH1F* htmp:hlist){
       HelperFunctions::wipeOverUnderFlows(htmp, false, true);
       double inthist = htmp->Integral(1, htmp->GetNbinsX());
-      //MELAout << "Histogram " << htmp->GetName() << " has integral " << inthist << endl;
+      //IVYout << "Histogram " << htmp->GetName() << " has integral " << inthist << endl;
       if (TString(htmp->GetName()).Contains("mTZZ")){
         int x350 = htmp->GetXaxis()->FindBin(350.);
         float inthist_x350 = htmp->Integral(x350, htmp->GetNbinsX());
-        MELAout << "Histogram " << htmp->GetName() << " has integral (mTZZ>350) " << inthist_x350 << endl;
+        IVYout << "Histogram " << htmp->GetName() << " has integral (mTZZ>350) " << inthist_x350 << endl;
       }
     }
 
@@ -1405,5 +1405,5 @@ void makePlots(TString strdate=""){
   }
 
   for (TFile*& finput:finputlist) finput->Close();
-  MELAout.close();
+  IVYout.close();
 }

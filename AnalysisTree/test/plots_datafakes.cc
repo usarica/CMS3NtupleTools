@@ -5,7 +5,7 @@
 #include "TText.h"
 #include "TPaveText.h"
 #include "TLegend.h"
-#include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
+#include <IvyFramework/IvyAutoMELA/interface/IvyMELAHelpers.h>
 #include <DataFormats/MuonReco/interface/Muon.h>
 
 
@@ -69,7 +69,7 @@ HistogramObject::HistogramObject(
   hist.GetXaxis()->SetTitle(xlabel);
   hist.GetYaxis()->SetTitle(ylabel);
 
-  MELAout << "Created histogram " << hist.GetName() << " [" << hist.GetTitle() << "]" << endl;
+  IVYout << "Created histogram " << hist.GetName() << " [" << hist.GetTitle() << "]" << endl;
 }
 HistogramObject::HistogramObject(HistogramObject const& other) :
   name(other.name),
@@ -451,7 +451,7 @@ void getHistograms(int procsel, int ichunk, int nchunks, TString strdate){
     eventFilter.bookBranches(&sample_tree);
     eventFilter.wrapTree(&sample_tree);
 
-    MELAout << "Completed getting the handles..." << endl;
+    IVYout << "Completed getting the handles..." << endl;
     sample_tree.silenceUnused();
 
     foutput->cd();
@@ -561,10 +561,10 @@ void getHistograms(int procsel, int ichunk, int nchunks, TString strdate){
       ev_start = ev_inc*ichunk;
       ev_end = std::min(nevents, (ichunk == nchunks-1 ? nevents : ev_start+ev_inc));
     }
-    MELAout << "Looping over " << nevents << " events, starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
+    IVYout << "Looping over " << nevents << " events, starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
     for (int ev=ev_start; ev<ev_end; ev++){
       HelperFunctions::progressbar(ev, nevents);
-      if (ev % 10000 == 0) MELAout << "Number of accumulated events: " << nacc << '/' << ev << '/' << nevents << endl;
+      if (ev % 10000 == 0) IVYout << "Number of accumulated events: " << nacc << '/' << ev << '/' << nevents << endl;
       //if (nacc>1000) break;
       sample_tree.getSelectedEvent(ev);
 
@@ -584,7 +584,7 @@ void getHistograms(int procsel, int ichunk, int nchunks, TString strdate){
       for (auto* muon:muons){
         if (ParticleSelectionHelpers::isLooseParticle(muon)) looseMuons.push_back(muon);
       }
-      //MELAout << "N loose muons: " << looseMuons.size() << endl;
+      //IVYout << "N loose muons: " << looseMuons.size() << endl;
 
       electronHandler.constructElectrons(theGlobalSyst);
       auto const& electrons = electronHandler.getProducts();
@@ -607,7 +607,7 @@ void getHistograms(int procsel, int ichunk, int nchunks, TString strdate){
           looseElectrons.push_back(electron);
         }
       }
-      //MELAout << "N loose electrons: " << looseElectrons.size() << endl;
+      //IVYout << "N loose electrons: " << looseElectrons.size() << endl;
       // Disambiguate electrons and muons
       size_t nLooseElectrons_precleaning = looseElectrons.size();
       {
@@ -622,7 +622,7 @@ void getHistograms(int procsel, int ichunk, int nchunks, TString strdate){
         looseElectrons = looseElectrons_new;
       }
       size_t nLooseElectrons_postcleaning = looseElectrons.size();
-      //MELAout << "N loose electrons after disambiguation: " << looseElectrons.size() << endl;
+      //IVYout << "N loose electrons after disambiguation: " << looseElectrons.size() << endl;
 
       photonHandler.constructPhotons(theGlobalSyst);
       auto const& photons = photonHandler.getProducts();
@@ -648,7 +648,7 @@ void getHistograms(int procsel, int ichunk, int nchunks, TString strdate){
         }
       }
       if (hasLoosePhotons) continue;
-      //MELAout << "Pass photon veto" << endl;
+      //IVYout << "Pass photon veto" << endl;
 
       if (
           !(
@@ -657,7 +657,7 @@ void getHistograms(int procsel, int ichunk, int nchunks, TString strdate){
             (looseMuons.size()==0 && looseElectrons.size()==2)
           )
         ) continue;
-      //MELAout << "Pass lepton count veto" << endl;
+      //IVYout << "Pass lepton count veto" << endl;
 
       bool is_ee = looseElectrons.size()==2;
       bool is_mumu = looseMuons.size()==2;
@@ -670,12 +670,12 @@ void getHistograms(int procsel, int ichunk, int nchunks, TString strdate){
       ParticleObject* subleadingLepton = (is_ee ? dynamic_cast<ParticleObject*>(looseElectrons.back()) : dynamic_cast<ParticleObject*>(looseMuons.back()));
       if (leadingLepton->pdgId()*subleadingLepton->pdgId()>0) continue;
       else if (leadingLepton->pdgId()*subleadingLepton->pdgId()==0){
-        MELAerr << "Leading lepton id (" << leadingLepton->pdgId() << ") or subleading lepton id (" << subleadingLepton->pdgId() << ") are invalid." << endl;
+        IVYerr << "Leading lepton id (" << leadingLepton->pdgId() << ") or subleading lepton id (" << subleadingLepton->pdgId() << ") are invalid." << endl;
         assert(0);
       }
-      //MELAout << "Pass OSSF veto" << endl;
+      //IVYout << "Pass OSSF veto" << endl;
       if (leadingLepton->pt()<25. || subleadingLepton->pt()<20.) continue;
-      //MELAout << "Pass lepton pT veto" << endl;
+      //IVYout << "Pass lepton pT veto" << endl;
 
       ParticleObject::LorentzVector_t p4_ll = leadingLepton->p4() + subleadingLepton->p4();
       float mll = p4_ll.M();
@@ -696,11 +696,11 @@ void getHistograms(int procsel, int ichunk, int nchunks, TString strdate){
       }
       if (!ak4jets_tight_btagged.empty()) continue;
       size_t n_ak4jets_tight = ak4jets_tight.size();
-      //MELAout << "Pass b veto" << endl;
+      //IVYout << "Pass b veto" << endl;
 
       if (!eventFilter.test2018HEMFilter(nullptr, &looseElectrons, nullptr, &ak4jets, &ak8jets)) continue; // Since events with loose photons are skipped, no longer need to pass photons here
       if (!eventFilter.testNoisyJetFilter(nullptr, ak4jets)) continue;
-      //MELAout << "Pass HEM filter" << endl;
+      //IVYout << "Pass HEM filter" << endl;
 
       bool pass_ee_cutbasedMedium = false;
       bool pass_ee_cutbasedTight = false;
@@ -758,25 +758,25 @@ void getHistograms(int procsel, int ichunk, int nchunks, TString strdate){
 
       /*
       if (nacc%100 == 0 || n_ak4jets_tight>0){
-        MELAout << "Accumulated event: " << nacc << '/' << ev << '/' << nevents << endl;
-        MELAout << "\t- Number of electrons (raw, precleaning, postcleaning) = ( " << electrons.size() << ", " << nLooseElectrons_precleaning << ", " << nLooseElectrons_postcleaning << " )" << endl;
-        MELAout << "\t- Number of muons (raw, loose) = ( " << muons.size() << ", " << looseMuons.size() << " )" << endl;
+        IVYout << "Accumulated event: " << nacc << '/' << ev << '/' << nevents << endl;
+        IVYout << "\t- Number of electrons (raw, precleaning, postcleaning) = ( " << electrons.size() << ", " << nLooseElectrons_precleaning << ", " << nLooseElectrons_postcleaning << " )" << endl;
+        IVYout << "\t- Number of muons (raw, loose) = ( " << muons.size() << ", " << looseMuons.size() << " )" << endl;
         if (is_ee){
-          if (pass_ee_cutbasedMedium) MELAout << "\t- pass_ee_cutbasedMedium" << endl;
-          if (pass_ee_cutbasedTight) MELAout << "\t- pass_ee_cutbasedTight" << endl;
-          if (pass_ee_fall17v2mvanoisowp90) MELAout << "\t- pass_ee_fall17v2mvanoisowp90" << endl;
-          if (pass_ee_fall17v2mvanoisowp80) MELAout << "\t- pass_ee_fall17v2mvanoisowp80" << endl;
-          if (pass_ee_fall17v2mvaisowp90) MELAout << "\t- pass_ee_fall17v2mvaisowp90" << endl;
-          if (pass_ee_fall17v2mvaisowp80) MELAout << "\t- pass_ee_fall17v2mvaisowp80" << endl;
-          if (pass_ee_hzzmvaisowpHZZ) MELAout << "\t- pass_ee_hzzmvaisowpHZZ" << endl;
+          if (pass_ee_cutbasedMedium) IVYout << "\t- pass_ee_cutbasedMedium" << endl;
+          if (pass_ee_cutbasedTight) IVYout << "\t- pass_ee_cutbasedTight" << endl;
+          if (pass_ee_fall17v2mvanoisowp90) IVYout << "\t- pass_ee_fall17v2mvanoisowp90" << endl;
+          if (pass_ee_fall17v2mvanoisowp80) IVYout << "\t- pass_ee_fall17v2mvanoisowp80" << endl;
+          if (pass_ee_fall17v2mvaisowp90) IVYout << "\t- pass_ee_fall17v2mvaisowp90" << endl;
+          if (pass_ee_fall17v2mvaisowp80) IVYout << "\t- pass_ee_fall17v2mvaisowp80" << endl;
+          if (pass_ee_hzzmvaisowpHZZ) IVYout << "\t- pass_ee_hzzmvaisowpHZZ" << endl;
         }
         else{
-          if (pass_mumu_cutbasedMedium) MELAout << "\t- pass_mumu_cutbasedMedium" << endl;
-          if (pass_mumu_cutbasedTight) MELAout << "\t- pass_mumu_cutbasedTight" << endl;
+          if (pass_mumu_cutbasedMedium) IVYout << "\t- pass_mumu_cutbasedMedium" << endl;
+          if (pass_mumu_cutbasedTight) IVYout << "\t- pass_mumu_cutbasedTight" << endl;
         }
-        MELAout << "\t- Leading lepton: [" << leadingLepton->pdgId() << "] ( " << leadingLepton->pt() << ", " << leadingLepton->eta() << ", " << leadingLepton->phi() << ", " << leadingLepton->m() << ")" << endl;
-        MELAout << "\t- Subleading lepton: [" << subleadingLepton->pdgId() << "] ( " << subleadingLepton->pt() << ", " << subleadingLepton->eta() << ", " << subleadingLepton->phi() << ", " << subleadingLepton->m() << ")" << endl;
-        MELAout << "\t- Njets = " << n_ak4jets_tight << ", mll = " << mll << ", MET = " << pfmet->pt() << endl;
+        IVYout << "\t- Leading lepton: [" << leadingLepton->pdgId() << "] ( " << leadingLepton->pt() << ", " << leadingLepton->eta() << ", " << leadingLepton->phi() << ", " << leadingLepton->m() << ")" << endl;
+        IVYout << "\t- Subleading lepton: [" << subleadingLepton->pdgId() << "] ( " << subleadingLepton->pt() << ", " << subleadingLepton->eta() << ", " << subleadingLepton->phi() << ", " << subleadingLepton->m() << ")" << endl;
+        IVYout << "\t- Njets = " << n_ak4jets_tight << ", mll = " << mll << ", MET = " << pfmet->pt() << endl;
       }
       */
       // Fill histograms
@@ -840,7 +840,7 @@ void makePlots(int do_ee_mumu, bool doRatio=false, TString strdate=""){
   gSystem->mkdir(coutput_main, true);
 
   TString stroutput_txt = Form("%s/Integrals.txt", coutput_main.Data());
-  MELAout.open(stroutput_txt.Data());
+  IVYout.open(stroutput_txt.Data());
 
   {
     // Special case to copy index.php if you have one
@@ -849,13 +849,13 @@ void makePlots(int do_ee_mumu, bool doRatio=false, TString strdate=""){
     TString indexDir = "${CMSSW_BASE}/src/CMSDataTools/AnalysisTree/data/plotting/index.php";
     HostHelpers::ExpandEnvironmentVariables(indexDir);
     if (HostHelpers::FileReadable(indexDir)){
-      MELAout << "Attempting to copy index.php" << endl;
+      IVYout << "Attempting to copy index.php" << endl;
       TString tmpdir = tmplist.at(0) + '/';
       for (size_t idir=1; idir<tmplist.size(); idir++){
         tmpdir = tmpdir + tmplist.at(idir) + '/';
         TString tmpCmd = "cp ~/public_html/index.pages.php ";
         tmpCmd += tmpdir + "index.php";
-        MELAout << "Copying index.php into " << tmpdir << endl;
+        IVYout << "Copying index.php into " << tmpdir << endl;
         HostHelpers::ExecuteCommand(tmpCmd);
       }
     }
@@ -878,7 +878,7 @@ void makePlots(int do_ee_mumu, bool doRatio=false, TString strdate=""){
     if (!HostHelpers::FileReadable(cinput)) continue;
     TFile* finput = TFile::Open(cinput, "read");
     finputlist.push_back(finput);
-    MELAout << "Extracted input file " << cinput << endl;
+    IVYout << "Extracted input file " << cinput << endl;
   }
 
   TString strChannel, strChannelLabel;
@@ -912,7 +912,7 @@ void makePlots(int do_ee_mumu, bool doRatio=false, TString strdate=""){
       hnames.push_back(Form("h1D_%s_%s_%s", strChannel.Data(), "mll_cutbasedmedium", cuttitle.Data())); hcolors.push_back((int) kBlue);
       hnames.push_back(Form("h1D_%s_%s_%s", strChannel.Data(), "mll_cutbasedtight", cuttitle.Data())); hcolors.push_back((int) kRed);
     }
-    MELAout << "Histogram names: " << hnames << endl;
+    IVYout << "Histogram names: " << hnames << endl;
 
     int nbins=0;
     int ibin_sb1=1;
@@ -927,7 +927,7 @@ void makePlots(int do_ee_mumu, bool doRatio=false, TString strdate=""){
       for (auto const& hname:hnames){
         TH1F* htmp = (TH1F*) finput->Get(strChannel + '/' + hname);
         if (!htmp){
-          MELAout << "Histogram " << hname << " cannot be found!" << endl;
+          IVYout << "Histogram " << hname << " cannot be found!" << endl;
           assert(0);
         }
         if (firstHistogram){
@@ -974,7 +974,7 @@ void makePlots(int do_ee_mumu, bool doRatio=false, TString strdate=""){
           double int_sb1 = hist->Integral(ibin_sb1, jbin_sb1);
           double int_sb2 = hist->Integral(ibin_sb2, jbin_sb2);
           double int_sr = hist->Integral(ibin_sr, jbin_sr);
-          MELAout << "Integrals[" << it.first << "::" << hist->GetName() << "](sb1, sb2, sb1+sb2, sr, sr/sb1+sb2) = ( " << int_sb1 << ", " << int_sb2 << ", " << int_sb1+int_sb2 << ", " << int_sr << ", " << int_sr/(int_sb1+int_sb2) << " )" << endl;
+          IVYout << "Integrals[" << it.first << "::" << hist->GetName() << "](sb1, sb2, sb1+sb2, sr, sr/sb1+sb2) = ( " << int_sb1 << ", " << int_sb2 << ", " << int_sb1+int_sb2 << ", " << int_sr << ", " << int_sr/(int_sb1+int_sb2) << " )" << endl;
         }
       }
     }
@@ -1095,5 +1095,5 @@ void makePlots(int do_ee_mumu, bool doRatio=false, TString strdate=""){
   }
 
   for (TFile*& finput:finputlist) finput->Close();
-  MELAout.close();
+  IVYout.close();
 }

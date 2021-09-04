@@ -2,7 +2,7 @@
 #include <cmath>
 
 #include "AK8JetSelectionHelpers.h"
-#include "MELAStreamHelpers.hh"
+#include <CMS3/Dictionaries/interface/CMS3StreamHelpers.h>
 
 
 namespace AK8JetSelectionHelpers{
@@ -20,7 +20,7 @@ namespace AK8JetSelectionHelpers{
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 bool AK8JetSelectionHelpers::testLooseId(AK8JetObject const& part){ return true; }
