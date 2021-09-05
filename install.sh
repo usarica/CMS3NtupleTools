@@ -87,26 +87,22 @@ git cms-addpkg RecoJets/JetProducers
 # No CMSSW packages beyond this point #
 #######################################
 
-git clone git@github.com:usarica/CMS3NtupleTools.git CMS3
-(
-  cd CMS3; git checkout ${CMS3Tag}; cd -
-  cd $CMSSW_BASE/src/CMS3/NtupleMaker/data/JECs ; . download.sh; cd -
-  cd $CMSSW_BASE/src/CMS3/NtupleMaker/data/JERs ; . download.sh; cd -
-)
-
 # MELA
 git clone git@github.com:JHUGen/JHUGenMELA.git
 ./JHUGenMELA/setup.sh -j
 
 # MELA Analytics
 git clone git@github.com:MELALabs/MelaAnalytics.git
+./MelaAnalytics/setup.sh -j
 
 # Common LHE tools
 git clone git@github.com:usarica/CommonLHETools.git
 
 # IvyFramework
 git clone git@github.com:IvyFramework/IvyDataTools.git IvyFramework/IvyDataTools
+./IvyFramework/IvyDataTools/setup.sh -j
 git clone git@github.com:IvyFramework/IvyAutoMELA.git IvyFramework/IvyAutoMELA
+./IvyFramework/IvyAutoMELA/setup.sh -j
 
 #########################
 #  DeepAK8 fat jet tagger
@@ -115,22 +111,31 @@ git clone git@github.com:IvyFramework/IvyAutoMELA.git IvyFramework/IvyAutoMELA
 # because this is top secret code that needs to be password protected apparently
 # and thus, the user must either configure ssh keys or manually type their password.
 # the latter ruins the whole "run this install script, get a coffee, use the ntuplemaker" workflow.
-# git clone ssh://git@gitlab.cern.ch:7999/DeepAK8/NNKit.git -b ver_2018-03-08_for94X
 if [[ -d /nfs-7/userdata/NtupleModules/NNKit_ver_2018-03-08_for94X ]]; then
   cp -r /nfs-7/userdata/NtupleModules/NNKit_ver_2018-03-08_for94X NNKit
 elif [[ $(readlink -f ~)/CMS3/NNKit_ver_2018-03-08_for94X ]]; then
   cp -r $(readlink -f ~)/CMS3/NNKit_ver_2018-03-08_for94X NNKit
+else
+  git clone ssh://git@gitlab.cern.ch:7999/DeepAK8/NNKit.git -b ver_2018-03-08_for94X
 fi
 # setup mxnet library
 # cp /cvmfs/cms.cern.ch/$SCRAM_ARCH/cms/cmssw/CMSSW_10_2_0/config/toolbox/$SCRAM_ARCH/tools/selected/mxnet-predict.xml $CMSSW_BASE/config/toolbox/$SCRAM_ARCH/tools/selected
 scram setup mxnet-predict
 # rm $CMSSW_BASE/external/$SCRAM_ARCH/lib/libmxnet_predict.so
 # cp NNKit/misc/lib/libmxnet_predict.so $CMSSW_BASE/external/$SCRAM_ARCH/lib/libmxnet_predict.so
-# copy json files to test directory (or wherever you are doing cmsRun)
-# cp NNKit/data/ak8/*.{json,params} $CMSSW_BASE/src/CMS3/NtupleMaker/test/
 # #######################
 
+git clone git@github.com:usarica/CMS3NtupleTools.git CMS3
+(
+  cd CMS3; git checkout ${CMS3Tag}; cd -
+  cd $CMSSW_BASE/src/CMS3/NtupleMaker/data/JECs ; . download.sh; cd -
+  cd $CMSSW_BASE/src/CMS3/NtupleMaker/data/JERs ; . download.sh; cd -
+)
 ./CMS3/NtupleMaker/setup.sh -j
+
+# copy json files to test directory (or wherever you are doing cmsRun)
+# cp NNKit/data/ak8/*.{json,params} $CMSSW_BASE/src/CMS3/NtupleMaker/test/
+
 scram b -j
 
 # see comment in patchesToSource.sh
