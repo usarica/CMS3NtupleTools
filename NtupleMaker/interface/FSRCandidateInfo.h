@@ -9,7 +9,7 @@
 #include <DataFormats/PatCandidates/interface/Photon.h>
 #include <DataFormats/PatCandidates/interface/PackedCandidate.h>
 
-#include <CMSDataTools/AnalysisTree/interface/CMSLorentzVector.h>
+#include <IvyFramework/IvyDataTools/interface/CMSLorentzVector.h>
 
 
 struct FSRCandidateInfo{

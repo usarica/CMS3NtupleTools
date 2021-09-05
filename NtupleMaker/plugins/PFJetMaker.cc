@@ -18,7 +18,7 @@
 #include <CMS3/Dictionaries/interface/JetMETEnums.h>
 
 #include <CMS3/NtupleMaker/interface/plugins/PFJetMaker.h>
-#include <CMS3/NtupleMaker/interface/CMS3ObjectHelpers.h>
+#include <CMS3/Dictionaries/interface/CMS3ObjectHelpers.h>
 #include <CMS3/NtupleMaker/interface/AK4JetSelectionHelpers.h>
 #include <CMS3/NtupleMaker/interface/AK8JetSelectionHelpers.h>
 #include <CMS3/NtupleMaker/interface/VertexSelectionHelpers.h>
@@ -806,8 +806,8 @@ void PFJetMaker::get_reco_gen_matchMap(
   if (!isMC || pfJetsHandle->empty()) return;
   if (genJetsHandle->empty()) return;
 
-  CMS3ObjectHelpers::matchParticles(
-    CMS3ObjectHelpers::kMatchBy_DeltaR,
+  ParticleObjectHelpers::matchParticles(
+    ParticleObjectHelpers::kMatchBy_DeltaR,
     pfJetsHandle->begin(), pfJetsHandle->end(),
     genJetsHandle->begin(), genJetsHandle->end(),
     res

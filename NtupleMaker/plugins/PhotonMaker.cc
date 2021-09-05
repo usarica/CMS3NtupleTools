@@ -18,13 +18,13 @@
 
 #include <CMS3/NtupleMaker/interface/plugins/PhotonMaker.h>
 #include <CMS3/NtupleMaker/interface/PhotonSelectionHelpers.h>
-#include "CMS3/NtupleMaker/interface/VertexSelectionHelpers.h"
-#include <CMS3/NtupleMaker/interface/CMS3ObjectHelpers.h>
+#include <CMS3/NtupleMaker/interface/VertexSelectionHelpers.h>
+#include <CMS3/Dictionaries/interface/CMS3ObjectHelpers.h>
 
 #include <CMS3/Dictionaries/interface/CommonTypedefs.h>
 #include <CMS3/Dictionaries/interface/EgammaFiduciality.h>
 
-#include <CMSDataTools/AnalysisTree/interface/HelperFunctions.h>
+#include <IvyFramework/IvyDataTools/interface/HelperFunctions.h>
 
 #include "MELAStreamHelpers.hh"
 
@@ -317,8 +317,8 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     {
       std::vector<pat::Photon const*> dummy_photon_list; dummy_photon_list.push_back(&(*photon));
       std::unordered_map<pat::Photon const*, pat::PackedCandidate const*> patphoton_pfphoton_map;
-      CMS3ObjectHelpers::matchParticles(
-        CMS3ObjectHelpers::kMatchBy_DeltaR,
+      ParticleObjectHelpers::matchParticles(
+        ParticleObjectHelpers::kMatchBy_DeltaR,
         dummy_photon_list.begin(), dummy_photon_list.end(),
         pfphotoncands.begin(), pfphotoncands.end(),
         patphoton_pfphoton_map
@@ -631,8 +631,8 @@ void PhotonMaker::get_photon_pfphoton_matchMap(
     if (it_pfcand->pdgId() == 22) pfphotons.push_back(&(*it_pfcand));
   }
 
-  CMS3ObjectHelpers::matchParticles(
-    CMS3ObjectHelpers::kMatchBy_DeltaR,
+  ParticleObjectHelpers::matchParticles(
+    ParticleObjectHelpers::kMatchBy_DeltaR,
     photonsHandle->begin(), photonsHandle->end(),
     pfphotons.begin(), pfphotons.end(),
     res

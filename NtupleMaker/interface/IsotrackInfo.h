@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-#include <CMSDataTools/AnalysisTree/interface/CMSLorentzVector.h>
+#include <IvyFramework/IvyDataTools/interface/CMSLorentzVector.h>
 #include <CMS3/Dictionaries/interface/CommonTypedefs.h>
 
 

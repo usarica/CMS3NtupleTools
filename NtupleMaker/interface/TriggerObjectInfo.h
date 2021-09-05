@@ -4,7 +4,7 @@
 #define TRIGGEROBJECTINFO_INDEX_BY_ORIGINAL 0
 
 #include <string>
-#include <CMSDataTools/AnalysisTree/interface/CMSLorentzVector.h>
+#include <IvyFramework/IvyDataTools/interface/CMSLorentzVector.h>
 #include <CMS3/Dictionaries/interface/CommonTypedefs.h>
 
 

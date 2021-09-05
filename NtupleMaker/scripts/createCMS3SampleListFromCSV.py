@@ -13,8 +13,8 @@ import subprocess
 import csv
 from datetime import date
 from optparse import OptionParser
-from CMSDataTools.AnalysisTree.TranslateStringBetweenPythonAndShell import *
-from CMSDataTools.AnalysisTree.eostools import listFiles
+from IvyFramework.IvyDataTools.TranslateStringBetweenPythonAndShell import *
+from IvyFramework.IvyDataTools.cmseostools import listFiles
 
 
 class BatchManager:

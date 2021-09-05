@@ -104,8 +104,9 @@ git clone git@github.com:MELALabs/MelaAnalytics.git
 # Common LHE tools
 git clone git@github.com:usarica/CommonLHETools.git
 
-# CMSDataTools
-git clone git@github.com:usarica/CMSDataTools.git
+# IvyFramework
+git clone git@github.com:IvyFramework/IvyDataTools.git IvyFramework/IvyDataTools
+git clone git@github.com:IvyFramework/IvyAutoMELA.git IvyFramework/IvyAutoMELA
 
 #########################
 #  DeepAK8 fat jet tagger

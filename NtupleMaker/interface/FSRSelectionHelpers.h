@@ -2,11 +2,9 @@
 #define CMS3_FSRSELECTIONHELPERS_H
 
 #include <cmath>
-#include <DataFormats/PatCandidates/interface/PackedCandidate.h>
+#include <CMS3/NtupleMaker/interface/PhotonSelectionHelpers.h>
 #include <DataFormats/PatCandidates/interface/Muon.h>
 #include <DataFormats/PatCandidates/interface/Electron.h>
-#include "CMS3/NtupleMaker/interface/PhotonSelectionHelpers.h"
-#include "CMS3/NtupleMaker/interface/CMS3ObjectHelpers.h"
 
 
 namespace FSRSelectionHelpers{
@@ -58,7 +56,7 @@ template<typename PFCandIterable> float FSRSelectionHelpers::fsrIso(pat::PackedC
 
   for (PFCandIterable it_pfcands = pfcands_begin; it_pfcands!=pfcands_end; it_pfcands++){
     pat::PackedCandidate const* pfcand;
-    CMS3ObjectHelpers::getObjectPointer(it_pfcands, pfcand);
+    ParticleObjectHelpers::getObjectPointer(it_pfcands, pfcand);
     if (!pfcand) continue;
     if (&obj==pfcand) continue; // Obviously don't include self
 

@@ -2,7 +2,7 @@
 
 #include <FWCore/Utilities/interface/EDMException.h>
 
-#include <CMSDataTools/AnalysisTree/interface/HelperFunctions.h>
+#include <IvyFramework/IvyDataTools/interface/HelperFunctions.h>
 #include <CMS3/NtupleMaker/interface/plugins/HLTMaker.h>
 #include <CMS3/NtupleMaker/interface/TriggerObjectInfo.h>
 

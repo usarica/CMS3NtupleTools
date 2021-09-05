@@ -24,7 +24,7 @@
 #include "SimDataFormats/GeneratorProducts/interface/GenRunInfoProduct.h"
 
 #include <CommonLHETools/LHEHandler/interface/LHEHandler.h>
-#include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
+#include <IvyFramework/IvyAutoMELA/interface/IvyMELAHelpers.h>
 #include <CMS3/NtupleMaker/interface/GenInfo.h>
 #include <CMS3/NtupleMaker/interface/KFactorHelpers.h>
 
@@ -86,7 +86,7 @@ protected:
   /******************/
   /* ME COMPUTATION */
   /******************/
-  CMS3MELAHelpers::GMECBlock lheMEblock;
+  IvyMELAHelpers::GMECBlock lheMEblock;
   void setupMELA();
   void doMELA(MELACandidate*, GenInfo&);
   void cleanMELA();

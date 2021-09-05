@@ -2,7 +2,7 @@
 #define CMS3_COMMONTYPEDEFS_H
 
 #include <cstdint>
-#include "IvyDataTypes.h"
+#include <IvyFramework/IvyDataTools/interface/IvyDataTypes.h>
 
 
 typedef ivy_listIndex_short_t cms3_listIndex_short_t;

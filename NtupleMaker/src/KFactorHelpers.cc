@@ -3,9 +3,9 @@
 #include <FWCore/Utilities/interface/Exception.h>
 #include <DataFormats/HepMCCandidate/interface/GenParticle.h>
 #include <SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h>
-#include <CMS3/NtupleMaker/interface/CMS3ObjectHelpers.h>
+#include <CMS3/Dictionaries/interface/CMS3ObjectHelpers.h>
 #include <CMS3/NtupleMaker/interface/KFactorHelpers.h>
-#include <CMSDataTools/AnalysisTree/interface/HostHelpersCore.h>
+#include <IvyFramework/IvyDataTools/interface/HostHelpersCore.h>
 #include "MELAStreamHelpers.hh"
 #include "TDirectory.h"
 
@@ -84,8 +84,8 @@ namespace KFactorHelpers{
       else if (PDGHelpers::isANeutrino(id)) lepNuNubar[(std::abs(id)-12)/2][(id>0 ? 0 : 1)].push_back(part);
       else if (PDGHelpers::isAGluon(id)) outgoingGluons.push_back(part);
     }
-    CMS3ObjectHelpers::sortByGreaterPz(incomingQuarks);
-    CMS3ObjectHelpers::sortByGreaterPz(incomingGluons);
+    ParticleObjectHelpers::sortByGreaterPz(incomingQuarks);
+    ParticleObjectHelpers::sortByGreaterPz(incomingGluons);
 
     /*
     for (auto const& part:incomingQuarks) MELAout << "Incoming quark (id, status) = ( " << part->pdgId() << " , " << part->status() << " )" << endl;

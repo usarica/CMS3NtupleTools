@@ -36,7 +36,7 @@
 #include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
 #include "TrackingTools/Records/interface/TransientTrackRecord.h"
 
-#include "CMSDataTools/AnalysisTree/interface/HelperFunctions.h"
+#include "IvyFramework/IvyDataTools/interface/HelperFunctions.h"
 
 #include "CMS3/NtupleMaker/interface/plugins/MuonMaker.h"
 #include "CMS3/NtupleMaker/interface/plugins/MatchUtilities.h"

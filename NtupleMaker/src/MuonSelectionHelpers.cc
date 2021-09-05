@@ -5,7 +5,7 @@
 #include <DataFormats/TrackReco/interface/TrackFwd.h>
 #include <DataFormats/MuonReco/interface/MuonSelectors.h>
 
-#include <CMSDataTools/AnalysisTree/interface/HelperFunctions.h>
+#include <IvyFramework/IvyDataTools/interface/HelperFunctions.h>
 
 #include <CMS3/NtupleMaker/interface/MuonSelectionHelpers.h>
 

@@ -9,10 +9,8 @@
 #include <DataFormats/VertexReco/interface/Vertex.h>
 #include <DataFormats/VertexReco/interface/VertexFwd.h>
 
-#include <CMSDataTools/AnalysisTree/interface/HelperFunctions.h>
-#include <CMS3/NtupleMaker/interface/CMS3ObjectHelpers.h>
-
-#include "MELAStreamHelpers.hh"
+#include <IvyFramework/IvyDataTools/interface/HelperFunctions.h>
+#include <CMS3/Dictionaries/interface/CMS3ObjectHelpers.h>
 
 
 namespace reco{
@@ -74,7 +72,7 @@ template<typename PFCandIterable> float PhotonSelectionHelpers::photonPFIsoWorst
   for (auto const& vtxref:vtxrefs) vtx_iso_map[vtxref.key()] = 0;
   for (PFCandIterable it_pfcands = pfcands_begin; it_pfcands!=pfcands_end; it_pfcands++){
     pat::PackedCandidate const* pfcand;
-    CMS3ObjectHelpers::getObjectPointer(it_pfcands, pfcand);
+    ParticleObjectHelpers::getObjectPointer(it_pfcands, pfcand);
     if (!pfcand) continue;
 
     unsigned int abs_id = std::abs(pfcand->pdgId());

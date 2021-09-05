@@ -11,7 +11,7 @@
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
 
-#include "CMSDataTools/AnalysisTree/interface/HelperFunctions.h"
+#include "IvyFramework/IvyDataTools/interface/HelperFunctions.h"
 
 
 namespace MCUtilities{

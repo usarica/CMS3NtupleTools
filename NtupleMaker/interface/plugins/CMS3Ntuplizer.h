@@ -53,8 +53,8 @@
 #include <CMS3/NtupleMaker/interface/FSRCandidateInfo.h>
 #include <CMS3/NtupleMaker/interface/PFCandidateInfo.h>
 
-#include <CMSDataTools/AnalysisTree/interface/SimpleEntry.h>
-#include <CMSDataTools/AnalysisTree/interface/BaseTree.h>
+#include <IvyFramework/IvyDataTools/interface/SimpleEntry.h>
+#include <IvyFramework/IvyDataTools/interface/BaseTree.h>
 
 
 class CMS3Ntuplizer : public edm::one::EDAnalyzer<edm::one::SharedResources>{

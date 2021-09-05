@@ -1,6 +1,6 @@
 #include <limits>
 
-#include <CMSDataTools/AnalysisTree/interface/HelperFunctionsCore.h>
+#include <IvyFramework/IvyDataTools/interface/HelperFunctionsCore.h>
 #include <CMS3/NtupleMaker/interface/plugins/GenMaker.h>
 #include <CMS3/NtupleMaker/interface/MCUtilities.h>
 
@@ -491,14 +491,14 @@ void GenMaker::setupMELA(){
   }
   this->usesResource("MELA");
 
-  using namespace CMS3MELAHelpers;
+  using namespace IvyMELAHelpers;
 
   setupMela(year, superMH, TVar::ERROR); // Sets up MELA only once
 
   lheMEblock.buildMELABranches(lheMElist, true);
 }
 void GenMaker::doMELA(MELACandidate* cand, GenInfo& genInfo){
-  using namespace CMS3MELAHelpers;
+  using namespace IvyMELAHelpers;
   if (melaHandle && cand){
     melaHandle->setCurrentCandidate(cand);
 
@@ -522,8 +522,8 @@ void GenMaker::doMELA(MELACandidate* cand, GenInfo& genInfo){
   }
 }
 void GenMaker::cleanMELA(){
-  using namespace CMS3MELAHelpers;
   // Shared pointer should be able to clear itself
+  //using namespace IvyMELAHelpers;
   //clearMela();
 }
 

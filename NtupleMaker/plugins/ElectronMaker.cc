@@ -58,13 +58,13 @@
 #include "CMS3/NtupleMaker/interface/plugins/MatchUtilities.h"
 #include "CMS3/NtupleMaker/interface/VertexSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/ElectronSelectionHelpers.h"
-#include <CMS3/NtupleMaker/interface/CMS3ObjectHelpers.h>
+#include <CMS3/Dictionaries/interface/CMS3ObjectHelpers.h>
 
 #include <CMS3/Dictionaries/interface/CommonTypedefs.h>
 #include "CMS3/Dictionaries/interface/EgammaFiduciality.h"
 #include "CMS3/Dictionaries/interface/ElectronTriggerCutEnums.h"
 
-#include "CMSDataTools/AnalysisTree/interface/HelperFunctions.h"
+#include "IvyFramework/IvyDataTools/interface/HelperFunctions.h"
 
 #include "MELAStreamHelpers.hh"
 
@@ -715,8 +715,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     {
       std::vector<pat::Electron const*> dummy_electron_list; dummy_electron_list.push_back(&(*el));
       std::unordered_map<pat::Electron const*, pat::PackedCandidate const*> patelectron_pfelectron_map;
-      CMS3ObjectHelpers::matchParticles(
-        CMS3ObjectHelpers::kMatchBy_DeltaR,
+      ParticleObjectHelpers::matchParticles(
+        ParticleObjectHelpers::kMatchBy_DeltaR,
         dummy_electron_list.begin(), dummy_electron_list.end(),
         pfelectroncands.begin(), pfelectroncands.end(),
         patelectron_pfelectron_map

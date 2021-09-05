@@ -4,7 +4,7 @@
 
 #include <CMS3/NtupleMaker/interface/PFCandidateInfo.h>
 
-#include <CMSDataTools/AnalysisTree/interface/HelperFunctions.h>
+#include <IvyFramework/IvyDataTools/interface/HelperFunctions.h>
 
 
 PFCandidateInfo::PFCandidateInfo() :

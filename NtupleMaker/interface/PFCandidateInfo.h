@@ -9,7 +9,7 @@
 #include <DataFormats/PatCandidates/interface/Electron.h>
 #include <DataFormats/PatCandidates/interface/Photon.h>
 
-#include <CMSDataTools/AnalysisTree/interface/CMSLorentzVector.h>
+#include <IvyFramework/IvyDataTools/interface/CMSLorentzVector.h>
 
 #include <CMS3/Dictionaries/interface/CommonTypedefs.h>
 #include <CMS3/NtupleMaker/interface/FSRCandidateInfo.h>

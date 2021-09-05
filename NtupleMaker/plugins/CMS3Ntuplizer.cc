@@ -22,14 +22,14 @@
 #include "CMS3/NtupleMaker/interface/AK8JetSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/IsotrackSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/PFCandidateSelectionHelpers.h"
-#include <CMS3/NtupleMaker/interface/CMS3ObjectHelpers.h>
+#include <CMS3/Dictionaries/interface/CMS3ObjectHelpers.h>
 #include <CMS3/NtupleMaker/interface/MCUtilities.h>
 
 #include <CMS3/Dictionaries/interface/CommonTypedefs.h>
 #include <CMS3/Dictionaries/interface/EgammaFiduciality.h>
 #include <CMS3/Dictionaries/interface/JetMETEnums.h>
 
-#include <CMSDataTools/AnalysisTree/interface/HelperFunctions.h>
+#include <IvyFramework/IvyDataTools/interface/HelperFunctions.h>
 
 #include "MELAStreamHelpers.hh"
 
@@ -497,8 +497,8 @@ bool CMS3Ntuplizer::recordGenParticles(
     }
     if (filledMuons){
       std::unordered_map<pat::Muon const*, reco::GenParticle const*> reco_gen_map;
-      CMS3ObjectHelpers::matchParticles(
-        CMS3ObjectHelpers::kMatchBy_DeltaR, 0.2,
+      ParticleObjectHelpers::matchParticles(
+        ParticleObjectHelpers::kMatchBy_DeltaR, 0.2,
         filledMuons->begin(), filledMuons->end(),
         genFSMuons.begin(), genFSMuons.end(),
         reco_gen_map
@@ -523,8 +523,8 @@ bool CMS3Ntuplizer::recordGenParticles(
     }
     if (filledElectrons){
       std::unordered_map<pat::Electron const*, reco::GenParticle const*> reco_gen_map;
-      CMS3ObjectHelpers::matchParticles(
-        CMS3ObjectHelpers::kMatchBy_DeltaR, 0.2,
+      ParticleObjectHelpers::matchParticles(
+        ParticleObjectHelpers::kMatchBy_DeltaR, 0.2,
         filledElectrons->begin(), filledElectrons->end(),
         genFSElectrons.begin(), genFSElectrons.end(),
         reco_gen_map
@@ -549,8 +549,8 @@ bool CMS3Ntuplizer::recordGenParticles(
     }
     if (filledPhotons){
       std::unordered_map<pat::Photon const*, reco::GenParticle const*> reco_gen_map;
-      CMS3ObjectHelpers::matchParticles(
-        CMS3ObjectHelpers::kMatchBy_DeltaR, 0.2,
+      ParticleObjectHelpers::matchParticles(
+        ParticleObjectHelpers::kMatchBy_DeltaR, 0.2,
         filledPhotons->begin(), filledPhotons->end(),
         genFSPhotons.begin(), genFSPhotons.end(),
         reco_gen_map
@@ -1532,8 +1532,8 @@ size_t CMS3Ntuplizer::fillFSRCandidates(
   for (auto const& muon:filledMuons) leptons.push_back(muon);
   for (auto const& electron:filledElectrons) leptons.push_back(electron);
   std::unordered_map< FSRCandidateInfo const*, std::vector<reco::LeafCandidate const*> > fsrcand_lepton_map;
-  CMS3ObjectHelpers::matchParticles_OneToMany(
-    CMS3ObjectHelpers::kMatchBy_DeltaR, FSRSelectionHelpers::selection_match_fsr_deltaR,
+  ParticleObjectHelpers::matchParticles_OneToMany(
+    ParticleObjectHelpers::kMatchBy_DeltaR, FSRSelectionHelpers::selection_match_fsr_deltaR,
     preselectedFSRCandidates.begin(), preselectedFSRCandidates.end(),
     leptons.cbegin(), leptons.cend(),
     fsrcand_lepton_map

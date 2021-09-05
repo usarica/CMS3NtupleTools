@@ -24,25 +24,24 @@
 <use   name="RecoEgamma/EgammaTools"/>
 <use   name="JetMETCorrections/Objects"/>
 <use   name="HLTrigger/HLTcore"/>
-<use   name="CMS3/Dictionaries"/>
 <use   name="EgammaAnalysis/ElectronTools"/>
 <use   name="PhysicsTools/NanoAOD"/>
 <use   name="NNKit/FatJetNN"/>
 <use   name="JHUGenMELA/MELA"/>
-<use   name="CommonLHETools/LHEHandler"/>
-<use   name="CMSDataTools/AnalysisTree"/>
 <use   name="MelaAnalytics/EventContainer"/>
 <use   name="MelaAnalytics/GenericMEComputer"/>
 <use   name="MelaAnalytics/CandidateLOCaster"/>
-<use   name="CMS3/MELAHelpers"/>
+<use   name="CommonLHETools/LHEHandler"/>
+<use   name="IvyFramework/IvyDataTools"/>
+<use   name="IvyFramework/IvyAutoMELA"/>
 <use   name="root"/>
 <use   name="clhep"/>
+<use   name="CMS3/Dictionaries"/>
 
-<Flags CPPDEFINES="CMSSW_VERSION=.oOCMSSW_VERSIONOo."/>
-<Flags CPPDEFINES="CMSSW_VERSION_MAJOR=.oOCMSSW_VERSION_MAJOROo."/>
-<Flags CPPDEFINES="CMSSW_VERSION_MINOR=.oOCMSSW_VERSION_MINOROo."/>
-<flags CPPFLAGS="-I$(CMSSW_BASE)/src/JHUGenMELA/MELA/interface/" />
-<flags CXXFLAGS="-g -O3"/>
+<Flags CXXDEFINES="CMSSW_VERSION=.oOCMSSW_VERSIONOo."/>
+<Flags CXXDEFINES="CMSSW_VERSION_MAJOR=.oOCMSSW_VERSION_MAJOROo."/>
+<Flags CXXDEFINES="CMSSW_VERSION_MINOR=.oOCMSSW_VERSION_MINOROo."/>
+<flags CXXFLAGS="-g -O3 -I$(CMSSW_BASE)/src/JHUGenMELA/MELA/interface/ -I$(CMSSW_BASE)/src/IvyFramework/IvyDataTools/interface/ -I$(CMSSW_BASE)/src/IvyFramework/IvyAutoMELA/interface/"/>
 
 <export>
    <lib name="1"/>
