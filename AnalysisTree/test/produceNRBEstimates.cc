@@ -1835,7 +1835,7 @@ void makePlot(
   }
 
   constexpr double npixels_pad_xy = 800;
-  CMSLogoStep cmslogotype = kPreliminary;
+  CMSLogoStep cmslogotype = kSupplementary;
   if (!hasData && !forceData) cmslogotype = kSimulation;
   PlotCanvas plot(canvasname, npixels_pad_xy, npixels_pad_xy, 1, (addRatioPanel ? 2 : 1), 0.25, 0.0625, 0.2, 0.0875, 0., 0.1, 0.3);
   plot.addCMSLogo(cmslogotype, 13, lumi, 0);
@@ -1983,9 +1983,9 @@ void makePlot(
 
   pad_hists->cd();
 
-  constexpr double legend_ymax = 0.90;
-  double legend_pixelsize = plot.getStdPixelSize_XYLabel()*0.7;
-  double legend_reldy = legend_pixelsize/npixels_pad_xy*1.2;
+  constexpr double legend_ymax = 0.89;
+  double legend_pixelsize = plot.getStdPixelSize_XYLabel()*0.9;
+  double legend_reldy = legend_pixelsize/npixels_pad_xy*1.3;
   TLegend* legend = new TLegend(
     0.50,
     legend_ymax-legend_reldy*float(nplottables),
@@ -2380,6 +2380,7 @@ void makePlots(
       "pTl2",
       "pTmiss",
       "nvtxs",
+      "Nak4jets",
       "abs_dPhi_pTboson_pTmiss",
       "abs_dPhi_pTbosonjets_pTmiss",
       "min_abs_dPhi_pTj_pTmiss"
@@ -2408,6 +2409,9 @@ void makePlots(
     for (auto const& varname:varnames){
       for (unsigned int ij=0; ij<nbins_njets; ij++){
         auto const& strNjetsName = strNjetsNames.at(ij);
+
+        if (varname.Contains("Nak4jets") && strNjetsName!="Nj_geq_0") continue;
+
         for (unsigned int ibt=0; ibt<nbins_nbtagged; ibt++){
           auto const& strBtaggingRegionName = strBtaggingRegionNames.at(ibt);
           for (unsigned int ic=0; ic<3; ic++){
@@ -2436,7 +2440,9 @@ void makePlots(
                 hlist_channel_raw.back()->Add(hlist_channel_raw.at(hlist_channel_raw.size()-2));
               }
               if (ic<2 && (strprocess=="AllMC_NonRes" || strprocess=="Data")){
-                TString hname = Form("hists_%s/h_%s_%s_%s_%s", strSRSB.Data(), strSRSB.Data(), varname.Data(), strCutName_rewgt.Data(), strprocess.Data());
+                TString hnamecore = Form("h_%s_%s_%s_%s", strSRSB.Data(), varname.Data(), strCutName_rewgt.Data(), strprocess.Data());
+                TString hname = Form("hists_%s/%s", strSRSB.Data(), hnamecore.Data());
+
                 finputs.front()->cd();
                 hlist_channel_rewgt_uncorr.push_back((TH1F*) finputs.front()->Get(hname));
                 if (strprocess=="Data"){
@@ -2453,6 +2459,8 @@ void makePlots(
                   hlist_channel_rewgt_uncorr.back()->SetFillColor(0);
                   for (int ix=0; ix<=hlist_channel_rewgt_uncorr.back()->GetNbinsX()+1; ix++) hlist_channel_rewgt_uncorr.back()->SetBinError(ix, 0);
                 }
+                hlist_channel_rewgt_uncorr.back()->SetName(Form("%s_uncorrected", hnamecore.Data()));
+
                 finputs.back()->cd();
                 hlist_channel_rewgt_corr.push_back((TH1F*) finputs.back()->Get(hname));
                 hlist_channel_rewgt_corr.back()->SetLineStyle(1);
@@ -2468,6 +2476,8 @@ void makePlots(
                   hlist_channel_rewgt_corr.back()->SetFillColor(0);
                   for (int ix=0; ix<=hlist_channel_rewgt_corr.back()->GetNbinsX()+1; ix++) hlist_channel_rewgt_corr.back()->SetBinError(ix, 0);
                 }
+                hlist_channel_rewgt_corr.back()->SetName(Form("%s_corrected", hnamecore.Data()));
+
                 foutput->cd();
               }
             }
@@ -2502,12 +2512,30 @@ void makePlots(
               TString strSRSBlabel_eff = Form(strSRSBlabel.Data(), (!strNjetsName.Contains("geq_2") ? 125 : 140));
               selectionLabels = selectionLabels + "|" + strSRSBlabel_eff;
             }
+
+            TDirectory* outdir = foutput->mkdir(canvasname);
+            outdir->cd();
+            for (unsigned int ih=0; ih<hplot.size(); ih++){
+              auto const& htmp = hplot.at(ih);
+              TString htitle = htmp->GetTitle();
+              htmp->SetTitle(hlabels.at(ih));
+              outdir->WriteTObject(htmp);
+              htmp->SetTitle(htitle);
+            }
+            TTree* tmptree = new TTree(Form("labels_%s", canvasname.Data()), "");
+            tmptree->Branch("selectionLabels", &selectionLabels);
+            tmptree->Fill();
+            outdir->WriteTObject(tmptree); delete tmptree;
+            outdir->Close();
+            foutput->cd();
+
             makePlot(
               coutput_main, lumi, canvasname,
               hplot, hlabels,
               selectionLabels,
               "hist", false, -1, true, true
             );
+
             if (varname=="mll"){
               for (unsigned int ip=0; ip<hplot.size(); ip++){
                 if (hlabels.at(ip).Contains("Observed") || hlabels.at(ip).Contains("All non-res.") || hlabels.at(ip).Contains("Other")){
@@ -2523,5 +2551,147 @@ void makePlots(
   }
 
   for (auto& ftmp:finputs) ftmp->Close();
+  foutput->Close();
+}
+
+void combinePlots(
+  TString strdate,
+  SystematicsHelpers::SystematicVariationTypes theGlobalSyst,
+  unsigned short index_SR_SB = 0 // SR: 0, lower MET SB: 1, mll-near SB: 2, mll-ttbar SB: 3
+){
+  if (!SampleHelpers::checkRunOnCondor()) std::signal(SIGINT, SampleHelpers::setSignalInterrupt);
+
+  if (strdate=="") strdate = HelperFunctions::todaysdate();
+
+  std::vector<TString> const periods{ "2016", "2017", "2018" };
+
+  TString strSyst = SystematicsHelpers::getSystName(theGlobalSyst).data();
+
+  TDirectory* curdir = gDirectory;
+
+  TString strSRSB;
+  TString strSRSBlabel;
+  switch (index_SR_SB){
+  case 0:
+    strSRSB = "SR";
+    strSRSBlabel = "Signal region";
+    break;
+  case 1:
+    strSRSB = "SB_lowerMET";
+    strSRSBlabel = "p_{T}^{miss}: [90, %i) GeV SB";
+    break;
+  default:
+    MELAerr << "index_SR_SB=" << index_SR_SB << " is not implemented." << endl;
+    return;
+  }
+  TString const coutput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Plots/Combined/Distributions/" + strSRSB;
+  gSystem->mkdir(coutput_main, true);
+
+  TString stroutput = coutput_main + Form("/plots_%s", strSyst.Data());
+  stroutput = stroutput + ".root";
+  TFile* foutput = TFile::Open(stroutput, "recreate");
+
+  foutput->cd();
+
+  float lumi=0;
+  std::vector<TString> canvasnames;
+  std::vector<TString> selectionLabelslist;
+  std::vector< std::vector<TH1F*> > hlists;
+  std::vector< std::vector<TString> > hlabelslist;
+  for (auto const& period:periods){
+    lumi += SampleHelpers::getIntegratedLuminosity(period);
+
+    TString const cinput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Plots/" + period + "/Distributions/" + strSRSB;
+
+    TString strinput = cinput_main + Form("/plots_%s%s", strSyst.Data(), ".root");
+
+    TFile* finput = TFile::Open(strinput, "read");
+    foutput->cd();
+
+    std::vector<TTree*> plottrees;
+    HelperFunctions::extractObjectsFromDirectory(finput, plottrees);
+    cout << "Found " << plottrees.size() << " plots in " << period << endl;
+
+    if (period==periods.front()){
+      hlists.assign(plottrees.size(), std::vector<TH1F*>());
+      hlabelslist.assign(plottrees.size(), std::vector<TString>());
+    }
+
+    foutput->cd();
+    for (unsigned int iplot = 0; iplot<plottrees.size(); iplot++){
+      auto const& tin = plottrees.at(iplot);
+      TString canvasname = tin->GetName();
+      HelperFunctions::replaceString<TString, TString const>(canvasname, "labels_", "");
+
+      TDirectory* plotdir = (TDirectory*) finput->Get(canvasname);
+
+      std::vector<TH1F*> hlist;
+      HelperFunctions::extractObjectsFromDirectory(plotdir, hlist);
+
+      std::vector<TH1F*>& tmphlist = hlists.at(iplot);
+
+      if (period==periods.front()){
+        TString* selectionLabels = nullptr;
+        tin->SetBranchAddress("selectionLabels", &selectionLabels);
+        tin->GetEntry(0);
+
+        std::vector<TString>& tmplabellist = hlabelslist.at(iplot);
+
+        canvasnames.push_back(canvasname);
+        selectionLabelslist.push_back(*selectionLabels);
+        for (auto const& hh:hlist){
+          TString hname = hh->GetName();
+          if (hname.Contains("uncorrected") || (hname.Contains("mue_rewgt") && hname.Contains("AllMC_NonRes"))) continue;
+          tmplabellist.push_back(hh->GetTitle()); hh->SetTitle("");
+          tmphlist.push_back((TH1F*) hh->Clone(Form("%s_copy", hname.Data())));
+          if (hname.Contains("Data")){
+            tmphlist.back()->SetLineColor(kBlack);
+            tmphlist.back()->SetMarkerColor(kBlack);
+            tmphlist.back()->SetMarkerStyle(20);
+            tmphlist.back()->SetMarkerSize(1.2);
+            if (hname.Contains("mue_rewgt")) tmplabellist.back() = "Prediction from e#mu CR";
+          }
+          else if (hname.Contains("AllMC_NonRes")){
+            tmphlist.back()->SetLineColor(kOrange-3);
+            tmphlist.back()->SetMarkerColor(kOrange-3);
+            tmphlist.back()->SetFillColor(kOrange-3);
+          }
+          else if (hname.Contains("TT_2l2nu")){
+            tmphlist.back()->SetLineColor(kGray+1);
+            tmphlist.back()->SetMarkerColor(kGray+1);
+            tmphlist.back()->SetFillColor(kGray+1);
+          }
+          else if (hname.Contains("qqWW_2l2nu")){
+            tmphlist.back()->SetLineColor(kTeal-1);
+            tmphlist.back()->SetMarkerColor(kTeal-1);
+            tmphlist.back()->SetFillColor(kTeal-1);
+          }
+        }
+      }
+      else{
+        unsigned int ih=0;
+        for (auto const& hh:hlist){
+          TString hname = hh->GetName();
+          if (hname.Contains("uncorrected") || (hname.Contains("mue_rewgt") && hname.Contains("AllMC_NonRes"))) continue;
+          tmphlist.at(ih)->Add(hh, 1.);
+          ih++;
+        }
+      }
+    }
+
+    finput->Close();
+    foutput->cd();
+  }
+
+  for (unsigned int iplot=0; iplot<canvasnames.size(); iplot++){
+    makePlot(
+      coutput_main, /*lumi*/ 138, canvasnames.at(iplot),
+      hlists.at(iplot), hlabelslist.at(iplot),
+      selectionLabelslist.at(iplot),
+      "hist", false, -1, true, true
+    );
+  }
+
+  for (auto& vv:hlists){ for (auto& hh:vv) delete hh; }
   foutput->Close();
 }
