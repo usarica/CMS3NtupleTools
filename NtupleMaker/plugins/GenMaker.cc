@@ -59,12 +59,14 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) :
   lheHandler_default = std::make_shared<LHEHandler>(
     candVVmode, decayVVmode,
     ((candVVmode!=MELAEvent::nCandidateVVModes && (!lheMElist.empty() || doHiggsKinematics)) ? LHEHandler::doHiggsKinematics : LHEHandler::noKinematics),
-    year, LHEHandler::keepDefaultPDF, LHEHandler::keepDefaultQCDOrder
+    year, LHEHandler::keepDefaultPDF, LHEHandler::keepDefaultQCDOrder,
+    LHEHandler::CMS_Run2_preUL
     );
   lheHandler_NNPDF30_NLO = std::make_shared<LHEHandler>(
     MELAEvent::nCandidateVVModes, -1,
     LHEHandler::noKinematics,
-    year, LHEHandler::tryNNPDF30, LHEHandler::tryNLO
+    year, LHEHandler::tryNNPDF30, LHEHandler::tryNLO,
+    LHEHandler::CMS_Run2_preUL
     );
 
   // Setup ME computation
