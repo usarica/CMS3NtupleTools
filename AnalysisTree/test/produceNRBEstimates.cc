@@ -384,7 +384,7 @@ void getDistributions(
   foutput->cd();
 
   // Acquire corrections from previous steps
-  std::vector<TH1F*> h_incorr_list[2][2]; // [Data, non-res MC][mumu, ee] for Nj>=0
+  std::vector<TH1F*> h_incorr_list[2][2]; // [Data, nonres MC][mumu, ee] for Nj>=0
   std::vector<TFile*> finputs_prevstep;
   if (istep>0){
     auto const& strBtaggingRegionName = strBtaggingRegionNames.at(1); // Inverted b-med
@@ -2162,7 +2162,7 @@ void makePlots_fcorr(
     "Data"
   };
   std::vector<TString> const process_labels{
-    "Expected non-res.",
+    "Expected nonres.",
     "Observed"
   };
   unsigned short nprocesses = process_names.size();
@@ -2363,7 +2363,7 @@ void makePlots(
   std::vector<TString> const process_labels{
     "WW#rightarrow2l2#nu",
     "t#bar{t}#rightarrow2l2#nu",
-    "Other non-res.",
+    "Other nonres.",
 /*
     "ZW#rightarrow3l#nu (gen.-matched)",
     "ZZ#rightarrow2l2#nu (gen.-matched)",
@@ -2496,9 +2496,9 @@ void makePlots(
             }
             for (int ip=hlist_channel_rewgt_uncorr.size()-1; ip>=0; ip--){
               hplot.push_back(hlist_channel_rewgt_corr.at(ip));
-              hlabels.push_back((ip==0 ? "All non-res. (rewgt.+corr.)" : "Obs. nonres. (rewgt.+corr.)"));
+              hlabels.push_back((ip==0 ? "All nonres. (rewgt.+corr.)" : "Obs. nonres. (rewgt.+corr.)"));
               hplot.push_back(hlist_channel_rewgt_uncorr.at(ip));
-              hlabels.push_back((ip==0 ? "All non-res. (rewgt.)" : "Obs. nonres. (rewgt.)"));
+              hlabels.push_back((ip==0 ? "All nonres. (rewgt.)" : "Obs. nonres. (rewgt.)"));
             }
             for (int ip=hlist_channel_raw.size()-1; ip>=0; ip--){
               TString hname = hlist_channel_raw.at(ip)->GetName();
@@ -2539,7 +2539,7 @@ void makePlots(
 
             if (varname=="mll"){
               for (unsigned int ip=0; ip<hplot.size(); ip++){
-                if (hlabels.at(ip).Contains("Observed") || hlabels.at(ip).Contains("All non-res.") || hlabels.at(ip).Contains("Other")){
+                if (hlabels.at(ip).Contains("Observed") || hlabels.at(ip).Contains("All nonres.") || hlabels.at(ip).Contains("Other")){
                   IVYout << hlabels.at(ip) << " integral: " << hplot.at(ip)->Integral() << endl;
                 }
               }
@@ -2645,6 +2645,7 @@ void combinePlots(
           if (hname.Contains("uncorrected") || (hname.Contains("mue_rewgt") && hname.Contains("AllMC_NonRes"))) continue;
           tmplabellist.push_back(hh->GetTitle()); hh->SetTitle("");
           tmphlist.push_back((TH1F*) hh->Clone(Form("%s_copy", hname.Data())));
+          tmphlist.back()->SetLineWidth(1);
           if (hname.Contains("Data")){
             tmphlist.back()->SetLineColor(kBlack);
             tmphlist.back()->SetMarkerColor(kBlack);
@@ -2789,6 +2790,7 @@ void combinePlots_paper(
           if (hname.Contains("uncorrected") || (hname.Contains("mue_rewgt") && hname.Contains("AllMC_NonRes"))) continue;
           tmplabellist.push_back(hh->GetTitle()); hh->SetTitle("");
           tmphlist.push_back((TH1F*) hh->Clone(Form("%s_copy", hname.Data())));
+          tmphlist.back()->SetLineWidth(1);
           if (hname.Contains("Data")){
             tmphlist.back()->SetLineColor(kBlack);
             tmphlist.back()->SetMarkerColor(kBlack);
@@ -2877,6 +2879,9 @@ void combinePlots_paper(
       if (ii==iplot){ doSkip=true; break; }
     }
     if (doSkip) continue;
+    for (auto& strl:hlabelslist.at(iplot)){
+      HelperFunctions::replaceString<TString, TString const>(strl, "non-res", "nonres");
+    }
     makePlot(
       coutput_main, /*lumi*/ 138, canvasnames.at(iplot),
       hlists.at(iplot), hlabelslist.at(iplot),

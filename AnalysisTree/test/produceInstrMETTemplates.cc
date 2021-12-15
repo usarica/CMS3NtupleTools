@@ -9,6 +9,7 @@
 #include "TLegend.h"
 #include "TemplateHelpers.h"
 #include "HistogramKernelDensitySmoothener.h"
+#include "PlottingHelpers.h"
 
 
 using namespace SystematicsHelpers;
@@ -31,7 +32,15 @@ using namespace SystematicsHelpers;
 bool isDataDriven(TString const& strSampleSet){ return (strSampleSet=="Data" || strSampleSet.Contains("SingleElectron")); }
 
 void getProcessCollection(TString const& strSampleSet, std::vector<TString>& snames){
-  if (strSampleSet=="Data") snames.push_back("Data");
+  if (strSampleSet.Contains(":")){
+    // This case is for composite samples.
+    std::vector<TString> samples;
+    HelperFunctions::splitOptionRecursive(strSampleSet, samples, ':', true);
+    for (auto const& ss:samples) getProcessCollection(ss, snames);
+    return;
+  }
+  else if (strSampleSet=="Data") snames.push_back("Data");
+  else if (strSampleSet=="GJets") snames.push_back("GJets_HT"); // Used only for plotting, not for template extraction.
   else if (strSampleSet=="WG") snames.push_back("qqWG_lnu");
   else if (strSampleSet=="ZG") snames.push_back("ZGJets_nunu");
   else if (strSampleSet=="VVG") snames.push_back("WZG");
@@ -944,10 +953,6 @@ void getTemplateIntermediate_ZZTo2L2Nu(
 }
 
 
-#undef BRANCH_COMMANDS
-#undef BRANCH_VECTOR_COMMANDS
-#undef BRANCH_SCALAR_COMMANDS
-
 void regularizeCombinedHistogram(TH2F*& hist){
   IVYout << "Regularizing " << hist->GetName() << "..." << endl;
   int const nbinsx = hist->GetNbinsX();
@@ -1770,3 +1775,633 @@ void createFinalTemplateSlices(TString cinput, TString coutput_main){
   foutput->Close();
   finput->Close();
 }
+
+
+
+void makePlot(
+  TString const& coutput_main,
+  float const& lumi,
+  TString canvasname,
+  std::vector<TH1F*> hlist,
+  std::vector<TString> hlabels,
+  TString selectionLabels,
+  TString drawopts,
+  bool adjustYLow,
+  float factorYHigh,
+  bool useLogY,
+  bool forceData,
+  bool addRatioPanel
+){
+  using namespace PlottingHelpers;
+
+  size_t nplottables = hlist.size();
+  if (hlabels.size()!=nplottables) return;
+  for (auto const& hlabel:hlabels){ if (hlabel=="") nplottables--; }
+
+  std::vector<TString> selectionList;
+  if (selectionLabels!="") HelperFunctions::splitOptionRecursive(selectionLabels, selectionList, '|');
+
+  bool hasData = false;
+  bool is_mll = canvasname.Contains("_mll");
+
+  std::vector<bool> hHasErrors;
+
+  int nbins = -1;
+  double ymin = 0;
+  if (adjustYLow || useLogY) ymin=9e9;
+  double ymax = -9e9;
+  for (size_t is=0; is<hlist.size(); is++){
+    TH1F* hist = hlist.at(is);
+    TString hname = hist->GetName();
+    if (hname.Contains("Data") || hname.Contains("data")) hasData = true;
+    bool hasErrors=false;
+    if (nbins<0) nbins = hist->GetNbinsX();
+    for (int ix=1; ix<=nbins; ix++){
+      double bc = hist->GetBinContent(ix);
+      double be = hist->GetBinError(ix);
+      if (be>0.2*std::abs(bc)) be = 0.2*std::abs(bc);
+      if (be!=0.f) hasErrors = true;
+      ymax = std::max(ymax, bc+be);
+      double bclow=bc; if (be<=bclow) bclow -= be;
+      if (useLogY){
+        if (bclow>1e-3) ymin = std::min(ymin, bclow);
+      }
+      else if (adjustYLow){
+        if (!(bc==0.f && be==0.f)) ymin = std::min(ymin, bclow);
+      }
+    }
+    hHasErrors.push_back(hasErrors);
+    //IVYout << "ymin, ymax after " << hname << ": " << ymin << ", " << ymax << endl;
+  }
+  if (ymax>=0.) ymax *= (factorYHigh>0.f ? factorYHigh : (useLogY ? 250. : 1.5))*(!is_mll ? 1. : 3.);
+  else ymax /= (factorYHigh>0.f ? factorYHigh : (useLogY ? 250. : 1.5));
+  ymin *= (ymin>=0. ? (useLogY ? 0.8 : 0.95) : 1.05);
+  for (TH1F* const& hist:hlist) hist->GetYaxis()->SetRangeUser(ymin, ymax);
+
+  TString varlabel;
+  TString quantlabel = "Events / bin";
+  TH1F* hdenom = nullptr;
+  std::vector<TH1F*> hnum_MC_list;
+  std::unordered_map<TH1F*, TGraphAsymmErrors*> hist_tg_map;
+  for (size_t is=0; is<hlist.size(); is++){
+    TH1F* hist = hlist.at(is);
+    TString hname = hist->GetName();
+
+    if (varlabel=="") varlabel = hist->GetXaxis()->GetTitle();
+    if (quantlabel=="") quantlabel = hist->GetYaxis()->GetTitle();
+
+    hist->GetXaxis()->SetTitle("");
+    hist->GetYaxis()->SetTitle("");
+
+    if (hname.Contains("Data")){
+      TGraphAsymmErrors* tg = nullptr;
+      HelperFunctions::convertTH1FToTGraphAsymmErrors(hist, tg, false, true);
+      tg->SetName(Form("%s_noZeros", tg->GetName()));
+      tg->SetTitle("");
+      tg->GetYaxis()->SetRangeUser(ymin, ymax);
+
+      tg->GetXaxis()->SetTitle("");
+      tg->GetYaxis()->SetTitle("");
+
+      hist_tg_map[hist] = tg;
+    }
+    else if (hname.Contains("AllMC_NonRes")){
+      if (!hdenom && !hname.Contains("mue_rewgt")){
+        if (addRatioPanel) hdenom = dynamic_cast<TH1F*>(hist->Clone("hdenom"));
+      }
+      else if (hname.Contains("mue_rewgt")) hnum_MC_list.push_back(hist);
+    }
+  }
+
+  // Fix for negative stacked contributions:
+  // When displaying ratios, use the maximum stacked histogram as displayed visually in the main panel.
+  // Otherwise, some bins show visible nonsense in the ratio plots.
+  if (hdenom){
+    for (int ix=1; ix<=nbins; ix++){
+      double bc = hdenom->GetBinContent(ix);
+      double be = hdenom->GetBinError(ix);
+
+      for (auto const& hist:hlist){
+        TString hname = hist->GetName();
+
+        if (hname.Contains("AllMC_NonRes") || hname.Contains("Data")) continue;
+
+        double bch = hist->GetBinContent(ix);
+        double beh = hist->GetBinError(ix);
+
+        if (bc<bch){
+          bc = bch;
+          be = beh;
+        }
+      }
+
+      if (bc<1e-5){
+        bc = 0.;
+        be = 0.;
+      }
+
+      hdenom->SetBinContent(ix, bc);
+      hdenom->SetBinError(ix, be);
+    }
+  }
+
+  constexpr double npixels_pad_xy = 800;
+  CMSLogoStep cmslogotype = kSupplementary;
+  if (!hasData && !forceData) cmslogotype = kSimulation;
+  PlotCanvas plot(canvasname, npixels_pad_xy, npixels_pad_xy, 1, (addRatioPanel ? 2 : 1), 0.2, 0.05, 0.15, 0.07, 0., 0.1, 0.2);
+  plot.addCMSLogo(cmslogotype, 13, lumi, 0);
+
+  for (size_t is=0; is<hlist.size(); is++){
+    TH1F* hist = hlist.at(is);
+
+    hist->GetXaxis()->SetNdivisions(505);
+    hist->GetXaxis()->SetLabelFont(43);
+    hist->GetXaxis()->SetLabelOffset(plot.getStdOffset_XLabel());
+    hist->GetXaxis()->SetLabelSize(plot.getStdPixelSize_XYLabel());
+    hist->GetYaxis()->SetNdivisions(505);
+    hist->GetYaxis()->SetLabelFont(43);
+    hist->GetYaxis()->SetLabelOffset(plot.getStdOffset_YLabel());
+    hist->GetYaxis()->SetLabelSize(plot.getStdPixelSize_XYLabel());
+
+    if (addRatioPanel) hist->GetXaxis()->SetLabelSize(0);
+  }
+  for (auto& pp:hist_tg_map){
+    TGraphAsymmErrors* tg = pp.second;
+
+    tg->GetXaxis()->SetNdivisions(505);
+    tg->GetXaxis()->SetLabelFont(43);
+    tg->GetXaxis()->SetLabelOffset(plot.getStdOffset_XLabel());
+    tg->GetXaxis()->SetLabelSize(plot.getStdPixelSize_XYLabel());
+    tg->GetYaxis()->SetNdivisions(505);
+    tg->GetYaxis()->SetLabelFont(43);
+    tg->GetYaxis()->SetLabelOffset(plot.getStdOffset_YLabel());
+    tg->GetYaxis()->SetLabelSize(plot.getStdPixelSize_XYLabel());
+
+    if (addRatioPanel) tg->GetXaxis()->SetLabelSize(0);
+  }
+
+  TH1F* hdummy_ratio = nullptr;
+  std::vector<TGraphAsymmErrors*> tgratios;
+  std::vector<TH1F*> hratios;
+  std::vector<TString> stropts_ratios;
+  if (addRatioPanel){
+    TGraphAsymmErrors* tgtmp = nullptr;
+    HelperFunctions::convertTH1FToTGraphAsymmErrors(hdenom, tgtmp, true, true, true);
+    tgtmp->SetFillStyle(3345); tgtmp->SetFillColor(kBlack);
+    tgtmp->SetMarkerColor(kBlack); tgtmp->SetLineColor(kBlack);
+    tgratios.push_back(tgtmp); stropts_ratios.push_back("2same");
+
+    for (auto& hh:hnum_MC_list){
+      tgtmp = nullptr;
+      HelperFunctions::convertTH1FToTGraphAsymmErrors(hh, tgtmp, true, true, true);
+      tgtmp->SetName(Form("tg_%s_withZeros", hh->GetName()));
+      tgtmp->SetMarkerColor(hh->GetMarkerColor()); tgtmp->SetLineColor(hh->GetLineColor()); tgtmp->SetLineWidth(hh->GetLineWidth()); tgtmp->SetLineStyle(hh->GetLineStyle());
+      tgratios.push_back(tgtmp); stropts_ratios.push_back("0psame");
+      //for (int ix=0; ix<tgtmp->GetN(); ix++){ tgtmp->GetEYlow()[ix] = tgtmp->GetEYhigh()[ix] = 0; }
+    }
+
+    // Iterate in reverse order to preserve the same order of plotting as in the main panel.
+    for (int is=hlist.size()-1; is>=0; is--){
+      TH1F* hist = hlist.at(is);
+      auto it_hist_tg_map = hist_tg_map.find(hist);
+      if (hist_tg_map.find(hist)==hist_tg_map.end()) continue;
+      auto const& tgref = it_hist_tg_map->second;
+
+      tgtmp = nullptr;
+      HelperFunctions::convertTH1FToTGraphAsymmErrors(hist, tgtmp, true, true);
+      tgtmp->SetName(Form("%s_withZeros", tgtmp->GetName()));
+      tgtmp->SetMarkerColor(tgref->GetMarkerColor()); tgtmp->SetLineColor(tgref->GetLineColor()); tgtmp->SetLineWidth(tgref->GetLineWidth()); tgtmp->SetLineStyle(tgref->GetLineStyle());
+      tgratios.push_back(tgtmp); stropts_ratios.push_back("0psame");
+    }
+
+    double ymin_ratio = 9e9;
+    double ymax_ratio = -9e9;
+    for (int ix=static_cast<int>(nbins-1); ix>=0; ix--){
+      double const vden = std::abs(hdenom->GetBinContent(ix+1));
+      bool const hasZeroDen = (vden==0.);
+      if (hasZeroDen){
+        for (auto& tgtmp:tgratios){
+          TGraph* tgg = tgtmp;
+          HelperFunctions::removePoint(tgg, ix);
+          tgtmp = dynamic_cast<TGraphAsymmErrors*>(tgg);
+        }
+      }
+      else{
+        for (auto& tgtmp:tgratios){
+          double& yy = tgtmp->GetY()[ix];
+          double& eyl = tgtmp->GetEYlow()[ix];
+          double& eyh = tgtmp->GetEYhigh()[ix];
+
+          yy /= vden;
+          eyl /= vden;
+          eyh /= vden;
+
+          ymin_ratio = std::min(ymin_ratio, yy-std::abs(eyl));
+          ymax_ratio = std::max(ymax_ratio, yy+std::abs(eyh));
+        }
+      }
+    }
+
+    for (int ix=1; ix<=nbins; ix++){
+      double const vden = std::abs(hdenom->GetBinContent(ix));
+      for (auto& htmp:hratios){
+        double bc = htmp->GetBinContent(ix);
+
+        htmp->SetBinError(ix, 0);
+        htmp->SetBinContent(ix, (vden==0. || bc<0. ? 9e9 : bc/vden));
+        if (vden!=0. && bc>=0.){
+          ymin_ratio = std::min(ymin_ratio, bc/vden);
+          ymax_ratio = std::max(ymax_ratio, bc/vden);
+        }
+      }
+    }
+
+    if (ymin_ratio<0.) ymin_ratio = 0.;
+    if (ymax_ratio>5.) ymax_ratio = 5.;
+
+    hdummy_ratio = dynamic_cast<TH1F*>(hdenom->Clone("hdummy_ratio")); hdummy_ratio->Reset("ICESM");
+    hdummy_ratio->GetYaxis()->SetRangeUser(ymin_ratio*0.9, ymax_ratio*1.1);
+
+    hdummy_ratio->GetXaxis()->SetNdivisions(505);
+    hdummy_ratio->GetXaxis()->SetLabelFont(43);
+    hdummy_ratio->GetXaxis()->SetLabelOffset(plot.getStdOffset_XLabel());
+    hdummy_ratio->GetXaxis()->SetLabelSize(plot.getStdPixelSize_XYLabel());
+    hdummy_ratio->GetYaxis()->SetNdivisions(505);
+    hdummy_ratio->GetYaxis()->SetLabelFont(43);
+    hdummy_ratio->GetYaxis()->SetLabelOffset(plot.getStdOffset_YLabel());
+    hdummy_ratio->GetYaxis()->SetLabelSize(plot.getStdPixelSize_XYLabel());
+  }
+
+  TPad* pad_hists = plot.getInsidePanels().front().back();
+  TPad* pad_ratios = (addRatioPanel ? plot.getInsidePanels().front().front() : nullptr);
+
+  // Add x and y titles
+  TPad* pad_xtitle = plot.getBorderPanels().at(0); pad_xtitle->cd();
+  TLatex* xtitle = new TLatex(); plot.addText(xtitle);
+  xtitle->SetTextAlign(22);
+  xtitle->SetTextFont(PlotCanvas::getStdFont_XYTitle());
+  xtitle->SetTextSize(plot.getStdPixelSize_XYTitle());
+  plot.addText(xtitle->DrawLatexNDC(0.5, 0.5, varlabel));
+
+  TPad* pad_ytitle = plot.getBorderPanels().at(1); pad_ytitle->cd();
+  TLatex* ytitle = new TLatex(); plot.addText(ytitle);
+  ytitle->SetTextAlign(22);
+  ytitle->SetTextFont(PlotCanvas::getStdFont_XYTitle());
+  ytitle->SetTextSize(plot.getStdPixelSize_XYTitle());
+  ytitle->SetTextAngle(90);
+  plot.addText(ytitle->DrawLatexNDC(0.5, (addRatioPanel ? 1.-0.5/1.4 : 0.5), quantlabel));
+  if (addRatioPanel) plot.addText(ytitle->DrawLatexNDC(0.5, 0.15/1.4, "Ratio"));
+
+  pad_hists->cd();
+  if (useLogY) pad_hists->SetLogy(true);
+
+  constexpr double legend_ymax = 0.90;
+  double legend_pixelsize = plot.getStdPixelSize_XYTitle();
+  double legend_reldy = legend_pixelsize/npixels_pad_xy*1.2;
+  TLegend* legend = new TLegend(
+    0.57,
+    legend_ymax-legend_reldy*float(nplottables),
+    0.90,
+    legend_ymax,
+    "", "NDC"
+  );
+  legend->SetBorderSize(0);
+  legend->SetTextFont(43);
+  legend->SetTextAlign(12);
+  legend->SetTextSize(legend_pixelsize);
+  legend->SetLineColor(1);
+  legend->SetLineStyle(1);
+  legend->SetLineWidth(1);
+  legend->SetFillColor(0);
+  legend->SetFillStyle(0);
+  plot.addLegend(legend);
+  TText* text;
+
+  pad_hists->cd();
+
+  bool firstHist = true;
+  for (size_t is=0; is<hlist.size(); is++){
+    TH1F* hist = hlist.at(is);
+    TString const& hlabel = hlabels.at(is);
+
+    bool hasGraph = hist_tg_map.find(hist)!=hist_tg_map.end();
+    bool hasErrors = hHasErrors.at(is);
+
+    TString stropt = drawopts;
+    if (!hasErrors) stropt = "hist";
+
+    hist->SetTitle("");
+    if (hlabel!=""){
+      if (!hasGraph){
+        if (stropt=="hist") legend->AddEntry(hist, hlabel, "f");
+        else legend->AddEntry(hist, hlabel, "elp");
+      }
+      else legend->AddEntry(hist_tg_map[hist], hlabel, "e1p");
+    }
+
+    if (hasGraph) continue;
+
+    if (firstHist){
+      if (!hasGraph) hist->Draw(stropt);
+      else hist_tg_map[hist]->Draw("ae1p");
+      firstHist = false;
+    }
+    else{
+      if (!hasGraph) hist->Draw(stropt+"same");
+      else hist_tg_map[hist]->Draw("e1psame");
+    }
+  }
+
+  pad_hists->cd();
+
+  // Re-draw data or AllMC_NonRes reweighted.
+  // Draw in reverse in order to make sure real data is drawn the last.
+  for (int is=hlist.size()-1; is>=0; is--){
+    TH1F* hist = hlist.at(is);
+    TString hname = hist->GetName();
+    if (!(hname.Contains("Data") || (hname.Contains("AllMC_NonRes") && hname.Contains("mue_rewgt")))) continue;
+    bool hasGraph = hist_tg_map.find(hist)!=hist_tg_map.end();
+    bool hasErrors = hHasErrors.at(is);
+    TString stropt = drawopts;
+    if (!hasErrors) stropt = "hist";
+    if (!hasGraph) hist->Draw(stropt+"same");
+    else hist_tg_map[hist]->Draw("e1psame");
+  }
+
+  pad_hists->cd();
+  legend->Draw();
+
+  pad_hists->cd();
+  TLatex* selectionstitle = new TLatex(); plot.addText(selectionstitle);
+  selectionstitle->SetTextAlign(12);
+  selectionstitle->SetTextFont(43);
+  selectionstitle->SetTextSize(legend_pixelsize);
+  {
+    double pt_ymax = legend_ymax;
+    double pt_dy = legend_reldy;
+    for (auto const& strSel:selectionList){
+      plot.addText(selectionstitle->DrawLatexNDC(0.25/(1.+0.25), pt_ymax-pt_dy/2., strSel));
+      pt_ymax -= pt_dy;
+    }
+  }
+
+  if (pad_ratios){
+    pad_ratios->cd();
+    hdummy_ratio->SetTitle("");
+    hdummy_ratio->Draw("hist");
+    for (unsigned int itg=0; itg<1; itg++){
+      tgratios.at(itg)->SetTitle("");
+      tgratios.at(itg)->Draw(stropts_ratios.at(itg));
+    }
+    for (auto& hh:hratios){
+      hh->SetTitle("");
+      hh->Draw("histsame");
+    }
+    for (unsigned int itg=1; itg<tgratios.size(); itg++){
+      tgratios.at(itg)->SetTitle("");
+      tgratios.at(itg)->Draw(stropts_ratios.at(itg));
+    }
+  }
+
+  plot.update();
+  plot.save(coutput_main, "png");
+  plot.save(coutput_main, "pdf");
+
+  for (auto& hh:hratios) delete hh;
+  delete hdummy_ratio;
+  for (auto& tg:tgratios) delete tg;
+  for (auto& pp:hist_tg_map) delete pp.second;
+  delete hdenom;
+}
+
+void makePaperPlots(TString strdate){
+  if (!SampleHelpers::checkRunOnCondor()) std::signal(SIGINT, SampleHelpers::setSignalInterrupt);
+
+  if (strdate=="") strdate = HelperFunctions::todaysdate();
+
+  SystematicsHelpers::SystematicVariationTypes const theGlobalSyst = SystematicsHelpers::sNominal;
+  ACHypothesisHelpers::ACHypothesis const AChypo = ACHypothesisHelpers::kSM;
+
+  PlottingHelpers::PlotCanvas::setMagic_StdPixelSize_CMSLogo(0.98);
+  PlottingHelpers::PlotCanvas::setMagic_StdPixelSize_CMSLogoExtras(0.8);
+  PlottingHelpers::PlotCanvas::setMagic_StdPixelSize_XYTitle(0.9);
+  PlottingHelpers::PlotCanvas::setMagic_StdPixelSize_XYLabel(0.8);
+
+  TString strSyst = SystematicsHelpers::getSystName(theGlobalSyst).data();
+
+  TDirectory* curdir = gDirectory;
+
+  std::vector<TString> const strSampleSets{ "Data", "GJets", "ZG", "WG", "SingleElectron", "VVG:tGX" };
+  std::vector<TString> const strSampleLabels{ "Observed", "#gamma+jets (sim.)", "Z(#rightarrow#nu#nu)+#gamma", "W(#rightarrowl#nu)+#gamma", "W#rightarrowl#nu", "Others" };
+  std::vector<TString> const strCatNames{ "Nj_eq_0", "Nj_eq_1", "Nj_geq_2_pTmiss_lt_200", "Nj_geq_2_pTmiss_ge_200" };
+  unsigned int const nCats = strCatNames.size();
+
+  std::vector<TString> const periods{ "2016", "2017", "2018" };
+
+  TString coutput_main = "output/InstrMET/" + strdate + "/Plots/Paper/";
+  gSystem->mkdir(coutput_main, true);
+
+  // Build discriminants
+  std::vector<DiscriminantClasses::Type> KDtypes;
+  for (auto const& KDtype:ACHypothesisHelpers::getACHypothesisKDSet(AChypo, ACHypothesisHelpers::kVBF, ACHypothesisHelpers::kZZ2l2nu_offshell)){
+    if (!HelperFunctions::checkListVariable(KDtypes, KDtype)) KDtypes.push_back(KDtype);
+  }
+  unsigned int const nKDs = KDtypes.size();
+  std::vector<DiscriminantClasses::KDspecs> KDlist; KDlist.reserve(nKDs);
+  for (auto const& KDtype:KDtypes) KDlist.emplace_back(KDtype);
+
+  std::vector<TString> plotnames;
+  std::vector<ExtendedBinning> binninglist;
+  for (auto const& strCatName:strCatNames){
+    plotnames.push_back(strCatName + "_mTZZ");
+    binninglist.push_back(ExtendedBinning(13, 300, 1600, "mTZZ", "m_{T}^{ZZ} (GeV)"));
+    if (strCatName.Contains("Nj_geq_2")){
+      for (auto const& KD:KDlist){
+        plotnames.push_back(strCatName + "_" + KD.KDname);
+        binninglist.push_back(ExtendedBinning(10, 0, 1, KD.KDname, KD.KDlabel));
+      }
+    }
+  }
+  std::vector< std::vector<TH1F*> > hplotslist(plotnames.size(), std::vector<TH1F*>(strSampleSets.size(), nullptr));
+  for (unsigned int iplot=0; iplot<plotnames.size(); iplot++){
+    ExtendedBinning const& binning = binninglist.at(iplot);
+    for (unsigned int is=0; is<strSampleSets.size(); is++){
+      TString sname = strSampleSets.at(is);
+      HelperFunctions::replaceString<TString, TString const>(sname, ":", "_");
+      TH1F* htmp = new TH1F(sname + "_" + plotnames.at(iplot), strSampleLabels.at(is), binning.getNbins(), binning.getBinning());
+      htmp->Sumw2();
+      htmp->GetXaxis()->SetTitle(binning.getLabel());
+      htmp->GetYaxis()->SetTitle("Events / bin");
+      htmp->SetLineWidth(1);
+      switch (is){
+      case 0:
+        htmp->SetLineColor(kBlack);
+        htmp->SetMarkerColor(kBlack);
+        htmp->SetMarkerStyle(20);
+        htmp->SetMarkerSize(1.2);
+        break;
+      case 1:
+        htmp->SetFillColor(kPink+1);
+        htmp->SetLineColor(kPink+1);
+        break;
+      case 2:
+        htmp->SetFillColor(kCyan+1);
+        htmp->SetLineColor(kCyan+1);
+        break;
+      case 3:
+        htmp->SetFillColor(kViolet-1);
+        htmp->SetLineColor(kViolet-1);
+        break;
+      case 4:
+        htmp->SetFillColor(kOrange-2);
+        htmp->SetLineColor(kOrange-2);
+        break;
+      case 5:
+        htmp->SetFillColor(kRed-4);
+        htmp->SetLineColor(kRed-4);
+        break;
+      default:
+        break;
+      }
+      hplotslist.at(iplot).at(is) = htmp;
+    }
+  }
+
+  for (auto const& period:periods){
+    SampleHelpers::configure(period, Form("%s:ZZTo2L2Nu/%s", "store_finaltrees", strdate.Data()));
+
+    for (unsigned int isample=0; isample<strSampleSets.size(); isample++){
+      TString const& strSampleSet = strSampleSets.at(isample);
+
+      // Get input raw tree
+      std::vector<TFile*> finputs;
+      std::vector<TTree*> tinlist;
+      std::unordered_map<TTree*, double> norm_map;
+      std::vector<TString> snames; getProcessCollection(strSampleSet, snames);
+      for (auto const& sname:snames){
+        TString cinput = SampleHelpers::getDatasetDirectoryName(period) + "/finaltree_InstrMET_" + sname + "_" + strSyst + ".root";
+        if (!HostHelpers::FileReadable(cinput)){
+          IVYerr << "Input file " << cinput << " is not found." << endl;
+          return;
+        }
+        else IVYout << "Acquiring input file " << cinput << "..." << endl;
+        TFile* finput = TFile::Open(cinput, "read"); finputs.push_back(finput);
+        TTree* tin = (TTree*) finput->Get("FinalTree"); tinlist.push_back(tin);
+        if (!tin) IVYerr << "\t- No trees are found!" << endl;
+
+        // Check if an extension is present
+        TFile* finput_ext = nullptr;
+        TTree* tin_ext = nullptr;
+        TString cinput_ext = SampleHelpers::getDatasetDirectoryName(period) + "/finaltree_InstrMET_" + sname + "_ext_" + strSyst + ".root";
+        if (!HostHelpers::FileReadable(cinput_ext)) IVYout << "No extension sample " << cinput_ext << " is found." << endl;
+        else{
+          IVYout << "Acquiring ext. input file " << cinput_ext << "..." << endl;
+          finput_ext = TFile::Open(cinput_ext, "read"); finputs.push_back(finput_ext);
+          tin_ext = (TTree*) finput_ext->Get("FinalTree"); tinlist.push_back(tin_ext);
+        }
+
+        if (tin_ext){
+          double nEntries = tin->GetEntries();
+          double nEntries_ext = tin_ext->GetEntries();
+          norm_map[tin] = nEntries / (nEntries + nEntries_ext);
+          norm_map[tin_ext] = nEntries_ext / (nEntries + nEntries_ext);
+        }
+        else norm_map[tin]=1;
+      }
+
+#define BRANCH_COMMAND(TYPE, NAME) TYPE NAME = 0;
+      BRANCH_SCALAR_COMMANDS;
+#undef BRANCH_COMMAND
+#define BRANCH_COMMAND(TYPE, NAME) std::vector<TYPE>* NAME = nullptr;
+      BRANCH_VECTOR_COMMANDS;
+#undef BRANCH_COMMAND
+      std::vector<float> KDvals(nKDs, -1.f);
+
+      for (auto& tin:tinlist){
+        tin->SetBranchStatus("*", 0);
+#define BRANCH_COMMAND(TYPE, NAME) tin->SetBranchStatus(#NAME, 1); tin->SetBranchAddress(#NAME, &NAME);
+        BRANCH_COMMANDS;
+#undef BRANCH_COMMAND
+        for (unsigned int iKD=0; iKD<nKDs; iKD++){
+          TString const& KDname = KDlist.at(iKD).KDname;
+          tin->SetBranchStatus(KDname, 1); tin->SetBranchAddress(KDname, &(KDvals.at(iKD)));
+        }
+      }
+
+      for (auto& tin:tinlist){
+        double const& normval = norm_map.find(tin)->second;
+        int nEntries = tin->GetEntries();
+        for (int ev=0; ev<nEntries; ev++){
+          tin->GetEntry(ev);
+          HelperFunctions::progressbar(ev, nEntries);
+
+          if (!HelperFunctions::checkVarNanInf(weight)) IVYerr << "Weight in event " << ev << " is not a normal number: " << weight << endl;
+
+          // Renormalize the weights
+          weight *= normval;
+
+          unsigned int icat=0;
+          if (n_ak4jets_pt30>=2 && pTmiss<200.f) icat=2;
+          else if (n_ak4jets_pt30>=2 && pTmiss>=200.f) icat=3;
+          else if (n_ak4jets_pt30==1) icat=1;
+          else icat=0;
+
+          if (mTZZ<300.) continue;
+
+          TString const& catname = strCatNames.at(icat);
+
+          for (unsigned int iplot=0; iplot<plotnames.size(); iplot++){
+            TString const& plotname = plotnames.at(iplot);
+            if (plotname.Contains(catname)){
+              if (plotname.EndsWith("mTZZ")) hplotslist.at(iplot).at(isample)->Fill(mTZZ, weight);
+              else{
+                for (unsigned int iKD=0; iKD<KDlist.size(); iKD++){
+                  if (plotname.EndsWith(KDlist.at(iKD).KDname)) hplotslist.at(iplot).at(isample)->Fill(KDvals.at(iKD), weight);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      for (auto& finput:finputs) finput->Close();
+    }
+  }
+
+  for (unsigned int iplot=0; iplot<plotnames.size(); iplot++){
+    TString const& plotname = plotnames.at(iplot);
+    std::vector<TH1F*>& hlist = hplotslist.at(iplot);
+    TString selectionLabels;
+    if (plotname.Contains("Nj_eq_0")) selectionLabels = "N_{j}=0";
+    else if (plotname.Contains("Nj_eq_1")) selectionLabels = "N_{j}=1";
+    else if (plotname.Contains("Nj_geq_2")) selectionLabels = "N_{j}#geq2";
+
+    if (plotname.Contains("pTmiss_lt_200")) selectionLabels = "|p_{T}^{miss}<200 GeV";
+    else if (plotname.Contains("pTmiss_ge_200")) selectionLabels += "|p_{T}^{miss}>200 GeV";
+
+    std::vector<TString> hlabels;
+    for (auto& hh:hlist){
+      hlabels.push_back(hh->GetTitle());
+      hh->SetTitle("");
+      HelperFunctions::wipeOverUnderFlows(hh, false, true);
+
+      double integral = HelperFunctions::getHistogramIntegralAndError(hh, 1, hh->GetNbinsX(), false);
+      IVYout << hh->GetName() << " integral: " << integral << endl;
+    }
+    for (int ih=hlist.size()-1; ih>1; ih--) hlist.at(ih-1)->Add(hlist.at(ih));
+
+    TString canvasname = TString("c_SinglePhotonCR_") + plotname;
+    makePlot(
+      coutput_main, /*lumi*/ 138, canvasname,
+      hlist, hlabels,
+      selectionLabels,
+      "hist", false, -1, plotname.EndsWith("mTZZ"), true, false
+    );
+
+    for (auto& hh:hlist) delete hh;
+  }
+}
+
+#undef BRANCH_COMMANDS
+#undef BRANCH_VECTOR_COMMANDS
+#undef BRANCH_SCALAR_COMMANDS
