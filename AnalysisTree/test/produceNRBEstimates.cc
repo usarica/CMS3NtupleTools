@@ -1837,7 +1837,7 @@ void makePlot(
   constexpr double npixels_pad_xy = 800;
   CMSLogoStep cmslogotype = kSupplementary;
   if (!hasData && !forceData) cmslogotype = kSimulation;
-  PlotCanvas plot(canvasname, npixels_pad_xy, npixels_pad_xy, 1, (addRatioPanel ? 2 : 1), 0.25, 0.0625, 0.2, 0.0875, 0., 0.1, 0.3);
+  PlotCanvas plot(canvasname, npixels_pad_xy, npixels_pad_xy, 1, (addRatioPanel ? 2 : 1), 0.2, 0.05, 0.15, 0.07, 0., 0.1, 0.2);
   plot.addCMSLogo(cmslogotype, 13, lumi, 0);
 
   for (size_t is=0; is<hlist.size(); is++){
@@ -1983,8 +1983,8 @@ void makePlot(
 
   pad_hists->cd();
 
-  constexpr double legend_ymax = 0.89;
-  double legend_pixelsize = plot.getStdPixelSize_XYLabel()*0.9;
+  constexpr double legend_ymax = 0.90;
+  double legend_pixelsize = plot.getStdPixelSize_XYTitle();
   double legend_reldy = legend_pixelsize/npixels_pad_xy*1.3;
   TLegend* legend = new TLegend(
     0.50,
@@ -1995,6 +1995,7 @@ void makePlot(
   );
   legend->SetBorderSize(0);
   legend->SetTextFont(43);
+  legend->SetTextAlign(12);
   legend->SetTextSize(legend_pixelsize);
   legend->SetLineColor(1);
   legend->SetLineStyle(1);
@@ -2581,7 +2582,7 @@ void combinePlots(
     strSRSBlabel = "p_{T}^{miss}: [90, %i) GeV SB";
     break;
   default:
-    MELAerr << "index_SR_SB=" << index_SR_SB << " is not implemented." << endl;
+    IVYerr << "index_SR_SB=" << index_SR_SB << " is not implemented." << endl;
     return;
   }
   TString const coutput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Plots/Combined/Distributions/" + strSRSB;
@@ -2649,7 +2650,7 @@ void combinePlots(
             tmphlist.back()->SetMarkerColor(kBlack);
             tmphlist.back()->SetMarkerStyle(20);
             tmphlist.back()->SetMarkerSize(1.2);
-            if (hname.Contains("mue_rewgt")) tmplabellist.back() = "Prediction from e#mu CR";
+            if (hname.Contains("mue_rewgt")) tmplabellist.back() = "e#mu CR pred.";
           }
           else if (hname.Contains("AllMC_NonRes")){
             tmphlist.back()->SetLineColor(kOrange-3);
@@ -2689,6 +2690,198 @@ void combinePlots(
       hlists.at(iplot), hlabelslist.at(iplot),
       selectionLabelslist.at(iplot),
       "hist", false, -1, true, true
+    );
+  }
+
+  for (auto& vv:hlists){ for (auto& hh:vv) delete hh; }
+  foutput->Close();
+}
+
+void combinePlots_paper(
+  TString strdate,
+  SystematicsHelpers::SystematicVariationTypes theGlobalSyst,
+  unsigned short index_SR_SB = 0 // SR: 0, lower MET SB: 1, mll-near SB: 2, mll-ttbar SB: 3
+){
+  if (!SampleHelpers::checkRunOnCondor()) std::signal(SIGINT, SampleHelpers::setSignalInterrupt);
+
+  if (strdate=="") strdate = HelperFunctions::todaysdate();
+
+  PlottingHelpers::PlotCanvas::setMagic_StdPixelSize_CMSLogo(0.98);
+  PlottingHelpers::PlotCanvas::setMagic_StdPixelSize_CMSLogoExtras(0.8);
+  PlottingHelpers::PlotCanvas::setMagic_StdPixelSize_XYTitle(0.9);
+  PlottingHelpers::PlotCanvas::setMagic_StdPixelSize_XYLabel(0.8);
+
+  std::vector<TString> const periods{ "2016", "2017", "2018" };
+
+  TString strSyst = SystematicsHelpers::getSystName(theGlobalSyst).data();
+
+  TDirectory* curdir = gDirectory;
+
+  TString strSRSB;
+  TString strSRSBlabel;
+  switch (index_SR_SB){
+  case 0:
+    strSRSB = "SR";
+    strSRSBlabel = "Signal region";
+    break;
+  case 1:
+    strSRSB = "SB_lowerMET";
+    strSRSBlabel = "p_{T}^{miss}: [90, %i) GeV SB";
+    break;
+  default:
+    IVYerr << "index_SR_SB=" << index_SR_SB << " is not implemented." << endl;
+    return;
+  }
+  TString const coutput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Plots/Combined/Distributions/" + strSRSB;
+  gSystem->mkdir(coutput_main, true);
+
+  TString stroutput = coutput_main + Form("/plots_%s", strSyst.Data());
+  stroutput = stroutput + ".root";
+  TFile* foutput = TFile::Open(stroutput, "recreate");
+
+  foutput->cd();
+
+  float lumi=0;
+  std::vector<TString> canvasnames;
+  std::vector<TString> selectionLabelslist;
+  std::vector< std::vector<TH1F*> > hlists;
+  std::vector< std::vector<TString> > hlabelslist;
+  for (auto const& period:periods){
+    lumi += SampleHelpers::getIntegratedLuminosity(period);
+
+    TString const cinput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Plots/" + period + "/Distributions/" + strSRSB;
+
+    TString strinput = cinput_main + Form("/plots_%s%s", strSyst.Data(), ".root");
+
+    TFile* finput = TFile::Open(strinput, "read");
+    foutput->cd();
+
+    std::vector<TTree*> plottrees;
+    HelperFunctions::extractObjectsFromDirectory(finput, plottrees);
+    cout << "Found " << plottrees.size() << " plots in " << period << endl;
+
+    if (period==periods.front()){
+      hlists.assign(plottrees.size(), std::vector<TH1F*>());
+      hlabelslist.assign(plottrees.size(), std::vector<TString>());
+    }
+
+    foutput->cd();
+    for (unsigned int iplot = 0; iplot<plottrees.size(); iplot++){
+      auto const& tin = plottrees.at(iplot);
+      TString canvasname = tin->GetName();
+
+      HelperFunctions::replaceString<TString, TString const>(canvasname, "labels_", "");
+
+      TDirectory* plotdir = (TDirectory*) finput->Get(canvasname);
+
+      std::vector<TH1F*> hlist;
+      HelperFunctions::extractObjectsFromDirectory(plotdir, hlist);
+
+      std::vector<TH1F*>& tmphlist = hlists.at(iplot);
+
+      if (period==periods.front()){
+        std::vector<TString>& tmplabellist = hlabelslist.at(iplot);
+
+        canvasnames.push_back(canvasname);
+        selectionLabelslist.push_back("N_{j}#geq2");
+        for (auto const& hh:hlist){
+          TString hname = hh->GetName();
+          if (hname.Contains("uncorrected") || (hname.Contains("mue_rewgt") && hname.Contains("AllMC_NonRes"))) continue;
+          tmplabellist.push_back(hh->GetTitle()); hh->SetTitle("");
+          tmphlist.push_back((TH1F*) hh->Clone(Form("%s_copy", hname.Data())));
+          if (hname.Contains("Data")){
+            tmphlist.back()->SetLineColor(kBlack);
+            tmphlist.back()->SetMarkerColor(kBlack);
+            tmphlist.back()->SetMarkerStyle(20);
+            tmphlist.back()->SetMarkerSize(1.2);
+            if (hname.Contains("mue_rewgt")) tmplabellist.back() = "e#mu CR pred.";
+          }
+          else if (hname.Contains("AllMC_NonRes")){
+            tmphlist.back()->SetLineColor(kOrange-3);
+            tmphlist.back()->SetMarkerColor(kOrange-3);
+            tmphlist.back()->SetFillColor(kOrange-3);
+          }
+          else if (hname.Contains("TT_2l2nu")){
+            tmphlist.back()->SetLineColor(kGray+1);
+            tmphlist.back()->SetMarkerColor(kGray+1);
+            tmphlist.back()->SetFillColor(kGray+1);
+          }
+          else if (hname.Contains("qqWW_2l2nu")){
+            tmphlist.back()->SetLineColor(kTeal-1);
+            tmphlist.back()->SetMarkerColor(kTeal-1);
+            tmphlist.back()->SetFillColor(kTeal-1);
+          }
+        }
+      }
+      else{
+        unsigned int ih=0;
+        for (auto const& hh:hlist){
+          TString hname = hh->GetName();
+          if (hname.Contains("uncorrected") || (hname.Contains("mue_rewgt") && hname.Contains("AllMC_NonRes"))) continue;
+          tmphlist.at(ih)->Add(hh, 1.);
+          ih++;
+        }
+      }
+    }
+
+    finput->Close();
+    foutput->cd();
+  }
+
+  // Filter mumu, keep only ee
+  std::vector<unsigned int> skip_index; skip_index.reserve(canvasnames.size());
+  for (unsigned int iplot=0; iplot<canvasnames.size(); iplot++){
+    TString& canvasname = canvasnames.at(iplot);
+
+    if (canvasname.Contains("_mue_")){
+      skip_index.push_back(iplot);
+      continue;
+    }
+    if (!canvasname.Contains("Nbloose_eq_0")){
+      skip_index.push_back(iplot);
+      continue;
+    }
+    if (!canvasname.Contains("Nj_geq_2")){
+      skip_index.push_back(iplot);
+      continue;
+    }
+    if (!canvasname.Contains("DjjVBF_") && !canvasname.Contains("DjjVBFa2_")){
+      skip_index.push_back(iplot);
+      continue;
+    }
+
+    bool is_ee = canvasname.Contains("_ee_");
+    if (!is_ee){
+      TString ctarget = canvasname;
+      HelperFunctions::replaceString<TString, TString const>(ctarget, "_mumu_", "_ee_");
+      for (unsigned int jplot=0; jplot<canvasnames.size(); jplot++){
+        TString const& canvasname_j = canvasnames.at(jplot);
+        if (canvasname_j==ctarget){
+          IVYout << "Adding histograms for " << canvasname_j << " into " << canvasname << endl;
+          for (unsigned int ih=0; ih<hlists.at(iplot).size(); ih++){
+            IVYout << "\t- Adding " << hlists.at(iplot).at(ih)->GetName() << " and " << hlists.at(jplot).at(ih)->GetName() << endl;
+            hlists.at(jplot).at(ih)->Add(hlists.at(iplot).at(ih));
+          }
+          break;
+        }
+      }
+      skip_index.push_back(iplot);
+      continue;
+    }
+    HelperFunctions::replaceString<TString, TString const>(canvasname, "_ee_", "_ll_");
+  }
+
+  for (unsigned int iplot=0; iplot<canvasnames.size(); iplot++){
+    bool doSkip=false;
+    for (auto const& ii:skip_index){
+      if (ii==iplot){ doSkip=true; break; }
+    }
+    if (doSkip) continue;
+    makePlot(
+      coutput_main, /*lumi*/ 138, canvasnames.at(iplot),
+      hlists.at(iplot), hlabelslist.at(iplot),
+      selectionLabelslist.at(iplot),
+      "hist", false, -1, true, false
     );
   }
 
