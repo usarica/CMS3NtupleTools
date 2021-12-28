@@ -170,7 +170,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   {
     std::vector<MELAParticle*> particleList;
     {
-      std::unordered_map<ParticleObject*, MELAParticle*> particle_translation_map;
+      std::unordered_map<IvyParticle*, MELAParticle*> particle_translation_map;
       for (auto const& part:lheparticles){
         MELAParticle* onePart = new MELAParticle(part->pdgId(), part->p4_TLV());
         onePart->setGenStatus(part->status());
