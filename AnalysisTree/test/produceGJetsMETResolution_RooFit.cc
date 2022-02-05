@@ -19,7 +19,6 @@
 #include "RooPlot.h"
 
 
-using namespace reco;
 using namespace RooFit;
 
 
