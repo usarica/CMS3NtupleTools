@@ -12,7 +12,7 @@ arguments="${arguments/<prodVersion>/$prodVersion}"
 arguments="${arguments/<strdate>/$date}"
 arguments="${arguments/<applyTightLeptonVetoIdToAK4Jets>/false}"
 
-skimdir="/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Skims/${prodVersion}"
+skimdir="/ceph/cms/store/user/usarica/Offshell_2L2Nu/Skims/${prodVersion}"
 skimdir=$( ExecuteCompiledCommand GetStandardHostPathToStore ${skimdir} t2.ucsd.edu )
 if [[ "$( ExecuteCompiledCommand DirectoryExists ${skimdir} )" == "false" ]]; then
   exit 1

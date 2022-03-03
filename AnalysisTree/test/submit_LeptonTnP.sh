@@ -85,7 +85,7 @@ for sample in "${MCSampleList[@]}"; do
   sampleDir=${sample//MINIAODSIM}
 
   echo "====="
-  skimdir="/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Skims/${prodVersion}/${sampleDir}"
+  skimdir="/ceph/cms/store/user/usarica/Offshell_2L2Nu/Skims/${prodVersion}/${sampleDir}"
   skimdir=$( ExecuteCompiledCommand GetStandardHostPathToStore ${skimdir} t2.ucsd.edu )
   if [[ "$( ExecuteCompiledCommand DirectoryExists ${skimdir} )" == "false" ]]; then
     echo "$skimdir does not exist"

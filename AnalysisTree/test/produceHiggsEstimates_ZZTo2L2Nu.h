@@ -349,7 +349,7 @@ void produceHiggsEstimates_ZZTo2L2Nu(
   );
 
   // Get input trees
-  TString const cinput_main = "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/DileptonEvents/SkimTrees/" + ntupleVersion;
+  TString const cinput_main = "/ceph/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/DileptonEvents/SkimTrees/" + ntupleVersion;
   std::unordered_map<BaseTree*, double> norm_map;
   std::unordered_map<BaseTree*, double> xsec_scale_map;
   std::vector< std::pair<TString, BaseTree*> > samples_all;

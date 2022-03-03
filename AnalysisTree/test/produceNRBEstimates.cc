@@ -361,7 +361,7 @@ void getDistributions(
   constexpr float thr_corr_mll = 201.2f;
 
   std::vector<TString> transfer_list;
-  TString const cinput_main = "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/DileptonEvents/SkimTrees/" + ntupleVersion;
+  TString const cinput_main = "/ceph/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/DileptonEvents/SkimTrees/" + ntupleVersion;
   TString const coutput_main = "output/NRBEstimates_ZZTo2L2Nu/" + strdate + "/Histograms/" + period;
 
   TDirectory* curdir = gDirectory;
@@ -395,7 +395,7 @@ void getDistributions(
       TString prevstep = Form("Step%u", jstep);
       HelperFunctions::replaceString<TString, TString const>(strinput_prevstep, ownstep, prevstep);
       HelperFunctions::replaceString<TString, TString const>(strinput_prevstep, strSyst_output, strSyst);
-      if (!HostHelpers::FileReadable(strinput_prevstep.Data())) strinput_prevstep = Form("/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/%s", strinput_prevstep.Data());
+      if (!HostHelpers::FileReadable(strinput_prevstep.Data())) strinput_prevstep = Form("/ceph/cms/store/user/usarica/Offshell_2L2Nu/Worker/%s", strinput_prevstep.Data());
       if (!HostHelpers::FileReadable(strinput_prevstep.Data())){
         foutput->Close();
         IVYerr << "File " << strinput_prevstep << " is not present. Please run the corresponding step first." << endl;

@@ -131,7 +131,7 @@ void getTrees_ZZTo2L2Nu(
 
   std::vector<TString> transfer_list;
 
-  TString const cinput_main = "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/DileptonEvents/SkimTrees/" + ntupleVersion;
+  TString const cinput_main = "/ceph/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/DileptonEvents/SkimTrees/" + ntupleVersion;
   TString const coutput_main =
     "output/DCDataTrees_ZZTo2L2Nu/" + strdate
     + "/CatScheme_Nj"
@@ -488,7 +488,7 @@ void getTrees_ZWTo3L1Nu(
 
   std::vector<TString> transfer_list;
 
-  TString const cinput_main = "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/3LEvents/SkimTrees/" + ntupleVersion;
+  TString const cinput_main = "/ceph/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/3LEvents/SkimTrees/" + ntupleVersion;
   TString const coutput_main =
     "output/DCDataTrees_ZWTo3L1Nu/" + strdate
     + "/CatScheme_Nj"

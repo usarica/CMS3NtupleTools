@@ -317,7 +317,7 @@ void produceCorrection(
 
   TString const cinput_main =
     "output/GJetsMETResolution/SkimTrees/"
-    //"/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/GJetsMETResolution/SkimTrees/"
+    //"/ceph/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/GJetsMETResolution/SkimTrees/"
     + strdate
     + "/" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
     + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
@@ -641,7 +641,7 @@ void produceFinalFits(
 
   TString const cinput_main =
     "output/GJetsMETResolution/SkimTrees/"
-    //"/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/GJetsMETResolution/SkimTrees/"
+    //"/ceph/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/GJetsMETResolution/SkimTrees/"
     + strdate
     + "/" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
     + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
@@ -1623,7 +1623,7 @@ void getCorrectionValidationHistograms(
 
   TString const cinput_main =
     "output/GJetsMETResolution/SkimTrees/"
-    //"/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/GJetsMETResolution/SkimTrees/"
+    //"/ceph/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/GJetsMETResolution/SkimTrees/"
     + strdate
     + "/" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
     + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")

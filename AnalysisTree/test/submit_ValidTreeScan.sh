@@ -15,7 +15,7 @@ arguments='"<strSampleSet>","<period>","<prodVersion>",true,true'
 arguments="${arguments/<period>/$period}"
 arguments="${arguments/<prodVersion>/$prodVersion}"
 
-proddir="/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Production/${prodVersion}"
+proddir="/ceph/cms/store/user/usarica/Offshell_2L2Nu/Production/${prodVersion}"
 proddir=$( ExecuteCompiledCommand GetStandardHostPathToStore ${proddir} t2.ucsd.edu )
 if [[ "$( ExecuteCompiledCommand DirectoryExists ${proddir} )" == "false" ]]; then
   echo "$proddir does not exist"

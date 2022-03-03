@@ -448,7 +448,7 @@ void count(int procsel, int ichunk, int nchunks, TString strdate){
       ) SampleHelpers::configure("2018", "store:200101");
     else{
       SampleHelpers::configure("2018", "store:200203");
-      SampleHelpers::setInputDirectory("/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Skims/DileptonSkims/2018");
+      SampleHelpers::setInputDirectory("/ceph/cms/store/user/usarica/Offshell_2L2Nu/Skims/DileptonSkims/2018");
     }
 
     bool const isData = SampleHelpers::checkSampleIsData(sample.path);

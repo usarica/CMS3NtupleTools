@@ -41,7 +41,7 @@ def run_single(args,grid_user,jobmaindir,batchscript,condorsite,year,indir,wsnam
    if (not args.remake and os.path.exists(jobdir+".tar")) or (args.skip_existing and os.path.exists(jobdir)):
       return
 
-   condoroutdir="/hadoop/cms/store/user/{}/Offshell_2L2Nu/Worker/output/LeptonEfficiencies/DataFits/{}/{}/{}".format(grid_user,args.date,year,wsname.replace('.tar',''))
+   condoroutdir="/ceph/cms/store/user/{}/Offshell_2L2Nu/Worker/output/LeptonEfficiencies/DataFits/{}/{}/{}".format(grid_user,args.date,year,wsname.replace('.tar',''))
    if args.robust_fit:
       # This means the directory should exist...
       if not os.path.exists(condoroutdir):

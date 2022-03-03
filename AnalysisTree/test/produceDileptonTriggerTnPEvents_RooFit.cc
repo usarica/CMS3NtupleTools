@@ -418,7 +418,7 @@ void getEfficiencyHistograms(
   TFile* foutput = TFile::Open(stroutput, "recreate");
   foutput->cd();
 
-  TString const cinput_main = "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/DileptonTriggerTnPEvents/SkimTrees/" + strdate;
+  TString const cinput_main = "/ceph/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/DileptonTriggerTnPEvents/SkimTrees/" + strdate;
   std::unordered_map<TChain*, double> norm_map;
   std::vector<std::pair<TString, TChain*>> samples_all;
   std::vector<TString> sgroups;

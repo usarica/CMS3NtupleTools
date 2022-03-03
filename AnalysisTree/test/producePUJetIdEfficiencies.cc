@@ -428,7 +428,7 @@ void getFinalEfficiencies(
   bool applyTightLeptonVetoIdToAK4Jets=false
 ){
   TString const cinput_main =
-    TString("/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/")
+    TString("/ceph/cms/store/user/usarica/Offshell_2L2Nu/Worker/")
     + "output/PUJetIdEffs/"
     + strdate + "/" + period
     + "/AK4Jets"

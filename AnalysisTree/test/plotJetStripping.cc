@@ -454,7 +454,7 @@ void plot(
 
   TString cinput_base_dir;
   /*if (!SampleHelpers::checkRunOnCondor()) cinput_base_dir = "output/";
-  else*/ cinput_base_dir = "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/";
+  else*/ cinput_base_dir = "/ceph/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/";
 
   // Set input directory
   std::vector<TChain*> tinlist;
