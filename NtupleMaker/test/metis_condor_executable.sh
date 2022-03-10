@@ -168,12 +168,14 @@ chirp ChirpMetisExpectedNevents $EXPECTEDNEVTS
 chirp ChirpMetisStatus "before_cmsRun"
 
 # Change file names to standard paths
-if [[ "${INPUTFILENAMES}" == *"/hadoop/cms"* ]]; then
+if [[ "${INPUTFILENAMES}" == *"/hadoop/cms"* ]] || [[ "${INPUTFILENAMES}" == *"/ceph/cms"* ]]; then
   echo "Need to change input file names for local files on UCSD. Old list of input files: ${INPUTFILENAMES}"
   if [[ "$(hostname)" != *"t2.ucsd.edu"* ]]; then
     INPUTFILENAMES=${INPUTFILENAMES//'/hadoop/cms'/'root://redirector.t2.ucsd.edu:1094/'}
+    INPUTFILENAMES=${INPUTFILENAMES//'/ceph/cms'/'root://redirector.t2.ucsd.edu:1095/'}
   else
-    INPUTFILENAMES=${INPUTFILENAMES//'/hadoop/cms'}
+    INPUTFILENAMES=${INPUTFILENAMES//'/hadoop/cms'/'file:///hadoop/cms'}
+    INPUTFILENAMES=${INPUTFILENAMES//'/ceph/cms'/'file:///ceph/cms'}
   fi
   echo "New list of input files: ${INPUTFILENAMES}"
 fi

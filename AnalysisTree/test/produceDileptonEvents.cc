@@ -45,6 +45,10 @@ namespace LooperFunctionHelpers{
   bool keepLHEGenPartInfo = false;
   void setKeepLHEGenPartInfo(bool keepLHEGenPartInfo_);
 
+  // Helpers to keep the hard process particles
+  bool keepHardProcessParticles = false;
+  void setKeepHardProcessParticles(bool keepHardProcessParticles_);
+
   // Helpers to keep track of elapsed time
   std::vector<std::pair<TString, std::chrono::microseconds>> type_accTime_pairs;
   void addTimeDuration(TString const& strname, std::chrono::microseconds const& dur);
@@ -686,15 +690,15 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     leptons_is_TOmatched_SingleLepton.push_back(HelperFunctions::checkListVariable(leptons_TOmatched_SingleLepton, (ParticleObject const*) dau));
 
     // Fill efficiency for the lepton
-    auto it_eff = lepton_eff_map.find(dau);
+    auto it_eff = lepton_eff_map.find(dynamic_cast<ParticleObject*>(dau));
     leptons_eff.push_back((it_eff==lepton_eff_map.end() ? 1 : it_eff->second));
-    it_eff = lepton_eff_StatDn_map.find(dau);
+    it_eff = lepton_eff_StatDn_map.find(dynamic_cast<ParticleObject*>(dau));
     leptons_eff_StatDn.push_back((it_eff==lepton_eff_StatDn_map.end() ? 1 : it_eff->second));
-    it_eff = lepton_eff_StatUp_map.find(dau);
+    it_eff = lepton_eff_StatUp_map.find(dynamic_cast<ParticleObject*>(dau));
     leptons_eff_StatUp.push_back((it_eff==lepton_eff_StatUp_map.end() ? 1 : it_eff->second));
-    it_eff = lepton_eff_SystDn_map.find(dau);
+    it_eff = lepton_eff_SystDn_map.find(dynamic_cast<ParticleObject*>(dau));
     leptons_eff_SystDn.push_back((it_eff==lepton_eff_SystDn_map.end() ? 1 : it_eff->second));
-    it_eff = lepton_eff_SystUp_map.find(dau);
+    it_eff = lepton_eff_SystUp_map.find(dynamic_cast<ParticleObject*>(dau));
     leptons_eff_SystUp.push_back((it_eff==lepton_eff_SystUp_map.end() ? 1 : it_eff->second));
 
     // Compute efficiency for the oppsite flavor (mu <-> e)
@@ -921,30 +925,57 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     commonEntry.setNamedVal("genak4jets_phi", genak4jets_phi);
     commonEntry.setNamedVal("genak4jets_mass", genak4jets_mass);
   }
-  if (!isData && keepLHEGenPartInfo){
-    auto const& lheparticles = genInfoHandler->getLHEParticles();
-    for (auto const& part:lheparticles){
-      if (PDGHelpers::isAHiggs(part->pdgId())){
-        commonEntry.setNamedVal<float>("lheHiggs_pt", part->pt());
-        commonEntry.setNamedVal<float>("lheHiggs_rapidity", part->rapidity());
-        commonEntry.setNamedVal<float>("lheHiggs_mass", part->mass());
-        break;
+  if (!isData){
+    if (keepLHEGenPartInfo){
+      auto const& lheparticles = genInfoHandler->getLHEParticles();
+      for (auto const& part:lheparticles){
+        if (PDGHelpers::isAHiggs(part->pdgId())){
+          commonEntry.setNamedVal<float>("lheHiggs_pt", part->pt());
+          commonEntry.setNamedVal<float>("lheHiggs_rapidity", part->rapidity());
+          commonEntry.setNamedVal<float>("lheHiggs_mass", part->mass());
+          break;
+        }
       }
-    }
 
-    ParticleObject::LorentzVector_t genpromptparticles_sump4;
-    auto const& genparticles = genInfoHandler->getGenParticles();
-    for (auto const& part:genparticles){
-      if (
-        part->testSelectionBit(GenParticleSelectionHelpers::kHardPromptFinalVisibleParticle)
-        ||
-        (part->extras.isPromptFinalState && PDGHelpers::isANeutrino(part->pdgId()))
-        ) genpromptparticles_sump4 += part->p4();
-    }
+      ParticleObject::LorentzVector_t genpromptparticles_sump4;
+      auto const& genparticles = genInfoHandler->getGenParticles();
+      for (auto const& part:genparticles){
+        if (
+          part->testSelectionBit(GenParticleSelectionHelpers::kHardPromptFinalVisibleParticle)
+          ||
+          (part->extras.isPromptFinalState && PDGHelpers::isANeutrino(part->pdgId()))
+          ) genpromptparticles_sump4 += part->p4();
+      }
 
-    commonEntry.setNamedVal<float>("genpromptparticles_sump4_pt", genpromptparticles_sump4.Pt());
-    commonEntry.setNamedVal<float>("genpromptparticles_sump4_mass", genpromptparticles_sump4.M());
-    commonEntry.setNamedVal<float>("genpromptparticles_sump4_rapidity", genpromptparticles_sump4.Rapidity());
+      commonEntry.setNamedVal<float>("genpromptparticles_sump4_pt", genpromptparticles_sump4.Pt());
+      commonEntry.setNamedVal<float>("genpromptparticles_sump4_mass", genpromptparticles_sump4.M());
+      commonEntry.setNamedVal<float>("genpromptparticles_sump4_rapidity", genpromptparticles_sump4.Rapidity());
+    }
+    if (keepHardProcessParticles){
+      auto const& genparticles = genInfoHandler->getGenParticles();
+      std::vector<float> genhardparticles_pt; genhardparticles_pt.reserve(genparticles.size());
+      std::vector<float> genhardparticles_pz; genhardparticles_pz.reserve(genparticles.size());
+      std::vector<float> genhardparticles_phi; genhardparticles_phi.reserve(genparticles.size());
+      std::vector<float> genhardparticles_mass; genhardparticles_mass.reserve(genparticles.size());
+      std::vector<cms3_id_t> genhardparticles_id; genhardparticles_id.reserve(genparticles.size());
+      std::vector<cms3_genstatus_t> genhardparticles_status; genhardparticles_status.reserve(genparticles.size());
+      for (auto const& part:genparticles){
+        if (part->extras.isHardProcess){
+          genhardparticles_pt.push_back(part->pt());
+          genhardparticles_pz.push_back(part->pz());
+          genhardparticles_phi.push_back(part->phi());
+          genhardparticles_mass.push_back(part->mass());
+          genhardparticles_id.push_back(part->pdgId());
+          genhardparticles_status.push_back(part->status());
+        }
+      }
+      commonEntry.setNamedVal("genhardparticles_pt", genhardparticles_pt);
+      commonEntry.setNamedVal("genhardparticles_pz", genhardparticles_pz);
+      commonEntry.setNamedVal("genhardparticles_phi", genhardparticles_phi);
+      commonEntry.setNamedVal("genhardparticles_mass", genhardparticles_mass);
+      commonEntry.setNamedVal("genhardparticles_id", genhardparticles_id);
+      commonEntry.setNamedVal("genhardparticles_status", genhardparticles_status);
+    }
   }
 
   /*********************/
@@ -984,6 +1015,8 @@ void LooperFunctionHelpers::setBtagWPs(){
 void LooperFunctionHelpers::setKeepGenAK4JetInfo(bool keepGenAK4JetInfo_){ keepGenAK4JetInfo = keepGenAK4JetInfo_; }
 
 void LooperFunctionHelpers::setKeepLHEGenPartInfo(bool keepLHEGenPartInfo_){ keepLHEGenPartInfo = keepLHEGenPartInfo_; }
+
+void LooperFunctionHelpers::setKeepHardProcessParticles(bool keepHardProcessParticles_){ keepHardProcessParticles = keepHardProcessParticles_; }
 
 void LooperFunctionHelpers::addTimeDuration(TString const& strname, std::chrono::microseconds const& dur){
   for (auto& pp:type_accTime_pairs){
@@ -1064,6 +1097,11 @@ void getTrees(
       strSampleSet.BeginsWith("ZH")
       );
   bool const useSkims = !isHighMassPOWHEG;
+  bool const isZPrimeMG =
+    (strSampleSet_lower.Contains("madgraph") || strSampleSet_lower.Contains("amcatnlo"))
+    &&
+    (strSampleSet_lower.Contains("zprime"));
+  bool const recordHardProcessParticles = isZPrimeMG;
 
   SampleHelpers::configure(period, Form("%s:%s", (useSkims ? "store_skims" : "store"), prodVersion.Data()));
 
@@ -1409,6 +1447,7 @@ void getTrees(
 
       LooperFunctionHelpers::setKeepGenAK4JetInfo(theGlobalSyst==sNominal);
       LooperFunctionHelpers::setKeepLHEGenPartInfo(theGlobalSyst==sNominal);
+      LooperFunctionHelpers::setKeepHardProcessParticles(has_genparticles && recordHardProcessParticles);
     }
     std::unordered_map<SystematicsHelpers::SystematicVariationTypes, double> globalWeights;
     double globalWeight = xsec * xsec_scale * BR_scale * (isData ? 1.f : lumi) / sum_wgts; globalWeights[theGlobalSyst] = globalWeight;

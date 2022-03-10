@@ -5,6 +5,7 @@ FCN=""
 FCNARGS=""
 DATE=""
 OUTPUTDIR=""
+BATCHSCRIPT="runCMS3AnalysisTree.condor.sh"
 CONDOROUTDIR="/ceph/cms/store/user/<USER>/Offshell_2L2Nu/Worker"
 EXTRATARCMD=""
 QUEUE="vanilla"
@@ -22,6 +23,10 @@ for fargo in "$@";do
     fcnargname="$farg"
     fcnargname="${fcnargname#*=}"
     SCRIPT="$fcnargname"
+  elif [[ "$fargl" == "batchscript="* ]] || [[ "$fargl" == "condorscript="* ]];then
+    fcnargname="$farg"
+    fcnargname="${fcnargname#*=}"
+    BATCHSCRIPT="$fcnargname"
   elif [[ "$fargl" == "function="* ]] || [[ "$fargl" == "fcn="* ]];then
     fcnargname="$farg"
     fcnargname="${fcnargname#*=}"
@@ -118,6 +123,7 @@ if [[ ! -z "${FCNARGS}" ]];then
   fcnargname="${fcnargname//,/_}"
   fcnargname="${fcnargname//=/_}"
   fcnargname="${fcnargname//.root}"
+  fcnargname="${fcnargname//.py}"
   fcnargname="${fcnargname//\"}"
   fcnargname="${fcnargname//\!}"
   fcnargname="${fcnargname//\\}"
@@ -209,8 +215,8 @@ if [[ $recreate -eq 1 ]] || [[ $hasJobSetup -eq 0 ]]; then
   ln -sf ${PWD}/${OUTDIR}/${TARFILE} ${PWD}/${theOutdir}/
 
   configureCMS3AnalysisTreeCondorJob.py \
-    --tarfile="$TARFILE" --batchqueue="$THEQUEUE" --outdir="$theOutdir" \
-    --script="$SCRIPT" --fcn="$FCN" --fcnargs="${FCNARGS}" --required_memory="${REQMEM}" --job_flavor="${JOBFLAVOR}" \
-    --condorsite="$THECONDORSITE" --condoroutdir="$THECONDOROUTDIR" \
-    --outlog="Logs/log_job" --errlog="Logs/err_job" --batchscript="runCMS3AnalysisTree.condor.sh" --dry
+    --tarfile="${TARFILE}" --batchqueue="${THEQUEUE}" --outdir="${theOutdir}" \
+    --script="${SCRIPT}" --fcn="${FCN}" --fcnargs="${FCNARGS}" --required_memory="${REQMEM}" --job_flavor="${JOBFLAVOR}" \
+    --condorsite="${THECONDORSITE}" --condoroutdir="${THECONDOROUTDIR}" \
+    --outlog="Logs/log_job" --errlog="Logs/err_job" --batchscript="${BATCHSCRIPT}" --dry
 fi

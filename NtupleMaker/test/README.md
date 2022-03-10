@@ -57,7 +57,7 @@ This would create [your directory]/[your subdirectory] to put the scripts there.
 1. Checkout ProjectMetis and make sure it is in the PATH (via the `setup.sh` script):
 ```
 cmsenv
-git clone https://github.com/aminnj/ProjectMetis
+git clone https://github.com/usarica/ProjectMetis
 cd ProjectMetis
 source setup.sh
 cd ..
@@ -74,4 +74,8 @@ python submit_jobs.py /home/users/usarica/work/public/for200313/*.csv samples_Da
 (after appropriate edits of the arguments).
 Note: I recommend using `DO_TEST=True` with a dummy/different `tag` to submit a handful of events
 for the first sample in each csv file. If those jobs succeed, switch to the actual `tag` for production and turn off `DO_TEST`.
+
+You might need the flag `--localSearchDir` for private MC.
+```
 4. Visit the monitoring page to view progress and output location.
+```

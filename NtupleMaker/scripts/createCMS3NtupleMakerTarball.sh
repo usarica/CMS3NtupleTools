@@ -15,7 +15,7 @@ cfipython \
 config \
 external \
 bin \
-src/CMSDataTools \
+src/IvyFramework \
 src/CommonLHETools \
 src/JHUGenMELA/MELA \
 src/JHUGenMELA/setup.sh \

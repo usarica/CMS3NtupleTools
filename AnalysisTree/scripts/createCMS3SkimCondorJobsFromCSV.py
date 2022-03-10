@@ -62,7 +62,7 @@ class BatchManager:
          self.extracmd += " recreate"
 
       self.json_sample_nfiles_list = []
-      if hasattr(self.opt, "filter_metis_json"):
+      if hasattr(self.opt, "filter_metis_json") and not self.opt.filter_metis_json is None:
          fjson = open(self.opt.filter_metis_json, "r")
          djs = json.load(fjson)
          for task in djs["tasks"]:

@@ -661,15 +661,15 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     leptons_is_TOmatched_SingleLepton.push_back(HelperFunctions::checkListVariable(leptons_TOmatched_SingleLepton, (ParticleObject const*) dau));
 
     // Fill efficiency for the lepton
-    auto it_eff = lepton_eff_map.find(dau);
+    auto it_eff = lepton_eff_map.find(dynamic_cast<ParticleObject*>(dau));
     leptons_eff.push_back((it_eff==lepton_eff_map.end() ? 1 : it_eff->second));
-    it_eff = lepton_eff_StatDn_map.find(dau);
+    it_eff = lepton_eff_StatDn_map.find(dynamic_cast<ParticleObject*>(dau));
     leptons_eff_StatDn.push_back((it_eff==lepton_eff_StatDn_map.end() ? 1 : it_eff->second));
-    it_eff = lepton_eff_StatUp_map.find(dau);
+    it_eff = lepton_eff_StatUp_map.find(dynamic_cast<ParticleObject*>(dau));
     leptons_eff_StatUp.push_back((it_eff==lepton_eff_StatUp_map.end() ? 1 : it_eff->second));
-    it_eff = lepton_eff_SystDn_map.find(dau);
+    it_eff = lepton_eff_SystDn_map.find(dynamic_cast<ParticleObject*>(dau));
     leptons_eff_SystDn.push_back((it_eff==lepton_eff_SystDn_map.end() ? 1 : it_eff->second));
-    it_eff = lepton_eff_SystUp_map.find(dau);
+    it_eff = lepton_eff_SystUp_map.find(dynamic_cast<ParticleObject*>(dau));
     leptons_eff_SystUp.push_back((it_eff==lepton_eff_SystUp_map.end() ? 1 : it_eff->second));
 
     // Extra variables for e/gamma efficiency studies

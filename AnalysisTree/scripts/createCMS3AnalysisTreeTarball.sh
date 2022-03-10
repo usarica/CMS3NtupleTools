@@ -51,13 +51,12 @@ tar Jcvf ${TARFILE} ${extraTarFile} ${extraIncludes} \
 lib \
 biglib \
 bin \
-src/CMSDataTools \
+src/IvyFramework \
 src/MelaAnalytics \
 src/JHUGenMELA/MELA \
 src/JHUGenMELA/setup.sh \
 src/CMS3/AnalysisTree \
 src/CMS3/Dictionaries \
-src/CMS3/MELAHelpers \
 --exclude=src/*/*/src \
 --exclude=src/*/*/bin \
 --exclude=src/*/*/scripts ${extraExcludes} \

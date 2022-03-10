@@ -27,8 +27,8 @@ void SampleHelpers::configure(TString period, TString stag, HostHelpers::Hosts i
     stag = splitstr.back();
     if (splitstr.size()>=2){ // Order goes as "[store/ceph/nfs-7/home]:[user (optional)]:[tag]
       TString const& strlocation = splitstr.front();
-      if (strlocation == "ceph" || strlocation == "store") strInputDir = "/store/user/usarica/Offshell_2L2Nu/Production";
-      else if (strlocation == "ceph_skims" || strlocation == "store_skims") strInputDir = "/store/user/usarica/Offshell_2L2Nu/Skims";
+      if (strlocation == "ceph" || strlocation == "hadoop" || strlocation == "store") strInputDir = "/store/user/usarica/Offshell_2L2Nu/Production";
+      else if (strlocation == "ceph_skims" || strlocation == "hadoop_skims" || strlocation == "store_skims") strInputDir = "/store/user/usarica/Offshell_2L2Nu/Skims";
       else if (strlocation == "store_finaltrees") strInputDir = "/store/user/usarica/Offshell_2L2Nu/FinalTrees";
 
       if (splitstr.size()==3) HelperFunctions::replaceString<TString, const TString>(strInputDir, "usarica", splitstr.at(1));
