@@ -9,6 +9,7 @@
 #include "TPaveText.h"
 #include "TLegend.h"
 #include "Math/Vector4Dfwd.h"
+#include "Math/PxPyPzM4D.h"
 #include <IvyFramework/IvyAutoMELA/interface/IvyMELAHelpers.h>
 
 
@@ -88,6 +89,24 @@ void getMCSampleDirs(
       },
       {
         "qqWW_2l2nu",{ "qqWW_2l2nu" }
+      },
+      {
+        "ZPrime_M100_Ga1p0",{}
+      },
+      {
+        "ZPrime_M200_Ga1p0",{}
+      },
+      {
+        "ZPrime_M400_Ga1p0",{}
+      },
+      {
+        "ZPrime_M700_Ga1p0",{}
+      },
+      {
+        "ZPrime_M1000_Ga1p0",{}
+      },
+      {
+        "ZPrime_M2000_Ga1p0",{}
       }
     };
     break;
@@ -101,6 +120,24 @@ void getMCSampleDirs(
       },
       {
         "qqWW_2l2nu",{ "qqWW_2l2nu" }
+      },
+      {
+        "ZPrime_M100_Ga1p0",{}
+      },
+      {
+        "ZPrime_M200_Ga1p0",{}
+      },
+      {
+        "ZPrime_M400_Ga1p0",{}
+      },
+      {
+        "ZPrime_M700_Ga1p0",{}
+      },
+      {
+        "ZPrime_M1000_Ga1p0",{}
+      },
+      {
+        "ZPrime_M2000_Ga1p0",{}
       }
     };
     break;
@@ -114,6 +151,24 @@ void getMCSampleDirs(
       },
       {
         "qqWW_2l2nu",{ "qqWW_2l2nu" }
+      },
+      {
+        "ZPrime_M100_Ga1p0",{ "/ZPrimeToMuMuSB_M100_Ga1p0_TuneCP5_13TeV_madgraph_pythia8_NoPSWgts/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_private/MINIAODSIM" }
+      },
+      {
+        "ZPrime_M200_Ga1p0",{ "/ZPrimeToMuMuSB_M200_Ga1p0_TuneCP5_13TeV_madgraph_pythia8_NoPSWgts/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_private/MINIAODSIM" }
+      },
+      {
+        "ZPrime_M400_Ga1p0",{ "/ZPrimeToMuMuSB_M400_Ga1p0_TuneCP5_13TeV_madgraph_pythia8_NoPSWgts/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_private/MINIAODSIM" }
+      },
+      {
+        "ZPrime_M700_Ga1p0",{ "/ZPrimeToMuMuSB_M700_Ga1p0_TuneCP5_13TeV_madgraph_pythia8_NoPSWgts/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_private/MINIAODSIM" }
+      },
+      {
+        "ZPrime_M1000_Ga1p0",{ "/ZPrimeToMuMuSB_M1000_Ga1p0_TuneCP5_13TeV_madgraph_pythia8_NoPSWgts/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_private/MINIAODSIM" }
+      },
+      {
+        "ZPrime_M2000_Ga1p0",{ "/ZPrimeToMuMuSB_M2000_Ga1p0_TuneCP5_13TeV_madgraph_pythia8_NoPSWgts/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_private/MINIAODSIM" }
       }
     };
     break;
@@ -182,6 +237,12 @@ void getMCSampleDirs(
   BRANCH_COMMAND(float, dPhi_pTbosonjets_pTmiss) \
   BRANCH_COMMAND(float, min_abs_dPhi_pTj_pTmiss)
 #define BRANCH_VECTOR_COMMANDS \
+  BRANCH_COMMAND(cms3_id_t, genhardparticles_id) \
+  BRANCH_COMMAND(cms3_genstatus_t, genhardparticles_status) \
+  BRANCH_COMMAND(float, genhardparticles_pt) \
+  BRANCH_COMMAND(float, genhardparticles_pz) \
+  BRANCH_COMMAND(float, genhardparticles_phi) \
+  BRANCH_COMMAND(float, genhardparticles_mass) \
   BRANCH_COMMAND(cms3_id_t, leptons_id) \
   BRANCH_COMMAND(float, leptons_pt) \
   BRANCH_COMMAND(float, leptons_eta) \
@@ -229,7 +290,7 @@ void getDistributions(
   size_t const nValidDataPeriods = validDataPeriods.size();
 
   std::vector<TString> transfer_list;
-  TString const cinput_main = "/ceph/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/DileptonEvents/SkimTrees/" + ntupleVersion;
+  TString const cinput_main = "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/DileptonEvents/SkimTrees/" + ntupleVersion;
   TString const coutput_main = "output/TTVetoEstimates/" + strdate + "/" + period;
 
   TDirectory* curdir = gDirectory;
@@ -237,7 +298,7 @@ void getDistributions(
 
   TriggerScaleFactorHandler triggerSFHandler;
 
-  TString stroutput = coutput_main + Form("/histograms_%s", strSyst.Data());
+  TString stroutput = coutput_main + Form("/trees_%s", strSyst.Data());
   stroutput = stroutput + ".root";
   TFile* foutput = TFile::Open(stroutput, "recreate");
   transfer_list.push_back(stroutput);
@@ -265,6 +326,7 @@ void getDistributions(
       if (xsec_scale!=1.f) IVYout << "\t- Sample " << sname << " has a cross section exception with scale " << xsec_scale << "." << endl;
 
       TString cinput = cinput_main + "/" + sfname;
+      if (sgroup.Contains("ZPrime")) HelperFunctions::replaceString<TString, TString const>(cinput, ntupleVersion, "220307"); // FIXME: HACK NTUPLE RELEASE
       foutput->cd();
       TChain* tin = new TChain("SkimTree");
       int nfiles = tin->Add(cinput);
@@ -340,7 +402,7 @@ void getDistributions(
 
     std::vector<TString> allbranchnames;
     {
-      // Then check all leaves
+      // First check all leaves
       const TList* llist = (const TList*) tin->GetListOfLeaves();
       if (llist){
         for (int ib=0; ib<llist->GetSize(); ib++){
@@ -369,7 +431,7 @@ void getDistributions(
     }
 
     tin->SetBranchStatus("*", 0);
-#define BRANCH_COMMAND(TYPE, NAME) tin->SetBranchStatus(#NAME, 1); tin->SetBranchAddress(#NAME, &NAME);
+#define BRANCH_COMMAND(TYPE, NAME) if (HelperFunctions::checkListVariable<TString>(allbranchnames, #NAME)){ tin->SetBranchStatus(#NAME, 1); tin->SetBranchAddress(#NAME, &NAME); }
     BRANCH_COMMANDS;
 #undef BRANCH_COMMAND
     for (auto& it:ME_Kfactor_values){
@@ -403,6 +465,7 @@ void getDistributions(
     for (auto& it:ME_Kfactor_values) it.second = -1;
     bool is_qqVV = sgroup.Contains("qqZZ") || sgroup.Contains("qqWZ") || sgroup.Contains("qqWW");
     bool is_ggVV = sgroup.Contains("ggZZ") || sgroup.Contains("ggWW") || sgroup.Contains("GGH");
+    bool is_ZPrime = sgroup.Contains("ZPrime");
     bool isData = (sgroup == "Data");
 
     float* val_Kfactor_QCD = nullptr;
@@ -469,8 +532,9 @@ void getDistributions(
 
       if (event_n_leptons_fakeableBase!=0) continue;
       if (event_wgt_triggers_SingleLepton!=1.f && event_wgt_triggers_Dilepton!=1.f) continue;
-      if (dilepton_mass<400.) continue;
+      if (dilepton_mass<80.) continue;
       if (event_n_ak4jets_pt30==0) continue;
+      if (event_n_ak4jets_pt30_btagged_loose==0) continue;
       //if (!check_dPhi_pTll_pTmiss(dPhi_pTboson_pTmiss)) continue;
       //if (!check_dPhi_pTlljets_pTmiss(dPhi_pTbosonjets_pTmiss)) continue;
       //if (!check_min_abs_dPhi_pTj_pTmiss(min_abs_dPhi_pTj_pTmiss, event_n_ak4jets_pt30)) continue;
@@ -486,7 +550,7 @@ void getDistributions(
         p4_lep_leading.SetPtEtaPhiM(leptons_pt->back(), leptons_eta->back(), leptons_phi->back(), leptons_mass->back());
         p4_lep_subleading.SetPtEtaPhiM(leptons_pt->front(), leptons_eta->front(), leptons_phi->front(), leptons_mass->front());
       }
-      if (p4_lep_leading.Pt()<65. || p4_lep_subleading.Pt()<30.) continue;
+      if (p4_lep_leading.Pt()<25. || p4_lep_subleading.Pt()<25.) continue;
 
       *ptr_event_wgt_SFs_PUJetId = std::min(*ptr_event_wgt_SFs_PUJetId, 3.f);
       float wgt =
@@ -532,14 +596,67 @@ void getDistributions(
         }
       }
 
+      std::vector<ParticleObject> ak4jets_tight;
+      std::vector<ParticleObject*> ak4jets_tight_ptr;
+      for (unsigned int ijet=0; ijet<event_n_ak4jets_pt30; ijet++){
+        ParticleObject::LorentzVector_t p4_part;
+        p4_part = ParticleObject::PolarLorentzVector_t(
+          ak4jets_pt->at(ijet),
+          ak4jets_eta->at(ijet),
+          ak4jets_phi->at(ijet),
+          ak4jets_mass->at(ijet)
+          );
+        ak4jets_tight.emplace_back(0, p4_part);
+        ak4jets_tight_ptr.push_back(&(ak4jets_tight.back()));
+      }
+
+      cms3_id_t gen_quark_flavor = -1;
+      std::vector<float> ak4jets_matched_hardb_dR;
+      if (is_ZPrime && genhardparticles_id){
+        ak4jets_matched_hardb_dR.assign(event_n_ak4jets_pt30, -1.);
+        std::vector<ParticleObject> genhardparticles; genhardparticles.reserve(genhardparticles_id->size());
+        std::vector<ParticleObject*> genhardfps; genhardfps.reserve(genhardparticles_id->size());
+        for (unsigned int igp=0; igp<genhardparticles_id->size(); igp++){
+          ParticleObject::LorentzVector_t p4_genpart;
+          p4_genpart = ROOT::Math::LorentzVector< ROOT::Math::PxPyPzM4D<double> >(
+            genhardparticles_pt->at(igp)*std::cos(genhardparticles_phi->at(igp)),
+            genhardparticles_pt->at(igp)*std::sin(genhardparticles_phi->at(igp)),
+            genhardparticles_pz->at(igp),
+            genhardparticles_mass->at(igp)
+            );
+          genhardparticles.emplace_back(genhardparticles_id->at(igp), p4_genpart);
+          if (PDGHelpers::isAJet(std::abs(genhardparticles.back().pdgId())) && genhardparticles_status->at(igp)==23) genhardfps.push_back(&(genhardparticles.back()));
+        }
+        for (auto const& genpart:genhardparticles){
+          if (PDGHelpers::isAQuark(genpart.pdgId())) gen_quark_flavor = std::max(gen_quark_flavor, 0) + std::abs(genpart.pdgId());
+        }
+        std::unordered_map<ParticleObject*, ParticleObject*> match_map;
+        ParticleObjectHelpers::matchParticles(
+          ParticleObjectHelpers::kMatchBy_DeltaR,
+          ak4jets_tight_ptr.begin(), ak4jets_tight_ptr.end(),
+          genhardfps.begin(), genhardfps.end(),
+          match_map
+        );
+        for (unsigned int ijet=0; ijet<event_n_ak4jets_pt30; ijet++){
+          auto& ak4jet_matched_hardb_dR = ak4jets_matched_hardb_dR.at(ijet);
+          auto it = match_map.find(ak4jets_tight_ptr.at(ijet));
+          if (it!=match_map.end()){
+            if (std::abs(it->second->pdgId())==5) ak4jet_matched_hardb_dR = ak4jets_tight_ptr.at(ijet)->deltaR(it->second);
+          }
+        }
+      }
+
       std::vector<SimpleEntry> products(1, SimpleEntry());
       SimpleEntry& commonEntry = products.front();
       commonEntry.setNamedVal("weight", wgt);
+      commonEntry.setNamedVal("gen_quark_flavor", gen_quark_flavor);
       commonEntry.setNamedVal("dilepton_id", dilepton_id);
       commonEntry.setNamedVal("dilepton_pt", dilepton_pt);
       commonEntry.setNamedVal("dilepton_eta", dilepton_eta);
       commonEntry.setNamedVal("dilepton_phi", dilepton_phi);
       commonEntry.setNamedVal("dilepton_mass", dilepton_mass);
+      commonEntry.setNamedVal("leading_lepton_pt", static_cast<float>(p4_lep_leading.Pt()));
+      commonEntry.setNamedVal("subleading_lepton_pt", static_cast<float>(p4_lep_subleading.Pt()));
       commonEntry.setNamedVal("pTmiss", event_pTmiss);
       commonEntry.setNamedVal("phimiss", event_phimiss);
       commonEntry.setNamedVal("dPhi_pTboson_pTmiss", dPhi_pTboson_pTmiss);
@@ -553,6 +670,7 @@ void getDistributions(
       commonEntry.setNamedVal("ak4jets_eta", *ak4jets_eta);
       commonEntry.setNamedVal("ak4jets_phi", *ak4jets_phi);
       commonEntry.setNamedVal("ak4jets_mass", *ak4jets_mass);
+      commonEntry.setNamedVal("ak4jets_matched_hardb_dR", ak4jets_matched_hardb_dR);
       BaseTree::writeSimpleEntries(products.begin(), products.end(), tout, tout_firstevent_map[tout]);
       tout_firstevent_map[tout]=false;
     }
@@ -579,13 +697,76 @@ void getDistributions(
 #undef BRANCH_SCALAR_COMMANDS
 
 
+double get_Zpff_partial_width_singledec(double MZp, double gffV, double gffA){
+  constexpr double aEWM1 = 127.94;
+  constexpr double Gf = 1.174560e-05;
+  constexpr double MZ = 91.18760;
+  double const aEW = 1./aEWM1;
+  double const MW = std::sqrt(std::pow(MZ, 2)/2. + std::sqrt(std::pow(MZ, 4)/4. - (aEW*TMath::Pi()*std::pow(MZ, 2))/(Gf*std::sqrt(2.))));
+  double const ee = 2.*std::sqrt(aEW)*std::sqrt(TMath::Pi());
+  double const cw2 = std::pow(MW/MZ, 2);
+  double const sw2 = 1. - cw2;
+  double const cw = std::sqrt(cw2);
+  double const sw = std::sqrt(sw2);
+  double const s2w = 2.*sw*cw;
+
+  return MZp*std::pow(ee/s2w, 2)/(6.*TMath::Pi()) * (std::pow((gffV+gffA), 2) + std::pow((gffV-gffA), 2));
+}
+
+double getZPrimeXSecScale(
+  TString sname,
+  double mult_global_g,
+  double gV_mumu=1, double gA_mumu=1,
+  double gV_ss=1, double gA_ss=1,
+  double gV_sb=1, double gA_sb=1,
+  double gV_bb=1, double gA_bb=1
+){
+  double M_Zp = SampleHelpers::findPoleMass(sname);
+  double const Ga_Zp = 1.0;
+  double const Ga_Zp_true = std::pow(mult_global_g, 2)*(
+    get_Zpff_partial_width_singledec(M_Zp, gV_mumu, gA_mumu)
+    + 3.*(
+      get_Zpff_partial_width_singledec(M_Zp, gV_ss, gA_ss)
+      + get_Zpff_partial_width_singledec(M_Zp, gV_sb, gA_sb)
+      + get_Zpff_partial_width_singledec(M_Zp, gV_bb, gA_bb)
+      )
+    );
+
+  double scale_g4 = std::pow(mult_global_g, 4) * (std::pow((gV_mumu+gA_mumu), 2) + std::pow((gV_mumu-gA_mumu), 2))/2.;
+  return scale_g4 * Ga_Zp / Ga_Zp_true;
+}
+
+
 void produceTTVetoHistograms(
-  TString strdate, unsigned char ibtag,
+  TString strdate,
+  double gV_mumu=1, double gA_mumu=1,
+  double gV_ss=1, double gA_ss=1,
+  double gV_sb=1, double gA_sb=1,
+  double gV_bb=1, double gA_bb=1,
+  bool useATLASCuts=false, unsigned char ibtag=1,
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst=SystematicsHelpers::sNominal
 ){
+  gStyle->SetOptStat(0);
+
+  bool const useCustomCouplings = !(
+    gV_mumu==1. && gA_mumu==1.
+    &&
+    gV_ss==1. && gA_ss==1.
+    &&
+    gV_sb==1. && gA_sb==1.
+    &&
+    gV_bb==1. && gA_bb==1.
+    );
   std::vector<TString> const periods{ "2016", "2017", "2018" };
-  std::vector<TString> const procnames{ "Data", "DY_2l", "TT_2l2nu", "qqWW_2l2nu" };
-  std::vector<TString> const proctitles{ "Observed", "DY", "t#bar{t}", "q#bar{q}#rightarrowWW" };
+  std::vector<TString> const categories{ "Nb_geq_1", "Nb_eq_1", "Nb_geq_2" };
+  std::vector<TString> const procnames{
+    "Data", "DY_2l", "TT_2l2nu", "qqWW_2l2nu",
+    "ZPrime_M100_Ga1p0", "ZPrime_M200_Ga1p0", "ZPrime_M400_Ga1p0", "ZPrime_M700_Ga1p0", "ZPrime_M1000_Ga1p0", "ZPrime_M2000_Ga1p0"
+  };
+  std::vector<TString> const proctitles{
+    "Observed", "DY", "t#bar{t}", "q#bar{q}#rightarrowWW",
+    "Z' (100 GeV)", "Z' (200 GeV)", "Z' (400 GeV)", "Z' (700 GeV)", "Z' (1000 GeV)", "Z' (2000 GeV)"
+  };
   TString const strBTag = (ibtag==0 ? "loose" : "medium");
 
   TString strSyst = SystematicsHelpers::getSystName(theGlobalSyst).data();
@@ -593,8 +774,7 @@ void produceTTVetoHistograms(
   TString const coutput_main = cinput_main;
   gSystem->mkdir(coutput_main, true);
 
-  TString stroutput = coutput_main + Form("histograms_%sBTag_%s", strBTag.Data(), strSyst.Data());
-  stroutput = stroutput + ".root";
+  TString stroutput = coutput_main + Form("histograms%s%s%sBTag_%s%s", (useCustomCouplings ? "_CustomCouplings" : ""), (useATLASCuts ? "_ATLASCuts_" : "_"), strBTag.Data(), strSyst.Data(), ".root");
   TFile* foutput = TFile::Open(stroutput, "recreate");
 
   std::unordered_map<TString, TChain*> tinmap;
@@ -602,7 +782,7 @@ void produceTTVetoHistograms(
     TChain* tin = new TChain(Form("FinalTree_%s", procname.Data()));
     int nfiles = 0;
     for (auto const& period:periods){
-      TString strinput = cinput_main + period + Form("/histograms_%s", strSyst.Data());
+      TString strinput = cinput_main + period + Form("/trees_%s", strSyst.Data());
       strinput = strinput + ".root";
       nfiles += tin->Add(strinput);
     }
@@ -612,18 +792,22 @@ void produceTTVetoHistograms(
 
 #define BRANCH_SCALAR_COMMANDS \
   BRANCH_COMMAND(float, weight) \
+  BRANCH_COMMAND(cms3_id_t, gen_quark_flavor) \
   BRANCH_COMMAND(cms3_id_t, dilepton_id) \
   BRANCH_COMMAND(float, dilepton_pt) \
   BRANCH_COMMAND(float, dilepton_eta) \
   BRANCH_COMMAND(float, dilepton_phi) \
   BRANCH_COMMAND(float, dilepton_mass) \
   BRANCH_COMMAND(float, min_lepb_mass_BWPBTag) \
+  BRANCH_COMMAND(float, leading_lepton_pt) \
+  BRANCH_COMMAND(float, subleading_lepton_pt) \
   BRANCH_COMMAND(float, pTmiss) \
   BRANCH_COMMAND(float, phimiss) \
   BRANCH_COMMAND(float, dPhi_pTboson_pTmiss) \
   BRANCH_COMMAND(float, dPhi_pTbosonjets_pTmiss) \
   BRANCH_COMMAND(float, min_abs_dPhi_pTj_pTmiss)
 #define BRANCH_VECTOR_COMMANDS \
+  BRANCH_COMMAND(float, ak4jets_matched_hardb_dR) \
   BRANCH_COMMAND(bool, ak4jets_isBTagged_BWP) \
   BRANCH_COMMAND(float, ak4jets_pt) \
   BRANCH_COMMAND(float, ak4jets_eta) \
@@ -650,44 +834,180 @@ void produceTTVetoHistograms(
   }
 
   foutput->cd();
-  std::unordered_map<TString, std::vector<std::pair<TH1F*, TH1F*>> > procname_hpairlist_map;
+
+  int iproc_sig=-1;
+  ExtendedBinning binning_mll_coarse(1, 80, 3000);
+  binning_mll_coarse.addBinBoundary(95);
+  binning_mll_coarse.addBinBoundary(150);
+  binning_mll_coarse.addBinBoundary(300);
+  binning_mll_coarse.addBinBoundary(550);
+  binning_mll_coarse.addBinBoundary(850);
+  binning_mll_coarse.addBinBoundary(1500);
+  ExtendedBinning binning_minmlb(100, 0, 1000);
+  ExtendedBinning binning_minpTl(160, 25, 825);
+
+  std::unordered_map<TString, std::vector<std::pair<TH1F*, TH1F*>> > procname_mll_hpairlist_map;
+  std::unordered_map<TString, std::vector<TH2F*> > procname_mll_minmlb_hlist_map;
+  std::unordered_map<TString, std::vector<TH2F*> > procname_mll_minpTl_hlist_map;
+  TH2F h_signal_absdEta_leadingbjet_ZPrime_mumu_nocut("h_signal_absdEta_leadingbjet_ZPrime_mumu_nocut", "", 6, 0, 6, 31, 0, 6.2); h_signal_absdEta_leadingbjet_ZPrime_mumu_nocut.Sumw2();
+  TH2F h_signal_absdEta_leadingmatchedbjet_ZPrime_mumu_nocut("h_signal_absdEta_leadingmatchedbjet_ZPrime_mumu_nocut", "", 6, 0, 6, 31, 0, 6.2); h_signal_absdEta_leadingmatchedbjet_ZPrime_mumu_nocut.Sumw2();
+  TH2F h_signal_dR_bjet_hardbfs_mumu_nocut("h_signal_dR_bjet_hardbfs_mumu_nocut", "", 6, 0, 6, 51, -0.02, 1.0); h_signal_dR_bjet_hardbfs_mumu_nocut.Sumw2();
+  TH2F h_signal_matchCond_bjet_hardbfs_mumu_nocut("h_signal_matchCond_bjet_hardbfs_mumu_nocut", "", 6, 0, 6, 3, -1, 2); h_signal_matchCond_bjet_hardbfs_mumu_nocut.Sumw2();
+  TH2F h_signal_pt_leadingbjet_mumu_nocut("h_signal_pt_leadingbjet_mumu_nocut", "", 6, 0, 6, 47, 30, 300); h_signal_pt_leadingbjet_mumu_nocut.Sumw2();
+  TH2F h_signal_abseta_leadingbjet_mumu_nocut("h_signal_abseta_leadingbjet_mumu_nocut", "", 6, 0, 6, 25, 0, 2.5); h_signal_abseta_leadingbjet_mumu_nocut.Sumw2();
+  h_signal_absdEta_leadingbjet_ZPrime_mumu_nocut.GetXaxis()->SetTitle("m_{Z'} (GeV)");
+  h_signal_absdEta_leadingbjet_ZPrime_mumu_nocut.GetYaxis()->SetTitle("|#Delta#eta(b_{leading},Z')|");
+  h_signal_absdEta_leadingmatchedbjet_ZPrime_mumu_nocut.GetXaxis()->SetTitle("m_{Z'} (GeV)");
+  h_signal_absdEta_leadingmatchedbjet_ZPrime_mumu_nocut.GetYaxis()->SetTitle("|#Delta#eta(b_{matched},Z')|");
+  h_signal_dR_bjet_hardbfs_mumu_nocut.GetXaxis()->SetTitle("m_{Z'} (GeV)");
+  h_signal_dR_bjet_hardbfs_mumu_nocut.GetYaxis()->SetTitle("#DeltaR(b_{jet},b_{hard})");
+  h_signal_matchCond_bjet_hardbfs_mumu_nocut.GetXaxis()->SetTitle("m_{Z'} (GeV)");
+  h_signal_matchCond_bjet_hardbfs_mumu_nocut.GetYaxis()->SetTitle("b_{jet} - b_{hard} match status");
+  h_signal_matchCond_bjet_hardbfs_mumu_nocut.GetYaxis()->SetBinLabel(1, "No best match");
+  h_signal_matchCond_bjet_hardbfs_mumu_nocut.GetYaxis()->SetBinLabel(2, "#DeltaR>0.5");
+  h_signal_matchCond_bjet_hardbfs_mumu_nocut.GetYaxis()->SetBinLabel(3, "Matched");
+  h_signal_pt_leadingbjet_mumu_nocut.GetXaxis()->SetTitle("m_{Z'} (GeV)");
+  h_signal_pt_leadingbjet_mumu_nocut.GetYaxis()->SetTitle("b_{leading} p_{T} (GeV)");
+  h_signal_abseta_leadingbjet_mumu_nocut.GetXaxis()->SetTitle("m_{Z'} (GeV)");
+  h_signal_abseta_leadingbjet_mumu_nocut.GetYaxis()->SetTitle("b_{leading} |#eta|");
+  std::vector<TH2F*> hlist_signal_quarkcomp_mumu{
+    new TH2F("h_signal_quarkcomp_mumu_nocut", "", 6, 0, 6, 3, 0, 3),
+    new TH2F("h_signal_quarkcomp_mumu_cut_min_mlb_ge_200", "", 6, 0, 6, 3, 0, 3)
+  };
+  for (auto& hh:hlist_signal_quarkcomp_mumu){
+    hh->Sumw2();
+    hh->GetXaxis()->SetTitle("m_{Z'} (GeV)");
+    hh->GetYaxis()->SetTitle("qq' interaction");
+    hh->GetYaxis()->SetBinLabel(1, "ss");
+    hh->GetYaxis()->SetBinLabel(2, "sb");
+    hh->GetYaxis()->SetBinLabel(3, "bb");
+  }
+  iproc_sig=-1;
+  for (auto const& procname:procnames){
+    if (!procname.Contains("ZPrime")) continue;
+    iproc_sig++;
+    double M_Zp = SampleHelpers::findPoleMass(procname);
+    for (auto& hh:hlist_signal_quarkcomp_mumu) hh->GetXaxis()->SetBinLabel(iproc_sig+1, Form("%.0f", M_Zp));
+    h_signal_absdEta_leadingbjet_ZPrime_mumu_nocut.GetXaxis()->SetBinLabel(iproc_sig+1, Form("%.0f", M_Zp));
+    h_signal_absdEta_leadingmatchedbjet_ZPrime_mumu_nocut.GetXaxis()->SetBinLabel(iproc_sig+1, Form("%.0f", M_Zp));
+    h_signal_dR_bjet_hardbfs_mumu_nocut.GetXaxis()->SetBinLabel(iproc_sig+1, Form("%.0f", M_Zp));
+    h_signal_matchCond_bjet_hardbfs_mumu_nocut.GetXaxis()->SetBinLabel(iproc_sig+1, Form("%.0f", M_Zp));
+    h_signal_pt_leadingbjet_mumu_nocut.GetXaxis()->SetBinLabel(iproc_sig+1, Form("%.0f", M_Zp));
+    h_signal_abseta_leadingbjet_mumu_nocut.GetXaxis()->SetBinLabel(iproc_sig+1, Form("%.0f", M_Zp));
+  }
+  iproc_sig=-1;
   for (auto const& procname:procnames){
     std::pair<TH1F*, TH1F*> hpair_ee(
-      new TH1F(Form("h_%s_ee_nocut", procname.Data()), "", 17, 400, 2100),
-      new TH1F(Form("h_%s_ee_cut_min_mlb_ge_200", procname.Data()), "", 17, 400, 2100)
+      new TH1F(Form("h_mll_%s_ee_nocut", procname.Data()), "", 150, 80, 3080),
+      new TH1F(Form("h_mll_%s_ee_cut_min_mlb_ge_200", procname.Data()), "", 150, 80, 3080)
     );
     hpair_ee.first->Sumw2();
     hpair_ee.second->Sumw2();
     std::pair<TH1F*, TH1F*> hpair_mumu(
-      new TH1F(Form("h_%s_mumu_nocut", procname.Data()), "", 17, 400, 2100),
-      new TH1F(Form("h_%s_mumu_cut_min_mlb_ge_200", procname.Data()), "", 17, 400, 2100)
+      new TH1F(Form("h_mll_%s_mumu_nocut", procname.Data()), "", 150, 80, 3080),
+      new TH1F(Form("h_mll_%s_mumu_cut_min_mlb_ge_200", procname.Data()), "", 150, 80, 3080)
     );
     hpair_mumu.first->Sumw2();
     hpair_mumu.second->Sumw2();
+
+    std::vector<TH2F*> hlist_mll_minmlb{
+      new TH2F(Form("h_mll_minmlb_%s_ee_nocut", procname.Data()), "", binning_mll_coarse.getNbins(), binning_mll_coarse.getBinning(), binning_minmlb.getNbins(), binning_minmlb.getBinning()),
+      new TH2F(Form("h_mll_minmlb_%s_mumu_nocut", procname.Data()), "", binning_mll_coarse.getNbins(), binning_mll_coarse.getBinning(), binning_minmlb.getNbins(), binning_minmlb.getBinning())
+    };
+    for (auto& hh:hlist_mll_minmlb) hh->Sumw2();
+
+    std::vector<TH2F*> hlist_mll_minpTl;
+    if (!useATLASCuts) hlist_mll_minpTl = std::vector<TH2F*>{
+      new TH2F(Form("h_mll_minpTl_%s_ee_nocut", procname.Data()), "", binning_mll_coarse.getNbins(), binning_mll_coarse.getBinning(), binning_minpTl.getNbins(), binning_minpTl.getBinning()),
+      new TH2F(Form("h_mll_minpTl_%s_mumu_nocut", procname.Data()), "", binning_mll_coarse.getNbins(), binning_mll_coarse.getBinning(), binning_minpTl.getNbins(), binning_minpTl.getBinning())
+    };
+    for (auto& hh:hlist_mll_minpTl) hh->Sumw2();
+
+    double const wgt_scale = (procname.Contains("ZPrime")
+                              ?
+                              137.6/59.74*(useCustomCouplings ?
+                                           getZPrimeXSecScale(procname, 1., gV_mumu, gA_mumu, gV_ss, gA_ss, gV_sb, gA_sb, gV_bb, gA_bb)
+                                           :
+                                           getZPrimeXSecScale(procname, 0.25)
+                                           )
+                              : 1.
+                              );
+    if (procname.Contains("ZPrime")) iproc_sig++;
 
     TChain* const& tin = tinmap.find(procname)->second;
     for (int ev=0; ev<tin->GetEntries(); ev++){
       tin->GetEntry(ev);
 
+      if (useATLASCuts && (leading_lepton_pt<60. || subleading_lepton_pt<40.)) continue;
+
+      weight *= wgt_scale;
+      if (useCustomCouplings && iproc_sig>=0){
+        if (gen_quark_flavor==6) weight *= (std::pow((gV_ss+gA_ss), 2) + std::pow((gV_ss-gA_ss), 2))/2.;
+        else if (gen_quark_flavor==8) weight *= (std::pow((gV_sb+gA_sb), 2) + std::pow((gV_sb-gA_sb), 2))/2.;
+        else weight *= (std::pow((gV_bb+gA_bb), 2) + std::pow((gV_bb-gA_bb), 2))/2.;
+      }
+
       bool has_bjet = false;
-      for (auto const& ff:(*ak4jets_isBTagged_BWP)){
-        if (ff){
-          has_bjet = true;
-          break;
+      unsigned int index_leadingbjet=0;
+      {
+        for (auto const& ff:(*ak4jets_isBTagged_BWP)){
+          if (ff){
+            has_bjet = true;
+            break;
+          }
+          index_leadingbjet++;
         }
       }
       if (!has_bjet) continue;
 
+      int index_matched_bjet = -1;
+      float dR_matched_bjet = -1;
+      int matchStatus_matched_bjet = -1;
+      if (dilepton_id==-169 && iproc_sig>=0){
+        for (unsigned int ijet=0; ijet<ak4jets_matched_hardb_dR->size(); ijet++){
+          if (ak4jets_matched_hardb_dR->at(ijet)>=0. && ak4jets_isBTagged_BWP->at(ijet)){
+            index_matched_bjet = ijet;
+            dR_matched_bjet = ak4jets_matched_hardb_dR->at(ijet);
+            if (dR_matched_bjet>=0. && dR_matched_bjet<0.5) matchStatus_matched_bjet = 1;
+            else matchStatus_matched_bjet = 0;
+          }
+        }
+      }
+
       std::pair<TH1F*, TH1F*>* hpair = nullptr;
-      if (dilepton_id==-121) hpair = &hpair_ee;
-      else if (dilepton_id==-169) hpair = &hpair_mumu;
+      TH2F* h_mll_mlb = nullptr;
+      TH2F* h_mll_minpTl = nullptr;
+      if (dilepton_id==-121){
+        hpair = &hpair_ee;
+        h_mll_mlb = hlist_mll_minmlb.front();
+        if (!hlist_mll_minpTl.empty()) h_mll_minpTl = hlist_mll_minpTl.front();
+      }
+      else if (dilepton_id==-169){
+        hpair = &hpair_mumu;
+        h_mll_mlb = hlist_mll_minmlb.back();
+        if (!hlist_mll_minpTl.empty()) h_mll_minpTl = hlist_mll_minpTl.back();
+      }
       if (hpair){
         hpair->first->Fill(dilepton_mass, weight);
         if (min_lepb_mass_BWPBTag>=200.) hpair->second->Fill(dilepton_mass, weight);
       }
+      if (h_mll_mlb) h_mll_mlb->Fill(dilepton_mass, min_lepb_mass_BWPBTag, weight);
+      if (h_mll_minpTl) h_mll_minpTl->Fill(dilepton_mass, subleading_lepton_pt, weight);
+      if (dilepton_id==-169 && iproc_sig>=0){
+        h_signal_absdEta_leadingbjet_ZPrime_mumu_nocut.Fill(static_cast<double>(iproc_sig)+0.5, std::abs(ak4jets_eta->at(index_leadingbjet)-dilepton_eta), weight);
+        if (matchStatus_matched_bjet==1) h_signal_absdEta_leadingmatchedbjet_ZPrime_mumu_nocut.Fill(static_cast<double>(iproc_sig)+0.5, std::abs(ak4jets_eta->at(index_matched_bjet)-dilepton_eta), weight);
+        h_signal_dR_bjet_hardbfs_mumu_nocut.Fill(static_cast<double>(iproc_sig)+0.5, dR_matched_bjet, weight);
+        h_signal_matchCond_bjet_hardbfs_mumu_nocut.Fill(static_cast<double>(iproc_sig)+0.5, static_cast<double>(matchStatus_matched_bjet)+0.5, weight);
+        h_signal_pt_leadingbjet_mumu_nocut.Fill(static_cast<double>(iproc_sig)+0.5, ak4jets_pt->at(index_leadingbjet), weight);
+        h_signal_abseta_leadingbjet_mumu_nocut.Fill(static_cast<double>(iproc_sig)+0.5, std::abs(ak4jets_eta->at(index_leadingbjet)), weight);
+        hlist_signal_quarkcomp_mumu.front()->Fill(static_cast<double>(iproc_sig)+0.5, static_cast<double>((gen_quark_flavor-6)/2)+0.5, weight);
+        if (min_lepb_mass_BWPBTag>=200.) hlist_signal_quarkcomp_mumu.back()->Fill(static_cast<double>(iproc_sig)+0.5, static_cast<double>((gen_quark_flavor-6)/2)+0.5, weight);
+      }
     }
 
-    procname_hpairlist_map[procname] = std::vector< std::pair<TH1F*, TH1F*> >{ hpair_ee, hpair_mumu };
+    procname_mll_hpairlist_map[procname] = std::vector< std::pair<TH1F*, TH1F*> >{ hpair_ee, hpair_mumu };
+    procname_mll_minmlb_hlist_map[procname] = hlist_mll_minmlb;
+    procname_mll_minpTl_hlist_map[procname] = hlist_mll_minpTl;
   }
 
 #undef BRANCH_COMMANDS
@@ -695,41 +1015,65 @@ void produceTTVetoHistograms(
 #undef BRANCH_SCALAR_COMMANDS
 
   foutput->cd();
-  for (auto& vp:procname_hpairlist_map){
+  for (auto& vp:procname_mll_hpairlist_map){
     for (auto& pp:vp.second){
       HelperFunctions::wipeOverUnderFlows(pp.first, false, true);
       HelperFunctions::wipeOverUnderFlows(pp.second, false, true);
 
-      for (int ix=1; ix<=pp.first->GetNbinsX(); ix++){
-        for (int jx=ix+1; jx<=pp.first->GetNbinsX(); jx++){
-          double bc_i=0, be_i=0, bc_j=0, be_j=0;
-          bc_i = pp.first->GetBinContent(ix);
-          be_i = std::pow(pp.first->GetBinError(ix), 2);
-          bc_j = pp.first->GetBinContent(jx);
-          be_j = std::pow(pp.first->GetBinError(jx), 2);
-          pp.first->SetBinContent(ix, bc_i+bc_j);
-          pp.first->SetBinError(ix, std::sqrt(be_i+be_j));
-
-          bc_i = pp.second->GetBinContent(ix);
-          be_i = std::pow(pp.second->GetBinError(ix), 2);
-          bc_j = pp.second->GetBinContent(jx);
-          be_j = std::pow(pp.second->GetBinError(jx), 2);
-          pp.second->SetBinContent(ix, bc_i+bc_j);
-          pp.second->SetBinError(ix, std::sqrt(be_i+be_j));
-        }
-      }
-      pp.first->GetXaxis()->SetTitle("m_{ll}^{min} (GeV)");
-      pp.second->GetXaxis()->SetTitle("m_{ll}^{min} (GeV)");
-      pp.first->GetYaxis()->SetTitle("N^{c}");
-      pp.second->GetYaxis()->SetTitle("N^{c}");
+      pp.first->GetXaxis()->SetTitle("m_{ll} (GeV)");
+      pp.second->GetXaxis()->SetTitle("m_{ll} (GeV)");
+      pp.first->GetYaxis()->SetTitle(Form("Events / %.0f GeV", pp.first->GetXaxis()->GetBinWidth(1)));
+      pp.second->GetYaxis()->SetTitle(Form("Events / %.0f GeV", pp.second->GetXaxis()->GetBinWidth(1)));
       foutput->WriteTObject(pp.first); delete pp.first;
       foutput->WriteTObject(pp.second); delete pp.second;
     }
   }
+  for (auto& vp:procname_mll_minmlb_hlist_map){
+    for (auto& hh:vp.second){
+      HelperFunctions::wipeOverUnderFlows(hh, false, true);
+      HelperFunctions::conditionalizeHistogram<TH2F>(hh, 0, nullptr, false);
+      hh->GetXaxis()->SetTitle("m_{ll} (GeV)");
+      hh->GetYaxis()->SetTitle("min(m_{lb}) (GeV)");
+      foutput->WriteTObject(hh); delete hh;
+    }
+  }
+  for (auto& vp:procname_mll_minpTl_hlist_map){
+    for (auto& hh:vp.second){
+      HelperFunctions::wipeOverUnderFlows(hh, false, true);
+      HelperFunctions::conditionalizeHistogram<TH2F>(hh, 0, nullptr, false);
+      hh->GetXaxis()->SetTitle("m_{ll} (GeV)");
+      hh->GetYaxis()->SetTitle("min(p_{T}^{l}) (GeV)");
+      foutput->WriteTObject(hh); delete hh;
+    }
+  }
+  for (auto& hh:hlist_signal_quarkcomp_mumu){
+    HelperFunctions::conditionalizeHistogram<TH2F>(hh, 0, nullptr, false);
+    foutput->WriteTObject(hh); delete hh;
+  }
+
+  HelperFunctions::wipeOverUnderFlows(&h_signal_absdEta_leadingbjet_ZPrime_mumu_nocut, false, true);
+  HelperFunctions::wipeOverUnderFlows(&h_signal_absdEta_leadingmatchedbjet_ZPrime_mumu_nocut, false, true);
+  HelperFunctions::wipeOverUnderFlows(&h_signal_dR_bjet_hardbfs_mumu_nocut, false, true);
+  HelperFunctions::wipeOverUnderFlows(&h_signal_pt_leadingbjet_mumu_nocut, false, true);
+  HelperFunctions::wipeOverUnderFlows(&h_signal_abseta_leadingbjet_mumu_nocut, false, true);
+  HelperFunctions::conditionalizeHistogram<TH2F>(&h_signal_absdEta_leadingbjet_ZPrime_mumu_nocut, 0, nullptr, false);
+  HelperFunctions::conditionalizeHistogram<TH2F>(&h_signal_absdEta_leadingmatchedbjet_ZPrime_mumu_nocut, 0, nullptr, false);
+  HelperFunctions::conditionalizeHistogram<TH2F>(&h_signal_dR_bjet_hardbfs_mumu_nocut, 0, nullptr, false);
+  HelperFunctions::conditionalizeHistogram<TH2F>(&h_signal_matchCond_bjet_hardbfs_mumu_nocut, 0, nullptr, false);
+  HelperFunctions::conditionalizeHistogram<TH2F>(&h_signal_pt_leadingbjet_mumu_nocut, 0, nullptr, false);
+  HelperFunctions::conditionalizeHistogram<TH2F>(&h_signal_abseta_leadingbjet_mumu_nocut, 0, nullptr, false);
+  foutput->WriteTObject(&h_signal_absdEta_leadingbjet_ZPrime_mumu_nocut);
+  foutput->WriteTObject(&h_signal_absdEta_leadingmatchedbjet_ZPrime_mumu_nocut);
+  foutput->WriteTObject(&h_signal_dR_bjet_hardbfs_mumu_nocut);
+  foutput->WriteTObject(&h_signal_matchCond_bjet_hardbfs_mumu_nocut);
+  foutput->WriteTObject(&h_signal_pt_leadingbjet_mumu_nocut);
+  foutput->WriteTObject(&h_signal_abseta_leadingbjet_mumu_nocut);
+
   for (auto& pp:tinmap) delete pp.second;
   foutput->Close();
 }
 
+void setHistogramProperties(TString procname, TH1F* hist);
 
 void makePlot(
   TString const& coutput_main,
@@ -739,6 +1083,7 @@ void makePlot(
   std::vector<TString> hlabels,
   TString selectionLabels,
   TString drawopts,
+  bool useLogY,
   bool adjustYLow,
   float factorYHigh,
   bool addRatioPanel
@@ -753,6 +1098,7 @@ void makePlot(
   if (selectionLabels!="") HelperFunctions::splitOptionRecursive(selectionLabels, selectionList, '|');
 
   bool hasData = false;
+  if (useLogY) adjustYLow = true;
 
   std::vector<bool> hHasErrors;
 
@@ -773,17 +1119,17 @@ void makePlot(
       if (be!=0.f) hasErrors = true;
       ymax = std::max(ymax, bc+be);
       double bclow=bc; if (be<=bclow) bclow -= be;
-      if (adjustYLow && !(bc==0.f && be==0.f)) ymin = std::min(ymin, bclow);
+      if (adjustYLow && bc>=1e-2) ymin = std::min(ymin, bclow);
     }
     hHasErrors.push_back(hasErrors);
     //IVYout << "ymin, ymax after " << hname << ": " << ymin << ", " << ymax << endl;
   }
-  if (ymax>=0.) ymax *= (factorYHigh>0.f ? factorYHigh : 1.5);
+  if (ymax>=0.) ymax *= (factorYHigh>0.f ? factorYHigh : (useLogY ? 150. : 1.5));
   else ymax /= (factorYHigh>0.f ? factorYHigh : 1.5);
   ymin *= (ymin>=0. ? 0.95 : 1.05);
   for (TH1F* const& hist:hlist) hist->GetYaxis()->SetRangeUser(ymin, ymax);
 
-  TString varlabel = "m_{ll}^{min} (GeV)";
+  TString varlabel = "";
   TString quantlabel = "";
   TH1F* hdenom = nullptr;
   std::vector<TH1F*> hnum_MC_list;
@@ -994,6 +1340,7 @@ void makePlot(
   if (addRatioPanel) plot.addText(ytitle->DrawLatexNDC(0.5, 0.15/1.4, "Ratio"));
 
   pad_hists->cd();
+  if (useLogY) pad_hists->SetLogy(true);
 
   constexpr double legend_ymax = 0.90;
   double legend_pixelsize = plot.getStdPixelSize_XYTitle();
@@ -1043,12 +1390,12 @@ void makePlot(
 
     if (firstHist){
       if (!hasGraph) hist->Draw(stropt);
-      else hist_tg_map[hist]->Draw("ae1p");
+      //else hist_tg_map[hist]->Draw("ae1p");
       firstHist = false;
     }
     else{
       if (!hasGraph) hist->Draw(stropt+"same");
-      else hist_tg_map[hist]->Draw("e1psame");
+      //else hist_tg_map[hist]->Draw("e1psame");
     }
   }
 
@@ -1065,7 +1412,7 @@ void makePlot(
     TString stropt = drawopts;
     if (!hasErrors) stropt = "hist";
     if (!hasGraph) hist->Draw(stropt+"same");
-    else hist_tg_map[hist]->Draw("e1psame");
+    //else hist_tg_map[hist]->Draw("e1psame");
   }
 
   pad_hists->cd();
@@ -1115,6 +1462,130 @@ void makePlot(
 }
 
 
+void makePlot_2D(
+  TString const& coutput_main,
+  float const& lumi,
+  TString canvasname,
+  TString ptitle,
+  TH2F* hist,
+  bool printValues = false
+){
+  TDirectory* curdir = gDirectory;
+  hist->SetTitle("");
+
+  hist->GetXaxis()->SetNdivisions(505);
+  hist->GetXaxis()->SetLabelFont(42);
+  hist->GetXaxis()->SetLabelOffset(0.007);
+  hist->GetXaxis()->SetLabelSize(0.035);
+  hist->GetXaxis()->SetTitleSize(0.04);
+  hist->GetXaxis()->SetTitleOffset(1.4);
+  hist->GetXaxis()->SetTitleFont(42);
+  hist->GetYaxis()->SetNdivisions(505);
+  hist->GetYaxis()->SetLabelFont(42);
+  hist->GetYaxis()->SetLabelOffset(0.007);
+  hist->GetYaxis()->SetLabelSize(0.035);
+  hist->GetYaxis()->SetTitleSize(0.04);
+  hist->GetYaxis()->SetTitleOffset(2.1);
+  hist->GetYaxis()->SetTitleFont(42);
+
+  gSystem->mkdir(coutput_main, true);
+
+  TCanvas can(canvasname, "", 1000, 800);
+  can.cd();
+  can.SetFillColor(0);
+  can.SetBorderMode(0);
+  can.SetBorderSize(2);
+  can.SetTickx(1);
+  can.SetTicky(1);
+  can.SetLeftMargin(0.17);
+  can.SetRightMargin(0.12);
+  can.SetTopMargin(0.12);
+  can.SetBottomMargin(0.13);
+  can.SetFrameFillStyle(0);
+  can.SetFrameBorderMode(0);
+  can.SetFrameFillStyle(0);
+  can.SetFrameBorderMode(0);
+  gStyle->SetPaintTextFormat(".3f");
+  hist->SetMarkerSize(1.2);
+
+  if (printValues) hist->Draw("colztext");
+  else hist->Draw("colz");
+
+  TPaveText pavetext(0.15, 0.93, 0.85, 1, "brNDC");
+  pavetext.SetBorderSize(0);
+  pavetext.SetFillStyle(0);
+  pavetext.SetTextAlign(12);
+  pavetext.SetTextFont(42);
+  pavetext.SetTextSize(0.045);
+  TText* text = pavetext.AddText(0.025, 0.45, "#font[61]{CMS}");
+  text->SetTextSize(0.044);
+  text = pavetext.AddText(0.135, 0.42, "#font[52]{Simulation}");
+  text->SetTextSize(0.0315);
+  TString cErgTev = Form("#font[42]{%.0f fb^{-1} (13 TeV)}", lumi);
+  text = pavetext.AddText(0.79, 0.45, cErgTev);
+  text->SetTextSize(0.0315);
+
+  TPaveText ptLabel(0.15, 0.88, 0.50, 0.93, "brNDC");
+  ptLabel.SetBorderSize(0);
+  ptLabel.SetFillStyle(0);
+  ptLabel.SetTextAlign(12);
+  ptLabel.SetTextFont(42);
+  ptLabel.SetTextSize(0.045);
+  text = ptLabel.AddText(0.1, 0.45, ptitle);
+  text->SetTextSize(0.0315);
+
+  ptLabel.Draw();
+  pavetext.Draw();
+  can.RedrawAxis();
+  can.Modified();
+  can.Update();
+  if (!SampleHelpers::checkRunOnCondor()){
+    can.SaveAs(coutput_main + Form("/%s.pdf", can.GetName()));
+    can.SaveAs(coutput_main + Form("/%s.png", can.GetName()));
+  }
+
+  gStyle->SetPaintTextFormat("g");
+  can.Close();
+
+  curdir->cd();
+
+  delete hist;
+}
+
+void makePlot_2DProj(
+  TString const& coutput_main,
+  float const& lumi,
+  TString canvasname,
+  TString ptitle,
+  TH2F* hist,
+  bool dummy=false
+){
+  std::vector<TH1F*> hlist;
+  std::vector<TString> hlabels;
+  for (int ix=1; ix<=hist->GetNbinsX(); ix++){
+    TH1F* hproj = HelperFunctions::getHistogramSlice(hist, 1, ix, ix, Form("hproj_%i", ix));
+    TString procname = Form("ZPrime_M%s_Ga1p0", hist->GetXaxis()->GetBinLabel(ix));
+    setHistogramProperties(procname, hproj);
+    hlabels.emplace_back(Form("%s GeV", hist->GetXaxis()->GetBinLabel(ix)));
+    hproj->GetXaxis()->SetTitle(hist->GetYAxis()->GetTitle());
+    hproj->GetYaxis()->SetTitle("Events / bin");
+    hlist.push_back(hproj);
+  }
+
+  makePlot(
+    coutput_main,
+    138.,
+    canvasname,
+    hlist,
+    hlabels,
+    ptitle,
+    "hist", false, false, -1, false
+  );
+
+  for (auto& hh:hlist) delete hh;
+}
+
+
 void setHistogramProperties(TString procname, TH1F* hist){
   int icolor=0;
   if (procname=="Data"){
@@ -1131,10 +1602,28 @@ void setHistogramProperties(TString procname, TH1F* hist){
   else if (procname=="DY_2l"){
     icolor = static_cast<int>(kOrange-3);
   }
+  else if (procname.Contains("ZPrime_M100_Ga1p0")){
+    icolor = int(TColor::GetColor("#0222d6"));
+  }
+  else if (procname.Contains("ZPrime_M200_Ga1p0")){
+    icolor = int(TColor::GetColor("#5302d6"));
+  }
+  else if (procname.Contains("ZPrime_M400_Ga1p0")){
+    icolor = int(TColor::GetColor("#8f02d6"));
+  }
+  else if (procname.Contains("ZPrime_M700_Ga1p0")){
+    icolor = int(TColor::GetColor("#bd02d6"));
+  }
+  else if (procname.Contains("ZPrime_M1000_Ga1p0")){
+    icolor = int(TColor::GetColor("#d602af"));
+  }
+  else if (procname.Contains("ZPrime_M2000_Ga1p0")){
+    icolor = int(TColor::GetColor("#d60250"));
+  }
   hist->SetLineWidth(2);
   hist->SetLineColor(icolor);
   hist->SetMarkerColor(icolor);
-  if (procname!="Data") hist->SetFillColor(icolor);
+  if (procname!="Data" && !procname.Contains("ZPrime")) hist->SetFillColor(icolor);
   hist->SetTitle("");
   if (procname=="DY_2l"){
     TString hname = hist->GetName();
@@ -1254,15 +1743,25 @@ TH1F* getATLASRatioHist(){
 
 
 void plotTTVetoHistograms(
-  TString strdate, unsigned char ibtag,
+  TString strdate, bool useCustomCouplings=false,
+  bool useATLASCuts=false, unsigned char ibtag=1,
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst=SystematicsHelpers::sNominal
 ){
+  gStyle->SetOptStat(0);
+
   using namespace PlottingHelpers;
   constexpr double npixels_pad_xy = 800;
   CMSLogoStep const cmslogotype = kPreliminary;
 
-  std::vector<TString> const procnames{ "Data", "DY_2l", "qqWW_2l2nu", "TT_2l2nu" };
-  std::vector<TString> const proctitles{ "Observed", "DY", "q#bar{q}#rightarrowWW", "t#bar{t}" };
+  std::vector<TString> const categories{ "Nb_geq_1", "Nb_eq_1", "Nb_geq_2" };
+  std::vector<TString> const procnames{
+    "Data", "DY_2l", "TT_2l2nu", "qqWW_2l2nu",
+    "ZPrime_M100_Ga1p0", "ZPrime_M200_Ga1p0", "ZPrime_M400_Ga1p0", "ZPrime_M700_Ga1p0", "ZPrime_M1000_Ga1p0", "ZPrime_M2000_Ga1p0"
+  };
+  std::vector<TString> const proctitles{
+    "Observed", "DY", "t#bar{t}", "q#bar{q}#rightarrowWW",
+    "Z' (100 GeV)", "Z' (200 GeV)", "Z' (400 GeV)", "Z' (700 GeV)", "Z' (1000 GeV)", "Z' (2000 GeV)"
+  };
   TString const strBTag = (ibtag==0 ? "loose" : "medium");
   TString const strSyst = SystematicsHelpers::getSystName(theGlobalSyst).data();
 
@@ -1270,49 +1769,74 @@ void plotTTVetoHistograms(
   TString const coutput_main = cinput_main + "Plots/";
   gSystem->mkdir(coutput_main, true);
 
-  TString strinput = cinput_main + Form("histograms_%sBTag_%s%s", strBTag.Data(), strSyst.Data(), ".root");
+  TString strinput = cinput_main + Form("histograms%s%s%sBTag_%s%s", (useCustomCouplings ? "_CustomCouplings" : ""), (useATLASCuts ? "_ATLASCuts_" : "_"), strBTag.Data(), strSyst.Data(), ".root");
   TFile* finput = TFile::Open(strinput, "read");
   finput->cd();
 
-  std::unordered_map<TString, std::vector<std::pair<TH1F*, TH1F*>> > procname_hpairlist_map;
+  std::unordered_map<TString, std::vector<std::pair<TH1F*, TH1F*>> > procname_mll_hpairlist_map;
   for (auto const& procname:procnames){
     std::pair<TH1F*, TH1F*> hpair_ee(
-      (TH1F*) finput->Get(Form("h_%s_ee_nocut", procname.Data())),
-      (TH1F*) finput->Get(Form("h_%s_ee_cut_min_mlb_ge_200", procname.Data()))
+      (TH1F*) finput->Get(Form("h_mll_%s_ee_nocut", procname.Data())),
+      (TH1F*) finput->Get(Form("h_mll_%s_ee_cut_min_mlb_ge_200", procname.Data()))
     );
     std::pair<TH1F*, TH1F*> hpair_mumu(
-      (TH1F*) finput->Get(Form("h_%s_mumu_nocut", procname.Data())),
-      (TH1F*) finput->Get(Form("h_%s_mumu_cut_min_mlb_ge_200", procname.Data()))
+      (TH1F*) finput->Get(Form("h_mll_%s_mumu_nocut", procname.Data())),
+      (TH1F*) finput->Get(Form("h_mll_%s_mumu_cut_min_mlb_ge_200", procname.Data()))
     );
-    procname_hpairlist_map[procname] = std::vector<std::pair<TH1F*, TH1F*>>{ hpair_mumu, hpair_ee };
+    procname_mll_hpairlist_map[procname] = std::vector<std::pair<TH1F*, TH1F*>>{ hpair_mumu, hpair_ee };
 
     setHistogramProperties(procname, hpair_mumu.first);
     setHistogramProperties(procname, hpair_mumu.second);
     setHistogramProperties(procname, hpair_ee.first);
     setHistogramProperties(procname, hpair_ee.second);
-  }
 
+    if (useCustomCouplings && procname.Contains("ZPrime")){
+      double xsec_scale = std::pow(SampleHelpers::findPoleMass(procname)/1500., 2);
+      hpair_mumu.first->Scale(xsec_scale);
+      hpair_mumu.second->Scale(xsec_scale);
+      hpair_ee.first->Scale(xsec_scale);
+      hpair_ee.second->Scale(xsec_scale);
+    }
+  }
+  TH2F* h_signal_absdEta_leadingbjet_ZPrime_mumu_nocut = (TH2F*) finput->Get("h_signal_absdEta_leadingbjet_ZPrime_mumu_nocut");
+  TH2F* h_signal_absdEta_leadingmatchedbjet_ZPrime_mumu_nocut = (TH2F*) finput->Get("h_signal_absdEta_leadingmatchedbjet_ZPrime_mumu_nocut");
+  TH2F* h_signal_dR_bjet_hardbfs_mumu_nocut = (TH2F*) finput->Get("h_signal_dR_bjet_hardbfs_mumu_nocut");
+  TH2F* h_signal_matchCond_bjet_hardbfs_mumu_nocut = (TH2F*) finput->Get("h_signal_matchCond_bjet_hardbfs_mumu_nocut");
+  TH2F* h_signal_pt_leadingbjet_mumu_nocut = (TH2F*) finput->Get("h_signal_pt_leadingbjet_mumu_nocut");
+  TH2F* h_signal_abseta_leadingbjet_mumu_nocut = (TH2F*) finput->Get("h_signal_abseta_leadingbjet_mumu_nocut");
+  TH2F* h_signal_quarkcomp_mumu_nocut = (TH2F*) finput->Get("h_signal_quarkcomp_mumu_nocut");
 
   for (unsigned int ip=1; ip<procnames.size(); ip++){
     unsigned int kip = 0;
-    for (auto& ipp:procname_hpairlist_map[procnames.at(ip)]){
-      for (unsigned int jp=ip+1; jp<procnames.size(); jp++){
-        auto& jpp = procname_hpairlist_map[procnames.at(jp)].at(kip);
+    for (auto& ipp:procname_mll_hpairlist_map[procnames.at(ip)]){
+      if (procnames.at(ip).Contains("ZPrime")){
+        unsigned int const jp=1;
+        auto& jpp = procname_mll_hpairlist_map[procnames.at(jp)].at(kip);
         IVYout << "Adding " << jpp.first->GetName() << " to " << ipp.first->GetName() << endl;
         IVYout << "Adding " << jpp.second->GetName() << " to " << ipp.second->GetName() << endl;
         ipp.first->Add(jpp.first);
         ipp.second->Add(jpp.second);
+      }
+      else{
+        for (unsigned int jp=ip+1; jp<procnames.size(); jp++){
+          if (procnames.at(jp).Contains("ZPrime")) break;
+          auto& jpp = procname_mll_hpairlist_map[procnames.at(jp)].at(kip);
+          IVYout << "Adding " << jpp.first->GetName() << " to " << ipp.first->GetName() << endl;
+          IVYout << "Adding " << jpp.second->GetName() << " to " << ipp.second->GetName() << endl;
+          ipp.first->Add(jpp.first);
+          ipp.second->Add(jpp.second);
+        }
       }
       kip++;
     }
   }
 
   {
-    TString canvasname = Form("c_dist_mumu_nocut_%sBTag", strBTag.Data());
+    TString canvasname = Form("c_mll_mumu_nominmlbcut%s%s%sBTag", (useCustomCouplings ? "_CustomCouplings" : ""), (useATLASCuts ? "_ATLASCuts_" : "_"), strBTag.Data());
     std::vector<TH1F*> hlist;
     for (unsigned int ip=0; ip<procnames.size(); ip++){
       TString const& procname = procnames.at(ip);
-      hlist.push_back(procname_hpairlist_map[procname].front().first);
+      hlist.push_back(procname_mll_hpairlist_map[procname].front().first);
     }
     makePlot(
       coutput_main,
@@ -1320,16 +1844,16 @@ void plotTTVetoHistograms(
       canvasname,
       hlist,
       proctitles,
-      Form("#mu#mu, N_{b,%s}>0|min(m_{lb})>0 GeV", strBTag.Data()),
-      "hist", false, -1, true
+      Form("#mu#mu, N_{b,%s}>0|min(m_{lb})>0 GeV|%s", strBTag.Data(), (useATLASCuts ? "p_{T}^{l1(2)}>60 (40) GeV" : "p_{T}^{l}>25 GeV")),
+      "hist", true, false, -1, false
     );
   }
   {
-    TString canvasname = Form("c_dist_ee_nocut_%sBTag", strBTag.Data());
+    TString canvasname = Form("c_mll_ee_nominmlbcut%s%s%sBTag", (useCustomCouplings ? "_CustomCouplings" : ""), (useATLASCuts ? "_ATLASCuts_" : "_"), strBTag.Data());
     std::vector<TH1F*> hlist;
     for (unsigned int ip=0; ip<procnames.size(); ip++){
       TString const& procname = procnames.at(ip);
-      hlist.push_back(procname_hpairlist_map[procname].back().first);
+      hlist.push_back(procname_mll_hpairlist_map[procname].back().first);
     }
     makePlot(
       coutput_main,
@@ -1337,16 +1861,16 @@ void plotTTVetoHistograms(
       canvasname,
       hlist,
       proctitles,
-      Form("ee, N_{b,%s}>0|min(m_{lb})>0 GeV", strBTag.Data()),
-      "hist", false, -1, true
+      Form("ee, N_{b,%s}>0|min(m_{lb})>0 GeV|%s", strBTag.Data(), (useATLASCuts ? "p_{T}^{l1(2)}>60 (40) GeV" : "p_{T}^{l}>25 GeV")),
+      "hist", false, false, -1, false
     );
   }
   {
-    TString canvasname = Form("c_dist_mumu_mlbcut_%sBTag", strBTag.Data());
+    TString canvasname = Form("c_mll_mumu_mlbcut%s%s%sBTag", (useCustomCouplings ? "_CustomCouplings" : ""), (useATLASCuts ? "_ATLASCuts_" : "_"), strBTag.Data());
     std::vector<TH1F*> hlist;
     for (unsigned int ip=0; ip<procnames.size(); ip++){
       TString const& procname = procnames.at(ip);
-      hlist.push_back(procname_hpairlist_map[procname].front().second);
+      hlist.push_back(procname_mll_hpairlist_map[procname].front().second);
     }
     makePlot(
       coutput_main,
@@ -1354,16 +1878,16 @@ void plotTTVetoHistograms(
       canvasname,
       hlist,
       proctitles,
-      Form("#mu#mu, N_{b,%s}>0|min(m_{lb})>200 GeV", strBTag.Data()),
-      "hist", false, -1, true
+      Form("#mu#mu, N_{b,%s}>0|min(m_{lb})>200 GeV|%s", strBTag.Data(), (useATLASCuts ? "p_{T}^{l1(2)}>60 (40) GeV" : "p_{T}^{l}>25 GeV")),
+      "hist", true, false, -1, false
     );
   }
   {
-    TString canvasname = Form("c_dist_ee_mlbcut_%sBTag", strBTag.Data());
+    TString canvasname = Form("c_mll_ee_mlbcut%s%s%sBTag", (useCustomCouplings ? "_CustomCouplings" : ""), (useATLASCuts ? "_ATLASCuts_" : "_"), strBTag.Data());
     std::vector<TH1F*> hlist;
     for (unsigned int ip=0; ip<procnames.size(); ip++){
       TString const& procname = procnames.at(ip);
-      hlist.push_back(procname_hpairlist_map[procname].back().second);
+      hlist.push_back(procname_mll_hpairlist_map[procname].back().second);
     }
     makePlot(
       coutput_main,
@@ -1371,72 +1895,67 @@ void plotTTVetoHistograms(
       canvasname,
       hlist,
       proctitles,
-      Form("ee, N_{b,%s}>0|min(m_{lb})>200 GeV", strBTag.Data()),
-      "hist", false, -1, true
+      Form("ee, N_{b,%s}>0|min(m_{lb})>200 GeV|%s", strBTag.Data(), (useATLASCuts ? "p_{T}^{l1(2)}>60 (40) GeV" : "p_{T}^{l}>25 GeV")),
+      "hist", false, false, -1, false
     );
   }
+  makePlot_2DProj(
+    coutput_main,
+    138.,
+    Form("c_signal_absdEta_leadingbjet_ZPrime_mumu_nocut%s%s%sBTag", (useCustomCouplings ? "_CustomCouplings" : ""), (useATLASCuts ? "_ATLASCuts_" : "_"), strBTag.Data()),
+    "",
+    h_signal_absdEta_leadingbjet_ZPrime_mumu_nocut,
+    false
+  );
+  makePlot_2DProj(
+    coutput_main,
+    138.,
+    Form("c_signal_absdEta_leadingmatchedbjet_ZPrime_mumu_nocut%s%s%sBTag", (useCustomCouplings ? "_CustomCouplings" : ""), (useATLASCuts ? "_ATLASCuts_" : "_"), strBTag.Data()),
+    "",
+    h_signal_absdEta_leadingmatchedbjet_ZPrime_mumu_nocut,
+    false
+  );
+  makePlot_2DProj(
+    coutput_main,
+    138.,
+    Form("c_signal_dR_bjet_hardbfs_mumu_nocut%s%s%sBTag", (useCustomCouplings ? "_CustomCouplings" : ""), (useATLASCuts ? "_ATLASCuts_" : "_"), strBTag.Data()),
+    "",
+    h_signal_dR_bjet_hardbfs_mumu_nocut,
+    false
+  );
+  makePlot_2DProj(
+    coutput_main,
+    138.,
+    Form("c_signal_matchCond_bjet_hardbfs_mumu_nocut%s%s%sBTag", (useCustomCouplings ? "_CustomCouplings" : ""), (useATLASCuts ? "_ATLASCuts_" : "_"), strBTag.Data()),
+    "",
+    h_signal_matchCond_bjet_hardbfs_mumu_nocut,
+    true
+  );
+  makePlot_2DProj(
+    coutput_main,
+    138.,
+    Form("c_signal_pt_leadingbjet_mumu_nocut%s%s%sBTag", (useCustomCouplings ? "_CustomCouplings" : ""), (useATLASCuts ? "_ATLASCuts_" : "_"), strBTag.Data()),
+    "",
+    h_signal_pt_leadingbjet_mumu_nocut,
+    false
+  );
+  makePlot_2DProj(
+    coutput_main,
+    138.,
+    Form("c_signal_abseta_leadingbjet_mumu_nocut%s%s%sBTag", (useCustomCouplings ? "_CustomCouplings" : ""), (useATLASCuts ? "_ATLASCuts_" : "_"), strBTag.Data()),
+    "",
+    h_signal_abseta_leadingbjet_mumu_nocut,
+    false
+  );
+  makePlot_2D(
+    coutput_main,
+    138.,
+    Form("h_signal_quarkcomp_mumu_nocut%s%s%sBTag", (useCustomCouplings ? "_CustomCouplings" : ""), (useATLASCuts ? "_ATLASCuts_" : "_"), strBTag.Data()),
+    "",
+    h_signal_quarkcomp_mumu_nocut,
+    true
+  );
 
-  TH1F* hATLASrat=nullptr;
-  {
-    TString canvasname = "c_ratio_mumuTOee_ATLASonly";
-    std::vector<TH1F*> hlist;
-    hATLASrat = getATLASRatioHist();
-    hlist.push_back(hATLASrat);
-    makePlot(
-      coutput_main,
-      138.,
-      canvasname,
-      hlist,
-      { "ATLAS" },
-      Form("", strBTag.Data()),
-      "e1p", false, -1, false
-    );
-    for (auto const& hh:hlist) delete hh;
-  }
-  {
-    TString canvasname = Form("c_ratio_mumuTOee_nocut_%sBTag", strBTag.Data());
-    std::vector<TH1F*> hlist;
-    hlist.push_back((TH1F*) procname_hpairlist_map["Data"].front().first->Clone("htmp"));
-    hlist.front()->Divide(procname_hpairlist_map["Data"].back().first);
-    hlist.front()->Divide(procname_hpairlist_map["DY_2l"].front().first);
-    hlist.front()->Multiply(procname_hpairlist_map["DY_2l"].back().first);
-    hlist.front()->GetXaxis()->SetTitle(procname_hpairlist_map["Data"].back().first->GetXaxis()->GetTitle());
-    hlist.front()->GetYaxis()->SetTitle("(N^{c,obs}_{#mu#mu} / N^{c,obs}_{ee}) / (N^{c,bkg}_{#mu#mu} / N^{c,bkg}_{ee})");
-    hATLASrat = getATLASRatioHist();
-    hlist.push_back(hATLASrat);
-    makePlot(
-      coutput_main,
-      138.,
-      canvasname,
-      hlist,
-      { "Observed", "ATLAS" },
-      Form("N_{b,%s}>0|min(m_{lb})>0 GeV", strBTag.Data()),
-      "e1p", false, -1, false
-    );
-    for (auto const& hh:hlist) delete hh;
-  }
-  {
-    TString canvasname = Form("c_ratio_mumuTOee_mlbcut_%sBTag", strBTag.Data());
-    std::vector<TH1F*> hlist;
-    hlist.push_back((TH1F*) procname_hpairlist_map["Data"].front().second->Clone("htmp"));
-    hlist.front()->Divide(procname_hpairlist_map["Data"].back().second);
-    hlist.front()->Divide(procname_hpairlist_map["DY_2l"].front().second);
-    hlist.front()->Multiply(procname_hpairlist_map["DY_2l"].back().second);
-    hlist.front()->GetXaxis()->SetTitle(procname_hpairlist_map["Data"].back().second->GetXaxis()->GetTitle());
-    hlist.front()->GetYaxis()->SetTitle("(N^{c,obs}_{#mu#mu} / N^{c,obs}_{ee}) / (N^{c,bkg}_{#mu#mu} / N^{c,bkg}_{ee})");
-    hATLASrat = getATLASRatioHist();
-    hlist.push_back(hATLASrat);
-    makePlot(
-      coutput_main,
-      138.,
-      canvasname,
-      hlist,
-      { "Observed", "ATLAS" },
-      Form("N_{b,%s}>0|min(m_{lb})>200 GeV", strBTag.Data()),
-      "e1p", false, -1, false
-    );
-    for (auto const& hh:hlist) delete hh;
-  }
 
   finput->Close();
 }
