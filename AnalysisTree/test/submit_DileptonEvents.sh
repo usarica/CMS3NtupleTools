@@ -8,6 +8,7 @@ useMETJERCorr=false
 declare -i doSim=1
 declare -i doStdSim=1
 declare -i doOffshellSim=1
+declare -i doZPrimeSim=1
 declare -i doData=1
 declare -i doAllSysts=0 # Do all systematics
 declare -i doImpSysts=0 # Only do important systematics
@@ -16,21 +17,31 @@ for arg in "$@"; do
     doSim=0
     doStdSim=0
     doOffshellSim=0
+    doZPrimeSim=0
     doData=1
   elif [[ "$arg" == "only_sim" ]]; then
     doSim=1
     doStdSim=1
     doOffshellSim=1
+    doZPrimeSim=1
     doData=0
   elif [[ "$arg" == "only_sim_offshell" ]]; then
     doSim=1
     doStdSim=0
     doOffshellSim=1
+    doZPrimeSim=0
     doData=0
   elif [[ "$arg" == "only_sim_std" ]]; then
     doSim=1
     doStdSim=1
     doOffshellSim=0
+    doZPrimeSim=0
+    doData=0
+  elif [[ "$arg" == "only_sim_zprime" ]]; then
+    doSim=1
+    doStdSim=0
+    doOffshellSim=0
+    doZPrimeSim=1
     doData=0
   elif [[ "$arg" == "all_systs" ]]; then
     doAllSysts=1
@@ -115,6 +126,10 @@ if [[ $doSim -eq 1 ]]; then
 declare -a SimSamples=()
 if [[ $doStdSim -eq 1 ]]; then
   SimSamples+=( $(readCMS3SkimSamplesFromCSV.py --csv=${csvfile} --sim --tree_req="Dilepton") )
+fi
+if [[ ${doZPrimeSim} -eq 1 ]]; then
+  csvfile_zprime="skimSamples_ZPrime_${dataYear}.csv"
+  SimSamples+=( $(readCMS3SkimSamplesFromCSV.py --csv=${csvfile_zprime} --sim --tree_req="Dilepton") )
 fi
 if [[ $doOffshellSim -eq 1 ]]; then
   strSampleGroup="GGH_ZZTo2L2Nu_POWHEG"

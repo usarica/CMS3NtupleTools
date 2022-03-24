@@ -91,22 +91,46 @@ void getMCSampleDirs(
         "qqWW_2l2nu",{ "qqWW_2l2nu" }
       },
       {
-        "ZPrime_M100_Ga1p0",{}
+        "ZPrime_M100_Allanach_Y3",{}
       },
       {
-        "ZPrime_M200_Ga1p0",{}
+        "ZPrime_M200_Allanach_Y3",{}
       },
       {
-        "ZPrime_M400_Ga1p0",{}
+        "ZPrime_M400_Allanach_Y3",{}
       },
       {
-        "ZPrime_M700_Ga1p0",{}
+        "ZPrime_M700_Allanach_Y3",{}
       },
       {
-        "ZPrime_M1000_Ga1p0",{}
+        "ZPrime_M1000_Allanach_Y3",{}
       },
       {
-        "ZPrime_M2000_Ga1p0",{}
+        "ZPrime_M1500_Allanach_Y3",{}
+      },
+      {
+        "ZPrime_M2000_Allanach_Y3",{}
+      },
+      {
+        "ZPrime_M100_Allanach_B3mL2",{}
+      },
+      {
+        "ZPrime_M200_Allanach_B3mL2",{}
+      },
+      {
+        "ZPrime_M400_Allanach_B3mL2",{}
+      },
+      {
+        "ZPrime_M700_Allanach_B3mL2",{}
+      },
+      {
+        "ZPrime_M1000_Allanach_B3mL2",{}
+      },
+      {
+        "ZPrime_M1500_Allanach_B3mL2",{}
+      },
+      {
+        "ZPrime_M2000_Allanach_B3mL2",{}
       }
     };
     break;
@@ -122,22 +146,46 @@ void getMCSampleDirs(
         "qqWW_2l2nu",{ "qqWW_2l2nu" }
       },
       {
-        "ZPrime_M100_Ga1p0",{}
+        "ZPrime_M100_Allanach_Y3",{}
       },
       {
-        "ZPrime_M200_Ga1p0",{}
+        "ZPrime_M200_Allanach_Y3",{}
       },
       {
-        "ZPrime_M400_Ga1p0",{}
+        "ZPrime_M400_Allanach_Y3",{}
       },
       {
-        "ZPrime_M700_Ga1p0",{}
+        "ZPrime_M700_Allanach_Y3",{}
       },
       {
-        "ZPrime_M1000_Ga1p0",{}
+        "ZPrime_M1000_Allanach_Y3",{}
       },
       {
-        "ZPrime_M2000_Ga1p0",{}
+        "ZPrime_M1500_Allanach_Y3",{}
+      },
+      {
+        "ZPrime_M2000_Allanach_Y3",{}
+      },
+      {
+        "ZPrime_M100_Allanach_B3mL2",{}
+      },
+      {
+        "ZPrime_M200_Allanach_B3mL2",{}
+      },
+      {
+        "ZPrime_M400_Allanach_B3mL2",{}
+      },
+      {
+        "ZPrime_M700_Allanach_B3mL2",{}
+      },
+      {
+        "ZPrime_M1000_Allanach_B3mL2",{}
+      },
+      {
+        "ZPrime_M1500_Allanach_B3mL2",{}
+      },
+      {
+        "ZPrime_M2000_Allanach_B3mL2",{}
       }
     };
     break;
@@ -153,22 +201,46 @@ void getMCSampleDirs(
         "qqWW_2l2nu",{ "qqWW_2l2nu" }
       },
       {
-        "ZPrime_M100_Ga1p0",{ "/ZPrimeToMuMuSB_M100_Ga1p0_TuneCP5_13TeV_madgraph_pythia8_NoPSWgts/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_private/MINIAODSIM" }
+        "ZPrime_M100_Allanach_Y3",{ "/ZPrimeToMuMuSB_M100_bestfit_TuneCP5_13TeV_Allanach_Y3_5f_madgraph_pythia8_NoPSWgts/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_private/MINIAODSIM" }
       },
       {
-        "ZPrime_M200_Ga1p0",{ "/ZPrimeToMuMuSB_M200_Ga1p0_TuneCP5_13TeV_madgraph_pythia8_NoPSWgts/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_private/MINIAODSIM" }
+        "ZPrime_M200_Allanach_Y3",{ "/ZPrimeToMuMuSB_M200_bestfit_TuneCP5_13TeV_Allanach_Y3_5f_madgraph_pythia8_NoPSWgts/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_private/MINIAODSIM" }
       },
       {
-        "ZPrime_M400_Ga1p0",{ "/ZPrimeToMuMuSB_M400_Ga1p0_TuneCP5_13TeV_madgraph_pythia8_NoPSWgts/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_private/MINIAODSIM" }
+        "ZPrime_M400_Allanach_Y3",{ "/ZPrimeToMuMuSB_M400_bestfit_TuneCP5_13TeV_Allanach_Y3_5f_madgraph_pythia8_NoPSWgts/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_private/MINIAODSIM" }
       },
       {
-        "ZPrime_M700_Ga1p0",{ "/ZPrimeToMuMuSB_M700_Ga1p0_TuneCP5_13TeV_madgraph_pythia8_NoPSWgts/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_private/MINIAODSIM" }
+        "ZPrime_M700_Allanach_Y3",{ "/ZPrimeToMuMuSB_M700_bestfit_TuneCP5_13TeV_Allanach_Y3_5f_madgraph_pythia8_NoPSWgts/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_private/MINIAODSIM" }
       },
       {
-        "ZPrime_M1000_Ga1p0",{ "/ZPrimeToMuMuSB_M1000_Ga1p0_TuneCP5_13TeV_madgraph_pythia8_NoPSWgts/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_private/MINIAODSIM" }
+        "ZPrime_M1000_Allanach_Y3",{ "/ZPrimeToMuMuSB_M1000_bestfit_TuneCP5_13TeV_Allanach_Y3_5f_madgraph_pythia8_NoPSWgts/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_private/MINIAODSIM" }
       },
       {
-        "ZPrime_M2000_Ga1p0",{ "/ZPrimeToMuMuSB_M2000_Ga1p0_TuneCP5_13TeV_madgraph_pythia8_NoPSWgts/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_private/MINIAODSIM" }
+        "ZPrime_M1500_Allanach_Y3",{ "/ZPrimeToMuMuSB_M1500_bestfit_TuneCP5_13TeV_Allanach_Y3_5f_madgraph_pythia8_NoPSWgts/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_private/MINIAODSIM" }
+      },
+      {
+        "ZPrime_M2000_Allanach_Y3",{ "/ZPrimeToMuMuSB_M2000_bestfit_TuneCP5_13TeV_Allanach_Y3_5f_madgraph_pythia8_NoPSWgts/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_private/MINIAODSIM" }
+      },
+      {
+        "ZPrime_M100_Allanach_B3mL2",{ "/ZPrimeToMuMuSB_M100_bestfit_TuneCP5_13TeV_Allanach_B3mL2_5f_madgraph_pythia8_NoPSWgts/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_private/MINIAODSIM" }
+      },
+      {
+        "ZPrime_M200_Allanach_B3mL2",{ "/ZPrimeToMuMuSB_M200_bestfit_TuneCP5_13TeV_Allanach_B3mL2_5f_madgraph_pythia8_NoPSWgts/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_private/MINIAODSIM" }
+      },
+      {
+        "ZPrime_M400_Allanach_B3mL2",{ "/ZPrimeToMuMuSB_M400_bestfit_TuneCP5_13TeV_Allanach_B3mL2_5f_madgraph_pythia8_NoPSWgts/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_private/MINIAODSIM" }
+      },
+      {
+        "ZPrime_M700_Allanach_B3mL2",{ "/ZPrimeToMuMuSB_M700_bestfit_TuneCP5_13TeV_Allanach_B3mL2_5f_madgraph_pythia8_NoPSWgts/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_private/MINIAODSIM" }
+      },
+      {
+        "ZPrime_M1000_Allanach_B3mL2",{ "/ZPrimeToMuMuSB_M1000_bestfit_TuneCP5_13TeV_Allanach_B3mL2_5f_madgraph_pythia8_NoPSWgts/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_private/MINIAODSIM" }
+      },
+      {
+        "ZPrime_M1500_Allanach_B3mL2",{ "/ZPrimeToMuMuSB_M1500_bestfit_TuneCP5_13TeV_Allanach_B3mL2_5f_madgraph_pythia8_NoPSWgts/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_private/MINIAODSIM" }
+      },
+      {
+        "ZPrime_M2000_Allanach_B3mL2",{ "/ZPrimeToMuMuSB_M2000_bestfit_TuneCP5_13TeV_Allanach_B3mL2_5f_madgraph_pythia8_NoPSWgts/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_private/MINIAODSIM" }
       }
     };
     break;
@@ -261,6 +333,7 @@ void getMCSampleDirs(
 using namespace SystematicsHelpers;
 void getDistributions(
   TString period, TString prodVersion, TString ntupleVersion, TString strdate,
+  bool doSignal,
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst=SystematicsHelpers::sNominal
 ){
   constexpr bool applyPUIdToAK4Jets=true;
@@ -290,7 +363,7 @@ void getDistributions(
   size_t const nValidDataPeriods = validDataPeriods.size();
 
   std::vector<TString> transfer_list;
-  TString const cinput_main = "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/DileptonEvents/SkimTrees/" + ntupleVersion;
+  TString const cinput_main = HostHelpers::GetStandardHostPathToStore("/store/user/usarica/Offshell_2L2Nu/Worker/output/DileptonEvents/SkimTrees/", HostHelpers::kUCSDT2) + ntupleVersion;
   TString const coutput_main = "output/TTVetoEstimates/" + strdate + "/" + period;
 
   TDirectory* curdir = gDirectory;
@@ -298,7 +371,7 @@ void getDistributions(
 
   TriggerScaleFactorHandler triggerSFHandler;
 
-  TString stroutput = coutput_main + Form("/trees_%s", strSyst.Data());
+  TString stroutput = coutput_main + Form("/trees%s_%s", (doSignal ? "_sig" : ""), strSyst.Data());
   stroutput = stroutput + ".root";
   TFile* foutput = TFile::Open(stroutput, "recreate");
   transfer_list.push_back(stroutput);
@@ -314,6 +387,7 @@ void getDistributions(
   for (auto const& sgroup_sname_sfname_pair:sgroup_sname_sfname_pairs_MC){
     auto const& sgroup = sgroup_sname_sfname_pair.first;
     auto const& sname_sfname_pairs = sgroup_sname_sfname_pair.second;
+    if (sgroup.Contains("ZPrime")!=doSignal) continue;
     if (!HelperFunctions::checkListVariable(sgroups, sgroup)) sgroups.push_back(sgroup);
     std::vector<TChain*> tins_collected;
     for (auto const& sname_sfname_pair:sname_sfname_pairs){
@@ -326,7 +400,6 @@ void getDistributions(
       if (xsec_scale!=1.f) IVYout << "\t- Sample " << sname << " has a cross section exception with scale " << xsec_scale << "." << endl;
 
       TString cinput = cinput_main + "/" + sfname;
-      if (sgroup.Contains("ZPrime")) HelperFunctions::replaceString<TString, TString const>(cinput, ntupleVersion, "220307"); // FIXME: HACK NTUPLE RELEASE
       foutput->cd();
       TChain* tin = new TChain("SkimTree");
       int nfiles = tin->Add(cinput);
@@ -738,34 +811,18 @@ double getZPrimeXSecScale(
 
 
 void produceTTVetoHistograms(
-  TString strdate,
-  double gV_mumu=1, double gA_mumu=1,
-  double gV_ss=1, double gA_ss=1,
-  double gV_sb=1, double gA_sb=1,
-  double gV_bb=1, double gA_bb=1,
-  bool useATLASCuts=false, unsigned char ibtag=1,
+  TString strdate, unsigned int icat,
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst=SystematicsHelpers::sNominal
 ){
   gStyle->SetOptStat(0);
 
-  bool const useCustomCouplings = !(
-    gV_mumu==1. && gA_mumu==1.
-    &&
-    gV_ss==1. && gA_ss==1.
-    &&
-    gV_sb==1. && gA_sb==1.
-    &&
-    gV_bb==1. && gA_bb==1.
-    );
+  unsigned char const ibtag=1;
+  std::vector<TString> const catnames{ "Nb_geq_1", "Nb_eq_1", "Nb_geq_2" }; if (icat>=catnames.size()) return;
   std::vector<TString> const periods{ "2016", "2017", "2018" };
-  std::vector<TString> const categories{ "Nb_geq_1", "Nb_eq_1", "Nb_geq_2" };
-  std::vector<TString> const procnames{
+  std::vector<TString> procnames{
     "Data", "DY_2l", "TT_2l2nu", "qqWW_2l2nu",
-    "ZPrime_M100_Ga1p0", "ZPrime_M200_Ga1p0", "ZPrime_M400_Ga1p0", "ZPrime_M700_Ga1p0", "ZPrime_M1000_Ga1p0", "ZPrime_M2000_Ga1p0"
-  };
-  std::vector<TString> const proctitles{
-    "Observed", "DY", "t#bar{t}", "q#bar{q}#rightarrowWW",
-    "Z' (100 GeV)", "Z' (200 GeV)", "Z' (400 GeV)", "Z' (700 GeV)", "Z' (1000 GeV)", "Z' (2000 GeV)"
+    "ZPrime_M100_Allanach_Y3", "ZPrime_M200_Allanach_Y3", "ZPrime_M400_Allanach_Y3", "ZPrime_M700_Allanach_Y3", "ZPrime_M1000_Allanach_Y3", "ZPrime_M1500_Allanach_Y3", "ZPrime_M2000_Allanach_Y3",
+    "ZPrime_M100_Allanach_B3mL2", "ZPrime_M200_Allanach_B3mL2", "ZPrime_M400_Allanach_B3mL2", "ZPrime_M700_Allanach_B3mL2", "ZPrime_M1000_Allanach_B3mL2", "ZPrime_M1500_Allanach_B3mL2", "ZPrime_M2000_Allanach_B3mL2"
   };
   TString const strBTag = (ibtag==0 ? "loose" : "medium");
 
@@ -774,7 +831,7 @@ void produceTTVetoHistograms(
   TString const coutput_main = cinput_main;
   gSystem->mkdir(coutput_main, true);
 
-  TString stroutput = coutput_main + Form("histograms%s%s%sBTag_%s%s", (useCustomCouplings ? "_CustomCouplings" : ""), (useATLASCuts ? "_ATLASCuts_" : "_"), strBTag.Data(), strSyst.Data(), ".root");
+  TString stroutput = coutput_main + Form("histograms_%sBTag_%s_%s%s", strBTag.Data(), catnames.at(icat).Data(), strSyst.Data(), ".root");
   TFile* foutput = TFile::Open(stroutput, "recreate");
 
   std::unordered_map<TString, TChain*> tinmap;
@@ -782,7 +839,7 @@ void produceTTVetoHistograms(
     TChain* tin = new TChain(Form("FinalTree_%s", procname.Data()));
     int nfiles = 0;
     for (auto const& period:periods){
-      TString strinput = cinput_main + period + Form("/trees_%s", strSyst.Data());
+      TString strinput = cinput_main + period + Form("/trees%s_%s", (procname.Contains("ZPrime") ? "_sig" : ""), strSyst.Data());
       strinput = strinput + ".root";
       nfiles += tin->Add(strinput);
     }
@@ -849,12 +906,12 @@ void produceTTVetoHistograms(
   std::unordered_map<TString, std::vector<std::pair<TH1F*, TH1F*>> > procname_mll_hpairlist_map;
   std::unordered_map<TString, std::vector<TH2F*> > procname_mll_minmlb_hlist_map;
   std::unordered_map<TString, std::vector<TH2F*> > procname_mll_minpTl_hlist_map;
-  TH2F h_signal_absdEta_leadingbjet_ZPrime_mumu_nocut("h_signal_absdEta_leadingbjet_ZPrime_mumu_nocut", "", 6, 0, 6, 31, 0, 6.2); h_signal_absdEta_leadingbjet_ZPrime_mumu_nocut.Sumw2();
-  TH2F h_signal_absdEta_leadingmatchedbjet_ZPrime_mumu_nocut("h_signal_absdEta_leadingmatchedbjet_ZPrime_mumu_nocut", "", 6, 0, 6, 31, 0, 6.2); h_signal_absdEta_leadingmatchedbjet_ZPrime_mumu_nocut.Sumw2();
-  TH2F h_signal_dR_bjet_hardbfs_mumu_nocut("h_signal_dR_bjet_hardbfs_mumu_nocut", "", 6, 0, 6, 51, -0.02, 1.0); h_signal_dR_bjet_hardbfs_mumu_nocut.Sumw2();
-  TH2F h_signal_matchCond_bjet_hardbfs_mumu_nocut("h_signal_matchCond_bjet_hardbfs_mumu_nocut", "", 6, 0, 6, 3, -1, 2); h_signal_matchCond_bjet_hardbfs_mumu_nocut.Sumw2();
-  TH2F h_signal_pt_leadingbjet_mumu_nocut("h_signal_pt_leadingbjet_mumu_nocut", "", 6, 0, 6, 47, 30, 300); h_signal_pt_leadingbjet_mumu_nocut.Sumw2();
-  TH2F h_signal_abseta_leadingbjet_mumu_nocut("h_signal_abseta_leadingbjet_mumu_nocut", "", 6, 0, 6, 25, 0, 2.5); h_signal_abseta_leadingbjet_mumu_nocut.Sumw2();
+  TH2F h_signal_absdEta_leadingbjet_ZPrime_mumu_nocut("h_signal_absdEta_leadingbjet_ZPrime_mumu_nocut", "", 14, 0, 14, 31, 0, 6.2); h_signal_absdEta_leadingbjet_ZPrime_mumu_nocut.Sumw2();
+  TH2F h_signal_absdEta_leadingmatchedbjet_ZPrime_mumu_nocut("h_signal_absdEta_leadingmatchedbjet_ZPrime_mumu_nocut", "", 14, 0, 14, 31, 0, 6.2); h_signal_absdEta_leadingmatchedbjet_ZPrime_mumu_nocut.Sumw2();
+  TH2F h_signal_dR_bjet_hardbfs_mumu_nocut("h_signal_dR_bjet_hardbfs_mumu_nocut", "", 14, 0, 14, 51, -0.02, 1.0); h_signal_dR_bjet_hardbfs_mumu_nocut.Sumw2();
+  TH2F h_signal_matchCond_bjet_hardbfs_mumu_nocut("h_signal_matchCond_bjet_hardbfs_mumu_nocut", "", 14, 0, 14, 3, -1, 2); h_signal_matchCond_bjet_hardbfs_mumu_nocut.Sumw2();
+  TH2F h_signal_pt_leadingbjet_mumu_nocut("h_signal_pt_leadingbjet_mumu_nocut", "", 14, 0, 14, 47, 30, 300); h_signal_pt_leadingbjet_mumu_nocut.Sumw2();
+  TH2F h_signal_abseta_leadingbjet_mumu_nocut("h_signal_abseta_leadingbjet_mumu_nocut", "", 14, 0, 14, 25, 0, 2.5); h_signal_abseta_leadingbjet_mumu_nocut.Sumw2();
   h_signal_absdEta_leadingbjet_ZPrime_mumu_nocut.GetXaxis()->SetTitle("m_{Z'} (GeV)");
   h_signal_absdEta_leadingbjet_ZPrime_mumu_nocut.GetYaxis()->SetTitle("|#Delta#eta(b_{leading},Z')|");
   h_signal_absdEta_leadingmatchedbjet_ZPrime_mumu_nocut.GetXaxis()->SetTitle("m_{Z'} (GeV)");
@@ -871,8 +928,8 @@ void produceTTVetoHistograms(
   h_signal_abseta_leadingbjet_mumu_nocut.GetXaxis()->SetTitle("m_{Z'} (GeV)");
   h_signal_abseta_leadingbjet_mumu_nocut.GetYaxis()->SetTitle("b_{leading} |#eta|");
   std::vector<TH2F*> hlist_signal_quarkcomp_mumu{
-    new TH2F("h_signal_quarkcomp_mumu_nocut", "", 6, 0, 6, 3, 0, 3),
-    new TH2F("h_signal_quarkcomp_mumu_cut_min_mlb_ge_200", "", 6, 0, 6, 3, 0, 3)
+    new TH2F("h_signal_quarkcomp_mumu_nocut", "", 14, 0, 14, 3, 0, 3),
+    new TH2F("h_signal_quarkcomp_mumu_cut_min_mlb_ge_200", "", 14, 0, 14, 3, 0, 3)
   };
   for (auto& hh:hlist_signal_quarkcomp_mumu){
     hh->Sumw2();
@@ -916,8 +973,7 @@ void produceTTVetoHistograms(
     };
     for (auto& hh:hlist_mll_minmlb) hh->Sumw2();
 
-    std::vector<TH2F*> hlist_mll_minpTl;
-    if (!useATLASCuts) hlist_mll_minpTl = std::vector<TH2F*>{
+    std::vector<TH2F*> hlist_mll_minpTl{
       new TH2F(Form("h_mll_minpTl_%s_ee_nocut", procname.Data()), "", binning_mll_coarse.getNbins(), binning_mll_coarse.getBinning(), binning_minpTl.getNbins(), binning_minpTl.getBinning()),
       new TH2F(Form("h_mll_minpTl_%s_mumu_nocut", procname.Data()), "", binning_mll_coarse.getNbins(), binning_mll_coarse.getBinning(), binning_minpTl.getNbins(), binning_minpTl.getBinning())
     };
@@ -925,11 +981,7 @@ void produceTTVetoHistograms(
 
     double const wgt_scale = (procname.Contains("ZPrime")
                               ?
-                              137.6/59.74*(useCustomCouplings ?
-                                           getZPrimeXSecScale(procname, 1., gV_mumu, gA_mumu, gV_ss, gA_ss, gV_sb, gA_sb, gV_bb, gA_bb)
-                                           :
-                                           getZPrimeXSecScale(procname, 0.25)
-                                           )
+                              137.6/59.74
                               : 1.
                               );
     if (procname.Contains("ZPrime")) iproc_sig++;
@@ -938,27 +990,22 @@ void produceTTVetoHistograms(
     for (int ev=0; ev<tin->GetEntries(); ev++){
       tin->GetEntry(ev);
 
-      if (useATLASCuts && (leading_lepton_pt<60. || subleading_lepton_pt<40.)) continue;
-
       weight *= wgt_scale;
-      if (useCustomCouplings && iproc_sig>=0){
-        if (gen_quark_flavor==6) weight *= (std::pow((gV_ss+gA_ss), 2) + std::pow((gV_ss-gA_ss), 2))/2.;
-        else if (gen_quark_flavor==8) weight *= (std::pow((gV_sb+gA_sb), 2) + std::pow((gV_sb-gA_sb), 2))/2.;
-        else weight *= (std::pow((gV_bb+gA_bb), 2) + std::pow((gV_bb-gA_bb), 2))/2.;
-      }
 
       bool has_bjet = false;
       unsigned int index_leadingbjet=0;
+      unsigned int nbjets=0;
       {
         for (auto const& ff:(*ak4jets_isBTagged_BWP)){
           if (ff){
             has_bjet = true;
-            break;
+            nbjets++;
           }
-          index_leadingbjet++;
+          if (nbjets==0) index_leadingbjet++;
         }
       }
       if (!has_bjet) continue;
+      if (!(icat==0 || (icat==1 && nbjets==1) || (icat==2 && nbjets>1))) continue;
 
       int index_matched_bjet = -1;
       float dR_matched_bjet = -1;
@@ -1567,7 +1614,7 @@ void makePlot_2DProj(
     TString procname = Form("ZPrime_M%s_Ga1p0", hist->GetXaxis()->GetBinLabel(ix));
     setHistogramProperties(procname, hproj);
     hlabels.emplace_back(Form("%s GeV", hist->GetXaxis()->GetBinLabel(ix)));
-    hproj->GetXaxis()->SetTitle(hist->GetYAxis()->GetTitle());
+    hproj->GetXaxis()->SetTitle(hist->GetYaxis()->GetTitle());
     hproj->GetYaxis()->SetTitle("Events / bin");
     hlist.push_back(hproj);
   }
@@ -1620,9 +1667,17 @@ void setHistogramProperties(TString procname, TH1F* hist){
   else if (procname.Contains("ZPrime_M2000_Ga1p0")){
     icolor = int(TColor::GetColor("#d60250"));
   }
+  else if (procname.Contains("ZPrime") && procname.Contains("Allanach_Y3")){
+    icolor = int(TColor::GetColor("#0222d6"));
+  }
+  else if (procname.Contains("ZPrime") && procname.Contains("Allanach_B3mL2")){
+    icolor = int(TColor::GetColor("#d60250"));
+  }
   hist->SetLineWidth(2);
   hist->SetLineColor(icolor);
   hist->SetMarkerColor(icolor);
+  if (procname.Contains("lowgzp")) hist->SetLineStyle(2);
+  if (procname.Contains("highgzp")) hist->SetLineStyle(7);
   if (procname!="Data" && !procname.Contains("ZPrime")) hist->SetFillColor(icolor);
   hist->SetTitle("");
   if (procname=="DY_2l"){
@@ -1743,8 +1798,8 @@ TH1F* getATLASRatioHist(){
 
 
 void plotTTVetoHistograms(
-  TString strdate, bool useCustomCouplings=false,
-  bool useATLASCuts=false, unsigned char ibtag=1,
+  TString strdate,
+  unsigned int icat,
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst=SystematicsHelpers::sNominal
 ){
   gStyle->SetOptStat(0);
@@ -1753,23 +1808,27 @@ void plotTTVetoHistograms(
   constexpr double npixels_pad_xy = 800;
   CMSLogoStep const cmslogotype = kPreliminary;
 
-  std::vector<TString> const categories{ "Nb_geq_1", "Nb_eq_1", "Nb_geq_2" };
+  std::vector<TString> const catnames{ "Nb_geq_1", "Nb_eq_1", "Nb_geq_2" };
+  if (icat>=catnames.size()) return;
+  std::vector<TString> const cattitles{ "#geq1", "=1", "#geq2" };
   std::vector<TString> const procnames{
     "Data", "DY_2l", "TT_2l2nu", "qqWW_2l2nu",
-    "ZPrime_M100_Ga1p0", "ZPrime_M200_Ga1p0", "ZPrime_M400_Ga1p0", "ZPrime_M700_Ga1p0", "ZPrime_M1000_Ga1p0", "ZPrime_M2000_Ga1p0"
+    "ZPrime_M100_Allanach_Y3", "ZPrime_M200_Allanach_Y3", "ZPrime_M400_Allanach_Y3", "ZPrime_M700_Allanach_Y3", "ZPrime_M1000_Allanach_Y3", "ZPrime_M1500_Allanach_Y3", "ZPrime_M2000_Allanach_Y3",
+    "ZPrime_M100_Allanach_B3mL2", "ZPrime_M200_Allanach_B3mL2", "ZPrime_M400_Allanach_B3mL2", "ZPrime_M700_Allanach_B3mL2", "ZPrime_M1000_Allanach_B3mL2", "ZPrime_M1500_Allanach_B3mL2", "ZPrime_M2000_Allanach_B3mL2"
   };
   std::vector<TString> const proctitles{
     "Observed", "DY", "t#bar{t}", "q#bar{q}#rightarrowWW",
-    "Z' (100 GeV)", "Z' (200 GeV)", "Z' (400 GeV)", "Z' (700 GeV)", "Z' (1000 GeV)", "Z' (2000 GeV)"
+    "Y_{3}", "", "", "", "", "", "",
+    "(B_{3}-L_{2})_{eg}", "", "", "", "", "", ""
   };
-  TString const strBTag = (ibtag==0 ? "loose" : "medium");
+  TString const strBTag = "medium";
   TString const strSyst = SystematicsHelpers::getSystName(theGlobalSyst).data();
 
   TString const cinput_main = "output/TTVetoEstimates/" + strdate + "/";
   TString const coutput_main = cinput_main + "Plots/";
   gSystem->mkdir(coutput_main, true);
 
-  TString strinput = cinput_main + Form("histograms%s%s%sBTag_%s%s", (useCustomCouplings ? "_CustomCouplings" : ""), (useATLASCuts ? "_ATLASCuts_" : "_"), strBTag.Data(), strSyst.Data(), ".root");
+  TString strinput = cinput_main + Form("histograms_%sBTag_%s_%s%s", strBTag.Data(), catnames.at(icat).Data(), strSyst.Data(), ".root");
   TFile* finput = TFile::Open(strinput, "read");
   finput->cd();
 
@@ -1789,22 +1848,7 @@ void plotTTVetoHistograms(
     setHistogramProperties(procname, hpair_mumu.second);
     setHistogramProperties(procname, hpair_ee.first);
     setHistogramProperties(procname, hpair_ee.second);
-
-    if (useCustomCouplings && procname.Contains("ZPrime")){
-      double xsec_scale = std::pow(SampleHelpers::findPoleMass(procname)/1500., 2);
-      hpair_mumu.first->Scale(xsec_scale);
-      hpair_mumu.second->Scale(xsec_scale);
-      hpair_ee.first->Scale(xsec_scale);
-      hpair_ee.second->Scale(xsec_scale);
-    }
   }
-  TH2F* h_signal_absdEta_leadingbjet_ZPrime_mumu_nocut = (TH2F*) finput->Get("h_signal_absdEta_leadingbjet_ZPrime_mumu_nocut");
-  TH2F* h_signal_absdEta_leadingmatchedbjet_ZPrime_mumu_nocut = (TH2F*) finput->Get("h_signal_absdEta_leadingmatchedbjet_ZPrime_mumu_nocut");
-  TH2F* h_signal_dR_bjet_hardbfs_mumu_nocut = (TH2F*) finput->Get("h_signal_dR_bjet_hardbfs_mumu_nocut");
-  TH2F* h_signal_matchCond_bjet_hardbfs_mumu_nocut = (TH2F*) finput->Get("h_signal_matchCond_bjet_hardbfs_mumu_nocut");
-  TH2F* h_signal_pt_leadingbjet_mumu_nocut = (TH2F*) finput->Get("h_signal_pt_leadingbjet_mumu_nocut");
-  TH2F* h_signal_abseta_leadingbjet_mumu_nocut = (TH2F*) finput->Get("h_signal_abseta_leadingbjet_mumu_nocut");
-  TH2F* h_signal_quarkcomp_mumu_nocut = (TH2F*) finput->Get("h_signal_quarkcomp_mumu_nocut");
 
   for (unsigned int ip=1; ip<procnames.size(); ip++){
     unsigned int kip = 0;
@@ -1832,7 +1876,7 @@ void plotTTVetoHistograms(
   }
 
   {
-    TString canvasname = Form("c_mll_mumu_nominmlbcut%s%s%sBTag", (useCustomCouplings ? "_CustomCouplings" : ""), (useATLASCuts ? "_ATLASCuts_" : "_"), strBTag.Data());
+    TString canvasname = Form("c_mll_mumu_nominmlbcut_%sBTag_%s", strBTag.Data(), catnames.at(icat).Data());
     std::vector<TH1F*> hlist;
     for (unsigned int ip=0; ip<procnames.size(); ip++){
       TString const& procname = procnames.at(ip);
@@ -1844,29 +1888,12 @@ void plotTTVetoHistograms(
       canvasname,
       hlist,
       proctitles,
-      Form("#mu#mu, N_{b,%s}>0|min(m_{lb})>0 GeV|%s", strBTag.Data(), (useATLASCuts ? "p_{T}^{l1(2)}>60 (40) GeV" : "p_{T}^{l}>25 GeV")),
+      Form("#mu#mu, N_{b,%s}%s|min(m_{lb})>0 GeV|%s", strBTag.Data(), cattitles.at(icat).Data(), "p_{T}^{l}>25 GeV"),
       "hist", true, false, -1, false
     );
   }
   {
-    TString canvasname = Form("c_mll_ee_nominmlbcut%s%s%sBTag", (useCustomCouplings ? "_CustomCouplings" : ""), (useATLASCuts ? "_ATLASCuts_" : "_"), strBTag.Data());
-    std::vector<TH1F*> hlist;
-    for (unsigned int ip=0; ip<procnames.size(); ip++){
-      TString const& procname = procnames.at(ip);
-      hlist.push_back(procname_mll_hpairlist_map[procname].back().first);
-    }
-    makePlot(
-      coutput_main,
-      138.,
-      canvasname,
-      hlist,
-      proctitles,
-      Form("ee, N_{b,%s}>0|min(m_{lb})>0 GeV|%s", strBTag.Data(), (useATLASCuts ? "p_{T}^{l1(2)}>60 (40) GeV" : "p_{T}^{l}>25 GeV")),
-      "hist", false, false, -1, false
-    );
-  }
-  {
-    TString canvasname = Form("c_mll_mumu_mlbcut%s%s%sBTag", (useCustomCouplings ? "_CustomCouplings" : ""), (useATLASCuts ? "_ATLASCuts_" : "_"), strBTag.Data());
+    TString canvasname = Form("c_mll_mumu_mlbcut_%sBTag_%s", strBTag.Data(), catnames.at(icat).Data());
     std::vector<TH1F*> hlist;
     for (unsigned int ip=0; ip<procnames.size(); ip++){
       TString const& procname = procnames.at(ip);
@@ -1878,83 +1905,10 @@ void plotTTVetoHistograms(
       canvasname,
       hlist,
       proctitles,
-      Form("#mu#mu, N_{b,%s}>0|min(m_{lb})>200 GeV|%s", strBTag.Data(), (useATLASCuts ? "p_{T}^{l1(2)}>60 (40) GeV" : "p_{T}^{l}>25 GeV")),
+      Form("#mu#mu, N_{b,%s}%s|min(m_{lb})>200 GeV|%s", strBTag.Data(), cattitles.at(icat).Data(), "p_{T}^{l}>25 GeV"),
       "hist", true, false, -1, false
     );
   }
-  {
-    TString canvasname = Form("c_mll_ee_mlbcut%s%s%sBTag", (useCustomCouplings ? "_CustomCouplings" : ""), (useATLASCuts ? "_ATLASCuts_" : "_"), strBTag.Data());
-    std::vector<TH1F*> hlist;
-    for (unsigned int ip=0; ip<procnames.size(); ip++){
-      TString const& procname = procnames.at(ip);
-      hlist.push_back(procname_mll_hpairlist_map[procname].back().second);
-    }
-    makePlot(
-      coutput_main,
-      138.,
-      canvasname,
-      hlist,
-      proctitles,
-      Form("ee, N_{b,%s}>0|min(m_{lb})>200 GeV|%s", strBTag.Data(), (useATLASCuts ? "p_{T}^{l1(2)}>60 (40) GeV" : "p_{T}^{l}>25 GeV")),
-      "hist", false, false, -1, false
-    );
-  }
-  makePlot_2DProj(
-    coutput_main,
-    138.,
-    Form("c_signal_absdEta_leadingbjet_ZPrime_mumu_nocut%s%s%sBTag", (useCustomCouplings ? "_CustomCouplings" : ""), (useATLASCuts ? "_ATLASCuts_" : "_"), strBTag.Data()),
-    "",
-    h_signal_absdEta_leadingbjet_ZPrime_mumu_nocut,
-    false
-  );
-  makePlot_2DProj(
-    coutput_main,
-    138.,
-    Form("c_signal_absdEta_leadingmatchedbjet_ZPrime_mumu_nocut%s%s%sBTag", (useCustomCouplings ? "_CustomCouplings" : ""), (useATLASCuts ? "_ATLASCuts_" : "_"), strBTag.Data()),
-    "",
-    h_signal_absdEta_leadingmatchedbjet_ZPrime_mumu_nocut,
-    false
-  );
-  makePlot_2DProj(
-    coutput_main,
-    138.,
-    Form("c_signal_dR_bjet_hardbfs_mumu_nocut%s%s%sBTag", (useCustomCouplings ? "_CustomCouplings" : ""), (useATLASCuts ? "_ATLASCuts_" : "_"), strBTag.Data()),
-    "",
-    h_signal_dR_bjet_hardbfs_mumu_nocut,
-    false
-  );
-  makePlot_2DProj(
-    coutput_main,
-    138.,
-    Form("c_signal_matchCond_bjet_hardbfs_mumu_nocut%s%s%sBTag", (useCustomCouplings ? "_CustomCouplings" : ""), (useATLASCuts ? "_ATLASCuts_" : "_"), strBTag.Data()),
-    "",
-    h_signal_matchCond_bjet_hardbfs_mumu_nocut,
-    true
-  );
-  makePlot_2DProj(
-    coutput_main,
-    138.,
-    Form("c_signal_pt_leadingbjet_mumu_nocut%s%s%sBTag", (useCustomCouplings ? "_CustomCouplings" : ""), (useATLASCuts ? "_ATLASCuts_" : "_"), strBTag.Data()),
-    "",
-    h_signal_pt_leadingbjet_mumu_nocut,
-    false
-  );
-  makePlot_2DProj(
-    coutput_main,
-    138.,
-    Form("c_signal_abseta_leadingbjet_mumu_nocut%s%s%sBTag", (useCustomCouplings ? "_CustomCouplings" : ""), (useATLASCuts ? "_ATLASCuts_" : "_"), strBTag.Data()),
-    "",
-    h_signal_abseta_leadingbjet_mumu_nocut,
-    false
-  );
-  makePlot_2D(
-    coutput_main,
-    138.,
-    Form("h_signal_quarkcomp_mumu_nocut%s%s%sBTag", (useCustomCouplings ? "_CustomCouplings" : ""), (useATLASCuts ? "_ATLASCuts_" : "_"), strBTag.Data()),
-    "",
-    h_signal_quarkcomp_mumu_nocut,
-    true
-  );
 
 
   finput->Close();

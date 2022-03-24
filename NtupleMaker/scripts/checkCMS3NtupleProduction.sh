@@ -183,6 +183,8 @@ checkDirectory(){
 
         if [[ -s $rf ]];then
           let nOutputExist=${nOutputExist}+1
+        elif [[ -s ${rf//'/ceph'/'/hadoop'} ]];then
+          let nOutputExist=${nOutputExist}+1
         fi
       done
       if [[ $nOutputExist -eq $size_resf ]];then

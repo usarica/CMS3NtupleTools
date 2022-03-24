@@ -19,9 +19,17 @@ def get_tasks(args):
     tarfile=args.tarfile
     tag=args.tag
     doTestRun=args.testrun
+    doXsecRun=args.xsec
+    skipDNE=args.skip_dne
     localSearchDir=None
     if hasattr(args, "localSearchDir"):
        localSearchDir=args.localSearchDir
+
+    metis_exe="metis_condor_executable.sh"
+    metis_pset="main_pset.py"
+    if doXsecRun:
+        metis_exe="metis_condor_executable_xsec.sh"
+        metis_pset=os.path.expandvars("${CMSSW_BASE}/src/IvyFramework/IvyDataTools/test/xsec_cfg.py")
 
     if not os.path.exists(tarfile):
         raise RuntimeError("{} doesn't exist!".format(tarfile))
@@ -48,7 +56,10 @@ def get_tasks(args):
                          if os.path.exists(search_dir+dataset):
                              dset_local_input_dir = search_dir+dataset
                     if dset_local_input_dir is None:
-                         raise RuntimeError("Cannot find {} in the specified local search directories.".format(dataset))
+                         if skipDNE:
+                             continue
+                         else:
+                             raise RuntimeError("Cannot find {} in the specified local search directories.".format(dataset))
                     else:
                          print("Files for {} are found under {}".format(dataset, dset_local_input_dir))
 
@@ -72,18 +83,24 @@ def get_tasks(args):
     for sample in samples:
         isdata = "Run201" in sample.info["dataset"]
 
-        outputfilename = "ntuple.root"
         outputfilename = sample.info["dataset"]
         outputfilename = outputfilename.replace('/MINIAODSIM','')
         outputfilename = outputfilename.replace('/MINIAOD','')
         outputfilename = outputfilename.lstrip('/')
         outputfilename = outputfilename.replace('/','_')
-        outputfilename = outputfilename + ".root"
+        if not doXsecRun:
+            outputfilename = outputfilename + ".root"
+        else:
+            outputfilename = outputfilename + ".txt"
+            if isdata:
+                continue
         print("Output file: ",outputfilename)
 
         events_per_output = (150e3 if isdata else 150e3)
         pset_args = sample.info["options"]
-        global_tag = re.search("globaltag=(\w+)",pset_args).groups()[0]
+        global_tag="DUMMY"
+        if not doXsecRun:
+            global_tag = re.search("globaltag=(\w+)",pset_args).groups()[0]
 
         # build output directory
         hadoop_user = os.environ.get("GRIDUSER","").strip()  # Set by Metis. Can be different from $USER for some people.
@@ -105,8 +122,8 @@ def get_tasks(args):
         taskArgs["cmssw_version"]=cmssw_version
         taskArgs["output_name"]=outputfilename
         taskArgs["output_dir"]=output_dir
-        taskArgs["executable"]="metis_condor_executable.sh"
-        taskArgs["pset"]="main_pset.py"
+        taskArgs["executable"]=metis_exe
+        taskArgs["pset"]=metis_pset
         taskArgs["is_tree_output"]=False
         taskArgs["dont_check_tree"]=True
         #taskArgs["no_load_from_backup"]=True
@@ -127,10 +144,12 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("csvs", help="csv files with samples", nargs="+")
-    parser.add_argument("--tarfile", help="path to tarball", type=str, required=True)
-    parser.add_argument("--tag", help="production tag", type=str, required=True)
-    parser.add_argument("--testrun", help="flag for test run", action='store_true', required=False, default=False)
+    parser.add_argument("--tarfile", help="Path to tarball", type=str, required=True)
+    parser.add_argument("--tag", help="Production tag", type=str, required=True)
+    parser.add_argument("--testrun", help="Run a test", action='store_true', required=False, default=False)
     parser.add_argument("--localSearchDir", help="Search directory for local files. Can specify multiple.", action='append', required=False)
+    parser.add_argument("--xsec", help="Compute the xsec instead of making ntuples", action='store_true', required=False, default=False)
+    parser.add_argument("--skip_dne", help="Skip folders that do not exist or are empty", action='store_true', required=False, default=False)
     args = parser.parse_args()
 
     tasks = get_tasks(args)
