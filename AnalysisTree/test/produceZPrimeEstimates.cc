@@ -364,7 +364,7 @@ void getDistributions(
 
   std::vector<TString> transfer_list;
   TString const cinput_main = HostHelpers::GetStandardHostPathToStore("/store/user/usarica/Offshell_2L2Nu/Worker/output/DileptonEvents/SkimTrees/", HostHelpers::kUCSDT2) + ntupleVersion;
-  TString const coutput_main = "output/TTVetoEstimates/" + strdate + "/" + period;
+  TString const coutput_main = "output/ZPrimeEstimates/" + strdate + "/" + period;
 
   TDirectory* curdir = gDirectory;
   gSystem->mkdir(coutput_main, true);
@@ -810,7 +810,7 @@ double getZPrimeXSecScale(
 }
 
 
-void produceTTVetoHistograms(
+void produceZPrimeHistograms(
   TString strdate, unsigned int icat,
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst=SystematicsHelpers::sNominal
 ){
@@ -827,7 +827,7 @@ void produceTTVetoHistograms(
   TString const strBTag = (ibtag==0 ? "loose" : "medium");
 
   TString strSyst = SystematicsHelpers::getSystName(theGlobalSyst).data();
-  TString const cinput_main = "output/TTVetoEstimates/" + strdate + "/";
+  TString const cinput_main = "output/ZPrimeEstimates/" + strdate + "/";
   TString const coutput_main = cinput_main;
   gSystem->mkdir(coutput_main, true);
 
@@ -1797,7 +1797,7 @@ TH1F* getATLASRatioHist(){
 }
 
 
-void plotTTVetoHistograms(
+void plotZPrimeHistograms(
   TString strdate,
   unsigned int icat,
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst=SystematicsHelpers::sNominal
@@ -1824,7 +1824,7 @@ void plotTTVetoHistograms(
   TString const strBTag = "medium";
   TString const strSyst = SystematicsHelpers::getSystName(theGlobalSyst).data();
 
-  TString const cinput_main = "output/TTVetoEstimates/" + strdate + "/";
+  TString const cinput_main = "output/ZPrimeEstimates/" + strdate + "/";
   TString const coutput_main = cinput_main + "Plots/";
   gSystem->mkdir(coutput_main, true);
 
