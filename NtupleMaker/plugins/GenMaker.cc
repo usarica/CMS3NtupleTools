@@ -20,6 +20,7 @@ using namespace MELAStreamHelpers;
 GenMaker::GenMaker(const edm::ParameterSet& iConfig) :
   aliasprefix_(iConfig.getUntrackedParameter<string>("aliasprefix")),
   year(iConfig.getParameter<int>("year")),
+  recoMode(iConfig.getUntrackedParameter<string>("recoMode")),
 
   xsecOverride(static_cast<float>(iConfig.getParameter<double>("xsec"))),
   brOverride(static_cast<float>(iConfig.getParameter<double>("BR"))),
@@ -54,19 +55,20 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) :
 
   consumesMany<HepMCProduct>();
 
-  if (year==2016) LHEHandler::set_maxlines_print_header(1000);
+  LHEHandler::RunMode lhehandler_runmode = getLHEHandlerRunMode();
+  if (year<=2016 && lhehandler_runmode==LHEHandler::CMS_Run2_preUL) LHEHandler::set_maxlines_print_header(1000);
   else LHEHandler::set_maxlines_print_header(-1);
   lheHandler_default = std::make_shared<LHEHandler>(
     candVVmode, decayVVmode,
     ((candVVmode!=MELAEvent::nCandidateVVModes && (!lheMElist.empty() || doHiggsKinematics)) ? LHEHandler::doHiggsKinematics : LHEHandler::noKinematics),
     year, LHEHandler::keepDefaultPDF, LHEHandler::keepDefaultQCDOrder,
-    LHEHandler::CMS_Run2_preUL
+    lhehandler_runmode
     );
   lheHandler_NNPDF30_NLO = std::make_shared<LHEHandler>(
     MELAEvent::nCandidateVVModes, -1,
     LHEHandler::noKinematics,
     year, LHEHandler::tryNNPDF30, LHEHandler::tryNLO,
-    LHEHandler::CMS_Run2_preUL
+    lhehandler_runmode
     );
 
   // Setup ME computation
@@ -480,6 +482,15 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   }
 
   iEvent.put(std::move(result));
+}
+
+
+LHEHandler::RunMode GenMaker::getLHEHandlerRunMode() const{
+  std::string recoMode_lower;
+  HelperFunctions::lowercase(recoMode, recoMode_lower);
+  LHEHandler::RunMode res = LHEHandler::CMS_Run2_preUL;
+  if (recoMode_lower.find("run2_ul")) res = LHEHandler::CMS_Run2_UL;
+  return res;
 }
 
 

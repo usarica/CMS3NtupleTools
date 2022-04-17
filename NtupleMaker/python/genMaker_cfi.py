@@ -6,6 +6,7 @@ genMaker = cms.EDProducer(
 
    aliasprefix = cms.untracked.string("genps"),
    year = cms.int32(-1),
+   recoMode = cms.untracked.string("Run2_preUL"),
 
    xsec = cms.double(-1),
    BR = cms.double(-1),

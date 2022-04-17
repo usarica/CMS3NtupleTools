@@ -46,6 +46,7 @@ private:
 protected:
   std::string aliasprefix_;
   int year;
+  std::string recoMode;
 
   float xsecOverride;
   float brOverride;
@@ -82,6 +83,8 @@ protected:
 
   std::shared_ptr<LHEHandler> lheHandler_default; // LHEHandler for default PDFs
   std::shared_ptr<LHEHandler> lheHandler_NNPDF30_NLO; // LHEHandler for the 2016-like PDFs
+
+  LHEHandler::RunMode getLHEHandlerRunMode() const;
 
   /******************/
   /* ME COMPUTATION */

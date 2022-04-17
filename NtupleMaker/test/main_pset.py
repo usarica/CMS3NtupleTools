@@ -70,13 +70,16 @@ opts.register('disableDuplicateCheck', False, mytype=vpbool) # Disable the check
 opts.parseArguments()
 
 # this is the section where we try to be a bit smart for the purpose of laziness
+CMS_reco_mode = "Run2_preUL"
 if opts.fastsim: opts.data = False
 if any(x in opts.inputs for x in ["/store/data/","/Run201"]): opts.data = True
 if any(x in opts.inputs for x in ["/store/mc/","MINIAODSIM"]): opts.data = False
 if any(x in opts.inputs for x in ["Summer16MiniAODv2","Spring16MiniAODv2","03Feb2017"]): opts.is80x = True
-if any(x in opts.inputs for x in ["16MiniAOD","Run2016"]): opts.year = 2016
-if any(x in opts.inputs for x in ["17MiniAOD","Run2017"]): opts.year = 2017
-if any(x in opts.inputs for x in ["18MiniAOD","Run2018"]): opts.year = 2018
+if any(x in opts.inputs for x in ["Summer20","UL201"]): CMS_reco_mode = "Run2_UL"
+if opts.year<0:
+   if any(x in opts.inputs for x in ["16MiniAOD","Run2016"]): opts.year = 2016
+   if any(x in opts.inputs for x in ["17MiniAOD","Run2017"]): opts.year = 2017
+   if any(x in opts.inputs for x in ["18MiniAOD","Run2018"]): opts.year = 2018
 
 print("""PSet is assuming:
    data? {data} fastsim? {fastsim} is80x? {is80x}
@@ -208,6 +211,7 @@ process.photonMaker.year = cms.int32(opts.year)
 process.isoTrackMaker.year = cms.int32(opts.year)
 if not opts.data:
    process.genMaker.year = cms.int32(opts.year)
+   process.genMaker.recoMode = cms.untracked.string(CMS_reco_mode)
    process.genMaker.xsec = cms.double(opts.xsec)
    process.genMaker.BR = cms.double(opts.BR)
    process.genMaker.LHEInputTag = cms.InputTag(opts.LHEInputTag)
