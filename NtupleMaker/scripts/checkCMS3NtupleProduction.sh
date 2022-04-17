@@ -35,11 +35,6 @@ declare -i nFAIL=0
 declare -i nFILEDNE=0
 declare -i nUNKNOWN=0
 
-declare -a resb
-declare -a rese
-declare -a resf
-declare -a ress
-
 declare -a runningjobs=( )
 if [[ $skipcondorcheck -eq 0 ]]; then
   runningjobs=( $(condor_q -c 'JobStatus<=2 || JobStatus>=5' -af:j '') )
@@ -98,6 +93,7 @@ checkDirectory(){
   local nsubjobs=0
   local nRunningJobs=0
   local job_is_running=0
+  local freadsize=0
   local size_resb=0
   local size_rese=0
   local size_resf=0

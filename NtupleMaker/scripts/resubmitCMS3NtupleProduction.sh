@@ -40,9 +40,9 @@ resubmitDirectory(){
 
   for prevjob in $(ls ./ | grep ".log"); do
     local prevjob=${prevjob//".log"}
-    strstdlogs=""
+    local strstdlogs=""
     for stdlog in $(ls Logs | grep -e ${prevjob}); do
-      local strstdlogs="${strstdlogs} Logs/${stdlog}"
+      strstdlogs="${strstdlogs} Logs/${stdlog}"
     done
     tar Jcf "prior_record.${prevjob}.tar" ${strstdlogs} "${prevjob}.log" --exclude={*.tar}
     rm "${prevjob}.log"
