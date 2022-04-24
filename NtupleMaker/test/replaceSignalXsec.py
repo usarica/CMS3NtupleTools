@@ -8,6 +8,8 @@ import filecmp
 import shutil
 import pickle
 import math
+import glob
+import tempfile
 import pprint
 import subprocess
 import csv
@@ -22,16 +24,21 @@ class BatchManager:
 
       self.parser.add_option("--csv", type="string", help="CSV file to expand")
       self.parser.add_option("--xseccsv", type="string", help="CSV file to read xsec")
+      self.parser.add_option("--gridpack_dir", type="string", help="Directory of gridpacks")
 
       (self.opt,self.args) = self.parser.parse_args()
 
       optchecks=[
-         "csv"
+         "csv",
+         "gridpack_dir"
          ]
 
       for theOpt in optchecks:
          if not hasattr(self.opt, theOpt) or getattr(self.opt, theOpt) is None:
             sys.exit("Need to set the --{} option".format(theOpt))
+
+      self.gpackref = self.opt.gridpack_dir
+      if not self.gpackref.endswith('/'): self.gpackref = self.gpackref+'/'
 
       self.infile = self.opt.csv
       if not os.path.isfile(self.infile):
@@ -79,13 +86,13 @@ class BatchManager:
                         massval = massval.replace("_M","")
                         massval = massval.replace("_","")
 
-                     refdir="/home/users/usarica/work/GenStudies/Offshell2020_Gridpacks/"
+                     refdir=self.gpackref
                      year=""
                      short_process=""
                      if "ZZTo" in dset:
-                        refdir = refdir + "ZZ2L2Nu"
+                        refdir = refdir + "ZZ2L2Nu*"
                      else:
-                        refdir = refdir + "WW2L2Nu"
+                        refdir = refdir + "WW2L2Nu*"
                      if "RunIISummer16" in dset:
                         year="2016"
                      if "RunIIFall17" in dset:
@@ -99,14 +106,26 @@ class BatchManager:
                      elif "VBF" in dset:
                         short_process="VBFH"
                      elif "Wminus" in dset:
-                        short_process="WminusH"
+                        short_process="WminusH*"
                      elif "Wplus" in dset:
-                        short_process="WplusH"
+                        short_process="WplusH*"
                      else:
-                        short_process="ZH"
+                        short_process="ZH*"
                      refdir = refdir+'/'+year
                      refdir = refdir+'/'+short_process+'/'+massval
+                     refdirlist = glob.glob(refdir)
+                     if len(refdirlist)>0:
+                        refdir = refdirlist[0]
+                     else:
+                        raise RuntimeError("Globing '{}' failed.".format(refdir))
                      fname = refdir+"/pwg-stat.dat"
+
+                     tmpGPack = ""
+                     if os.path.isfile(refdir+'/gridpack.tar.gz'):
+                        tmpGPack = tempfile.mkdtemp()
+                        os.symlink(refdir+'/gridpack.tar.gz',tmpGPack+'/gridpack.tar.gz')
+                        os.system('tar xf '+tmpGPack+'/gridpack.tar.gz'+' -C '+tmpGPack)
+                        fname = tmpGPack+"/pwg-stat.dat"
 
                      with open(fname,"rb") as reffile:
                         for line in reffile:
@@ -115,6 +134,9 @@ class BatchManager:
                               largs=line.split()
                               xsecline=largs[0]
                               break
+
+                     if tmpGPack:
+                        os.system("rm -rf "+tmpGPack)
 
                   print "{}: {} -> {}".format(dset,row["xsec"],xsecline)
 
