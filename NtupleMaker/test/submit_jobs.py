@@ -108,7 +108,7 @@ def get_tasks(args):
             hadoop_user = os.environ.get("USER")
         part1 = sample.get_datasetname().split("/")[1]
         part2 = sample.get_datasetname().split("/")[2]
-        output_dir = "/hadoop/cms/store/user/{}/Offshell_2L2Nu/Production/{}/{}/{}/".format(
+        output_dir = "/ceph/cms/store/user/{}/Offshell_2L2Nu/Production/{}/{}/{}/".format(
                 hadoop_user, tag, part1, part2
                 )
 
