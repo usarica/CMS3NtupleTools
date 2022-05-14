@@ -3440,7 +3440,7 @@ double SampleHelpers::calculateAdjustedHiggsBREff(TString const& sname, double c
   double br_sum = 0;
   double br_sum_filtered = 0;
   for (unsigned int ih=0; ih<hypos.size(); ih++){
-    HiggsXSBRReader hxsbrReader("${CMSSW_BASE}/src/CMSDataTools/AnalysisTree/data/HiggsXSBR/YR3.csv", hypos.at(ih));
+    HiggsXSBRReader hxsbrReader("${CMSSW_BASE}/src/IvyFramework/IvyDataTools/data/HiggsXSBR/YR3.csv", hypos.at(ih));
     IVYout << "Evaluating " << hypos.at(ih) << " at " << sampleMH << endl;
     double br_MH = hxsbrReader.eval_br(sampleMH);
     IVYout << "\t- BR raw, BR corr, filter =  " << br_MH << ", " << BRcorrs.at(ih) << ", " << filter_corrs.at(ih) << endl;

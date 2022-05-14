@@ -41,7 +41,7 @@ def checkSampleIsNotIncomplete(sname):
 
 
 def getCSVLine(sname):
-   line_tpl="{SNAME},/hadoop/cms/store/user/<USER>/Offshell_2L2Nu/Production/<DATE>,-1,-1,{VVMODE},{VVDECAYMODE},{MEFILE},globaltag={GLOBALTAG} nevents=-1 year={YEAR} {METRECIPE}doTrigObjMatching=True triggerListFromFile=OffshellTriggerFilterList_{YEAR}.lst {KFACTOROPT}data=False minNleptons=1 minNphotons=1 includeLJetsSelection=True keepGenParticles=reducedfinalstatesandhardprocesses keepGenJets=True LHEInputTag=source disableDuplicateCheck=True"
+   line_tpl="{SNAME},/ceph/cms/store/user/<USER>/Offshell_2L2Nu/Production/<DATE>,-1,-1,{VVMODE},{VVDECAYMODE},{MEFILE},globaltag={GLOBALTAG} nevents=-1 year={YEAR} {METRECIPE}doTrigObjMatching=True triggerListFromFile=OffshellTriggerFilterList_{YEAR}.lst {KFACTOROPT}data=False minNleptons=1 minNphotons=1 includeLJetsSelection=True keepGenParticles=reducedfinalstatesandhardprocesses keepGenJets=True LHEInputTag=source disableDuplicateCheck=True"
 
    kfactoropt=""
    if "GluGlu" in sname:

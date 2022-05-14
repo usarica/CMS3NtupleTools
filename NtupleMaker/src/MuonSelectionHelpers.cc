@@ -128,7 +128,7 @@ namespace MuonSelectionHelpers{
 
     bool momQuality = obj.tunePMuonBestTrack()->ptError()/obj.tunePMuonBestTrack()->pt() < 0.3;
 
-    bool ip = fabs(obj.innerTrack()->dxy(vtx.position())) < 0.2 && fabs(obj.innerTrack()->dz(vtx.position())) < 0.5;
+    bool ip = std::abs(obj.innerTrack()->dxy(vtx.position())) < 0.2 && std::abs(obj.innerTrack()->dz(vtx.position())) < 0.5;
 
     return muID && hits && momQuality && ip;
 #endif
@@ -171,6 +171,12 @@ namespace MuonSelectionHelpers{
     else return false;
   }
   bool testMuonTiming(pat::Muon const& obj, int const& /*year*/){
+#if CMSSW_VERSION_MAJOR>10 || (CMSSW_VERSION_MAJOR==10 && CMSSW_VERSION_MINOR>=6)
+    // Muon timing flag is implemented correctly, so there is no need to rewrite the function and recheck the flag.
+    // It is funny that the header STILL does not include the MuonSelectors.cc::outOfTimeMuon function!
+    // Luckily, we no longer seem to need it...
+    return ((obj.selectors() & reco::Muon::InTimeMuon) == reco::Muon::InTimeMuon);
+#else
     // Cut suggestions from Piotr for out-of-time muons from https://indico.cern.ch/event/695762/contributions/2853865/attachments/1599433/2535174/ptraczyk_201802_oot_fakes.pdf
     // reco::Muon::InTimeMuon selector bit flag also stores the same info, but it is only set for 10.2.X+.
     // The following code is a copy of MuonSelectors.cc::outOfTimeMuon. Why not call that directly? Because the header does not include this function!
@@ -186,6 +192,7 @@ namespace MuonSelectionHelpers{
       );
     else outOfTime = (combinedTimeIsOk && (combinedTime.timeAtIpInOut>20. || combinedTime.timeAtIpInOut<-45.));
     return !outOfTime;
+#endif
   }
 
   bool testProbeMuonForTnP(pat::Muon const& obj, int const& /*year*/){

@@ -48,6 +48,8 @@ std::string SampleHelpers::getDatasetDirectoryCoreName(std::string sname){ retur
 TString SampleHelpers::getDatasetDirectoryName(std::string sname, bool ignoreDNE){
   assert(theSamplesTag!="");
   assert(theInputDirectory!="");
+
+  HostHelpers::Hosts const current_host = HostHelpers::GetHostLocation();
   if (!HostHelpers::DirectoryExists(theInputDirectory.Data())){
     IVYerr << "SampleHelpers::getDatasetDirectoryName: The input directory " << theInputDirectory << " does not exist." << endl;
     assert(0);
@@ -62,6 +64,20 @@ TString SampleHelpers::getDatasetDirectoryName(std::string sname, bool ignoreDNE
     dirExists = HostHelpers::DirectoryExists(res.Data());
     if (!dirExists) IVYerr << "SampleHelpers::getDatasetDirectoryName: Directory " << res << " does not exist either." << endl;
   }
+  if (!dirExists && current_host==HostHelpers::kUCSDT2){
+    IVYerr << "SampleHelpers::getDatasetDirectoryName: Checking hadoop..." << endl;
+    HelperFunctions::replaceString<TString, TString const>(res, (theSamplesTag+"_partial"), theSamplesTag);
+    if (res.Contains("/ceph/")) HelperFunctions::replaceString<TString, TString const>(res, "/ceph/", "/hadoop/");
+    else if (res.Contains("/hadoop/")) HelperFunctions::replaceString<TString, TString const>(res, "/hadoop/", "/ceph/");
+    dirExists = HostHelpers::DirectoryExists(res.Data());
+    if (!dirExists){
+      IVYerr << "SampleHelpers::getDatasetDirectoryName: Cannot find directory " << res << ". Trying the 'partial' collection tag." << endl;
+      HelperFunctions::replaceString<TString, TString const>(res, theSamplesTag, (theSamplesTag+"_partial"));
+      dirExists = HostHelpers::DirectoryExists(res.Data());
+      if (!dirExists) IVYerr << "SampleHelpers::getDatasetDirectoryName: Directory " << res << " does not exist either." << endl;
+    }
+  }
+
   assert(ignoreDNE || dirExists);
   return res;
 }

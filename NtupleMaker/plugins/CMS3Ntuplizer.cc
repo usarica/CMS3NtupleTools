@@ -920,6 +920,13 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
   MAKE_VECTOR_WITH_RESERVE(float, phi, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, mass, n_objects);
 
+  MAKE_VECTOR_WITH_RESERVE(float, tunePTrack_pt, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, tunePTrack_eta, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, tunePTrack_phi, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, bestTrack_pterr, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, tunePTrack_pterr, n_objects);
+
   MAKE_VECTOR_WITH_RESERVE(cms3_charge_t, charge, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(cms3_muon_pogselectorbits_t, POG_selector_bits, n_objects);
@@ -981,6 +988,13 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
     eta.push_back(obj->eta());
     phi.push_back(obj->phi());
     mass.push_back(obj->mass());
+
+    PUSH_USERFLOAT_INTO_VECTOR(tunePTrack_pt);
+    PUSH_USERFLOAT_INTO_VECTOR(tunePTrack_eta);
+    PUSH_USERFLOAT_INTO_VECTOR(tunePTrack_phi);
+
+    PUSH_USERFLOAT_INTO_VECTOR(bestTrack_pterr);
+    PUSH_USERFLOAT_INTO_VECTOR(tunePTrack_pterr);
 
     PUSH_USERINT_INTO_VECTOR(charge);
 
@@ -1049,6 +1063,13 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
   PUSH_VECTOR_WITH_NAME(colName, eta);
   PUSH_VECTOR_WITH_NAME(colName, phi);
   PUSH_VECTOR_WITH_NAME(colName, mass);
+
+  PUSH_VECTOR_WITH_NAME(colName, tunePTrack_pt);
+  PUSH_VECTOR_WITH_NAME(colName, tunePTrack_eta);
+  PUSH_VECTOR_WITH_NAME(colName, tunePTrack_phi);
+
+  PUSH_VECTOR_WITH_NAME(colName, bestTrack_pterr);
+  PUSH_VECTOR_WITH_NAME(colName, tunePTrack_pterr);
 
   PUSH_VECTOR_WITH_NAME(colName, charge);
 

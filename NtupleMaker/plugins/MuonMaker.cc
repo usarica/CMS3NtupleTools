@@ -157,6 +157,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     const TrackRef innerTrack = muon->innerTrack();
     const TrackRef outerTrack = muon->outerTrack();
     const TrackRef bestTrack = muon->muonBestTrack();
+    const TrackRef tunePTrack = muon->tunePMuonBestTrack();
     const MuonQuality quality = muon->combinedQuality();
     bool validInnerTrack = innerTrack.isNonnull();
 
@@ -189,6 +190,15 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     muon_result.addUserFloat("bestTrack_phi", validBestTrack ? bestTrack->phi() : 0.);
     // enum MuonTrackType { None, InnerTrack, OuterTrack, CombinedTrack, TPFMS, Picky, DYT }; from DataFormats/MuonReco/interface/Muon.h
     muon_result.addUserInt("bestTrack_type", static_cast<int>(muon->muonBestTrackType()));
+
+    /////////////////
+    // TuneP track //
+    /////////////////
+    bool validTunePTrack = tunePTrack.isNonnull();
+    muon_result.addUserFloat("tunePTrack_pt", validTunePTrack ? tunePTrack->pt() : -1.);
+    muon_result.addUserFloat("tunePTrack_pterr", validTunePTrack ? tunePTrack->ptError() : -1.);
+    muon_result.addUserFloat("tunePTrack_eta", validTunePTrack ? tunePTrack->eta() : 0.);
+    muon_result.addUserFloat("tunePTrack_phi", validTunePTrack ? tunePTrack->phi() : 0.);
 
     //////////////////
     // Muon quality //

@@ -12,10 +12,43 @@
 #define BRANCH_SCALAR_COMMANDS \
   BRANCH_COMMAND(float, event_wgt) \
   BRANCH_COMMAND(float, event_wgt_adjustment_NNPDF30) \
+  /* Pythia weight adjustments are independent of PDF choice */ \
+  BRANCH_COMMAND(float, event_wgt_adjustment_PythiaScaleDn) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_PythiaScaleUp) \
+  /* Factorization and renormalization scale weight adjustments are independent of PDF choice (because they are only done for the default PDF set) */ \
+  BRANCH_COMMAND(float, event_wgt_adjustment_PDFScaleDn) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_PDFScaleUp) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_QCDScaleDn) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_QCDScaleUp) \
+  /* a_s(mZ) and PDF replica weight adjustments come from the specific PDF set, so they are split between 'default' vs 'NNPDF3.0'. */ \
+  BRANCH_COMMAND(float, event_wgt_adjustment_AsMZDn) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_AsMZUp) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_PDFReplicaDn) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_PDFReplicaUp) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_NNPDF30_AsMZDn) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_NNPDF30_AsMZUp) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_NNPDF30_PDFReplicaDn) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_NNPDF30_PDFReplicaUp) \
+  /* External adjustment factors from the registered histograms */ \
+  BRANCH_COMMAND(float, event_wgt_adjustment_ext_HardJetsDn) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_ext_HardJetsUp) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_ext_PythiaScaleDn) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_ext_PythiaScaleUp) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_ext_PDFScaleDn) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_ext_PDFScaleUp) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_ext_QCDScaleDn) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_ext_QCDScaleUp) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_ext_AsMZDn) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_ext_AsMZUp) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_ext_PDFReplicaDn) \
+  BRANCH_COMMAND(float, event_wgt_adjustment_ext_PDFReplicaUp) \
+  /* ME adjustment weights */ \
   BRANCH_COMMAND(bool, invalidReweightingWgts) \
   BRANCH_COMMAND(float, sample_wgt) \
   BRANCH_COMMAND(float, sample_wgt_pairwiseComponent) \
+  /* Other variables */ \
   BRANCH_COMMAND(bool, passGenCompSelection) \
+  BRANCH_COMMAND(float, lheHiggs_mass) \
   BRANCH_COMMAND(float, lheHiggs_pt) \
   BRANCH_COMMAND(float, lheLeptonicDecay_pt) \
   BRANCH_COMMAND(float, lheLeptonicDecay_mass) \
@@ -62,8 +95,22 @@ namespace LooperFunctionHelpers{
 
   std::vector<TString> selectedMEs;
 
+  bool applyPythiaScaleExternally = false;
+  std::vector<SystematicsHelpers::SystematicVariationTypes> registeredSysts;
+  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, TH1F*> syst_h1d_map;
+  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, TH2F*> syst_h2d_map;
+  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, TH3F*> syst_h3d_map;
+  void registerSystHistogram(SystematicsHelpers::SystematicVariationTypes const& syst, TH1F* hist);
+  void registerSystHistogram(SystematicsHelpers::SystematicVariationTypes const& syst, TH2F* hist);
+  void registerSystHistogram(SystematicsHelpers::SystematicVariationTypes const& syst, TH3F* hist);
+
+  double EvalSystHistogram(TH1F* hist, float const& xvar);
+  double EvalSystHistogram(TH2F* hist, float const& xvar, float const& yvar);
+  double EvalSystHistogram(TH3F* hist, float const& xvar, float const& yvar, float const& zvar);
+
   bool looperRule(BaseTreeLooper*, std::unordered_map<SystematicsHelpers::SystematicVariationTypes, double> const&, SimpleEntry&);
 
+  void cleanup();
 }
 bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered_map<SystematicsHelpers::SystematicVariationTypes, double> const& extWgt, SimpleEntry& commonEntry){
   // Define handlers
@@ -121,7 +168,48 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   event_wgt *= genwgt_default;
   if (event_wgt==0.f) return false;
 
+
+  event_wgt_adjustment_ext_PDFScaleDn = event_wgt_adjustment_ext_PDFScaleUp
+  = event_wgt_adjustment_ext_QCDScaleDn = event_wgt_adjustment_ext_QCDScaleUp
+  = event_wgt_adjustment_ext_AsMZDn = event_wgt_adjustment_ext_AsMZUp
+  = event_wgt_adjustment_ext_PDFReplicaDn = event_wgt_adjustment_ext_PDFReplicaUp
+  = event_wgt_adjustment_ext_PythiaScaleDn = event_wgt_adjustment_ext_PythiaScaleUp
+  = event_wgt_adjustment_ext_HardJetsDn = event_wgt_adjustment_ext_HardJetsUp = 1;
+
+  auto const& genInfoExtras = genInfo->extras;
+  event_wgt_adjustment_PythiaScaleDn = (!applyPythiaScaleExternally ? genInfoExtras.PythiaWeight_isr_muR0p25 * genInfoExtras.PythiaWeight_fsr_muR0p25 : 1.f);
+  event_wgt_adjustment_PythiaScaleUp = (!applyPythiaScaleExternally ? genInfoExtras.PythiaWeight_isr_muR4 * genInfoExtras.PythiaWeight_fsr_muR4 : 1.f);
+  event_wgt_adjustment_PDFScaleDn = genInfoExtras.LHEweight_QCDscale_muR1_muF0p5;
+  event_wgt_adjustment_PDFScaleUp = genInfoExtras.LHEweight_QCDscale_muR1_muF2;
+  event_wgt_adjustment_QCDScaleDn = genInfoExtras.LHEweight_QCDscale_muR0p5_muF1;
+  event_wgt_adjustment_QCDScaleUp = genInfoExtras.LHEweight_QCDscale_muR2_muF1;
+  event_wgt_adjustment_AsMZDn = genInfoExtras.LHEweight_AsMZ_Dn_default;
+  event_wgt_adjustment_AsMZUp = genInfoExtras.LHEweight_AsMZ_Up_default;
+  event_wgt_adjustment_NNPDF30_AsMZDn = genInfoExtras.LHEweight_AsMZ_Dn_NNPDF30;
+  event_wgt_adjustment_NNPDF30_AsMZUp = genInfoExtras.LHEweight_AsMZ_Up_NNPDF30;
+  event_wgt_adjustment_PDFReplicaDn = genInfoExtras.LHEweight_PDFVariation_Dn_default;
+  event_wgt_adjustment_PDFReplicaUp = genInfoExtras.LHEweight_PDFVariation_Up_default;
+  event_wgt_adjustment_NNPDF30_PDFReplicaDn = genInfoExtras.LHEweight_PDFVariation_Dn_NNPDF30;
+  event_wgt_adjustment_NNPDF30_PDFReplicaUp = genInfoExtras.LHEweight_PDFVariation_Up_NNPDF30;
+  // Adjust for cases where NNPDF 3.0 does not exist.
+  if (
+    event_wgt_adjustment_NNPDF30==1.f
+    &&
+    event_wgt_adjustment_NNPDF30_AsMZDn==1.f && event_wgt_adjustment_NNPDF30_AsMZUp==1.f
+    &&
+    event_wgt_adjustment_NNPDF30_PDFReplicaDn==1.f && event_wgt_adjustment_NNPDF30_PDFReplicaUp==1.f
+    ){
+    event_wgt_adjustment_NNPDF30_AsMZDn = event_wgt_adjustment_AsMZDn;
+    event_wgt_adjustment_NNPDF30_AsMZUp = event_wgt_adjustment_AsMZUp;
+    event_wgt_adjustment_NNPDF30_PDFReplicaDn = event_wgt_adjustment_PDFReplicaDn;
+    event_wgt_adjustment_NNPDF30_PDFReplicaUp = event_wgt_adjustment_PDFReplicaUp;
+  }
+
   passGenCompSelection = true;
+
+  // Variables for systematics reweighting
+  float genpromptparticles_sump4_pt = -1;
+  unsigned int n_genak4jets = 0;
 
   bool hasTaus = false;
   unsigned int n_leps_nus=0;
@@ -139,28 +227,41 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   passGenCompSelection &= (n_leps_nus==4);
   passGenCompSelection &= (!hasTaus);
 
+  lheHiggs_mass = p4_lheHiggs.M();
   lheHiggs_pt = p4_lheHiggs.Pt();
   lheLeptonicDecay_pt = p4_lheLeptonicDecay.Pt();
   lheLeptonicDecay_mass = p4_lheLeptonicDecay.M();
 
-  ParticleObject::LorentzVector_t p4_genLeptonicDecay;
-  auto const& genparticles = genInfoHandler->getGenParticles();
-  for (auto const& part:genparticles){
-    if (part->extras.isPromptFinalState && (PDGHelpers::isAPhoton(part->pdgId()) || PDGHelpers::isANeutrino(part->pdgId()) || PDGHelpers::isALepton(part->pdgId()))){
-      p4_genLeptonicDecay += part->p4();
-      genparticles_id.push_back(part->pdgId());
-      genparticles_pt.push_back(part->pt());
-      genparticles_eta.push_back(part->eta());
-      genparticles_phi.push_back(part->phi());
-      genparticles_mass.push_back(part->mass());
+  {
+    ParticleObject::LorentzVector_t p4_genLeptonicDecay;
+    ParticleObject::LorentzVector_t genpromptparticles_sump4;
+    auto const& genparticles = genInfoHandler->getGenParticles();
+    for (auto const& part:genparticles){
+      if (
+        part->testSelectionBit(GenParticleSelectionHelpers::kHardPromptFinalVisibleParticle)
+        ||
+        (part->extras.isPromptFinalState && PDGHelpers::isANeutrino(part->pdgId()))
+        ) genpromptparticles_sump4 += part->p4();
+      if (part->extras.isPromptFinalState && (PDGHelpers::isAPhoton(part->pdgId()) || PDGHelpers::isANeutrino(part->pdgId()) || PDGHelpers::isALepton(part->pdgId()))){
+        p4_genLeptonicDecay += part->p4();
+        genparticles_id.push_back(part->pdgId());
+        genparticles_pt.push_back(part->pt());
+        genparticles_eta.push_back(part->eta());
+        genparticles_phi.push_back(part->phi());
+        genparticles_mass.push_back(part->mass());
+      }
     }
+    genLeptonicDecay_pt = p4_genLeptonicDecay.Pt();
+    genLeptonicDecay_mass = p4_genLeptonicDecay.M();
+    genpromptparticles_sump4_pt = genpromptparticles_sump4.Pt();
   }
-  genLeptonicDecay_pt = p4_genLeptonicDecay.Pt();
-  genLeptonicDecay_mass = p4_genLeptonicDecay.M();
 
   auto const& genak4jets = genInfoHandler->getGenAK4Jets();
   for (auto const& jet:genak4jets){
+    n_genak4jets++;
+
     if (jet->pt()<20.f) continue;
+
     genak4jets_pt.push_back(jet->pt());
     genak4jets_eta.push_back(jet->eta());
     genak4jets_phi.push_back(jet->phi());
@@ -176,6 +277,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
         onePart->setGenStatus(part->status());
         particleList.push_back(onePart);
         particle_translation_map[part] = onePart;
+        if (lheHiggs_mass<0. && PDGHelpers::isAHiggs(part->pdgId())){
+          lheHiggs_mass = part->mass();
+          lheHiggs_pt = part->pt();
+        }
       }
       // Loop to also assign mothers
       for (auto const& part:lheparticles){
@@ -311,6 +416,65 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   // The weight below is only for bookkeeping purposes. It should not be multiplied.
   sample_wgt_pairwiseComponent = rewgtBuilder->getSamplePairwiseNormalization(currentTree);
 
+  // Systematics reweighting
+  for (auto const& syst:registeredSysts){
+    using namespace SystematicsHelpers;
+    double syst_corr = 1;
+    if (
+      syst==tPDFScaleDn || syst==tPDFScaleUp
+      || syst==tQCDScaleDn || syst==tQCDScaleUp
+      || syst==tAsMZDn || syst==tAsMZUp
+      || syst==tPDFReplicaDn || syst==tPDFReplicaUp
+      ) syst_corr = EvalSystHistogram(syst_h1d_map[syst], lheHiggs_mass);
+    else if (
+      syst==tPythiaTuneDn || syst==tPythiaTuneUp || syst==tPythiaScaleDn || syst==tPythiaScaleUp
+      ) syst_corr = EvalSystHistogram(syst_h3d_map[syst], lheHiggs_mass, n_genak4jets, genpromptparticles_sump4_pt / lheHiggs_mass);
+    else if (
+      syst==tHardJetsDn || syst==tHardJetsUp
+      ) syst_corr = EvalSystHistogram(syst_h3d_map[syst], lheHiggs_mass, n_genak4jets, lheHiggs_pt / lheHiggs_mass);
+
+    switch (syst){
+    case tPDFScaleDn:
+      event_wgt_adjustment_ext_PDFScaleDn *= syst_corr;
+      break;
+    case tPDFScaleUp:
+      event_wgt_adjustment_ext_PDFScaleUp *= syst_corr;
+      break;
+    case tQCDScaleDn:
+      event_wgt_adjustment_ext_QCDScaleDn *= syst_corr;
+      break;
+    case tQCDScaleUp:
+      event_wgt_adjustment_ext_QCDScaleUp *= syst_corr;
+      break;
+    case tAsMZDn:
+      event_wgt_adjustment_ext_AsMZDn *= syst_corr;
+      break;
+    case tAsMZUp:
+      event_wgt_adjustment_ext_AsMZUp *= syst_corr;
+      break;
+    case tPDFReplicaDn:
+      event_wgt_adjustment_ext_PDFReplicaDn *= syst_corr;
+      break;
+    case tPDFReplicaUp:
+      event_wgt_adjustment_ext_PDFReplicaUp *= syst_corr;
+      break;
+    case tPythiaScaleDn:
+      event_wgt_adjustment_ext_PythiaScaleDn *= syst_corr;
+      break;
+    case tPythiaScaleUp:
+      event_wgt_adjustment_ext_PythiaScaleUp *= syst_corr;
+      break;
+    case tHardJetsDn:
+      event_wgt_adjustment_ext_HardJetsDn *= syst_corr;
+      break;
+    case tHardJetsUp:
+      event_wgt_adjustment_ext_HardJetsUp *= syst_corr;
+      break;
+    default:
+      break;
+    }
+  }
+
   // Record LHE MEs and K factors
   for (auto const& it:genInfo->extras.LHE_ME_weights) commonEntry.setNamedVal(it.first, it.second);
   for (auto const& it:genInfo->extras.Kfactors) commonEntry.setNamedVal(it.first, it.second);
@@ -328,6 +492,79 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
 #undef OBJECT_HANDLER_DIRECTIVES
 }
 
+void LooperFunctionHelpers::registerSystHistogram(SystematicsHelpers::SystematicVariationTypes const& syst, TH1F* hist){
+  if (!hist) return;
+  syst_h1d_map[syst] = hist;
+  registeredSysts.push_back(syst);
+  IVYout << "LooperFunctionHelpers::registerSystHistogram: Registered 1D histogram for " << SystematicsHelpers::getSystName(syst) << endl;
+  if (syst==SystematicsHelpers::tPythiaScaleDn || syst==SystematicsHelpers::tPythiaScaleUp) applyPythiaScaleExternally = true;
+}
+void LooperFunctionHelpers::registerSystHistogram(SystematicsHelpers::SystematicVariationTypes const& syst, TH2F* hist){
+  if (!hist) return;
+  syst_h2d_map[syst] = hist;
+  registeredSysts.push_back(syst);
+  IVYout << "LooperFunctionHelpers::registerSystHistogram: Registered 2D histogram for " << SystematicsHelpers::getSystName(syst) << endl;
+  if (syst==SystematicsHelpers::tPythiaScaleDn || syst==SystematicsHelpers::tPythiaScaleUp) applyPythiaScaleExternally = true;
+}
+void LooperFunctionHelpers::registerSystHistogram(SystematicsHelpers::SystematicVariationTypes const& syst, TH3F* hist){
+  if (!hist) return;
+  syst_h3d_map[syst] = hist;
+  registeredSysts.push_back(syst);
+  IVYout << "LooperFunctionHelpers::registerSystHistogram: Registered 3D histogram for " << SystematicsHelpers::getSystName(syst) << endl;
+  if (syst==SystematicsHelpers::tPythiaScaleDn || syst==SystematicsHelpers::tPythiaScaleUp) applyPythiaScaleExternally = true;
+}
+
+double LooperFunctionHelpers::EvalSystHistogram(TH1F* hist, float const& xvar){
+  if (!hist) return 1;
+
+  const int nbinsx = hist->GetNbinsX();
+  int ibin = hist->GetXaxis()->FindBin(xvar);
+  if (ibin<1) ibin = 1;
+  else if (ibin>nbinsx) ibin = nbinsx;
+
+  return hist->GetBinContent(ibin);
+}
+double LooperFunctionHelpers::EvalSystHistogram(TH2F* hist, float const& xvar, float const& yvar){
+  if (!hist) return 1;
+
+  const int nbinsx = hist->GetNbinsX();
+  int ibin = hist->GetXaxis()->FindBin(xvar);
+  if (ibin<1) ibin = 1;
+  else if (ibin>nbinsx) ibin = nbinsx;
+
+  const int nbinsy = hist->GetNbinsY();
+  int jbin = hist->GetYaxis()->FindBin(yvar);
+  if (jbin<1) jbin = 1;
+  else if (jbin>nbinsy) jbin = nbinsy;
+
+  return hist->GetBinContent(ibin, jbin);
+}
+double LooperFunctionHelpers::EvalSystHistogram(TH3F* hist, float const& xvar, float const& yvar, float const& zvar){
+  if (!hist) return 1;
+
+  const int nbinsx = hist->GetNbinsX();
+  int ibin = hist->GetXaxis()->FindBin(xvar);
+  if (ibin<1) ibin = 1;
+  else if (ibin>nbinsx) ibin = nbinsx;
+
+  const int nbinsy = hist->GetNbinsY();
+  int jbin = hist->GetYaxis()->FindBin(yvar);
+  if (jbin<1) jbin = 1;
+  else if (jbin>nbinsy) jbin = nbinsy;
+
+  const int nbinz = hist->GetNbinsZ();
+  int kbin = hist->GetZaxis()->FindBin(zvar);
+  if (kbin<1) kbin = 1;
+  else if (kbin>nbinz) kbin = nbinz;
+
+  return hist->GetBinContent(ibin, jbin, kbin);
+}
+
+void LooperFunctionHelpers::cleanup(){
+  for (auto& hh:syst_h1d_map) delete hh.second;
+  for (auto& hh:syst_h2d_map) delete hh.second;
+  for (auto& hh:syst_h3d_map) delete hh.second;
+}
 
 using namespace PhysicsProcessHelpers;
 
@@ -345,6 +582,78 @@ PhysicsProcessHandler* getPhysicsProcessHandler(TString strSampleSet, ACHypothes
   return res;
 }
 
+// Acquire special systematics reweighting histograms
+void registerSystematics(TString strSampleSet){
+  using namespace SystematicsHelpers;
+
+  TDirectory* curdir = gDirectory;
+
+  TString strinput_customSyst_main = ANALYSISTREEPKGDATAPATH + "ScaleFactors/SystematicsCustomReweighting/";
+  HostHelpers::ExpandEnvironmentVariables(strinput_customSyst_main);
+  std::vector<SystematicVariationTypes> const allowedSysts_1D{
+    tPDFScaleDn, tPDFScaleUp,
+    tQCDScaleDn, tQCDScaleUp,
+    tAsMZDn, tAsMZUp,
+    tPDFReplicaDn, tPDFReplicaUp
+  };
+  std::vector<SystematicVariationTypes> const allowedSysts_2D;
+  std::vector<SystematicVariationTypes> const allowedSysts_3D{
+    tPythiaScaleDn, tPythiaScaleUp,
+    //tPythiaTuneDn, tPythiaTuneUp,
+    tHardJetsDn, tHardJetsUp
+  };
+  std::vector<SystematicVariationTypes> allowedSysts = allowedSysts_1D;
+  HelperFunctions::appendVector(allowedSysts, allowedSysts_2D);
+  HelperFunctions::appendVector(allowedSysts, allowedSysts_3D);
+  for (auto const& syst:allowedSysts){
+    TString const strSyst = getSystName(syst).data();
+    TString strinput_customSyst;
+    TH1F* h_ratio_syst_1D = nullptr;
+    TH2F* h_ratio_syst_2D = nullptr;
+    TH3F* h_ratio_syst_3D = nullptr;
+
+    if (SampleHelpers::getDataYear()==2016){
+      strinput_customSyst = strinput_customSyst_main + "2016/" + strSampleSet + "_" + strSyst + ".root";
+      if (!HostHelpers::FileReadable(strinput_customSyst)) strinput_customSyst = strinput_customSyst_main + "2016_2017_2018/" + strSampleSet + "_" + strSyst + ".root";
+      if (!HostHelpers::FileReadable(strinput_customSyst)) strinput_customSyst = "";
+    }
+    else if (SampleHelpers::getDataYear()==2017 || SampleHelpers::getDataYear()==2018){
+      strinput_customSyst = strinput_customSyst_main + "2017_2018/" + strSampleSet + "_" + strSyst + ".root";
+      if (!HostHelpers::FileReadable(strinput_customSyst)) strinput_customSyst = strinput_customSyst_main + "2016_2017_2018/" + strSampleSet + "_" + strSyst + ".root";
+      if (!HostHelpers::FileReadable(strinput_customSyst)) strinput_customSyst = "";
+    }
+    if (strinput_customSyst!=""){
+      IVYout << "Acquiring the systematics file " << strinput_customSyst << "..." << endl;
+      TFile* finput_syst = TFile::Open(strinput_customSyst, "read");
+      if (HelperFunctions::checkListVariable(allowedSysts_1D, syst)){
+        TH1F* htmp = (TH1F*) finput_syst->Get("h_ratio");
+        curdir->cd();
+        h_ratio_syst_1D = (TH1F*) htmp->Clone(htmp->GetName());
+      }
+      else if (HelperFunctions::checkListVariable(allowedSysts_2D, syst)){
+        TH2F* htmp = (TH2F*) finput_syst->Get("h_ratio");
+        curdir->cd();
+        h_ratio_syst_2D = (TH2F*) htmp->Clone(htmp->GetName());
+      }
+      else if (HelperFunctions::checkListVariable(allowedSysts_3D, syst)){
+        TH3F* htmp = (TH3F*) finput_syst->Get("h_ratio");
+        curdir->cd();
+        h_ratio_syst_3D = (TH3F*) htmp->Clone(htmp->GetName());
+      }
+      finput_syst->Close();
+      if (!h_ratio_syst_1D && !h_ratio_syst_2D && !h_ratio_syst_3D){
+        IVYerr << "\t- No 1, 2, or 3D reweighting could be acquired. Aborting..." << endl;
+        assert(0);
+      }
+    }
+
+    curdir->cd();
+
+    LooperFunctionHelpers::registerSystHistogram(syst, h_ratio_syst_1D);
+    LooperFunctionHelpers::registerSystHistogram(syst, h_ratio_syst_2D);
+    LooperFunctionHelpers::registerSystHistogram(syst, h_ratio_syst_3D);
+  }
+}
 
 void produceReweightedGen(
   TString strSampleSet, TString period,
@@ -394,6 +703,9 @@ void produceReweightedGen(
   gSystem->mkdir(coutput_main, true);
 
   curdir->cd();
+
+  // Register external systematics shape reweighting
+  registerSystematics(strSampleSet);
 
   // Set variables to allow recasting of topology
   LooperFunctionHelpers::recastLHETopology = isPowheg && !isGG;
@@ -528,7 +840,7 @@ void produceReweightedGen(
 
     std::vector<TString> allbranchnames; sample_tree->getValidBranchNamesWithoutAlias(allbranchnames, false);
 
-    const int nEntries = sample_tree->getSelectedNEvents();
+    const int nEntries = sample_tree->getNEvents();
     bool hasTaus = false;
     double sum_wgts_raw_noveto = 0;
     double sum_wgts_raw_withveto = 0;
@@ -636,15 +948,17 @@ void produceReweightedGen(
     }
   }
 
-  rewgtBuilder.setup(0, &tree_normTree_pairs, thr_frac_Neff);
+  // Record the reweighting weights or use the existing record
+  bool const rwgtrcd_exists = HostHelpers::FileReadable(stroutput_rewgtRcd);
+  if (rwgtrcd_exists) rewgtBuilder.setupFromFile(stroutput_rewgtRcd);
+  else{
+    rewgtBuilder.setup(0, &tree_normTree_pairs, thr_frac_Neff);
 
-  // Record the reweighting weights
-  {
     TFile* foutput_rewgtRcd = TFile::Open(stroutput_rewgtRcd, "recreate");
     rewgtBuilder.writeToFile(foutput_rewgtRcd);
     foutput_rewgtRcd->Close();
-    curdir->cd();
   }
+  curdir->cd();
 
   // Loop over all events
   theLooper.loop(true);
@@ -660,10 +974,13 @@ void produceReweightedGen(
 
   curdir->cd();
 
+  LooperFunctionHelpers::cleanup();
+
   SampleHelpers::addToCondorTransferList(stroutput);
 }
 
-void makePlots(TString strSampleSet, TString period, TString strdate){
+
+void produceHistograms(TString strSampleSet, TString period, TString strdate){
   SystematicsHelpers::SystematicVariationTypes const theGlobalSyst = SystematicsHelpers::sNominal;
 
   gStyle->SetOptStat(0);
@@ -976,3 +1293,459 @@ void makePlots(TString strSampleSet, TString period, TString strdate){
   delete tin;
   foutput->Close();
 }
+
+void produceBWHistograms(TString strSampleSet, TString period, TString prodVersion, TString strdate){
+  SystematicsHelpers::SystematicVariationTypes const theGlobalSyst = SystematicsHelpers::sNominal;
+
+  gStyle->SetOptStat(0);
+
+  if (strdate=="") strdate = HelperFunctions::todaysdate();
+
+  TDirectory* curdir = gDirectory;
+  //gSystem->mkdir(coutput_main, true);
+  //curdir->cd();
+
+  SampleHelpers::configure(period, Form("%s:%s", "store", prodVersion.Data()));
+
+  std::vector<TString> sampledirs;
+  SampleHelpers::constructSamplesList(strSampleSet, theGlobalSyst, sampledirs);
+  if (sampledirs.size()!=1) return;
+
+  TString infiles = SampleHelpers::getDatasetFileName(sampledirs.front());
+  //HelperFunctions::replaceString<TString, TString const>(infiles, "/ceph/", "/hadoop/");
+  BaseTree sample_tree(infiles, "cms3ntuple/Events", "", "");
+  sample_tree.sampleIdentifier = SampleHelpers::getSampleIdentifier(sampledirs.front());
+  bool const isData = SampleHelpers::checkSampleIsData(sample_tree.sampleIdentifier);
+  if (isData) return;
+  float const sampleMH = SampleHelpers::findPoleMass(sample_tree.sampleIdentifier);
+
+  curdir->cd();
+
+  TString coutput_main = "output/BWRewgtPlots/" + strdate;
+  gSystem->mkdir(coutput_main, true);
+  TString coutput = coutput_main + "/hists_" + strSampleSet + ".root";
+  TFile* foutput = TFile::Open(coutput, "recreate");
+
+#define HIST_COMMAND(NAME) \
+  TH1F* h_##NAME = new TH1F(Form("h_%s", #NAME), "", 70, 200, 1600); \
+  h_##NAME->Sumw2(); \
+  h_##NAME->GetXaxis()->SetTitle("m_{ZZ} (GeV)"); \
+  h_##NAME->GetYaxis()->SetTitle("Events / GeV"); \
+  h_##NAME->SetLineWidth(2);
+  HIST_COMMAND(norewgt);
+  HIST_COMMAND(BRrewgt);
+  HIST_COMMAND(fullproprewgt);
+#undef HIST_COMMAND
+
+  curdir->cd();
+
+  bool hasTaus = false;
+  double sum_wgts_raw_noveto = 0;
+  double sum_wgts_raw_withveto = 0;
+  double sum_wgts_raw_withveto_defaultMemberZero = 0;
+  float xsec = 1;
+  float xsec_scale = 1;
+  float BR_scale = 1;
+  float* LHECandMass = nullptr;
+  float* p_Gen_CPStoBWPropRewgt = nullptr;
+
+  // Get cross section
+  sample_tree.bookBranch<float>("LHECandMass", -1.f);
+  sample_tree.bookBranch<float>("p_Gen_CPStoBWPropRewgt", -1.f);
+  sample_tree.getValRef("LHECandMass", LHECandMass);
+  sample_tree.getValRef("p_Gen_CPStoBWPropRewgt", p_Gen_CPStoBWPropRewgt);
+
+  sample_tree.silenceUnused();
+
+  GenInfoHandler genInfoHandler;
+  genInfoHandler.setAcquireLHEMEWeights(false);
+  genInfoHandler.setAcquireLHEParticles(true);
+  genInfoHandler.setAcquireGenParticles(false);
+  genInfoHandler.bookBranches(&sample_tree);
+  genInfoHandler.wrapTree(&sample_tree);
+
+  unsigned int n_zero_genwgts=0;
+  double frac_zero_genwgts=0;
+  const int nEntries = sample_tree.getNEvents();
+  for (int ev=0; ev<nEntries; ev++){
+    HelperFunctions::progressbar(ev, nEntries);
+    sample_tree.getEvent(ev);
+
+    genInfoHandler.constructGenInfo(SystematicsHelpers::sNominal); // Use sNominal here in order to get the weight that corresponds to xsec
+    auto const& genInfo = genInfoHandler.getGenInfo();
+    if (ev==0) xsec = genInfo->extras.xsec*1000.;
+
+    auto const& lheparticles = genInfoHandler.getLHEParticles();
+    if (!hasTaus){
+      for (auto const& part:lheparticles){
+        if (part->status()==1 && std::abs(part->pdgId())==15){
+          hasTaus = true;
+          genInfoHandler.setAcquireLHEParticles(false);
+          break;
+        }
+      }
+    }
+
+    double genwgt = genInfo->getGenWeight(true);
+    double genwgt_defaultMemberZero = genInfo->extras.LHEweight_defaultMemberZero;
+    if (genwgt==0.){
+      n_zero_genwgts++;
+      continue;
+    }
+    sum_wgts_raw_withveto_defaultMemberZero += genwgt_defaultMemberZero;
+    sum_wgts_raw_withveto += genwgt;
+
+    h_norewgt->Fill(*LHECandMass, genwgt_defaultMemberZero);
+    h_BRrewgt->Fill(*LHECandMass, genwgt);
+    h_fullproprewgt->Fill(*LHECandMass, genwgt*(*p_Gen_CPStoBWPropRewgt));
+  }
+  if (nEntries>0) frac_zero_genwgts = double(n_zero_genwgts)/double(nEntries);
+  sum_wgts_raw_noveto = sum_wgts_raw_withveto / (1. - frac_zero_genwgts);
+  xsec_scale = sum_wgts_raw_withveto / sum_wgts_raw_noveto;
+  if (sampleMH>0.f){
+    IVYout << "Calculating BR scale..." << endl;
+    BR_scale = SampleHelpers::calculateAdjustedHiggsBREff(sampledirs.front(), sum_wgts_raw_withveto_defaultMemberZero, sum_wgts_raw_withveto, hasTaus);
+  }
+  IVYout << "xsec scale = " << xsec_scale << endl;
+  IVYout << "BR scale = " << BR_scale << endl;
+  double globalWeight_fullproprewgt = xsec * xsec_scale * BR_scale / sum_wgts_raw_withveto;
+  double globalWeight_BRrewgt = globalWeight_fullproprewgt;
+  double globalWeight_norewgt = globalWeight_fullproprewgt * sum_wgts_raw_withveto_defaultMemberZero/sum_wgts_raw_withveto;
+  IVYout << "Sample " << sample_tree.sampleIdentifier << " has a gen. weight sum of " << sum_wgts_raw_withveto << "." << endl;
+  IVYout << "\t- Raw xsec = " << xsec << endl;
+  IVYout << "\t- xsec scale * BR scale = " << xsec_scale * BR_scale << endl;
+  IVYout << "\t- xsec * BR = " << xsec * xsec_scale * BR_scale << endl;
+  IVYout << "\t- Global weights = " << globalWeight_norewgt << ", " << globalWeight_BRrewgt << ", " << globalWeight_fullproprewgt << endl;
+  h_norewgt->Scale(globalWeight_norewgt); HelperFunctions::divideBinWidth(h_norewgt);
+  h_BRrewgt->Scale(globalWeight_BRrewgt); HelperFunctions::divideBinWidth(h_BRrewgt);
+  h_fullproprewgt->Scale(globalWeight_fullproprewgt); HelperFunctions::divideBinWidth(h_fullproprewgt);
+
+  curdir->cd();
+  foutput->WriteTObject(h_norewgt); delete h_norewgt;
+  foutput->WriteTObject(h_BRrewgt); delete h_BRrewgt;
+  foutput->WriteTObject(h_fullproprewgt); delete h_fullproprewgt;
+  foutput->Close();
+}
+
+
+#include "PlottingHelpers.h"
+#include "TStyle.h"
+#include "TCanvas.h"
+#include "TText.h"
+#include "TPaveText.h"
+#include "TLegend.h"
+
+void makePlot(
+  TString const& coutput_main,
+  TString canvasname,
+  std::vector<TH1F*> hlist,
+  std::vector<TH1F*> hratios,
+  std::vector<TString> hlabels,
+  TString selectionLabels,
+  TString drawopts,
+  bool useLogY,
+  bool adjustYLow,
+  float factorYHigh
+){
+  using namespace PlottingHelpers;
+
+  bool const addRatioPanel = !hratios.empty();
+
+  size_t nplottables = hlist.size();
+  if (hlabels.size()!=nplottables) return;
+  for (auto const& hlabel:hlabels){ if (hlabel=="") nplottables--; }
+
+  std::vector<TString> selectionList;
+  if (selectionLabels!="") HelperFunctions::splitOptionRecursive(selectionLabels, selectionList, '|');
+
+  bool hasData = false;
+  if (useLogY) adjustYLow = true;
+
+  std::vector<bool> hHasErrors;
+
+  int nbins = -1;
+  double ymin = 0;
+  if (adjustYLow) ymin=9e9;
+  double ymax = -9e9;
+  for (size_t is=0; is<hlist.size(); is++){
+    TH1F* hist = hlist.at(is);
+    TString hname = hist->GetName();
+    if (hname.Contains("Data") || hname.Contains("data")) hasData = true;
+    bool hasErrors=false;
+    if (nbins<0) nbins = hist->GetNbinsX();
+    for (int ix=1; ix<=nbins; ix++){
+      double bc = hist->GetBinContent(ix);
+      double be = hist->GetBinError(ix);
+      if (be>0.2*std::abs(bc)) be = 0.2*std::abs(bc);
+      if (be!=0.f) hasErrors = true;
+      ymax = std::max(ymax, bc+be);
+      double bclow=bc; if (be<=bclow) bclow -= be;
+      if (adjustYLow && bc>=1e-2) ymin = std::min(ymin, bclow);
+    }
+    hHasErrors.push_back(hasErrors);
+    //IVYout << "ymin, ymax after " << hname << ": " << ymin << ", " << ymax << endl;
+  }
+  if (ymax>=0.) ymax *= (factorYHigh>0.f ? factorYHigh : (useLogY ? 150. : 1.5));
+  else ymax /= (factorYHigh>0.f ? factorYHigh : 1.5);
+  ymin *= (ymin>=0. ? 0.95 : 1.05);
+  for (TH1F* const& hist:hlist) hist->GetYaxis()->SetRangeUser(ymin, ymax);
+
+  TString varlabel = "";
+  TString quantlabel = "";
+  std::vector<TH1F*> hnum_MC_list;
+  std::unordered_map<TH1F*, TGraphAsymmErrors*> hist_tg_map;
+  for (size_t is=0; is<hlist.size(); is++){
+    TH1F* hist = hlist.at(is);
+    TString hname = hist->GetName();
+
+    if (varlabel=="") varlabel = hist->GetXaxis()->GetTitle();
+    if (quantlabel=="") quantlabel = hist->GetYaxis()->GetTitle();
+
+    hist->GetXaxis()->SetTitle("");
+    hist->GetYaxis()->SetTitle("");
+
+    if (hname.Contains("Data")){
+      TGraphAsymmErrors* tg = nullptr;
+      HelperFunctions::convertTH1FToTGraphAsymmErrors(hist, tg, false, true);
+      tg->SetName(Form("%s_noZeros", tg->GetName()));
+      tg->SetTitle("");
+      tg->GetYaxis()->SetRangeUser(ymin, ymax);
+
+      tg->GetXaxis()->SetTitle("");
+      tg->GetYaxis()->SetTitle("");
+
+      hist_tg_map[hist] = tg;
+    }
+  }
+
+  constexpr double npixels_pad_xy = 800;
+  CMSLogoStep cmslogotype = kSimulation;
+  PlotCanvas plot(canvasname, npixels_pad_xy, npixels_pad_xy, 1, (addRatioPanel ? 2 : 1), 0.2, 0.05, 0.15, 0.07, 0., 0.1, 0.2);
+  plot.addCMSLogo(cmslogotype, 13, -1, 0, "13 TeV");
+
+  for (size_t is=0; is<hlist.size(); is++){
+    TH1F* hist = hlist.at(is);
+
+    hist->GetXaxis()->SetNdivisions(505);
+    hist->GetXaxis()->SetLabelFont(43);
+    hist->GetXaxis()->SetLabelOffset(plot.getStdOffset_XLabel());
+    hist->GetXaxis()->SetLabelSize(plot.getStdPixelSize_XYLabel());
+    hist->GetYaxis()->SetNdivisions(505);
+    hist->GetYaxis()->SetLabelFont(43);
+    hist->GetYaxis()->SetLabelOffset(plot.getStdOffset_YLabel());
+    hist->GetYaxis()->SetLabelSize(plot.getStdPixelSize_XYLabel());
+
+    if (addRatioPanel) hist->GetXaxis()->SetLabelSize(0);
+  }
+  for (auto& pp:hist_tg_map){
+    TGraphAsymmErrors* tg = pp.second;
+
+    tg->GetXaxis()->SetNdivisions(505);
+    tg->GetXaxis()->SetLabelFont(43);
+    tg->GetXaxis()->SetLabelOffset(plot.getStdOffset_XLabel());
+    tg->GetXaxis()->SetLabelSize(plot.getStdPixelSize_XYLabel());
+    tg->GetYaxis()->SetNdivisions(505);
+    tg->GetYaxis()->SetLabelFont(43);
+    tg->GetYaxis()->SetLabelOffset(plot.getStdOffset_YLabel());
+    tg->GetYaxis()->SetLabelSize(plot.getStdPixelSize_XYLabel());
+
+    if (addRatioPanel) tg->GetXaxis()->SetLabelSize(0);
+  }
+
+  TH1F* hdummy_ratio = nullptr;
+  std::vector<TGraphAsymmErrors*> tgratios;
+  std::vector<TString> stropts_ratios;
+  if (addRatioPanel){
+    double ymin_ratio = 0;
+    double ymax_ratio = 2;
+    hdummy_ratio = dynamic_cast<TH1F*>(hratios.front()->Clone("hdummy_ratio")); hdummy_ratio->Reset("ICESM");
+    hdummy_ratio->GetYaxis()->SetRangeUser(ymin_ratio, ymax_ratio);
+
+    hdummy_ratio->GetXaxis()->SetNdivisions(505);
+    hdummy_ratio->GetXaxis()->SetLabelFont(43);
+    hdummy_ratio->GetXaxis()->SetLabelOffset(plot.getStdOffset_XLabel());
+    hdummy_ratio->GetXaxis()->SetLabelSize(plot.getStdPixelSize_XYLabel());
+    hdummy_ratio->GetYaxis()->SetNdivisions(505);
+    hdummy_ratio->GetYaxis()->SetLabelFont(43);
+    hdummy_ratio->GetYaxis()->SetLabelOffset(plot.getStdOffset_YLabel());
+    hdummy_ratio->GetYaxis()->SetLabelSize(plot.getStdPixelSize_XYLabel());
+  }
+
+  TPad* pad_hists = plot.getInsidePanels().front().back();
+  TPad* pad_ratios = (addRatioPanel ? plot.getInsidePanels().front().front() : nullptr);
+
+  // Add x and y titles
+  TPad* pad_xtitle = plot.getBorderPanels().at(0); pad_xtitle->cd();
+  TLatex* xtitle = new TLatex(); plot.addText(xtitle);
+  xtitle->SetTextAlign(22);
+  xtitle->SetTextFont(PlotCanvas::getStdFont_XYTitle());
+  xtitle->SetTextSize(plot.getStdPixelSize_XYTitle());
+  plot.addText(xtitle->DrawLatexNDC(0.5, 0.5, varlabel));
+
+  TPad* pad_ytitle = plot.getBorderPanels().at(1); pad_ytitle->cd();
+  TLatex* ytitle = new TLatex(); plot.addText(ytitle);
+  ytitle->SetTextAlign(22);
+  ytitle->SetTextFont(PlotCanvas::getStdFont_XYTitle());
+  ytitle->SetTextSize(plot.getStdPixelSize_XYTitle());
+  ytitle->SetTextAngle(90);
+  plot.addText(ytitle->DrawLatexNDC(0.5, (addRatioPanel ? 1.-0.5/1.4 : 0.5), quantlabel));
+  if (addRatioPanel) plot.addText(ytitle->DrawLatexNDC(0.5, 0.13/1.4, "Ratio"));
+
+  pad_hists->cd();
+  if (useLogY) pad_hists->SetLogy(true);
+
+  constexpr double legend_ymax = 0.90;
+  double legend_pixelsize = plot.getStdPixelSize_XYTitle();
+  double legend_reldy = legend_pixelsize/npixels_pad_xy*1.3;
+  TLegend* legend = new TLegend(
+    0.55,
+    legend_ymax-legend_reldy*float(nplottables),
+    0.90,
+    legend_ymax,
+    "", "NDC"
+  );
+  legend->SetBorderSize(0);
+  legend->SetTextFont(43);
+  legend->SetTextAlign(12);
+  legend->SetTextSize(legend_pixelsize);
+  legend->SetLineColor(1);
+  legend->SetLineStyle(1);
+  legend->SetLineWidth(1);
+  legend->SetFillColor(0);
+  legend->SetFillStyle(0);
+  plot.addLegend(legend);
+  TText* text;
+
+  pad_hists->cd();
+
+  bool firstHist = true;
+  for (size_t is=0; is<hlist.size(); is++){
+    TH1F* hist = hlist.at(is);
+    TString const& hlabel = hlabels.at(is);
+
+    bool hasGraph = hist_tg_map.find(hist)!=hist_tg_map.end();
+    bool hasErrors = hHasErrors.at(is);
+
+    TString stropt = drawopts;
+    if (!hasErrors) stropt = "hist";
+
+    hist->SetTitle("");
+    if (hlabel!=""){
+      if (!hasGraph){
+        if (stropt=="hist") legend->AddEntry(hist, hlabel, "f");
+        else legend->AddEntry(hist, hlabel, "elp");
+      }
+      else legend->AddEntry(hist_tg_map[hist], hlabel, "e1p");
+    }
+
+    if (hasGraph) continue;
+
+    if (firstHist){
+      if (!hasGraph) hist->Draw(stropt);
+      //else hist_tg_map[hist]->Draw("ae1p");
+      firstHist = false;
+    }
+    else{
+      if (!hasGraph) hist->Draw(stropt+"same");
+      //else hist_tg_map[hist]->Draw("e1psame");
+    }
+  }
+
+  pad_hists->cd();
+
+  // Re-draw data.
+  // Draw in reverse in order to make sure real data is drawn the last.
+  for (int is=hlist.size()-1; is>=0; is--){
+    TH1F* hist = hlist.at(is);
+    TString hname = hist->GetName();
+    if (!hname.Contains("Data")) continue;
+    bool hasGraph = hist_tg_map.find(hist)!=hist_tg_map.end();
+    bool hasErrors = hHasErrors.at(is);
+    TString stropt = drawopts;
+    if (!hasErrors) stropt = "hist";
+    if (!hasGraph) hist->Draw(stropt+"same");
+    //else hist_tg_map[hist]->Draw("e1psame");
+  }
+
+  pad_hists->cd();
+  legend->Draw();
+
+  pad_hists->cd();
+  TLatex* selectionstitle = new TLatex(); plot.addText(selectionstitle);
+  selectionstitle->SetTextAlign(12);
+  selectionstitle->SetTextFont(43);
+  selectionstitle->SetTextSize(legend_pixelsize);
+  {
+    double pt_ymax = legend_ymax;
+    double pt_dy = legend_reldy;
+    for (auto const& strSel:selectionList){
+      plot.addText(selectionstitle->DrawLatexNDC(0.22/(1.+0.25+0.0625)+0.05, pt_ymax-pt_dy/2., strSel));
+      pt_ymax -= pt_dy;
+    }
+  }
+
+  if (pad_ratios){
+    pad_ratios->cd();
+    hdummy_ratio->SetTitle("");
+    hdummy_ratio->Draw("hist");
+    for (auto& hh:hratios){
+      hh->SetTitle("");
+      hh->Draw("histsame");
+    }
+  }
+
+  plot.update();
+  plot.save(coutput_main, "png");
+  plot.save(coutput_main, "pdf");
+
+  delete hdummy_ratio;
+  for (auto& pp:hist_tg_map) delete pp.second;
+}
+
+
+void makeBWRewgtPlots(TString strSampleSet, TString strdate){
+  bool isGG = strSampleSet.Contains("GGH");
+  bool isVBF = strSampleSet.Contains("VBFH");
+
+  TString cinput_main = "output/BWRewgtPlots/" + strdate;
+  TString coutput_main = cinput_main;
+  TString cinput = cinput_main + "/hists_" + strSampleSet + ".root";
+  TFile* finput = TFile::Open(cinput, "read");
+
+  TH1F* h_norewgt = (TH1F*) finput->Get("h_norewgt"); h_norewgt->SetLineColor(kBlack); h_norewgt->SetMarkerColor(kBlack); h_norewgt->GetYaxis()->SetTitle("d#sigma / dm_{ZZ} (fb/GeV)");
+  TH1F* h_BRrewgt = (TH1F*) finput->Get("h_BRrewgt"); h_BRrewgt->SetLineColor(kBlue); h_BRrewgt->SetMarkerColor(kBlue); h_BRrewgt->GetYaxis()->SetTitle("d#sigma / dm_{ZZ} (fb/GeV)");
+  TH1F* h_fullproprewgt = (TH1F*) finput->Get("h_fullproprewgt"); h_fullproprewgt->SetLineColor(kViolet); h_fullproprewgt->SetMarkerColor(kViolet); h_fullproprewgt->GetYaxis()->SetTitle("d#sigma / dm_{ZZ} (fb/GeV)");
+
+  TH1F* hratio_BRrewgt = (TH1F*) h_BRrewgt->Clone("hratio_BRrewgt"); hratio_BRrewgt->Divide(h_norewgt); hratio_BRrewgt->GetXaxis()->SetTitle(""); hratio_BRrewgt->GetYaxis()->SetTitle("");
+  TH1F* hratio_fullproprewgt = (TH1F*) h_fullproprewgt->Clone("hratio_fullproprewgt"); hratio_fullproprewgt->Divide(h_BRrewgt); hratio_fullproprewgt->GetXaxis()->SetTitle(""); hratio_fullproprewgt->GetYaxis()->SetTitle("");
+
+  {
+    std::vector<TH1F*> hlist{
+      h_norewgt,
+      h_BRrewgt,
+      h_fullproprewgt
+    };
+    std::vector<TH1F*> hratios{
+      hratio_BRrewgt,
+      hratio_fullproprewgt
+    };
+    std::vector<TString> hlabels{
+      "Default POWHEG",
+      "+ BR evolution",
+      "+ CPS#rightarrowBW"
+    };
+    makePlot(
+      coutput_main,
+      Form("c_%s", strSampleSet.Data()),
+      hlist,
+      hratios,
+      hlabels,
+      (isGG ? "gg#rightarrowH#rightarrow2l2#nu" : "VBF, H#rightarrow2l2#nu"),
+      "hist",
+      false, false, -1.
+    );
+  }
+
+  finput->Close();
+}
+
