@@ -22,20 +22,18 @@
 
 #include <DataFormats/Common/interface/View.h>
 #include <DataFormats/Candidate/interface/Candidate.h>
-#include "DataFormats/VertexReco/interface/Vertex.h"
-#include "DataFormats/VertexReco/interface/VertexFwd.h"
+#include <DataFormats/VertexReco/interface/Vertex.h>
+#include <DataFormats/VertexReco/interface/VertexFwd.h>
 #include <DataFormats/PatCandidates/interface/Muon.h>
 #include <DataFormats/PatCandidates/interface/Electron.h>
 #include <DataFormats/PatCandidates/interface/Photon.h>
 #include <DataFormats/PatCandidates/interface/Jet.h>
 #include <DataFormats/PatCandidates/interface/PackedCandidate.h>
-#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
+#include <DataFormats/PatCandidates/interface/PackedGenParticle.h>
 #include <DataFormats/PatCandidates/interface/CompositeCandidate.h>
-
 #include <DataFormats/HepMCCandidate/interface/GenParticle.h>
 #include <DataFormats/JetReco/interface/GenJet.h>
 #include <DataFormats/JetReco/interface/PFJet.h>
-
 #include <DataFormats/EgammaReco/interface/SuperClusterFwd.h>
 
 #include <SimDataFormats/GeneratorProducts/interface/LHERunInfoProduct.h>
@@ -43,18 +41,18 @@
 #include <SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h>
 #include <SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h>
 
-#include <CMS3/NtupleMaker/interface/GenInfo.h>
-#include <CMS3/NtupleMaker/interface/TriggerInfo.h>
-#include <CMS3/NtupleMaker/interface/TriggerObjectInfo.h>
-#include <CMS3/NtupleMaker/interface/METFilterInfo.h>
-#include <CMS3/NtupleMaker/interface/METInfo.h>
-#include <CMS3/NtupleMaker/interface/METShiftInfo.h>
-#include <CMS3/NtupleMaker/interface/IsotrackInfo.h>
-#include <CMS3/NtupleMaker/interface/FSRCandidateInfo.h>
-#include <CMS3/NtupleMaker/interface/PFCandidateInfo.h>
+#include "CMS3/NtupleMaker/interface/GenInfo.h"
+#include "CMS3/NtupleMaker/interface/TriggerInfo.h"
+#include "CMS3/NtupleMaker/interface/TriggerObjectInfo.h"
+#include "CMS3/NtupleMaker/interface/METFilterInfo.h"
+#include "CMS3/NtupleMaker/interface/METInfo.h"
+#include "CMS3/NtupleMaker/interface/METShiftInfo.h"
+#include "CMS3/NtupleMaker/interface/IsotrackInfo.h"
+#include "CMS3/NtupleMaker/interface/FSRCandidateInfo.h"
+#include "CMS3/NtupleMaker/interface/PFCandidateInfo.h"
 
-#include <IvyFramework/IvyDataTools/interface/SimpleEntry.h>
-#include <IvyFramework/IvyDataTools/interface/BaseTree.h>
+#include "IvyFramework/IvyDataTools/interface/SimpleEntry.h"
+#include "IvyFramework/IvyDataTools/interface/BaseTree.h"
 
 
 class CMS3Ntuplizer : public edm::one::EDAnalyzer<edm::one::SharedResources>{
@@ -102,6 +100,9 @@ protected:
 
   bool isMC;
   bool is80X;
+
+  std::string recoMode;
+  std::string specialOpts;
 
   // Note that the two flags below are mutually exclusive:
   // If applyMETfix=true, enableManualMETfix=false is required.

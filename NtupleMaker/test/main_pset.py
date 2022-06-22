@@ -18,7 +18,7 @@ opts.register('inputs'    , ""  , mytype=vpstring) # comma separated list of inp
 opts.register('output'    , "ntuple.root"  , mytype=vpstring)
 opts.register('nevents'    , -1  , mytype=vpint)
 opts.register('skipevents', -1, mytype=vpint) # Skip this many events before starting to process (for debugging purposes)
-opts.register('year'    , -1  , mytype=vpint) # year for MC weight and other purposes (2016,2017,2018); defaults to 2017
+opts.register('year'    , -1  , mytype=vpint) # year for MC weight and other purposes (2016,2017,2018)
 opts.register('is80x'    , False  , mytype=vpbool) # is 2016 80X sample?
 opts.register('fastsim' , False , mytype=vpbool) # is fastsim?
 opts.register('triginfo'  , False , mytype=vpbool) # want (probably broken now) trigger matching information?
@@ -80,6 +80,17 @@ if opts.year<0:
    if any(x in opts.inputs for x in ["16MiniAOD","Run2016"]): opts.year = 2016
    if any(x in opts.inputs for x in ["17MiniAOD","Run2017"]): opts.year = 2017
    if any(x in opts.inputs for x in ["18MiniAOD","Run2018"]): opts.year = 2018
+
+CMS_reco_specialopts=""
+if opts.year == 2016 and CMS_reco_mode=="Run2_UL":
+   if any(x in opts.inputs for x in ["UL16MiniAODAPVv2","HIPM_UL2016"]): CMS_reco_specialopts = "APV"
+   else CMS_reco_specialopts = "NonAPV"
+
+# If processing UL, turn off MET recipe and manual MET fix computations
+if CMS_reco_mode=="Run2_UL":
+   opts.enableManualMETfix = False
+   opts.metrecipe = False
+
 
 print("""PSet is assuming:
    data? {data} fastsim? {fastsim} is80x? {is80x}
@@ -183,22 +194,28 @@ process.load("RecoEgamma.ElectronIdentification.ElectronMVAValueMapProducer_cfi"
 #process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons')
 #process.electronMVAValueMapProducer.srcMiniAOD = cms.InputTag('slimmedElectrons')
 #process.egmGsfElectronIDSequence = cms.Sequence(process.electronMVAVariableHelper * process.electronMVAValueMapProducer * process.egmGsfElectronIDs)
-my_eleid_modules = [
-   'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Fall17_94X_V2_cff',
-   'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Fall17_94X_V1_cff',
-   'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Fall17_noIso_V2_cff',
-   'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Fall17_iso_V2_cff'
-   ]
-# Add 2016 and 2018 HZZ MVA retraining
-if opts.year == 2016:
-   my_eleid_modules.append("RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Summer16_ID_ISO_cff")
-# 2017 uses Fall17V2_Iso
-elif opts.year == 2018:
-   my_eleid_modules.append("RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Autumn18_ID_ISO_cff")
-my_phoid_modules = [
-   'RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Fall17_94X_V2_cff',
-   'RecoEgamma.PhotonIdentification.Identification.mvaPhotonID_Fall17_94X_V2_cff'
-   ]
+my_eleid_modules = []
+my_phoid_modules = []
+if CMS_reco_mode == "Run2_preUL":
+   my_eleid_modules = [
+      'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Fall17_94X_V2_cff',
+      'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Fall17_94X_V1_cff',
+      'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Fall17_noIso_V2_cff',
+      'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Fall17_iso_V2_cff'
+      ]
+   # Add 2016 and 2018 HZZ MVA retraining
+   if opts.year == 2016:
+      my_eleid_modules.append("RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Summer16_ID_ISO_cff")
+   # 2017 uses Fall17V2_Iso
+   elif opts.year == 2018:
+      my_eleid_modules.append("RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Autumn18_ID_ISO_cff")
+   my_phoid_modules = [
+      'RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Fall17_94X_V2_cff',
+      'RecoEgamma.PhotonIdentification.Identification.mvaPhotonID_Fall17_94X_V2_cff'
+      ]
+## Run 2 UL processing already includes most up-to-dste VIDs
+#elif CMS_reco_mode == "Run2_UL":
+
 
 # Load Ntuple producer cff
 process.load("CMS3.NtupleMaker.cms3CoreSequences_cff")
@@ -1002,6 +1019,8 @@ else:
    process.cms3ntuple.year = cms.int32(opts.year)
    process.cms3ntuple.isMC = cms.bool((not opts.data))
    process.cms3ntuple.is80X = cms.bool(opts.is80x)
+   process.cms3ntuple.recoMode = cms.untracked.string(CMS_reco_mode)
+   process.cms3ntuple.specialOpts = cms.untracked.string(CMS_reco_specialopts)
    process.cms3ntuple.applyMETfix = cms.bool(opts.metrecipe)
    process.cms3ntuple.enableManualMETfix = cms.bool(opts.enableManualMETfix)
    process.cms3ntuple.processTriggerObjectInfos = cms.bool(doProcessTrigObjs)

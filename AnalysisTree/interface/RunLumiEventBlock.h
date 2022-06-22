@@ -1,11 +1,13 @@
 #ifndef RUNEVENTLUMIBLOCK_H
 #define RUNEVENTLUMIBLOCK_H
 
+#include "CMS3/Dictionaries/interface/CommonTypedefs.h"
+
 
 #define RUNLUMIEVENT_VARIABLES \
-RUNLUMIEVENT_VARIABLE(unsigned int, RunNumber, 0) \
-RUNLUMIEVENT_VARIABLE(unsigned int, LuminosityBlock, 0) \
-RUNLUMIEVENT_VARIABLE(unsigned long long, EventNumber, 0)
+RUNLUMIEVENT_VARIABLE(cms3_runnumber_t, RunNumber, 0) \
+RUNLUMIEVENT_VARIABLE(cms3_lumiblock_t, LuminosityBlock, 0) \
+RUNLUMIEVENT_VARIABLE(cms3_eventnumber_t, EventNumber, 0)
 
 
 class RunLumiEventBlock{

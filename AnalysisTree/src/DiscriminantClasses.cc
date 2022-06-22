@@ -1080,6 +1080,7 @@ void DiscriminantClasses::constructDiscriminants(std::vector<DiscriminantClasses
     case kCa2jjVBFint:
     case kCa3jjVBFint:
     case kCL1ZGsjjVBFint:
+    case kCjjVHint:
     case kCL1jjVHint:
     case kCa2jjVHint:
     case kCa3jjVHint:

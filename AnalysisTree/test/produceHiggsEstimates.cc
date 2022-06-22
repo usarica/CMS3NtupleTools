@@ -140,7 +140,8 @@ void produceReweightingRecords(
   bool const isVBF = strSampleSet.Contains("VBF");
   bool const isWH = strSampleSet.Contains("WminusH") || strSampleSet.Contains("WplusH");
   //bool const isVH = strSampleSet.Contains("WminusH") || strSampleSet.Contains("WplusH") || strSampleSet.Contains("ZH") || strSampleSet.Contains("HZJ");
-  bool const hasHWWDecay = SampleHelpers::isHiggsToWWDecay(SampleHelpers::getHiggsSampleDecayMode(strSampleSet));
+  SampleHelpers::HiggsSampleDecayMode const hdecaymode = SampleHelpers::getHiggsSampleDecayMode(strSampleSet);
+  bool const hasHWWDecay = SampleHelpers::isHiggsToWWDecay(hdecaymode);
   bool const isPowheg = strSampleSet.Contains("POWHEG");
   bool const hasDirectHWW = isWH || hasHWWDecay;
   bool const isWHWW = isWH && hasDirectHWW;
@@ -195,14 +196,22 @@ void produceReweightingRecords(
   IVYout << "Reweighting bin boundaries: " << binning_rewgt.getBinningVector() << endl;
 
   // Acquire the MEs
-  std::vector<TString> strMEs;
+  std::vector<std::pair<TString, bool>> strMEs;
   {
-    PhysicsProcessHandler* proc_handler = getPhysicsProcessHandler(strSampleSet, dktype);
+    PhysicsProcessHandler* proc_handler = getPhysicsProcessHandler(strSampleSet, (hdecaymode==SampleHelpers::kZZTo4L ? ACHypothesisHelpers::kZZ4l_offshell : ACHypothesisHelpers::kZZ2l2nu_offshell));
     for (unsigned int iac=0; iac<(unsigned int) ACHypothesisHelpers::nACHypotheses; iac++){
       ACHypothesisHelpers::ACHypothesis hypo = (ACHypothesisHelpers::ACHypothesis) iac;
-      if (hasDirectHWW && hypo==ACHypothesisHelpers::kL1ZGs) continue;
       std::vector<TString> strMEs_hypo = proc_handler->getMELAHypothesisWeights(hypo, false);
-      HelperFunctions::appendVector(strMEs, strMEs_hypo);
+      std::vector<bool> excludeFromNormRewgt_list(strMEs_hypo.size(), (hasDirectHWW && hypo==ACHypothesisHelpers::kL1ZGs));
+      // WW-only interaction can also happen in VBF, but that concerns only one of the L1ZGs ME types.
+      if (isVBF && hypo==ACHypothesisHelpers::kL1ZGs){
+        for (unsigned int ibsi=0; ibsi<strMEs_hypo.size(); ibsi++){
+          if (ibsi==(static_cast<unsigned int>(VVProcessHandler::VVTplSigBSM)-static_cast<unsigned int>(VVProcessHandler::nVVTplSMTypes))) excludeFromNormRewgt_list.at(ibsi)=true;
+        }
+      }
+      std::vector<std::pair<TString, bool>> strMEs_tmp;
+      HelperFunctions::zipVectors(strMEs_hypo, excludeFromNormRewgt_list, strMEs_tmp);
+      HelperFunctions::appendVector(strMEs, strMEs_tmp);
     }
     delete proc_handler;
   }
@@ -219,19 +228,25 @@ void produceReweightingRecords(
   );
 
   // Specify the reweighting threshold conditions
+  int iRefHypo = 0;
   constexpr double tol_wgt = 5;
   float const thr_frac_Neff = (isGG ? 0.005 : 0.01);
-  for (auto const& strME:strMEs){
+  for (auto const& strME_pp:strMEs){
+    auto const& strME = strME_pp.first;
+    auto const& excludeFromNormRewgt = strME_pp.second;
     double thr_wgt = 0.9995;
     if (isGG){ /* Do nothing, 0.9995 is good enough. */ }
     else if (strME == "p_Gen_JJEW_SIG_ghv1_1_MCFM"){ /* Do nothing, 0.9995 is good enough. */ }
     else if (isVBF) thr_wgt = 0.999;
     else if (isWHWW) thr_wgt = 0.995;
 
+    std::vector<TString> wgtcoll{ strME };
+    if (isPowheg) wgtcoll.push_back("p_Gen_CPStoBWPropRewgt");
     rewgtBuilder.addReweightingWeights(
-      { strME, "p_Gen_CPStoBWPropRewgt" },
+      wgtcoll,
       ReweightingFunctions::getSimpleWeight,
-      thr_wgt, tol_wgt
+      thr_wgt, tol_wgt,
+      excludeFromNormRewgt
     );
   }
 
@@ -366,7 +381,7 @@ void produceReweightingRecords(
   // Allow the reweighting record output to be directed to a file so that cross-checks can be made outside this run
   IVYout.open(stroutput_txt.Data());
   // Determine the weight thresholds
-  rewgtBuilder.setup(0, &tree_normTree_pairs, thr_frac_Neff);
+  rewgtBuilder.setup(iRefHypo, &tree_normTree_pairs, thr_frac_Neff);
   rewgtBuilder.print();
   IVYout.close();
 

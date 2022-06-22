@@ -12,7 +12,7 @@
 #include <RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h>
 #include <RecoEcal/EgammaCoreTools/interface/EcalTools.h>
 
-#include <CMS3/NtupleMaker/interface/plugins/CMS3Ntuplizer.h>
+#include "CMS3/NtupleMaker/interface/plugins/CMS3Ntuplizer.h"
 #include "CMS3/NtupleMaker/interface/VertexSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/MuonSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/ElectronSelectionHelpers.h"
@@ -22,14 +22,14 @@
 #include "CMS3/NtupleMaker/interface/AK8JetSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/IsotrackSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/PFCandidateSelectionHelpers.h"
-#include <CMS3/Dictionaries/interface/CMS3ObjectHelpers.h>
-#include <CMS3/NtupleMaker/interface/MCUtilities.h>
+#include "CMS3/Dictionaries/interface/CMS3ObjectHelpers.h"
+#include "CMS3/NtupleMaker/interface/MCUtilities.h"
 
-#include <CMS3/Dictionaries/interface/CommonTypedefs.h>
-#include <CMS3/Dictionaries/interface/EgammaFiduciality.h>
-#include <CMS3/Dictionaries/interface/JetMETEnums.h>
+#include "CMS3/Dictionaries/interface/CommonTypedefs.h"
+#include "CMS3/Dictionaries/interface/EgammaFiduciality.h"
+#include "CMS3/Dictionaries/interface/JetMETEnums.h"
 
-#include <IvyFramework/IvyDataTools/interface/HelperFunctions.h>
+#include "IvyFramework/IvyDataTools/interface/HelperFunctions.h"
 
 #include "MELAStreamHelpers.hh"
 
@@ -67,6 +67,9 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
 
   isMC(pset.getParameter<bool>("isMC")),
   is80X(pset.getParameter<bool>("is80X")),
+
+  recoMode(pset.getUntrackedParameter<std::string>("recoMode")),
+  specialOpts(pset.getUntrackedParameter<std::string>("specialOpts")),
 
   applyMETfix(pset.getParameter<bool>("applyMETfix")),
   enableManualMETfix(pset.getParameter<bool>("enableManualMETfix")),

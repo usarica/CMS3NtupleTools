@@ -9,6 +9,9 @@ cms3ntuple = cms.EDAnalyzer(
    isMC = cms.bool(False),
    is80x = cms.bool(False),
 
+   recoMode = cms.untracked.string("Run2_preUL"),
+   specialOpts = cms.untracked.string(""),
+
    # Note that the two flags below are mutually exclusive:
    # If applyMETfix=true, enableManualMETfix=false is required.
    # If enableManualMETfix=true, applyMETfix=false is required.

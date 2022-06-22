@@ -120,9 +120,10 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     if (refurbishSelections_){
       // The only ever reason to refurbish the selections is due to 94x MC not being available!
       // This is why this flag is 'false' (data should have been 'true').
-      bool isRun2016BCDEF = (272728 <= iEvent.run() && iEvent.run() <= 278808);
+      edm::RunNumber_t run_number = iEvent.run();
+      bool const needRun2016HIPM = (272728 <= run_number && run_number < 278769) || (run_number==278770); // Runs >=278769 do not have the HIP issue.
 #if CMSSW_VERSION_MAJOR<11 
-      muon::setCutBasedSelectorFlags(muon_result, (hasVertex ? &(*firstVertex) : (reco::Vertex const*) nullptr), isRun2016BCDEF);
+      muon::setCutBasedSelectorFlags(muon_result, (hasVertex ? &(*firstVertex) : (reco::Vertex const*) nullptr), needRun2016HIPM);
       POG_selector_bits = muon_result.selectors();
 #else
       reco::Muon::Selector refurbished_bits = muon::makeSelectorBitset(*muon, (hasVertex ? &(*firstVertex) : (reco::Vertex const*) nullptr), isRun2016BCDEF);

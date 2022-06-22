@@ -134,8 +134,12 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   }
 #undef HANDLER_DIRECTIVE
 
-  auto* rewgtBuilder = theLooper->getRegisteredRewgtBuilders().find("MERewgt")->second;
-
+  BulkReweightingBuilder* rewgtBuilder = nullptr;
+  {
+    auto const& rewgt_map = theLooper->getRegisteredRewgtBuilders();
+    auto it_rewgt_map = rewgt_map.find("MERewgt");
+    if (it_rewgt_map!=rewgt_map.end()) rewgtBuilder = it_rewgt_map->second;
+  }
 
   /************************/
   /* EVENT INTERPRETATION */
@@ -211,24 +215,50 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
   float genpromptparticles_sump4_pt = -1;
   unsigned int n_genak4jets = 0;
 
+  bool foundLHEHiggs = false;
   bool hasTaus = false;
   unsigned int n_leps_nus=0;
   ParticleObject::LorentzVector_t p4_lheHiggs;
   ParticleObject::LorentzVector_t p4_lheLeptonicDecay;
   auto const& lheparticles = genInfoHandler->getLHEParticles();
-  for (auto const& part:lheparticles){
-    if (part->status()==2 && PDGHelpers::isAHiggs(part->pdgId())) p4_lheHiggs = part->p4();
-    else if (part->status()==1 && (PDGHelpers::isALepton(part->pdgId()) || PDGHelpers::isANeutrino(part->pdgId()))){
-      p4_lheLeptonicDecay = p4_lheLeptonicDecay + part->p4();
-      if (std::abs(part->pdgId())==15) hasTaus = true;
-      n_leps_nus++;
+  auto const& genparticles = genInfoHandler->getGenParticles();
+  if (!lheparticles.empty()){
+    for (auto const& part:lheparticles){
+      if (part->status()==2 && PDGHelpers::isAHiggs(part->pdgId())){
+        p4_lheHiggs = part->p4();
+        foundLHEHiggs = true;
+      }
+      else if (part->status()==1 && (PDGHelpers::isALepton(part->pdgId()) || PDGHelpers::isANeutrino(part->pdgId()))){
+        p4_lheLeptonicDecay = p4_lheLeptonicDecay + part->p4();
+        if (std::abs(part->pdgId())==15) hasTaus = true;
+        n_leps_nus++;
+      }
     }
+  }
+  else if (!genparticles.empty()){
+    for (auto const& part:genparticles){
+      if (!part->extras.isHardProcess) continue;
+      if (PDGHelpers::isAHiggs(part->pdgId())){
+        p4_lheHiggs = part->p4();
+        foundLHEHiggs = true;
+      }
+      else if (part->status()!=21 && (PDGHelpers::isALepton(part->pdgId()) || PDGHelpers::isANeutrino(part->pdgId()))){
+        p4_lheLeptonicDecay = p4_lheLeptonicDecay + part->p4();
+        if (std::abs(part->pdgId())==15) hasTaus = true;
+        n_leps_nus++;
+      }
+    }
+  }
+  else{
+    IVYerr << "LooperFunctionHelpers::looperRule: Both gen. and LHE particle collections are empty!" << endl;
+    assert(0);
   }
   passGenCompSelection &= (n_leps_nus==4);
   passGenCompSelection &= (!hasTaus);
-
-  lheHiggs_mass = p4_lheHiggs.M();
-  lheHiggs_pt = p4_lheHiggs.Pt();
+  if (foundLHEHiggs){
+    lheHiggs_mass = p4_lheHiggs.M();
+    lheHiggs_pt = p4_lheHiggs.Pt();
+  }
   lheLeptonicDecay_pt = p4_lheLeptonicDecay.Pt();
   lheLeptonicDecay_mass = p4_lheLeptonicDecay.M();
 
@@ -272,23 +302,50 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     std::vector<MELAParticle*> particleList;
     {
       std::unordered_map<IvyParticle*, MELAParticle*> particle_translation_map;
-      for (auto const& part:lheparticles){
-        MELAParticle* onePart = new MELAParticle(part->pdgId(), part->p4_TLV());
-        onePart->setGenStatus(part->status());
-        particleList.push_back(onePart);
-        particle_translation_map[part] = onePart;
-        if (lheHiggs_mass<0. && PDGHelpers::isAHiggs(part->pdgId())){
-          lheHiggs_mass = part->mass();
-          lheHiggs_pt = part->pt();
+      if (!lheparticles.empty()){
+        for (auto const& part:lheparticles){
+          MELAParticle* onePart = new MELAParticle(part->pdgId(), part->p4_TLV());
+          onePart->setGenStatus(part->status());
+          particleList.push_back(onePart);
+          particle_translation_map[part] = onePart;
+          if (lheHiggs_mass<0. && PDGHelpers::isAHiggs(part->pdgId())){
+            lheHiggs_mass = part->mass();
+            lheHiggs_pt = part->pt();
+          }
+        }
+        // Loop to also assign mothers
+        for (auto const& part:lheparticles){
+          MELAParticle* const& thePart = particle_translation_map.find(part)->second;
+          for (auto const& mother:part->getMothers()){
+            if (!mother) continue;
+            MELAParticle* const& theMother = particle_translation_map.find(mother)->second;
+            thePart->addMother(theMother);
+          }
         }
       }
-      // Loop to also assign mothers
-      for (auto const& part:lheparticles){
-        MELAParticle* const& thePart = particle_translation_map.find(part)->second;
-        for (auto const& mother:part->getMothers()){
-          if (!mother) continue;
-          MELAParticle* const& theMother = particle_translation_map.find(mother)->second;
-          thePart->addMother(theMother);
+      else{
+        for (auto const& part:genparticles){
+          if (!part->extras.isHardProcess) continue;
+          MELAParticle* onePart = new MELAParticle(part->pdgId(), part->p4_TLV());
+          int lhe_status = 1;
+          if (part->status()!=2) lhe_status = PDGHelpers::convertPythiaStatus(part->status());
+          onePart->setGenStatus(lhe_status);
+          particleList.push_back(onePart);
+          particle_translation_map[part] = onePart;
+          if (lheHiggs_mass<0. && PDGHelpers::isAHiggs(part->pdgId())){
+            lheHiggs_mass = part->mass();
+            lheHiggs_pt = part->pt();
+          }
+        }
+        // Loop to also assign mothers
+        for (auto const& part:genparticles){
+          if (!part->extras.isHardProcess) continue;
+          MELAParticle* const& thePart = particle_translation_map.find(part)->second;
+          for (auto const& mother:part->getMothers()){
+            if (!mother) continue;
+            MELAParticle* const& theMother = particle_translation_map.find(mother)->second;
+            thePart->addMother(theMother);
+          }
         }
       }
     }
@@ -343,6 +400,11 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
       }
     }
     if (!genCand) genCand = HiggsComparators::candidateSelector(*genEvent, HiggsComparators::BestZ1ThenZ2ScSumPt, VVMode);
+
+    if (lheHiggs_mass<0. && genCand){
+      lheHiggs_mass = genCand->m();
+      lheHiggs_pt = genCand->pt();
+    }
 
     // Write the default LHE particles
     {
@@ -411,10 +473,10 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, std::unordered
     for (auto& part:particleList) delete part;
   }
 
-  sample_wgt = rewgtBuilder->getOverallReweightingNormalization(currentTree);
-  invalidReweightingWgts = !rewgtBuilder->checkWeightsBelowThreshold(currentTree);
+  sample_wgt = (rewgtBuilder ? rewgtBuilder->getOverallReweightingNormalization(currentTree) : 1.);
+  invalidReweightingWgts = (rewgtBuilder ? !rewgtBuilder->checkWeightsBelowThreshold(currentTree) : false);
   // The weight below is only for bookkeeping purposes. It should not be multiplied.
-  sample_wgt_pairwiseComponent = rewgtBuilder->getSamplePairwiseNormalization(currentTree);
+  sample_wgt_pairwiseComponent = (rewgtBuilder ? rewgtBuilder->getSamplePairwiseNormalization(currentTree) : 1.);
 
   // Systematics reweighting
   for (auto const& syst:registeredSysts){
@@ -683,7 +745,8 @@ void produceReweightedGen(
   bool const isVBF = strSampleSet.Contains("VBF");
   bool const isWH = strSampleSet.Contains("WminusH") || strSampleSet.Contains("WplusH");
   //bool const isVH = strSampleSet.Contains("WminusH") || strSampleSet.Contains("WplusH") || strSampleSet.Contains("ZH") || strSampleSet.Contains("HZJ");
-  bool const hasHWWDecay = SampleHelpers::isHiggsToWWDecay(SampleHelpers::getHiggsSampleDecayMode(strSampleSet));
+  SampleHelpers::HiggsSampleDecayMode const hdecaymode = SampleHelpers::getHiggsSampleDecayMode(strSampleSet);
+  bool const hasHWWDecay = SampleHelpers::isHiggsToWWDecay(hdecaymode);
   bool const isPowheg = strSampleSet.Contains("POWHEG");
   bool const hasDirectHWW = isWH || hasHWWDecay;
   bool const isWHWW = isWH && hasDirectHWW;
@@ -705,15 +768,24 @@ void produceReweightedGen(
   curdir->cd();
 
   // Register external systematics shape reweighting
-  registerSystematics(strSampleSet);
+  if (isPowheg) registerSystematics(strSampleSet);
 
   // Set variables to allow recasting of topology
   LooperFunctionHelpers::recastLHETopology = isPowheg && !isGG;
   if (LooperFunctionHelpers::recastLHETopology) LooperFunctionHelpers::candScheme = (isVBF ? TVar::JJVBF : (isWH ? TVar::Had_WH : TVar::Had_ZH));
 
   // Set decay mode interpretation
-  // Leave VVDecayMode as -1
+  // Leave VVDecayMode as -1 in POWHEG samples
   LooperFunctionHelpers::VVMode = (hasHWWDecay ? MELAEvent::WWMode : MELAEvent::ZZMode);
+  if (!isPowheg){
+    switch (hdecaymode){
+    case SampleHelpers::kZZTo4L:
+      LooperFunctionHelpers::VVDecayMode = 0;
+      break;
+    default:
+      break;
+    }
+  }
 
   // Create the output file
   TString coutput = SampleHelpers::getSampleIdentifier(strSampleSet);
@@ -725,6 +797,7 @@ void produceReweightedGen(
   TString stroutput_txt = stroutput;
   HelperFunctions::replaceString<TString, TString const>(stroutput_txt, ".root", ".txt");
   TString stroutput_rewgtRcd = Form("%s/rewgtRcd_%s%s", coutput_main.Data(), coutput.Data(), ".root");
+  TString stroutput_rewgtRcd_txt = Form("%s/rewgtRcd_%s%s", coutput_main.Data(), coutput.Data(), ".txt");
   TFile* foutput = TFile::Open(stroutput, "recreate");
   foutput->cd();
   BaseTree* tout = new BaseTree("SkimTree");
@@ -758,7 +831,8 @@ void produceReweightedGen(
     std::vector<double> sample_masses;
     for (auto const& sname:sampledirs){
       TString sid = SampleHelpers::getSampleIdentifier(sname);
-      sample_masses.push_back(SampleHelpers::findPoleMass(sid));
+      double sample_mass = SampleHelpers::findPoleMass(sid);
+      if (sample_mass>0.) HelperFunctions::addByLowest(sample_masses, sample_mass, true);
     }
     if (sample_masses.size()>1){
       for (unsigned int im=0; im<sample_masses.size()-1; im++){
@@ -775,45 +849,84 @@ void produceReweightedGen(
       }
     }
   }
-  IVYout << "Reweighting bin boundaries: " << binning_rewgt.getBinningVector() << endl;
-  BulkReweightingBuilder rewgtBuilder(
-    binning_rewgt,
-    { "LHECandMass" },
-    { "genHEPMCweight_default" },
-    { "xsec" },
-    ReweightingFunctions::getSimpleVariableBin,
-    ReweightingFunctions::getSimpleWeight,
-    ReweightingFunctions::getSimpleWeight
-  );
-  theLooper.addReweightingBuilder("MERewgt", &rewgtBuilder);
+  BulkReweightingBuilder* rewgtBuilder = nullptr;
+  if (isPowheg){
+    IVYout << "Reweighting bin boundaries: " << binning_rewgt.getBinningVector() << endl;
+    rewgtBuilder = new BulkReweightingBuilder(
+      binning_rewgt,
+      { "LHECandMass" },
+      { "genHEPMCweight_default" },
+      { "xsec" },
+      ReweightingFunctions::getSimpleVariableBin,
+      ReweightingFunctions::getSimpleWeight,
+      ReweightingFunctions::getSimpleWeight
+    );
+    theLooper.addReweightingBuilder("MERewgt", rewgtBuilder);
+  }
 
   // Acquire the MEs
-  std::vector<TString> strMEs;
-  {
-    PhysicsProcessHandler* proc_handler = getPhysicsProcessHandler(strSampleSet, ACHypothesisHelpers::kZZ2l2nu_offshell);
+  std::vector<std::pair<TString, bool>> strMEs;
+  if (rewgtBuilder){
+    PhysicsProcessHandler* proc_handler = getPhysicsProcessHandler(strSampleSet, (hdecaymode==SampleHelpers::kZZTo4L ? ACHypothesisHelpers::kZZ4l_offshell : ACHypothesisHelpers::kZZ2l2nu_offshell));
     for (unsigned int iac=0; iac<(unsigned int) ACHypothesisHelpers::nACHypotheses; iac++){
       ACHypothesisHelpers::ACHypothesis hypo = (ACHypothesisHelpers::ACHypothesis) iac;
-      if (hasDirectHWW && hypo==ACHypothesisHelpers::kL1ZGs) continue;
       std::vector<TString> strMEs_hypo = proc_handler->getMELAHypothesisWeights(hypo, false);
-      HelperFunctions::appendVector(strMEs, strMEs_hypo);
+      std::vector<bool> excludeFromNormRewgt_list(strMEs_hypo.size(), (hasDirectHWW && hypo==ACHypothesisHelpers::kL1ZGs));
+      // WW-only interaction can also happen in VBF, but that concerns only one of the L1ZGs ME types.
+      if (isVBF && hypo==ACHypothesisHelpers::kL1ZGs){
+        for (unsigned int ibsi=0; ibsi<strMEs_hypo.size(); ibsi++){
+          if (ibsi==(static_cast<unsigned int>(VVProcessHandler::VVTplSigBSM)-static_cast<unsigned int>(VVProcessHandler::nVVTplSMTypes))) excludeFromNormRewgt_list.at(ibsi)=true;
+        }
+      }
+      std::vector<std::pair<TString, bool>> strMEs_tmp;
+      HelperFunctions::zipVectors(strMEs_hypo, excludeFromNormRewgt_list, strMEs_tmp);
+      HelperFunctions::appendVector(strMEs, strMEs_tmp);
     }
     delete proc_handler;
   }
 
+  //int iRefHypo = -1;
+  int iRefHypo = 0;
   constexpr double tol_wgt = 5;
   float const thr_frac_Neff = (isGG ? 0.005 : 0.01);
-  for (auto const& strME:strMEs){
-    double thr_wgt = 0.9995;
-    if (isGG){ /* Do nothing, 0.9995 is good enough. */ }
-    else if (strME == "p_Gen_JJEW_SIG_ghv1_1_MCFM"){ /* Do nothing, 0.9995 is good enough. */ }
-    else if (isVBF) thr_wgt = 0.999;
-    else if (isWHWW) thr_wgt = 0.995;
+  {
+    unsigned int ihypo = 0;
+    for (auto const& strME_pp:strMEs){
+      auto const& strME = strME_pp.first;
+      auto const& excludeFromNormRewgt = strME_pp.second;
+      double thr_wgt = 0.9995;
+      if (isGG){
+        //if (strME == "p_Gen_GG_SIG_kappaTopBot_1_ghz1_1_MCFM") iRefHypo = ihypo;
+        /* Do nothing, 0.9995 is good enough. */
+      }
+      else if (strME == "p_Gen_JJEW_SIG_ghv1_1_MCFM"){
+        //iRefHypo = ihypo;
+        /* Do nothing to weight threshold, 0.9995 is good enough. */
+      }
+      else if (isVBF) thr_wgt = 0.999;
+      else if (isWHWW) thr_wgt = 0.995;
 
-    rewgtBuilder.addReweightingWeights(
-      { strME, "p_Gen_CPStoBWPropRewgt" },
-      ReweightingFunctions::getSimpleWeight,
-      thr_wgt, tol_wgt
-    );
+      std::vector<TString> wgtcoll{ strME };
+      if (isPowheg) wgtcoll.push_back("p_Gen_CPStoBWPropRewgt");
+      if (rewgtBuilder) rewgtBuilder->addReweightingWeights(
+        wgtcoll,
+        ReweightingFunctions::getSimpleWeight,
+        thr_wgt, tol_wgt,
+        excludeFromNormRewgt
+      );
+
+      ihypo++;
+    }
+    if (iRefHypo>=0) IVYout << "Reweighting builder reference hypothesis index is " << iRefHypo << " (" << strMEs.at(iRefHypo).first << ")." << endl;
+    else{
+      if (rewgtBuilder){
+        IVYerr << "Reweighting builder reference hypothesis is not found. Aborting... " << endl;
+        delete rewgtBuilder;
+        delete tout;
+        foutput->Close();
+        return;
+      }
+    }
   }
 
   curdir->cd();
@@ -834,7 +947,7 @@ void produceReweightedGen(
       break;
     }
     sample_tree->sampleIdentifier = SampleHelpers::getSampleIdentifier(sname);
-    float const sampleMH = SampleHelpers::findPoleMass(sample_tree->sampleIdentifier);
+    float const sampleMH = (isPowheg ? SampleHelpers::findPoleMass(sample_tree->sampleIdentifier) : -1.f);
     if (std::abs(sampleMH-125.f)<0.8f) tree_MH125 = sample_tree;
     else if (!tree_MHLowestOffshell && sampleMH>=200.f) tree_MHLowestOffshell = sample_tree;
 
@@ -858,7 +971,7 @@ void produceReweightedGen(
       // Book branches
       genInfoHandler.setAcquireLHEMEWeights(false);
       genInfoHandler.setAcquireLHEParticles(true);
-      genInfoHandler.setAcquireGenParticles(false);
+      genInfoHandler.setAcquireGenParticles(true);
       genInfoHandler.bookBranches(sample_tree);
 
       sample_tree->silenceUnused();
@@ -879,12 +992,29 @@ void produceReweightedGen(
           auto const& genInfo = genInfoHandler.getGenInfo();
 
           auto const& lheparticles = genInfoHandler.getLHEParticles();
+          auto const& genparticles = genInfoHandler.getGenParticles();
           if (!hasTaus){
-            for (auto const& part:lheparticles){
-              if (part->status()==1 && std::abs(part->pdgId())==15){
-                hasTaus = true;
-                genInfoHandler.setAcquireLHEParticles(false);
-                break;
+            if (!lheparticles.empty()){
+              genInfoHandler.setAcquireGenParticles(false);
+              for (auto const& part:lheparticles){
+                if (part->status()==1 && std::abs(part->pdgId())==15){
+                  hasTaus = true;
+                  genInfoHandler.setAcquireLHEParticles(false);
+                  break;
+                }
+              }
+            }
+            else{
+              genInfoHandler.setAcquireLHEParticles(false);
+              if (!genparticles.empty()){
+                for (auto const& part:genparticles){
+                  if (!part->extras.isHardProcess) continue;
+                  if ((part->status()==1 || part->status()==2) && std::abs(part->pdgId())==15){
+                    hasTaus = true;
+                    genInfoHandler.setAcquireGenParticles(false);
+                    break;
+                  }
+                }
               }
             }
           }
@@ -927,37 +1057,45 @@ void produceReweightedGen(
     }
 
     // Register tree
-    IVYout << "\t- Registering the sample for reweighting..." << endl;
-    rewgtBuilder.registerTree(sample_tree, xsec_scale * BR_scale / sum_wgts_raw_withveto);
+    if (rewgtBuilder){
+      IVYout << "\t- Registering the sample for reweighting..." << endl;
+      rewgtBuilder->registerTree(sample_tree, xsec_scale * BR_scale / sum_wgts_raw_withveto);
+    }
 
     sample_tree->silenceUnused();
 
     IVYout << "\t- Registering the sample to the looper..." << endl;
     // Add the input tree to the looper
     theLooper.addTree(sample_tree, globalWeights);
+    //if (sample_trees.size()==2) break;
   }
 
-  std::vector< std::pair<BaseTree*, BaseTree*> > tree_normTree_pairs; tree_normTree_pairs.reserve(sample_trees.size()-1);
-  for (unsigned int itree=0; itree<sample_trees.size(); itree++){
-    BaseTree* const& sample_tree = sample_trees.at(itree);
-    if (sample_tree==tree_MH125 || sample_tree==tree_MHLowestOffshell) continue;
-    float const sampleMH = SampleHelpers::findPoleMass(sample_tree->sampleIdentifier);
-    if ((tree_MH125 && sampleMH>SampleHelpers::findPoleMass(tree_MH125->sampleIdentifier) && sampleMH<160.f) || (tree_MHLowestOffshell && sampleMH>SampleHelpers::findPoleMass(tree_MHLowestOffshell->sampleIdentifier))){
-      tree_normTree_pairs.emplace_back(sample_trees.at(itree), sample_trees.at(itree-1));
-      IVYout << "Normalizing mass " << sampleMH << " to mass " << SampleHelpers::findPoleMass(sample_trees.at(itree-1)->sampleIdentifier) << endl;
+  if (rewgtBuilder){
+    std::vector< std::pair<BaseTree*, BaseTree*> > tree_normTree_pairs; tree_normTree_pairs.reserve(sample_trees.size()-1);
+    for (unsigned int itree=0; itree<sample_trees.size(); itree++){
+      BaseTree* const& sample_tree = sample_trees.at(itree);
+      if (sample_tree==tree_MH125 || sample_tree==tree_MHLowestOffshell) continue;
+      float const sampleMH = SampleHelpers::findPoleMass(sample_tree->sampleIdentifier);
+      if ((tree_MH125 && sampleMH>SampleHelpers::findPoleMass(tree_MH125->sampleIdentifier) && sampleMH<160.f) || (tree_MHLowestOffshell && sampleMH>SampleHelpers::findPoleMass(tree_MHLowestOffshell->sampleIdentifier))){
+        tree_normTree_pairs.emplace_back(sample_trees.at(itree), sample_trees.at(itree-1));
+        IVYout << "Normalizing mass " << sampleMH << " to mass " << SampleHelpers::findPoleMass(sample_trees.at(itree-1)->sampleIdentifier) << endl;
+      }
+    }
+
+    // Record the reweighting weights or use the existing record
+    bool const rwgtrcd_exists = HostHelpers::FileReadable(stroutput_rewgtRcd);
+    if (rwgtrcd_exists) rewgtBuilder->setupFromFile(stroutput_rewgtRcd);
+    else{
+      IVYout.open(stroutput_rewgtRcd_txt);
+      rewgtBuilder->setup(iRefHypo, &tree_normTree_pairs, thr_frac_Neff);
+      IVYout.close();
+
+      TFile* foutput_rewgtRcd = TFile::Open(stroutput_rewgtRcd, "recreate");
+      rewgtBuilder->writeToFile(foutput_rewgtRcd);
+      foutput_rewgtRcd->Close();
     }
   }
 
-  // Record the reweighting weights or use the existing record
-  bool const rwgtrcd_exists = HostHelpers::FileReadable(stroutput_rewgtRcd);
-  if (rwgtrcd_exists) rewgtBuilder.setupFromFile(stroutput_rewgtRcd);
-  else{
-    rewgtBuilder.setup(0, &tree_normTree_pairs, thr_frac_Neff);
-
-    TFile* foutput_rewgtRcd = TFile::Open(stroutput_rewgtRcd, "recreate");
-    rewgtBuilder.writeToFile(foutput_rewgtRcd);
-    foutput_rewgtRcd->Close();
-  }
   curdir->cd();
 
   // Loop over all events
@@ -978,7 +1116,6 @@ void produceReweightedGen(
 
   SampleHelpers::addToCondorTransferList(stroutput);
 }
-
 
 void produceHistograms(TString strSampleSet, TString period, TString strdate){
   SystematicsHelpers::SystematicVariationTypes const theGlobalSyst = SystematicsHelpers::sNominal;
@@ -1749,3 +1886,336 @@ void makeBWRewgtPlots(TString strSampleSet, TString strdate){
   finput->Close();
 }
 
+
+void computeIntegratedXsecAfterSelection(
+  TString strSampleSet, TString period, TString strdate,
+  double minMass, double maxMass,
+  bool use4lSel = false, int nleps_req = -1,
+  bool useJetCuts = false, bool useGenJetExtraCuts = false,
+  bool useOnlyWrongComb = false
+){
+  SystematicsHelpers::SystematicVariationTypes const theGlobalSyst = SystematicsHelpers::sNominal;
+
+  gStyle->SetOptStat(0);
+
+  if (strdate=="") strdate = HelperFunctions::todaysdate();
+
+  bool const isGG = strSampleSet.Contains("GluGluH") || strSampleSet.Contains("GGH");
+  bool const isVH = strSampleSet.Contains("WminusH") || strSampleSet.Contains("WplusH") || strSampleSet.Contains("ZH") || strSampleSet.Contains("HZJ");
+  bool const isPowheg = strSampleSet.Contains("POWHEG");
+  bool const acquireMEs = isPowheg;
+
+  // Set output directory
+  TString cinput_main = "output/ReweightedGenTrees/" + strdate + "/" + period;
+
+  TDirectory* curdir = gDirectory;
+  curdir->cd();
+
+  TFile* foutput = TFile::Open("bla.root", "recreate");
+  TH1F htmp("hh", "", 900, 100, 1000);
+  curdir->cd();
+
+  // Create the output file
+  TString cinput = SampleHelpers::getSampleIdentifier(strSampleSet);
+  HelperFunctions::replaceString(cinput, "_MINIAODSIM", "");
+  HelperFunctions::replaceString(cinput, "_MINIAOD", "");
+  TString strinput = cinput_main + "/" + cinput + "_" + SystematicsHelpers::getSystName(theGlobalSyst).data() + ".root";
+  IVYout << "Acquiring input " << strinput << "..." << endl;
+  BaseTree* tin = new BaseTree(strinput, "SkimTree", "", "");
+  if (!tin->isValid()){
+    IVYerr << "\t- Failed to acquire." << endl;
+    delete tin;
+    exit(1);
+  }
+
+#define BRANCH_COMMAND(TYPE, NAME) TYPE* NAME = nullptr; tin->bookBranch<TYPE>(#NAME, 0);
+  BRANCH_SCALAR_COMMANDS;
+#undef BRANCH_COMMAND
+#define BRANCH_COMMAND(TYPE, NAME) std::vector<TYPE>** NAME=nullptr; tin->bookBranch<std::vector<TYPE>*>(#NAME, nullptr);
+  BRANCH_VECTOR_COMMANDS;
+#undef BRANCH_COMMAND
+#define BRANCH_COMMAND(TYPE, NAME) tin->getValRef(#NAME, NAME);
+  BRANCH_COMMANDS;
+#undef BRANCH_COMMAND
+
+  std::unordered_map<TString, float*> ME_Kfactor_values;
+  std::vector<TString> allbranchnames;
+  tin->getValidBranchNamesWithoutAlias(allbranchnames, false);
+  for (auto const& bname:allbranchnames){
+    if (
+      (bname.BeginsWith("p_") && (bname.Contains("JHUGen") || bname.Contains("MCFM")))
+      ||
+      bname.BeginsWith("p_Gen")
+      ||
+      bname.Contains("LHECandMass")
+      ||
+      bname.BeginsWith("KFactor")
+      ){
+      tin->bookBranch<float>(bname, -1.f);
+      ME_Kfactor_values[bname] = nullptr;
+      tin->getValRef(bname, ME_Kfactor_values[bname]);
+    }
+  }
+
+  tin->silenceUnused();
+
+  float* val_Kfactor_QCD = nullptr;
+  float* val_ME_SIG = nullptr;
+  float* val_ME_CPS = nullptr;
+  if (isGG){
+    val_Kfactor_QCD = ME_Kfactor_values.find("KFactor_QCD_NNLO_ggVV_Sig_Nominal")->second;
+    if (acquireMEs){
+      val_ME_SIG = ME_Kfactor_values.find("p_Gen_GG_SIG_kappaTopBot_1_ghz1_1_MCFM")->second;
+      val_ME_CPS = ME_Kfactor_values.find("p_Gen_CPStoBWPropRewgt")->second;
+    }
+  }
+  else{
+    if (acquireMEs){
+      val_ME_SIG = ME_Kfactor_values.find("p_Gen_JJEW_SIG_ghv1_1_MCFM")->second;
+      val_ME_CPS = ME_Kfactor_values.find("p_Gen_CPStoBWPropRewgt")->second;
+    }
+  }
+
+  double sum_wgts = 0;
+  double sum_wgts_passGenCompSelection = 0;
+  double sum_wgts_accepted = 0;
+  int nEntries = tin->getNEvents();
+  IVYout << "Looping over " << nEntries << " events:" << endl;
+  for (int ev=0; ev<nEntries; ev++){
+    tin->getEvent(ev);
+    HelperFunctions::progressbar(ev, nEntries);
+
+    double wgt =
+      (*event_wgt) * (*event_wgt_adjustment_NNPDF30)
+      * (*sample_wgt) * (*invalidReweightingWgts ? 0.f : 1.f)
+      * (val_Kfactor_QCD ? *val_Kfactor_QCD : 1.f)
+      * (val_ME_SIG ? *val_ME_SIG : 1.f) * (val_ME_CPS ? *val_ME_CPS : 1.f);
+    sum_wgts += wgt;
+
+    if (!(use4lSel && isPowheg && isVH)){
+      if (!(*passGenCompSelection)) continue;
+    }
+    sum_wgts_passGenCompSelection += wgt;
+
+    bool pass_LHEFinalState = true;
+
+    std::vector<ParticleObject> mothers; mothers.reserve(2);
+    std::vector<ParticleObject> leptons; leptons.reserve((*lheQCDLOparticles_id)->size());
+    std::vector<ParticleObject> jets; jets.reserve((*lheQCDLOparticles_id)->size());
+    ParticleObject::LorentzVector_t leptons_sump4;
+    for (unsigned int ip=0; ip<(*lheQCDLOparticles_id)->size(); ip++){
+      auto const& st = (*lheQCDLOparticles_status)->at(ip);
+      auto const& pid = (*lheQCDLOparticles_id)->at(ip);
+      ParticleObject::LorentzVector_t pp4((*lheQCDLOparticles_px)->at(ip), (*lheQCDLOparticles_py)->at(ip), (*lheQCDLOparticles_pz)->at(ip), (*lheQCDLOparticles_E)->at(ip));
+
+      if (st<0){
+        mothers.emplace_back(pid, pp4);
+        continue;
+      }
+
+      if ((PDGHelpers::isALepton(pid) && std::abs(pid)!=15) || PDGHelpers::isANeutrino(pid)){
+        leptons.emplace_back(pid, pp4);
+        leptons_sump4 += pp4;
+      }
+      else if (PDGHelpers::isAJet(pid)) jets.emplace_back(pid, pp4);
+    }
+
+    if (useOnlyWrongComb){
+      std::vector<std::pair<ParticleObject*, ParticleObject*>> dilepton_pairs;
+      std::vector<std::pair<ParticleObject*, ParticleObject*>> dinu_pairs;
+      std::vector<std::pair<ParticleObject*, ParticleObject*>> dijet_pairs;
+      for (auto it_l1=leptons.begin(); it_l1!=leptons.end();it_l1++){
+        for (auto it_l2=it_l1+1; it_l2!=leptons.end(); it_l2++){
+          if (it_l1->pdgId()+it_l2->pdgId()==0){
+            if (PDGHelpers::isANeutrino(it_l1->pdgId())) dinu_pairs.emplace_back(&(*it_l1), &(*it_l2));
+            else dilepton_pairs.emplace_back(&(*it_l1), &(*it_l2));
+          }
+        }
+      }
+      for (auto it_j1=jets.begin(); it_j1!=jets.end(); it_j1++){
+        for (auto it_j2=it_j1+1; it_j2!=jets.end(); it_j2++){
+          if (it_j1->pdgId()+it_j2->pdgId()==0) dijet_pairs.emplace_back(&(*it_j1), &(*it_j2));
+        }
+      }
+      bool has_llqq = false;
+      bool has_llnn = false;
+      for (auto const& pl:dilepton_pairs){
+        for (auto const& pj:dijet_pairs){
+          if (std::abs((pl.first->p4()+pl.second->p4()+pj.first->p4()+pj.second->p4()).M()-125.)<0.05){
+            has_llqq = true;
+            break;
+          }
+        }
+      }
+      for (auto const& pl:dilepton_pairs){
+        for (auto const& pn:dinu_pairs){
+          if (std::abs((pl.first->p4()+pl.second->p4()+pn.first->p4()+pn.second->p4()).M()-125.)<0.05){
+            has_llqq = true;
+            break;
+          }
+        }
+      }
+      pass_LHEFinalState = (has_llqq || has_llnn);
+    }
+
+    if (!pass_LHEFinalState) continue;
+
+    cms3_id_t motherVid = -9000;
+    if (!isGG && mothers.size()==2) motherVid = PDGHelpers::getCoupledVertex(mothers.front().pdgId(), mothers.back().pdgId());
+
+    bool pass_leptons_pt_eta = true;
+    bool pass_leptons_min_mll = true;
+    bool pass_leptons_extraSel = true;
+    double min_mll = -1;
+    unsigned char nleps_pt10 = 0;
+    unsigned char nleps_pt20 = 0;
+    double smallestZdiff = -1;
+    double mll_smallestZdiff = -1;
+    char idx_lepZ11 = -1;
+    char idx_lepZ12 = -1;
+    char idx_lepZ21 = -1;
+    char idx_lepZ22 = -1;
+    int nleps = 0;
+    for (unsigned int il=0; il<leptons.size(); il++){
+      auto const& lep1 = leptons.at(il);
+      if (!use4lSel){
+        if (lep1.pt()<7. || std::abs(lep1.eta())>=2.4){
+          pass_leptons_pt_eta = false;
+          break;
+        }
+      }
+      else{
+        bool const isMuon = (std::abs(lep1.pdgId())==13);
+        if (lep1.pt()<(isMuon ? 5. : 7.) || std::abs(lep1.eta())>=(isMuon ? 2.4 : 2.5)){
+          pass_leptons_pt_eta = false;
+          break;
+        }
+      }
+      if (lep1.pt()>=10.){
+        nleps_pt10++;
+        if (lep1.pt()>=20.){
+          nleps_pt20++;
+        }
+      }
+
+      nleps++;
+
+      for (unsigned int jl=il+1; jl<leptons.size(); jl++){
+        auto const& lep2 = leptons.at(jl);
+        if (lep1.pdgId()==-lep2.pdgId() && std::abs(lep1.pdgId())%2==1){
+          double mll = (lep1.p4() + lep2.p4()).M();
+          if (min_mll<0. || mll<min_mll) min_mll = mll;
+          double Zdiff = std::abs(mll - PDGHelpers::Zmass);
+          if (smallestZdiff<0. || Zdiff<smallestZdiff){
+            smallestZdiff = Zdiff;
+            mll_smallestZdiff = mll;
+            idx_lepZ11 = il;
+            idx_lepZ12 = jl;
+            if (lep1.pdgId()<lep2.pdgId()) std::swap(idx_lepZ11, idx_lepZ12);
+          }
+        }
+      }
+    }
+    pass_leptons_min_mll = (min_mll>=4.);
+    if (!pass_leptons_pt_eta || !pass_leptons_min_mll) continue;
+
+    {
+      std::vector<std::pair<unsigned int, unsigned int>> Z2pairs;
+      for (unsigned int il=0; il<leptons.size(); il++){
+        if (static_cast<char>(il)==idx_lepZ11 || static_cast<char>(il)==idx_lepZ12) continue;
+        auto const& lep1 = leptons.at(il);
+        for (unsigned int jl=il+1; jl<leptons.size(); jl++){
+          if (static_cast<char>(jl)==idx_lepZ11 || static_cast<char>(jl)==idx_lepZ12) continue;
+          auto const& lep2 = leptons.at(jl);
+          if (lep1.pdgId()==-lep2.pdgId() && std::abs(lep1.pdgId())%2==1){
+            double mll = (lep1.p4() + lep2.p4()).M();
+            if (!use4lSel || mll>12.) Z2pairs.emplace_back(il, jl);
+          }
+        }
+      }
+      if (Z2pairs.empty()) continue;
+      double highest_ptsum = -1;
+      for (auto const& pp:Z2pairs){
+        double ptsum = leptons.at(pp.first).pt() + leptons.at(pp.second).pt();
+        if (highest_ptsum<ptsum){
+          highest_ptsum = ptsum;
+          idx_lepZ21 = pp.first;
+          idx_lepZ22 = pp.second;
+        }
+      }
+    }
+
+    pass_leptons_extraSel = !use4lSel || (idx_lepZ11*idx_lepZ12>=0 && idx_lepZ21*idx_lepZ22>=0 && mll_smallestZdiff>=40. && nleps_pt10>=2 && nleps_pt20>=1);
+    if (!pass_leptons_extraSel) continue;
+    if (use4lSel && (nleps_req>0 && nleps!=nleps_req)) continue;
+
+    double const invmass = (!use4lSel ? leptons_sump4.M() : (leptons.at(idx_lepZ11).p4()+leptons.at(idx_lepZ12).p4()+leptons.at(idx_lepZ21).p4()+leptons.at(idx_lepZ22).p4()).M());
+
+    bool pass_jets_pt_eta = true;
+    bool pass_jets_mjj = true;
+    bool pass_jets_dRjj = true;
+    bool pass_jets_extraSel = true;
+    double min_mjj = -1;
+    double min_dRjj = -1;
+    if (!isGG){
+      if (jets.size()==0){
+        pass_jets_pt_eta = pass_jets_mjj = false;
+      }
+      if (useGenJetExtraCuts) pass_jets_extraSel = false;
+      for (unsigned int ip=0; ip<jets.size(); ip++){
+        auto const& jet1 = jets.at(ip);
+        if (jet1.pt()<30. || std::abs(jet1.eta())>=4.7){
+          pass_jets_pt_eta = false;
+          break;
+        }
+        for (unsigned int jp=ip+1; jp<jets.size(); jp++){
+          auto const& jet2 = jets.at(jp);
+          double mjj = (jet1.p4() + jet2.p4()).M();
+          if (min_mjj<0. || mjj<min_mjj) min_mjj = mjj;
+
+          double dRjj = jet1.deltaR(jet2);
+          if (min_dRjj<0. || dRjj<min_dRjj) min_dRjj = dRjj;
+
+          if (useGenJetExtraCuts){
+            cms3_id_t assocVid = PDGHelpers::getCoupledVertex(jet1.pdgId(), jet2.pdgId());
+            if (
+                mjj>130.
+                ||
+                (
+                  motherVid==assocVid
+                  &&
+                  (
+                    (PDGHelpers::isAWBoson(assocVid) && std::abs(mjj-PDGHelpers::Wmass)<10.)
+                    ||
+                    (PDGHelpers::isAZBoson(assocVid) && std::abs(mjj-PDGHelpers::Zmass)<10.)
+                  )
+                )
+              ) pass_jets_extraSel = true;
+          }
+        }
+      }
+      if (min_mjj>=0.) pass_jets_mjj = (min_mjj>=50.);
+      if (min_dRjj>=0.) pass_jets_dRjj = (min_dRjj>=0.4);
+    }
+
+    // If we are using 4l cuts, we are intested in the jet-inclusive yield, so we do not look at jets.
+    if (!use4lSel && useJetCuts){
+      if (!pass_jets_pt_eta || !pass_jets_mjj || !pass_jets_dRjj || !pass_jets_extraSel) continue;
+    }
+
+    htmp.Fill(invmass, wgt);
+
+    if (invmass<minMass || invmass>=maxMass) continue;
+
+    sum_wgts_accepted += wgt;
+  }
+
+  IVYout << "Sum of weights: " << sum_wgts_accepted << " / " << sum_wgts_passGenCompSelection << " / " << sum_wgts << endl;
+  IVYout << "\t- Fraction of events passing gen. cuts: " << sum_wgts_passGenCompSelection / sum_wgts << endl;
+  IVYout << "\t- Fraction of events accepted after gen. cuts: " << sum_wgts_accepted / sum_wgts_passGenCompSelection << endl;
+
+  delete tin;
+
+  foutput->WriteTObject(&htmp);
+  foutput->Close();
+}

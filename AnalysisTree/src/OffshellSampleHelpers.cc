@@ -1023,6 +1023,14 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
       }
     }
 
+    if (sname.Contains("MCFM_JHUGen")){
+      if (sname.Contains("EWHad")){
+        if (sname.Contains("ZZTo4L")){
+          if (sname.Contains("Bkg") || sname.Contains("AllHypos")) HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/VBFToContinToZZTo4l_13TeV_JHUGenV730_MCFM701_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
+          if (sname.Contains("Sig_0PM_GaSM") || sname.Contains("AllHypos")) HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/VBFToHiggs0PMToZZTo4l_M125_GaSM_TuneCP5_13TeV_JHUGenV730_MCFM701_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
+        }
+      }
+    }
 
     // Simulation for the main backgrounds
     // Z + jets, Z->ll

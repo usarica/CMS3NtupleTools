@@ -2,7 +2,8 @@
 #define CMS3_COMMONTYPEDEFS_H
 
 #include <cstdint>
-#include <IvyFramework/IvyDataTools/interface/IvyDataTypes.h>
+#include "DataFormats/Provenance/interface/RunLumiEventNumber.h"
+#include "IvyFramework/IvyDataTools/interface/IvyDataTypes.h"
 
 
 typedef ivy_listIndex_short_t cms3_listIndex_short_t;
@@ -50,5 +51,10 @@ typedef unsigned char cms3_jet_pujetid_t;
 typedef uint8_t cms3_metsafety_t;
 
 typedef uint16_t cms3_pfcand_qualityflag_t;
+
+typedef edm::RunNumber_t cms3_runnumber_t;
+typedef edm::LuminosityBlockNumber_t cms3_lumiblock_t;
+typedef edm::EventNumber_t cms3_eventnumber_t;
+
 
 #endif

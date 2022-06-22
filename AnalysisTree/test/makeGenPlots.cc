@@ -30,7 +30,7 @@
 using namespace std;
 
 
-void makeGenPlots(bool is_ew){
+void makeGenPlots(bool is_ew, TString workdir="./"){
   gStyle->SetOptStat(0);
 
   // Magic numbers
@@ -69,13 +69,13 @@ void makeGenPlots(bool is_ew){
     );
 
   std::vector<TString> hnames{ "sig", "bkg", "bsi", "sigbkg" };
-  std::vector<TString> hlabels{ "SM H signal (|H|^{2})", "SM contin. (|C|^{2})", "SM total (|H+C|^{2})", "|H|^{2}+|C|^{2}" };
+  std::vector<TString> hlabels{ "SM H signal (#kern[-0.5]{#lower[-0.05]{#scale[1.05]{#font[82]{|}}}}H#kern[-0.5]{#lower[-0.05]{#scale[1.05]{#font[82]{|}}}}^{2})", "SM contin. (#kern[-0.5]{#lower[-0.05]{#scale[1.05]{#font[82]{|}}}}C#kern[-0.5]{#lower[-0.05]{#scale[1.05]{#font[82]{|}}}}^{2})", "SM total (#kern[-0.5]{#lower[-0.05]{#scale[1.05]{#font[82]{|}}}}H+C#kern[-0.5]{#lower[-0.05]{#scale[1.05]{#font[82]{|}}}}^{2})", "#kern[-0.5]{#lower[-0.05]{#scale[1.05]{#font[82]{|}}}}H#kern[-0.5]{#lower[-0.05]{#scale[1.05]{#font[82]{|}}}}^{2}+#kern[-0.5]{#lower[-0.05]{#scale[1.05]{#font[82]{|}}}}C#kern[-0.5]{#lower[-0.05]{#scale[1.05]{#font[82]{|}}}}^{2}" };
   unsigned int nleg = hnames.size();
 
   TString selectionLabel = (is_ew ? "EW ZZ(#rightarrow4l)+qq production (l=e, #mu)" : "gg#rightarrow2l2#nu (l=e, #mu)");
   TString xtitle = (is_ew ? "m_{4l}" : "m_{2l2#nu}"); xtitle += " (GeV)";
   TString ytitle = (is_ew ? "d#sigma / dm_{4l}" : "d#sigma / dm_{2l2#nu}"); ytitle += " (fb/GeV)";
-  TFile* finput = TFile::Open((is_ew ? "ew.root" : "gf.root"), "read");
+  TFile* finput = TFile::Open(workdir + "/" + (is_ew ? "ew.root" : "gf.root"), "read");
   std::vector<TH1F*> hlist;
   {
     unsigned short ih=0;
@@ -237,8 +237,8 @@ void makeGenPlots(bool is_ew){
   text->SetTextAlign(12);
   ptc.Draw();
 
-  c1->SaveAs(canvasname+".pdf");
-  c1->SaveAs(canvasname+".png");
+  c1->SaveAs(workdir + "/" + canvasname+".pdf");
+  c1->SaveAs(workdir + "/" + canvasname+".png");
 
   delete leg;
   delete h_first_clone;
