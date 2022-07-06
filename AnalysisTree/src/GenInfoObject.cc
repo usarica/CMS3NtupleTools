@@ -21,14 +21,16 @@ GenInfoVariables::GenInfoVariables(GenInfoVariables const& other){
   GENINFO_VARIABLES;
 #undef GENINFO_VARIABLE
 
-  LHE_ME_weights = other.LHE_ME_weights;
+  this->LHE_ME_weights = other.LHE_ME_weights;
+  this->Kfactors = other.Kfactors;
 }
 void GenInfoVariables::swap(GenInfoVariables& other){
 #define GENINFO_VARIABLE(TYPE, NAME, DEFVAL) std::swap(this->NAME, other.NAME);
   GENINFO_VARIABLES;
 #undef GENINFO_VARIABLE
 
-  std::swap(LHE_ME_weights, other.LHE_ME_weights);
+  std::swap(this->LHE_ME_weights, other.LHE_ME_weights);
+  std::swap(this->Kfactors, other.Kfactors);
 }
 GenInfoVariables& GenInfoVariables::operator=(const GenInfoVariables& other){
   GenInfoVariables tmp(other);
