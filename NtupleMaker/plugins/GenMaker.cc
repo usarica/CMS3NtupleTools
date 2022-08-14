@@ -574,7 +574,7 @@ void GenMaker::setupKFactorHandles(edm::ParameterSet const& iConfig){
     if (doBuild_KFactor_QCD_ggVV_Sig_handle){
       if (strkfactor_den_lower == "kfactor_qcd_nnlo_ggvv_sig") denominator = KFactorHelpers::kf_QCD_NNLO_GGVV_SIG;
       else if (strkfactor_den_lower == "kfactor_qcd_nlo_ggvv_sig") denominator = KFactorHelpers::kf_QCD_NLO_GGVV_SIG;
-      else throw cms::Exception(Form("GenMaker::setupKFactorHandles: K factor pair (%s, %s) is not implemented.", strkfactor_num.data(), strkfactor_den.data()));
+      else if (strkfactor_den_lower != "") throw cms::Exception(Form("GenMaker::setupKFactorHandles: K factor pair (%s, %s) is not implemented.", strkfactor_num.data(), strkfactor_den.data()));
       //MELAout << "GenMaker::setupKFactorHandles: Building ggVV QCD K factors with num=" << strkfactor_num << " and den=" << strkfactor_den << endl;
       KFactor_QCD_ggVV_Sig_handle = std::make_shared<KFactorHelpers::KFactorHandler_QCD_ggVV_Sig>(this->year);
       //MELAout << "\t- Built!" << endl;

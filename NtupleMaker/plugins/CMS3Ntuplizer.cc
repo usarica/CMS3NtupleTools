@@ -30,32 +30,20 @@
 #include "CMS3/Dictionaries/interface/JetMETEnums.h"
 
 #include "IvyFramework/IvyDataTools/interface/HelperFunctions.h"
-
-#include "MELAStreamHelpers.hh"
+#include "IvyFramework/IvyDataTools/interface/IvyStreamHelpers.hh"
 
 
 typedef math::XYZTLorentzVectorD LorentzVectorD;
 
 using namespace std;
 using namespace edm;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 // Collection names
-const std::string CMS3Ntuplizer::colName_muons = "muons";
-const std::string CMS3Ntuplizer::colName_electrons = "electrons";
-const std::string CMS3Ntuplizer::colName_photons = "photons";
-const std::string CMS3Ntuplizer::colName_fsrcands = "fsrcands";
-const std::string CMS3Ntuplizer::colName_superclusters = "superclusters";
-const std::string CMS3Ntuplizer::colName_isotracks = "isotracks";
-const std::string CMS3Ntuplizer::colName_ak4jets = "ak4jets";
-const std::string CMS3Ntuplizer::colName_ak8jets = "ak8jets";
-const std::string CMS3Ntuplizer::colName_overlapMap = "overlapMap";
-const std::string CMS3Ntuplizer::colName_pfcands = "pfcands";
-const std::string CMS3Ntuplizer::colName_vtxs = "vtxs";
-const std::string CMS3Ntuplizer::colName_triggerinfos = "triggers";
-const std::string CMS3Ntuplizer::colName_triggerobjects = "triggerObjects";
-const std::string CMS3Ntuplizer::colName_genparticles = "genparticles";
+#define COLLECTIONNAME_DIRECTIVE(NAME) const std::string CMS3Ntuplizer::colName_##NAME = GlobalCollectionNames::colName_##NAME;
+COLLECTIONNAME_DIRECTIVES
+#undef COLLECTIONNAME_DIRECTIVE
 
 CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
   pset(pset_),
@@ -348,10 +336,10 @@ void CMS3Ntuplizer::analyze(edm::Event const& iEvent, const edm::EventSetup& iSe
 #undef VECTOR_DATA_OUTPUT_DIRECTIVE
 #undef DOUBLEVECTOR_DATA_OUTPUT_DIRECTIVE
 
-    outtree->getSelectedTree()->SetBasketSize((CMS3Ntuplizer::colName_triggerinfos+"_*").data(), 16384*23);
-    //outtree->getSelectedTree()->SetBasketSize((CMS3Ntuplizer::colName_triggerinfos+"_*").data(), 21846*32);
-    outtree->getSelectedTree()->SetBasketSize((CMS3Ntuplizer::colName_triggerobjects+"_passedTriggers").data(), 64000);
-    outtree->getSelectedTree()->SetBasketSize((CMS3Ntuplizer::colName_triggerobjects+"_associatedTriggers").data(), 64000);
+    outtree->getSelectedTree()->SetBasketSize((CMS3Ntuplizer::colName_triggers+"_*").data(), 16384*23);
+    //outtree->getSelectedTree()->SetBasketSize((CMS3Ntuplizer::colName_triggers+"_*").data(), 21846*32);
+    outtree->getSelectedTree()->SetBasketSize((CMS3Ntuplizer::colName_triggerObjects+"_passedTriggers").data(), 64000);
+    outtree->getSelectedTree()->SetBasketSize((CMS3Ntuplizer::colName_triggerObjects+"_associatedTriggers").data(), 64000);
   }
 
   // Record whatever is in commonEntry into the tree.
@@ -3123,7 +3111,7 @@ void CMS3Ntuplizer::fillJetOverlapInfo(
           PFCandidateInfo& pfcandInfo = PFCandidateInfo::make_and_get_PFCandidateInfo(filledPFCandAssociations, &(*pfcand_part));
           pfcandInfo.addParticleMatch(part->pdgId(), ipart);
         }
-        //MELAout << "\t- After electron " << ipart << ", number of PF candidate infos = " << filledPFCandAssociations.size() << " (number of associated particles = " << pfcands_part.size() << ")" << endl;
+        //IVYout << "\t- After electron " << ipart << ", number of PF candidate infos = " << filledPFCandAssociations.size() << " (number of associated particles = " << pfcands_part.size() << ")" << endl;
 
         // ak4 jets
         {
@@ -3722,7 +3710,7 @@ bool CMS3Ntuplizer::fillEventVariables(edm::Event const& iEvent){
   return true;
 }
 bool CMS3Ntuplizer::fillTriggerInfo(edm::Event const& iEvent){
-  std::string const& colName = CMS3Ntuplizer::colName_triggerinfos;
+  std::string const& colName = CMS3Ntuplizer::colName_triggers;
 
   edm::Handle< edm::View<TriggerInfo> > triggerInfoHandle;
   iEvent.getByToken(triggerInfoToken, triggerInfoHandle);
@@ -3826,13 +3814,13 @@ bool CMS3Ntuplizer::fillTriggerInfo(edm::Event const& iEvent){
       }
     }
   }
-  PUSH_VECTOR_WITH_NAME(colName_triggerobjects, type);
-  PUSH_VECTOR_WITH_NAME(colName_triggerobjects, pt);
-  PUSH_VECTOR_WITH_NAME(colName_triggerobjects, eta);
-  PUSH_VECTOR_WITH_NAME(colName_triggerobjects, phi);
-  PUSH_VECTOR_WITH_NAME(colName_triggerobjects, mass);
-  PUSH_VECTOR_WITH_NAME(colName_triggerobjects, associatedTriggers);
-  PUSH_VECTOR_WITH_NAME(colName_triggerobjects, passedTriggers);
+  PUSH_VECTOR_WITH_NAME(colName_triggerObjects, type);
+  PUSH_VECTOR_WITH_NAME(colName_triggerObjects, pt);
+  PUSH_VECTOR_WITH_NAME(colName_triggerObjects, eta);
+  PUSH_VECTOR_WITH_NAME(colName_triggerObjects, phi);
+  PUSH_VECTOR_WITH_NAME(colName_triggerObjects, mass);
+  PUSH_VECTOR_WITH_NAME(colName_triggerObjects, associatedTriggers);
+  PUSH_VECTOR_WITH_NAME(colName_triggerObjects, passedTriggers);
 
   // If the (data) event does not pass any triggers, do not record it.
   return passAtLeastOneTrigger;
@@ -3840,7 +3828,7 @@ bool CMS3Ntuplizer::fillTriggerInfo(edm::Event const& iEvent){
 bool CMS3Ntuplizer::fillMETFilterVariables(edm::Event const& iEvent){
   // See https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2 for recommendations
   // See also PhysicsTools/PatAlgos/python/slimming/metFilterPaths_cff.py for the collection names
-  const char metFiltCollName[] = "metfilter";
+  std::string const& colName = CMS3Ntuplizer::colName_metfilter;
   edm::Handle<METFilterInfo> metFilterInfoHandle;
   iEvent.getByToken(metFilterInfoToken, metFilterInfoHandle);
   if (!metFilterInfoHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillMETFilterVariables: Error getting the MET filter handle from the event...");
@@ -3877,19 +3865,19 @@ bool CMS3Ntuplizer::fillMETFilterVariables(edm::Event const& iEvent){
     bool flag = false;
     auto it_flag = metFilterInfoHandle->flag_accept_map.find(flagname);
     if (it_flag!=metFilterInfoHandle->flag_accept_map.cend()) flag = it_flag->second;
-    commonEntry.setNamedVal((std::string(metFiltCollName) + "_" + flagname).data(), flag);
+    commonEntry.setNamedVal((colName + "_" + flagname).data(), flag);
   }
 
   return true;
 }
 bool CMS3Ntuplizer::fillMETVariables(edm::Event const& iEvent){
-#define SET_MET_VARIABLE(HANDLE, NAME, COLLNAME) commonEntry.setNamedVal((std::string(COLLNAME) + "_" + #NAME).data(), HANDLE->NAME);
-#define SET_MET_SHIFT(NAME, COLLNAME, VAL) commonEntry.setNamedVal((std::string(COLLNAME) + "_" + #NAME).data(), VAL);
+#define SET_MET_VARIABLE(HANDLE, NAME, COLLNAME) commonEntry.setNamedVal((COLLNAME + "_" + #NAME).data(), HANDLE->NAME);
+#define SET_MET_SHIFT(NAME, COLLNAME, VAL) commonEntry.setNamedVal((COLLNAME + "_" + #NAME).data(), VAL);
 
   using namespace JetMETEnums;
 
-  const char pfmetCollName[] = "pfmet";
-  const char puppimetCollName[] = "puppimet";
+  std::string const& pfmetCollName = CMS3Ntuplizer::colName_pfmet;
+  std::string const& puppimetCollName = CMS3Ntuplizer::colName_puppimet;
 
   edm::Handle<METInfo> metHandle;
 

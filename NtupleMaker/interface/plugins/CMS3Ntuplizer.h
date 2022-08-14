@@ -41,6 +41,8 @@
 #include <SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h>
 #include <SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h>
 
+#include "CMS3/Dictionaries/interface/GlobalCollectionNames.h"
+
 #include "CMS3/NtupleMaker/interface/GenInfo.h"
 #include "CMS3/NtupleMaker/interface/TriggerInfo.h"
 #include "CMS3/NtupleMaker/interface/TriggerObjectInfo.h"
@@ -74,20 +76,9 @@ protected:
     nParticleRecordLevels
   };
 
-  static const std::string colName_muons;
-  static const std::string colName_electrons;
-  static const std::string colName_photons;
-  static const std::string colName_fsrcands;
-  static const std::string colName_superclusters;
-  static const std::string colName_isotracks;
-  static const std::string colName_ak4jets;
-  static const std::string colName_ak8jets;
-  static const std::string colName_overlapMap;
-  static const std::string colName_vtxs;
-  static const std::string colName_pfcands;
-  static const std::string colName_triggerinfos;
-  static const std::string colName_triggerobjects;
-  static const std::string colName_genparticles;
+#define COLLECTIONNAME_DIRECTIVE(NAME) static const std::string colName_##NAME;
+  COLLECTIONNAME_DIRECTIVES
+#undef COLLECTIONNAME_DIRECTIVE
 
 protected:
   const edm::ParameterSet pset;
@@ -273,9 +264,9 @@ template<typename T> void CMS3Ntuplizer::cleanUnusedCollection(bool const& isSel
     ||
     bname.BeginsWith(CMS3Ntuplizer::colName_pfcands.data())
     ||
-    bname.BeginsWith(CMS3Ntuplizer::colName_triggerinfos.data())
+    bname.BeginsWith(CMS3Ntuplizer::colName_triggers.data())
     ||
-    bname.BeginsWith(CMS3Ntuplizer::colName_triggerobjects.data())
+    bname.BeginsWith(CMS3Ntuplizer::colName_triggerObjects.data())
     ){
     //std::cout << "CMS3Ntuplizer::cleanUnusedCollection: Collection " << bname << " can be cleaned because isMC=" << this->isMC << " and isSelected=" << isSelected << "." << std::endl;
     vlist.clear();

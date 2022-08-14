@@ -4,7 +4,6 @@
 #include <string>
 
 
-namespace GlobalCollectionNames{
 #define COLLECTIONNAME_DIRECTIVES \
 COLLECTIONNAME_DIRECTIVE(pfcands) \
 COLLECTIONNAME_DIRECTIVE(muons) \
@@ -27,11 +26,11 @@ COLLECTIONNAME_DIRECTIVE(genak8jets) \
 COLLECTIONNAME_DIRECTIVE(genparticles) \
 COLLECTIONNAME_DIRECTIVE(lheparticles)
 
+
+namespace GlobalCollectionNames{
 #define COLLECTIONNAME_DIRECTIVE(NAME) const std::string colName_##NAME(#NAME);
   COLLECTIONNAME_DIRECTIVES;
 #undef COLLECTIONNAME_DIRECTIVE
-
-#undef COLLECTIONNAME_DIRECTIVES
 }
 
 

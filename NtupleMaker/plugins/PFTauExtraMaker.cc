@@ -26,14 +26,12 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "CMS3/NtupleMaker/interface/plugins/PFTauExtraMaker.h"
-#include "CMS3/NtupleMaker/interface/CommonUtils.h"
 
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace reco;
 using namespace edm;
 using namespace std;
-using namespace CommonUtils;
 
 //
 // constructors and destructor

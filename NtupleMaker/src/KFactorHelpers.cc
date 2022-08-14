@@ -1,17 +1,19 @@
 #include <cassert>
 #include <sstream>
-#include <FWCore/Utilities/interface/Exception.h>
-#include <DataFormats/HepMCCandidate/interface/GenParticle.h>
-#include <SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h>
-#include <CMS3/Dictionaries/interface/CMS3ObjectHelpers.h>
-#include <CMS3/NtupleMaker/interface/KFactorHelpers.h>
-#include <IvyFramework/IvyDataTools/interface/HostHelpersCore.h>
-#include "MELAStreamHelpers.hh"
+#include "FWCore/Utilities/interface/Exception.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
+#include "CMS3/Dictionaries/interface/CMS3ObjectHelpers.h"
+#include "CMS3/NtupleMaker/interface/CommonPkgInfo.h"
+#include "CMS3/NtupleMaker/interface/KFactorHelpers.h"
+#include "IvyFramework/IvyDataTools/interface/IvyPDGHelpers.h"
+#include "IvyFramework/IvyDataTools/interface/HostHelpersCore.h"
+#include "IvyFramework/IvyDataTools/interface/IvyStreamHelpers.hh"
 #include "TDirectory.h"
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
+using namespace IvyStreamHelpers;
 
 
 namespace KFactorHelpers{
@@ -49,10 +51,10 @@ namespace KFactorHelpers{
     std::pair<reco::GenParticle const*, reco::GenParticle const*>& V1pair,
     std::pair<reco::GenParticle const*, reco::GenParticle const*>& V2pair
   ){
-    static const float mZsq = PDGHelpers::Zmass * PDGHelpers::Zmass;
-    static const float mWsq = PDGHelpers::Wmass * PDGHelpers::Wmass;
-    static const float mZGaZ = PDGHelpers::Zmass * PDGHelpers::Zwidth;
-    static const float mWGaW = PDGHelpers::Wmass * PDGHelpers::Wwidth;
+    static const float mZsq = IvyPDGHelpers::Zmass * IvyPDGHelpers::Zmass;
+    static const float mWsq = IvyPDGHelpers::Wmass * IvyPDGHelpers::Wmass;
+    static const float mZGaZ = IvyPDGHelpers::Zmass * IvyPDGHelpers::Zwidth;
+    static const float mWGaW = IvyPDGHelpers::Wmass * IvyPDGHelpers::Wwidth;
     static const float mZGaZsq = mZGaZ*mZGaZ;
     static const float mWGaWsq = mWGaW*mWGaW;
 
@@ -76,33 +78,33 @@ namespace KFactorHelpers{
       if (!part->isHardProcess()) continue;
       int id = part->pdgId();
       int status = part->status();
-      //MELAout << "Gen particle (id, status) = (" << id << ", " << status << ")" << endl;
-      if (PDGHelpers::isAQuark(id) && status == 21) incomingQuarks.push_back(part);
-      else if (PDGHelpers::isAGluon(id) && status == 21) incomingGluons.push_back(part);
-      else if (PDGHelpers::isAQuark(id)) quarkAntiquark[std::abs(id)-1][(id>0 ? 0 : 1)].push_back(part);
-      else if (PDGHelpers::isALepton(id)) lepMinusPlus[(std::abs(id)-11)/2][(id>0 ? 0 : 1)].push_back(part);
-      else if (PDGHelpers::isANeutrino(id)) lepNuNubar[(std::abs(id)-12)/2][(id>0 ? 0 : 1)].push_back(part);
-      else if (PDGHelpers::isAGluon(id)) outgoingGluons.push_back(part);
+      //IVYout << "Gen particle (id, status) = (" << id << ", " << status << ")" << endl;
+      if (IvyPDGHelpers::isAQuark(id) && status == 21) incomingQuarks.push_back(part);
+      else if (IvyPDGHelpers::isAGluon(id) && status == 21) incomingGluons.push_back(part);
+      else if (IvyPDGHelpers::isAQuark(id)) quarkAntiquark[std::abs(id)-1][(id>0 ? 0 : 1)].push_back(part);
+      else if (IvyPDGHelpers::isALepton(id)) lepMinusPlus[(std::abs(id)-11)/2][(id>0 ? 0 : 1)].push_back(part);
+      else if (IvyPDGHelpers::isANeutrino(id)) lepNuNubar[(std::abs(id)-12)/2][(id>0 ? 0 : 1)].push_back(part);
+      else if (IvyPDGHelpers::isAGluon(id)) outgoingGluons.push_back(part);
     }
     ParticleObjectHelpers::sortByGreaterPz(incomingQuarks);
     ParticleObjectHelpers::sortByGreaterPz(incomingGluons);
 
     /*
-    for (auto const& part:incomingQuarks) MELAout << "Incoming quark (id, status) = ( " << part->pdgId() << " , " << part->status() << " )" << endl;
-    for (auto const& part:incomingGluons) MELAout << "Incoming gluon (id, status) = ( " << part->pdgId() << " , " << part->status() << " )" << endl;
+    for (auto const& part:incomingQuarks) IVYout << "Incoming quark (id, status) = ( " << part->pdgId() << " , " << part->status() << " )" << endl;
+    for (auto const& part:incomingGluons) IVYout << "Incoming gluon (id, status) = ( " << part->pdgId() << " , " << part->status() << " )" << endl;
     for (unsigned short c=0; c<3; c++){
       for (unsigned short d=0; d<2; d++){
-        for (auto const& part:lepMinusPlus[c][d]) MELAout << "Lepton[" << c << "][" << d << "] (id, status) = ( " << part->pdgId() << " , " << part->status() << " )" << endl;
+        for (auto const& part:lepMinusPlus[c][d]) IVYout << "Lepton[" << c << "][" << d << "] (id, status) = ( " << part->pdgId() << " , " << part->status() << " )" << endl;
       }
     }
     for (unsigned short c=0; c<3; c++){
       for (unsigned short d=0; d<2; d++){
-        for (auto const& part:lepNuNubar[c][d]) MELAout << "Neutrino[" << c << "][" << d << "] (id, status) = ( " << part->pdgId() << " , " << part->status() << " )" << endl;
+        for (auto const& part:lepNuNubar[c][d]) IVYout << "Neutrino[" << c << "][" << d << "] (id, status) = ( " << part->pdgId() << " , " << part->status() << " )" << endl;
       }
     }
     for (unsigned short c=0; c<6; c++){
       for (unsigned short d=0; d<2; d++){
-        for (auto const& part:quarkAntiquark[c][d]) MELAout << "Quark[" << c << "][" << d << "] (id, status) = ( " << part->pdgId() << " , " << part->status() << " )" << endl;
+        for (auto const& part:quarkAntiquark[c][d]) IVYout << "Quark[" << c << "][" << d << "] (id, status) = ( " << part->pdgId() << " , " << part->status() << " )" << endl;
       }
     }
     */
@@ -132,7 +134,7 @@ namespace KFactorHelpers{
       }
     }
     for (auto& tmppair:tmpVhandle){ if (tmppair.first->pdgId()<0) std::swap(tmppair.first, tmppair.second); }
-    //for (auto const& tmppair:tmpVhandle) MELAout << "Intermediate V (m=" << (tmppair.first->p4() + tmppair.second->p4()).M() << ") found. (id1, st1) = " << tmppair.first->pdgId() << ", " << tmppair.first->status() << ", (id2, st2) = " << tmppair.second->pdgId() << ", " << tmppair.second->status() << endl;
+    //for (auto const& tmppair:tmpVhandle) IVYout << "Intermediate V (m=" << (tmppair.first->p4() + tmppair.second->p4()).M() << ") found. (id1, st1) = " << tmppair.first->pdgId() << ", " << tmppair.first->status() << ", (id2, st2) = " << tmppair.second->pdgId() << ", " << tmppair.second->status() << endl;
 
     // Determine best V1 and V2
     std::pair<reco::GenParticle const*, reco::GenParticle const*> const* bestV1pair=nullptr;
@@ -180,13 +182,13 @@ namespace KFactorHelpers{
     bool doSwap = false;
     auto pBestV1 = bestV1pair->first->p4() + bestV1pair->second->p4();
     auto pBestV2 = bestV2pair->first->p4() + bestV2pair->second->p4();
-    if (doWW) doSwap = (PDGHelpers::isANeutrino(bestV2pair->first->pdgId()) || PDGHelpers::isUpTypeQuark(bestV2pair->first->pdgId()));
+    if (doWW) doSwap = (IvyPDGHelpers::isANeutrino(bestV2pair->first->pdgId()) || IvyPDGHelpers::isUpTypeQuark(bestV2pair->first->pdgId()));
     else if (doWZ) doSwap = (bestV2pair->first->pdgId() == -bestV2pair->second->pdgId());
-    else doSwap = (std::abs(pBestV1.M() - PDGHelpers::Zmass)>std::abs(pBestV2.M() - PDGHelpers::Zmass));
+    else doSwap = (std::abs(pBestV1.M() - IvyPDGHelpers::Zmass)>std::abs(pBestV2.M() - IvyPDGHelpers::Zmass));
     if (doSwap) std::swap(bestV1pair, bestV2pair);
 
-    //MELAout << "m12 = " << (bestV1pair->first->p4() + bestV1pair->second->p4()).M() << endl;
-    //MELAout << "m34 = " << (bestV2pair->first->p4() + bestV2pair->second->p4()).M() << endl;
+    //IVYout << "m12 = " << (bestV1pair->first->p4() + bestV1pair->second->p4()).M() << endl;
+    //IVYout << "m34 = " << (bestV2pair->first->p4() + bestV2pair->second->p4()).M() << endl;
 
     V1pair = *bestV1pair;
     V2pair = *bestV2pair;
@@ -724,7 +726,7 @@ namespace KFactorHelpers{
     kfFile_NNLO(nullptr),
     kfFile_NLO(nullptr)
   {
-    TString strKFactorDir = "${CMSSW_BASE}/src/CMS3/NtupleMaker/data/Kfactors/";
+    TString strKFactorDir = NTUPLEMAKERPKGDATAPATH + "Kfactors/";
     HostHelpers::ExpandEnvironmentVariables(strKFactorDir);
 
     TString strSqrts="";
@@ -867,7 +869,7 @@ namespace KFactorHelpers{
     fcn_Kfactor_QCD_qqWZ(nullptr),
     fcn_Kfactor_QCD_qqWW(nullptr)
   {
-    TString strKFactorDir = "${CMSSW_BASE}/src/CMS3/NtupleMaker/data/Kfactors/";
+    TString strKFactorDir = NTUPLEMAKERPKGDATAPATH + "Kfactors/";
     HostHelpers::ExpandEnvironmentVariables(strKFactorDir);
     unsigned int sqrts=0;
     switch(year){
@@ -918,7 +920,7 @@ namespace KFactorHelpers{
   }
   
   void KFactorHandler_EW_qqVV_Bkg::readTableFromFile(TString const& fname, std::vector< std::vector<double> >& table){
-    //MELAout << "KFactorHandler_EW_qqVV_Bkg::readTableFromFile: Reading table " << fname << endl;
+    //IVYout << "KFactorHandler_EW_qqVV_Bkg::readTableFromFile: Reading table " << fname << endl;
     if (!HostHelpers::FileReadable(fname.Data())) throw cms::Exception("IOError") << "KFactorHandler_EW_qqVV_Bkg::readTableFromFile " << fname << " does not exist!";
     ifstream fin(fname.Data(), ios_base::in);
     while (!fin.eof()){
@@ -926,7 +928,7 @@ namespace KFactorHelpers{
       std::getline(fin, strline);
       if (strline.empty()) continue;
 
-      //MELAout << "=> " << strline << endl;
+      //IVYout << "=> " << strline << endl;
 
       table.push_back(std::vector<double>());
       std::vector<double>& tbl_line = table.back(); tbl_line.reserve(5);
@@ -937,9 +939,9 @@ namespace KFactorHelpers{
         if (strtmp.empty()) continue;
         tbl_line.push_back(std::stod(strtmp));
       }
-      //MELAout << "==>> " << tbl_line << endl;
+      //IVYout << "==>> " << tbl_line << endl;
     }
-    //MELAout << "KFactorHandler_EW_qqVV_Bkg::readTableFromFile: Done reading table" << endl;
+    //IVYout << "KFactorHandler_EW_qqVV_Bkg::readTableFromFile: Done reading table" << endl;
   }
   std::vector<double> KFactorHandler_EW_qqVV_Bkg::findTableEntry(double const& mhat, double const& that) const{
     std::vector<std::vector<double>>::const_iterator const table_end = table_VV.cend();
@@ -997,8 +999,8 @@ namespace KFactorHelpers{
     std::pair<reco::GenParticle const*, reco::GenParticle const*> const& bestV2pair,
     std::unordered_map<std::string, float>& kfactors_map
   ) const{
-    static const float mZsq = PDGHelpers::Zmass * PDGHelpers::Zmass;
-    static const float mWsq = PDGHelpers::Wmass * PDGHelpers::Wmass;
+    static const float mZsq = IvyPDGHelpers::Zmass * IvyPDGHelpers::Zmass;
+    static const float mWsq = IvyPDGHelpers::Wmass * IvyPDGHelpers::Wmass;
     static const std::vector<std::string> kfactornames{
       "KFactor_EW_NLO_qqVV_Bkg_Nominal",
       "KFactor_EW_NLO_qqVV_Bkg_EWDn",
@@ -1030,13 +1032,13 @@ namespace KFactorHelpers{
     float sum_mV1_mV2 = 0;
     switch (type){
     case kf_EW_NLO_QQZZ_BKG:
-      sum_mV1_mV2 = 2.*PDGHelpers::Zmass;
+      sum_mV1_mV2 = 2.*IvyPDGHelpers::Zmass;
       break;
     case kf_EW_NLO_QQWZ_BKG:
-      sum_mV1_mV2 = PDGHelpers::Wmass + PDGHelpers::Zmass;
+      sum_mV1_mV2 = IvyPDGHelpers::Wmass + IvyPDGHelpers::Zmass;
       break;
     case kf_EW_NLO_QQWW_BKG:
-      sum_mV1_mV2 = 2.*PDGHelpers::Wmass;
+      sum_mV1_mV2 = 2.*IvyPDGHelpers::Wmass;
       break;
     default:
       // Do nothing
@@ -1092,7 +1094,7 @@ namespace KFactorHelpers{
     else if (type == kf_EW_NLO_QQWW_BKG){ // WW
       kfactor_QCD = fcn_Kfactor_QCD_qqWW(pt_hat, 0);
     }
-    else if (PDGHelpers::isANeutrino(bestV2pair.first->pdgId()) || PDGHelpers::isUpTypeQuark(bestV2pair.first->pdgId())){ // W+Z
+    else if (IvyPDGHelpers::isANeutrino(bestV2pair.first->pdgId()) || IvyPDGHelpers::isUpTypeQuark(bestV2pair.first->pdgId())){ // W+Z
       kfactor_QCD = fcn_Kfactor_QCD_qqWZ(true, 0);
       kfactor_virtphoton = (1. + 0.00559445 - 5.17082e-6 * m_hat + 3.63331e-8 * s_hat);
     }
@@ -1182,7 +1184,7 @@ namespace KFactorHelpers{
       kfactor = fcn_Kfactor_QCD_qqWW(pt_hat, 1);
     }
     else if (type == kf_QCD_NNLO_QQWZ_BKG){ // WZ
-      if (PDGHelpers::isANeutrino(bestV2pair.first->pdgId()) || PDGHelpers::isUpTypeQuark(bestV2pair.first->pdgId())){ // W+Z
+      if (IvyPDGHelpers::isANeutrino(bestV2pair.first->pdgId()) || IvyPDGHelpers::isUpTypeQuark(bestV2pair.first->pdgId())){ // W+Z
         kfactor = fcn_Kfactor_QCD_qqWZ(true, 1);
       }
       else{ // W-Z
