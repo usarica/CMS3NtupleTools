@@ -90,10 +90,12 @@ git cms-addpkg RecoJets/JetProducers
 # MELA
 git clone git@github.com:JHUGen/JHUGenMELA.git
 ./JHUGenMELA/setup.sh -j
+eval $(./JHUGenMELA/setup.sh env)
 
 # MELA Analytics
 git clone git@github.com:MELALabs/MelaAnalytics.git
 ./MelaAnalytics/setup.sh -j
+eval $(./MelaAnalytics/setup.sh env)
 
 # Common LHE tools
 git clone git@github.com:usarica/CommonLHETools.git
@@ -103,6 +105,7 @@ git clone git@github.com:IvyFramework/IvyDataTools.git IvyFramework/IvyDataTools
 ./IvyFramework/IvyDataTools/setup.sh -j
 git clone git@github.com:IvyFramework/IvyAutoMELA.git IvyFramework/IvyAutoMELA
 ./IvyFramework/IvyAutoMELA/setup.sh -j
+eval $(./IvyFramework/IvyAutoMELA/setup.sh env)
 
 #########################
 #  DeepAK8 fat jet tagger
