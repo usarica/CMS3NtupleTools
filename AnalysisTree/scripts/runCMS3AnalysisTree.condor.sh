@@ -155,43 +155,14 @@ if [[ -e CMS3/AnalysisTree/src ]];then
   fi
 fi
 
+
+# Set up environment variables for MELA and related packages
+pushd ${CMSSW_BASE}/src &> /dev/null
+eval $(./MelaAnalytics/setup.sh env)
+popd &> /dev/null
 # Needed to locate the include directory of MELA classes. It can get lost.
-export ROOT_INCLUDE_PATH=${ROOT_INCLUDE_PATH}:${CMSSW_BASE}/src/JHUGenMELA/MELA/interface
-# Ensure CMSSW can find libmcfm
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${CMSSW_BASE}/src/JHUGenMELA/MELA/data/${SCRAM_ARCH}
-# Do not do the one below instead of the above; it will create problems when loading the MELA library interactively
-# cp ${CMSSW_BASE}/src/JHUGenMELA/MELA/data/${SCRAM_ARCH}/*.so ${CMSSW_BASE}/lib/${SCRAM_ARCH}/
+export ROOT_INCLUDE_PATH=${ROOT_INCLUDE_PATH}:${MELA_LIB_PATH}/../../interface
 
-if [[ $doRecompile -eq 1 ]]; then
-  # Clean CMSSW-related compilation objects and print the lib area afterward
-  scramv1 b clean &>> compilation.log
-  echo "================================="
-  echo "lib/${SCRAM_ARCH} after cleaning:"
-  ls ../lib/${SCRAM_ARCH}
-  echo "================================="
-
-  # Compile CMSSW-dependent packages
-  (
-    cd JHUGenMELA
-
-    ./setup.sh clean
-    ./setup.sh -j &>> compilation.log
-
-    MELA_COMPILE_STATUS=$?
-    if [ $MELA_COMPILE_STATUS != 0 ];then
-      echo "MELA compilation exited with error ${MELA_COMPILE_STATUS}. Printing the log:"
-      cat compilation.log
-    fi
-    rm -f compilation.log
-
-    cd -
-  )
-else
-  echo "================================="
-  echo "lib/${SCRAM_ARCH} with no cleaning:"
-  ls ../lib/${SCRAM_ARCH}
-  echo "================================="
-fi
 
 # Do the final compilation
 if [[ $doRecompile -eq 1 ]]; then

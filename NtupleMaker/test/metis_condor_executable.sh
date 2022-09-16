@@ -118,12 +118,13 @@ else
     scram b
 fi
 
-# Needed or else cmssw can't find libmcfm_[xyz].so
-# export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${CMSSW_BASE}/src/JHUGenMELA/MELA/data/${SCRAM_ARCH}
-# This is nicer than above. both work, and both have scary but benign warnings/printouts
-cp ${CMSSW_BASE}/src/JHUGenMELA/MELA/data/${SCRAM_ARCH}/*.so ${CMSSW_BASE}/lib/${SCRAM_ARCH}/
-# "Needed" to get rid of benign warnings/printouts
-export ROOT_INCLUDE_PATH=${ROOT_INCLUDE_PATH}:${CMSSW_BASE}/src/JHUGenMELA/MELA/interface
+
+# Set up environment variables for MELA and related packages
+pushd ${CMSSW_BASE}/src &> /dev/null
+eval $(./MelaAnalytics/setup.sh env)
+popd &> /dev/null
+# Needed to locate the include directory of MELA classes. It can get lost.
+export ROOT_INCLUDE_PATH=${ROOT_INCLUDE_PATH}:${MELA_LIB_PATH}/../../interface
 
 
 # # logging every 45 seconds gives ~100kb log file/3 hours

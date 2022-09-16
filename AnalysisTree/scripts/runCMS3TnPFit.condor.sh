@@ -141,8 +141,14 @@ fi
 eval `scramv1 runtime -sh`
 echo "CMSSW_BASE: ${CMSSW_BASE}"
 
-# Make sure JHUGenMELA library location is recognized
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${CMSSW_BASE}/src/JHUGenMELA/MELA/data/${SCRAM_ARCH}
+
+# Set up environment variables for MELA and related packages
+pushd ${CMSSW_BASE}/src &> /dev/null
+eval $(./MelaAnalytics/setup.sh env)
+popd &> /dev/null
+# Needed to locate the include directory of MELA classes. It can get lost.
+export ROOT_INCLUDE_PATH=${ROOT_INCLUDE_PATH}:${MELA_LIB_PATH}/../../interface
+
 
 cd src
 

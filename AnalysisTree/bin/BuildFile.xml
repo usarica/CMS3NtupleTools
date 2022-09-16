@@ -4,8 +4,8 @@
 <use name="roofitcore"/>
 
 <bin file="trimCMS3Production.cc" name="trimCMS3Production">
-  <flags CPPFLAGS="-I$(CMSSW_BASE)/src/CMS3/AnalysisTree/interface/ -I$(CMSSW_BASE)/src/JHUGenMELA/MELA/interface/ -I$(CMSSW_BASE)/src/IvyFramework/IvyDataTools/interface/ -I$(CMSSW_BASE)/src/IvyFramework/IvyAutoMELA/interface/" />
-  <use name="JHUGenMELA/MELA"/>
+  <flags CPPFLAGS="-I$(CMSSW_BASE)/src/CMS3/AnalysisTree/interface/ -I$(CMSSW_BASE)/src/IvyFramework/IvyDataTools/interface/ -I$(CMSSW_BASE)/src/IvyFramework/IvyAutoMELA/interface/ -I$(MELA_LIB_PATH)/../../interface/" />
+  <flags LDFLAGS="-L$(MELA_LIB_PATH) -L$(MELAANALYTICS_PATH)/EventContainer/lib -L$(MELAANALYTICS_PATH)/GenericMEComputer/lib -L$(MELAANALYTICS_PATH)/CandidateLOCaster/lib -lmcfm_707 -ljhugenmela -lcollier -lJHUGenMELAMELA -lMelaAnalyticsEventContainer -lMelaAnalyticsGenericMEComputer -lMelaAnalyticsCandidateLOCaster" />
   <use name="IvyFramework/IvyDataTools"/>
   <use name="IvyFramework/IvyAutoMELA"/>
   <use name="CMS3/Dictionaries"/>
@@ -13,8 +13,8 @@
 </bin>
 
 <bin file="printCMS3SampleGroup.cc" name="printCMS3SampleGroup">
-  <flags CPPFLAGS="-I$(CMSSW_BASE)/src/CMS3/AnalysisTree/interface/ -I$(CMSSW_BASE)/src/JHUGenMELA/MELA/interface/ -I$(CMSSW_BASE)/src/IvyFramework/IvyDataTools/interface/ -I$(CMSSW_BASE)/src/IvyFramework/IvyAutoMELA/interface/" />
-  <use name="JHUGenMELA/MELA"/>
+  <flags CPPFLAGS="-I$(CMSSW_BASE)/src/CMS3/AnalysisTree/interface/ -I$(CMSSW_BASE)/src/IvyFramework/IvyDataTools/interface/ -I$(CMSSW_BASE)/src/IvyFramework/IvyAutoMELA/interface/ -I$(MELA_LIB_PATH)/../../interface/" />
+  <flags LDFLAGS="-L$(MELA_LIB_PATH) -L$(MELAANALYTICS_PATH)/EventContainer/lib -L$(MELAANALYTICS_PATH)/GenericMEComputer/lib -L$(MELAANALYTICS_PATH)/CandidateLOCaster/lib -lmcfm_707 -ljhugenmela -lcollier -lJHUGenMELAMELA -lMelaAnalyticsEventContainer -lMelaAnalyticsGenericMEComputer -lMelaAnalyticsCandidateLOCaster" />
   <use name="IvyFramework/IvyDataTools"/>
   <use name="IvyFramework/IvyAutoMELA"/>
   <use name="CMS3/Dictionaries"/>

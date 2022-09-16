@@ -27,10 +27,6 @@
 <use   name="EgammaAnalysis/ElectronTools"/>
 <use   name="PhysicsTools/NanoAOD"/>
 <use   name="NNKit/FatJetNN"/>
-<use   name="JHUGenMELA/MELA"/>
-<use   name="MelaAnalytics/EventContainer"/>
-<use   name="MelaAnalytics/GenericMEComputer"/>
-<use   name="MelaAnalytics/CandidateLOCaster"/>
 <use   name="CommonLHETools/LHEHandler"/>
 <use   name="IvyFramework/IvyDataTools"/>
 <use   name="IvyFramework/IvyAutoMELA"/>
@@ -38,10 +34,13 @@
 <use   name="clhep"/>
 <use   name="CMS3/Dictionaries"/>
 
+
 <Flags CXXDEFINES="CMSSW_VERSION=.oOCMSSW_VERSIONOo."/>
 <Flags CXXDEFINES="CMSSW_VERSION_MAJOR=.oOCMSSW_VERSION_MAJOROo."/>
 <Flags CXXDEFINES="CMSSW_VERSION_MINOR=.oOCMSSW_VERSION_MINOROo."/>
-<flags CXXFLAGS="-g -O3 -I$(CMSSW_BASE)/src/JHUGenMELA/MELA/interface/ -I$(CMSSW_BASE)/src/IvyFramework/IvyDataTools/interface/ -I$(CMSSW_BASE)/src/IvyFramework/IvyAutoMELA/interface/"/>
+<flags CXXFLAGS="-g -O3 -I$(CMSSW_BASE)/src/IvyFramework/IvyDataTools/interface/ -I$(CMSSW_BASE)/src/IvyFramework/IvyAutoMELA/interface/ -I$(MELA_LIB_PATH)/../../interface/"/>
+<flags LDFLAGS="-L$(MELA_LIB_PATH) -L$(MELAANALYTICS_PATH)/EventContainer/lib -L$(MELAANALYTICS_PATH)/GenericMEComputer/lib -L$(MELAANALYTICS_PATH)/CandidateLOCaster/lib -lmcfm_707 -ljhugenmela -lcollier -lJHUGenMELAMELA -lMelaAnalyticsEventContainer -lMelaAnalyticsGenericMEComputer -lMelaAnalyticsCandidateLOCaster" />
+
 
 <export>
    <lib name="1"/>
